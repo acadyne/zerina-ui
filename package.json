@@ -1,0 +1,70 @@
+{
+  "name": "zerina-ui",
+  "version": "0.1.1",
+  "description": "Primitives, components, patterns and styles for React apps.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acadyne/zerina-ui.git"
+  },
+  "homepage": "https://github.com/acadyne/zerina-ui#readme",
+  "bugs": {
+    "url": "https://github.com/acadyne/zerina-ui/issues"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "ui",
+    "components",
+    "design-system",
+    "dashboard",
+    "admin",
+    "sass",
+    "datatable",
+    "themes"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm clean && tsup && mkdir -p dist/theme dist/styles && cp src/theme/*.css dist/theme/ && cp src/styles/*.css dist/styles/",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "pack:check": "pnpm typecheck && pnpm build && pnpm pack"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20",
+    "react-dom": ">=18 <20"
+  },
+  "dependencies": {
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
