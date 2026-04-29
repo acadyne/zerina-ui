@@ -53,17 +53,38 @@ export const AVAILABLE_THEMES: BuiltInUIThemeMode[] = [
   "sepia-retro",
 ];
 
+function canUseDOM(): boolean {
+  return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
 function isValidTheme(value: string | null): value is UIThemeMode {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function getInitialTheme(defaultTheme: UIThemeMode = "dark"): UIThemeMode {
-  if (typeof window === "undefined") return defaultTheme;
+function getStoredTheme(): UIThemeMode | null {
+  if (!canUseDOM()) return null;
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (isValidTheme(stored)) return stored;
+  return isValidTheme(stored) ? stored : null;
+}
 
-  return defaultTheme;
+function getInitialTheme(
+  defaultTheme: UIThemeMode,
+  options: {
+    ignoreStoredTheme: boolean;
+    ssrSafe: boolean;
+  }
+): UIThemeMode {
+  if (options.ignoreStoredTheme) return defaultTheme;
+
+  /**
+   * Modo SSR-safe:
+   * no lee localStorage durante el primer render.
+   * Esto evita hydration mismatch en Next/SSR.
+   */
+  if (options.ssrSafe) return defaultTheme;
+
+  return getStoredTheme() ?? defaultTheme;
 }
 
 function getColorScheme(theme: UIThemeMode): "light" | "dark" {
@@ -71,6 +92,8 @@ function getColorScheme(theme: UIThemeMode): "light" | "dark" {
     case "light":
     case "spring":
     case "summer":
+    case "sol-de-mar":
+    case "paper-ink":
       return "light";
     default:
       return "dark";
@@ -81,9 +104,7 @@ function uniqueThemes(themes: UIThemeMode[]): UIThemeMode[] {
   return Array.from(new Set(themes));
 }
 
-export function resolveThemeList(
-  config?: UIThemeListConfig
-): UIThemeMode[] {
+export function resolveThemeList(config?: UIThemeListConfig): UIThemeMode[] {
   if (!config) {
     return AVAILABLE_THEMES;
   }
@@ -116,32 +137,6 @@ export interface UIThemeProviderProps {
 
   /**
    * Configura los temas disponibles para cycleTheme().
-   *
-   * Formas soportadas:
-   *
-   * 1. Sin themes:
-   *    usa AVAILABLE_THEMES.
-   *
-   * 2. Array:
-   *    reemplaza la lista completa.
-   *
-   *    themes={["dark", "light", "mi-tema"]}
-   *
-   * 3. Objeto con mode: "extend":
-   *    AVAILABLE_THEMES + custom.
-   *
-   *    themes={{
-   *      mode: "extend",
-   *      custom: ["sinapsis", "paper-ink"]
-   *    }}
-   *
-   * 4. Objeto con mode: "replace":
-   *    solo custom.
-   *
-   *    themes={{
-   *      mode: "replace",
-   *      custom: ["sinapsis", "paper-ink"]
-   *    }}
    */
   themes?: UIThemeListConfig;
 
@@ -150,6 +145,16 @@ export interface UIThemeProviderProps {
    * Útil cuando quieres forzar el defaultTheme en una app.
    */
   ignoreStoredTheme?: boolean;
+
+  /**
+   * Si está en true, evita leer localStorage durante el primer render.
+   *
+   * Úsalo en apps con SSR/hidratación, como Next.js.
+   *
+   * En React puro puedes dejarlo en false para conservar el comportamiento
+   * inmediato anterior.
+   */
+  ssrSafe?: boolean;
 }
 
 export const UIThemeProvider: React.FC<UIThemeProviderProps> = ({
@@ -157,22 +162,35 @@ export const UIThemeProvider: React.FC<UIThemeProviderProps> = ({
   defaultTheme = "dark",
   themes,
   ignoreStoredTheme = false,
+  ssrSafe = false,
 }) => {
   const availableThemes = React.useMemo<UIThemeMode[]>(() => {
     return resolveThemeList(themes);
   }, [themes]);
 
-  const [theme, setThemeState] = React.useState<UIThemeMode>(() => {
-    if (ignoreStoredTheme) return defaultTheme;
-    return getInitialTheme(defaultTheme);
-  });
+  const [theme, setThemeState] = React.useState<UIThemeMode>(() =>
+    getInitialTheme(defaultTheme, {
+      ignoreStoredTheme,
+      ssrSafe,
+    })
+  );
+
+  React.useEffect(() => {
+    if (!ssrSafe) return;
+    if (ignoreStoredTheme) return;
+
+    const stored = getStoredTheme();
+    if (!stored) return;
+
+    setThemeState(stored);
+  }, [ignoreStoredTheme, ssrSafe]);
 
   const setTheme = React.useCallback((action: SetThemeAction) => {
     setThemeState((prevTheme) => {
       const nextTheme =
         typeof action === "function" ? action(prevTheme) : action;
 
-      if (typeof window !== "undefined") {
+      if (canUseDOM()) {
         window.localStorage.setItem(STORAGE_KEY, nextTheme);
       }
 
@@ -199,6 +217,8 @@ export const UIThemeProvider: React.FC<UIThemeProviderProps> = ({
   }, [availableThemes, defaultTheme, setTheme]);
 
   React.useEffect(() => {
+    if (!canUseDOM()) return;
+
     const root = document.documentElement;
 
     root.setAttribute("data-ui-theme", theme);

@@ -60,6 +60,16 @@ export interface UILayoutProviderProps {
    * Útil para apps Android/nativas donde no quieres permitir alternar diseño.
    */
   lockMode?: boolean;
+
+  /**
+   * Si está activo, evita leer matchMedia durante el primer render.
+   *
+   * Útil para Next.js / SSR, porque el servidor y el primer render
+   * del cliente deben coincidir para evitar hydration mismatch.
+   *
+   * En React puro puedes dejarlo en false.
+   */
+  ssrSafe?: boolean;
 }
 
 function resolveEffectiveMode(
@@ -80,8 +90,10 @@ export const UILayoutProvider: React.FC<UILayoutProviderProps> = ({
   mobileBreakpoint = 720,
   deviceKind = "unknown",
   lockMode = false,
+  ssrSafe = false,
 }) => {
   const isControlled = mode !== undefined;
+
   const [internalMode, setInternalMode] =
     React.useState<UILayoutMode>(defaultMode);
 
@@ -91,7 +103,9 @@ export const UILayoutProvider: React.FC<UILayoutProviderProps> = ({
     return `(max-width: ${Math.max(0, mobileBreakpoint - 0.02)}px)`;
   }, [mobileBreakpoint]);
 
-  const matchesMobile = useMediaQuery(mobileQuery, currentMode === "mobile");
+  const matchesMobile = useMediaQuery(mobileQuery, currentMode === "mobile", {
+    initializeWithValue: !ssrSafe,
+  });
 
   const effectiveMode = React.useMemo(
     () => resolveEffectiveMode(currentMode, matchesMobile),

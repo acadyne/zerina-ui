@@ -1,6 +1,19 @@
 // src/core/layout/useMediaQuery.ts
 import React from "react";
 
+export interface UseMediaQueryOptions {
+  /**
+   * true:
+   *   Lee matchMedia durante el primer render del cliente.
+   *   Mejor para React puro / CSR.
+   *
+   * false:
+   *   Usa defaultMatches en el primer render y actualiza después del mount.
+   *   Mejor para SSR / Next.
+   */
+  initializeWithValue?: boolean;
+}
+
 function getMatches(query: string, defaultMatches: boolean): boolean {
   if (typeof window === "undefined") {
     return defaultMatches;
@@ -15,11 +28,18 @@ function getMatches(query: string, defaultMatches: boolean): boolean {
 
 export function useMediaQuery(
   query: string,
-  defaultMatches = false
+  defaultMatches = false,
+  options: UseMediaQueryOptions = {}
 ): boolean {
-  const [matches, setMatches] = React.useState<boolean>(() =>
-    getMatches(query, defaultMatches)
-  );
+  const { initializeWithValue = true } = options;
+
+  const [matches, setMatches] = React.useState<boolean>(() => {
+    if (!initializeWithValue) {
+      return defaultMatches;
+    }
+
+    return getMatches(query, defaultMatches);
+  });
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -49,4 +69,11 @@ export function useMediaQuery(
   }, [query]);
 
   return matches;
+}
+
+export function getMediaQueryMatchesForClientOnly(
+  query: string,
+  defaultMatches = false
+): boolean {
+  return getMatches(query, defaultMatches);
 }
