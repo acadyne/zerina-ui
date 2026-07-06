@@ -20,5 +20,5 @@ dist
 .DS_Store
 .env
 .env.*
-vento
+vento/
 docs
