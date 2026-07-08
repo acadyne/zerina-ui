@@ -23,3 +23,9 @@ dist
 vento/
 docs
 vento_2/
+uso
+
+.namignore
+analizar_todo.py
+archivos_pedidos.txt
+estructura_y_contenido.md
