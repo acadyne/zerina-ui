@@ -26,6 +26,7 @@ export * from "./helpers";
 
 export * from "./core/layout";
 export * from "./core/motion";
+export * from "./core/viewport";
 export * from "./core/provider";
 
 export { Portal } from "./core/overlay";

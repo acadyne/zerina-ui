@@ -17,10 +17,13 @@ import {
   type UIMotionProviderProps,
 } from "../motion";
 import {
+  UIViewportProvider,
+  type UIViewportProviderProps,
+} from "../viewport";
+import {
   ToastProvider,
   type ToastProviderProps,
 } from "../../components/feedback";
-
 
 export interface ZerinaProviderProps {
   children: React.ReactNode;
@@ -31,6 +34,13 @@ export interface ZerinaProviderProps {
    * Si no se pasa, usa la configuración por defecto de OverlayProvider.
    */
   overlay?: Omit<OverlayProviderProps, "children">;
+
+  /**
+   * Configuración del sistema de viewport.
+   *
+   * Si no se pasa, usa la configuración por defecto de UIViewportProvider.
+   */
+  viewport?: Omit<UIViewportProviderProps, "children">;
 
   /**
    * Configuración del sistema de temas.
@@ -56,29 +66,31 @@ export interface ZerinaProviderProps {
   /**
    * Configuración del sistema de toast.
    *
-   * Si no se pasa, usa la configuración por defecto de UIMotionProvider.
+   * Si no se pasa, usa la configuración por defecto de ToastProvider.
    */
-   toast?: Omit<ToastProviderProps, "children">;
-
+  toast?: Omit<ToastProviderProps, "children">;
 }
 
 export const ZerinaProvider: React.FC<ZerinaProviderProps> = ({
   children,
   overlay,
+  viewport,
   theme,
   layout,
   motion,
-    toast,
+  toast,
 }) => {
   return (
     <OverlayProvider {...overlay}>
-      <UILayoutProvider {...layout}>
-        <UIMotionProvider {...motion}>
-          <UIThemeProvider {...theme}>
-            <ToastProvider {...toast}>{children}</ToastProvider>
-          </UIThemeProvider>
-        </UIMotionProvider>
-      </UILayoutProvider>
+      <UIViewportProvider {...viewport}>
+        <UILayoutProvider {...layout}>
+          <UIMotionProvider {...motion}>
+            <UIThemeProvider {...theme}>
+              <ToastProvider {...toast}>{children}</ToastProvider>
+            </UIThemeProvider>
+          </UIMotionProvider>
+        </UILayoutProvider>
+      </UIViewportProvider>
     </OverlayProvider>
   );
 };
