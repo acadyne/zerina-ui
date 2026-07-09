@@ -1,5 +1,6 @@
 // src/primitives/navigation/navigation-rail/NavigationRail.tsx
 import React from "react";
+import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
 import { Box } from "../../layout";
 import { NavigationRailContext } from "./NavigationRailContext";
 import { NavigationRailItem } from "./NavigationRailItem";
@@ -13,6 +14,7 @@ import {
 } from "./navigationRail.styles";
 import type {
   NavigationRailContextValue,
+  NavigationRailItemProps,
   NavigationRailProps,
 } from "./navigationRail.types";
 
@@ -70,6 +72,9 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
       listStyle,
       headerStyle,
       footerStyle,
+
+      styles,
+      slotProps,
 
       ...rest
     },
@@ -129,6 +134,9 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
 
         badgeStyle,
         activeBadgeStyle,
+
+        styles,
+        slotProps,
       }),
       [
         currentValue,
@@ -154,15 +162,53 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
         activeLabelStyle,
         badgeStyle,
         activeBadgeStyle,
+        styles,
+        slotProps,
       ]
     );
+
+    const rootSlotProps = getSlotProps(slotProps, "root");
+    const containerSlotProps = getSlotProps(slotProps, "container");
+    const listSlotProps = getSlotProps(slotProps, "list");
+    const headerSlotProps = getSlotProps(slotProps, "header");
+    const footerSlotProps = getSlotProps(slotProps, "footer");
+
+    const {
+      className: rootSlotClassName,
+      style: rootSlotStyle,
+      ...rootSlotRest
+    } = rootSlotProps;
+
+    const {
+      className: containerSlotClassName,
+      style: containerSlotStyle,
+      ...containerSlotRest
+    } = containerSlotProps;
+
+    const {
+      className: listSlotClassName,
+      style: listSlotStyle,
+      ...listSlotRest
+    } = listSlotProps;
+
+    const {
+      className: headerSlotClassName,
+      style: headerSlotStyle,
+      ...headerSlotRest
+    } = headerSlotProps;
+
+    const {
+      className: footerSlotClassName,
+      style: footerSlotStyle,
+      ...footerSlotRest
+    } = footerSlotProps;
 
     return (
       <NavigationRailContext.Provider value={contextValue}>
         <Box
           as="nav"
           ref={ref as React.Ref<Element>}
-          className={className}
+          className={cx(className, rootSlotClassName)}
           aria-label={rest["aria-label"] ?? "Navegación lateral compacta"}
           data-ui-navigation-rail=""
           data-ui-navigation-rail-position={position}
@@ -171,6 +217,7 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
           data-ui-navigation-rail-density={density}
           data-ui-navigation-rail-indicator={indicator}
           data-ui-navigation-rail-label-behavior={labelBehavior}
+          {...rootSlotRest}
           {...rest}
           style={{
             ...getRootPositionStyle({ position, placement }),
@@ -196,10 +243,15 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
             boxSizing: "border-box",
             color: "var(--ui-text)",
             ...getRootSurfaceStyles({ variant, translucent, placement }),
+            ...getSlotStyle(styles, "root"),
+            ...rootSlotStyle,
             ...style,
           }}
         >
           <Box
+            className={containerSlotClassName}
+            data-ui-navigation-rail-container=""
+            {...containerSlotRest}
             style={{
               width: "100%",
               height: "100%",
@@ -214,17 +266,23 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
               paddingBottom: densityStyles.rootPaddingBottom,
               paddingLeft: densityStyles.rootPaddingLeft,
               ...getListSurfaceStyles({ variant, translucent }),
+              ...getSlotStyle(styles, "container"),
+              ...containerSlotStyle,
             }}
           >
             {header ? (
               <Box
                 data-ui-navigation-rail-header=""
+                className={headerSlotClassName}
+                {...headerSlotRest}
                 style={{
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                   flexShrink: 0,
                   marginBottom: "0.4rem",
+                  ...getSlotStyle(styles, "header"),
+                  ...headerSlotStyle,
                   ...headerStyle,
                 }}
               >
@@ -236,6 +294,8 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
               role="tablist"
               aria-orientation="vertical"
               data-ui-navigation-rail-list=""
+              className={listSlotClassName}
+              {...listSlotRest}
               style={{
                 width: "100%",
                 minWidth: 0,
@@ -248,6 +308,8 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
                 overflow: "visible",
                 flex: 1,
                 ...getListAlignmentStyle(alignment),
+                ...getSlotStyle(styles, "list"),
+                ...listSlotStyle,
                 ...listStyle,
               }}
             >
@@ -257,12 +319,16 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
             {footer ? (
               <Box
                 data-ui-navigation-rail-footer=""
+                className={footerSlotClassName}
+                {...footerSlotRest}
                 style={{
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                   flexShrink: 0,
                   marginTop: "0.4rem",
+                  ...getSlotStyle(styles, "footer"),
+                  ...footerSlotStyle,
                   ...footerStyle,
                 }}
               >
@@ -282,8 +348,7 @@ type NavigationRailComponent = React.ForwardRefExoticComponent<
   NavigationRailProps & React.RefAttributes<HTMLElement>
 > & {
   Item: React.ForwardRefExoticComponent<
-    import("./navigationRail.types").NavigationRailItemProps &
-      React.RefAttributes<HTMLButtonElement>
+    NavigationRailItemProps & React.RefAttributes<HTMLButtonElement>
   >;
 };
 

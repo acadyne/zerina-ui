@@ -1,4 +1,6 @@
+// src/primitives/navigation/bottom-navigation/BottomNavigation.tsx
 import React from "react";
+import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
 import { Box } from "../../layout";
 import { BottomNavigationContext } from "./BottomNavigationContext";
 import { BottomNavigationItem } from "./BottomNavigationItem";
@@ -13,7 +15,6 @@ import type {
   BottomNavigationContextValue,
   BottomNavigationProps,
 } from "./bottomNavigation.types";
-import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
 
 const BottomNavigationRoot = React.forwardRef<
   HTMLElement,
@@ -63,8 +64,10 @@ const BottomNavigationRoot = React.forwardRef<
       className = "",
       style,
       listStyle,
+
       styles,
       slotProps,
+
       ...rest
     },
     ref
@@ -123,6 +126,7 @@ const BottomNavigationRoot = React.forwardRef<
 
         badgeStyle,
         activeBadgeStyle,
+
         styles,
         slotProps,
       }),
@@ -155,7 +159,7 @@ const BottomNavigationRoot = React.forwardRef<
       ]
     );
 
-        const rootSlotProps = getSlotProps(slotProps, "root");
+    const rootSlotProps = getSlotProps(slotProps, "root");
     const listSlotProps = getSlotProps(slotProps, "list");
 
     const {
@@ -182,6 +186,7 @@ const BottomNavigationRoot = React.forwardRef<
           data-ui-bottom-navigation-density={density}
           data-ui-bottom-navigation-indicator={indicator}
           data-ui-bottom-navigation-label-behavior={labelBehavior}
+          {...rootSlotRest}
           {...rest}
           style={{
             ...getRootPositionStyle(position),
@@ -191,11 +196,15 @@ const BottomNavigationRoot = React.forwardRef<
               : undefined,
             boxSizing: "border-box",
             ...getRootSurfaceStyles({ variant, translucent }),
+            ...getSlotStyle(styles, "root"),
+            ...rootSlotStyle,
             ...style,
           }}
         >
           <Box
             role="tablist"
+            className={listSlotClassName}
+            {...listSlotRest}
             style={{
               height: cssSize(resolvedHeight),
               minWidth: 0,
@@ -210,6 +219,8 @@ const BottomNavigationRoot = React.forwardRef<
               boxSizing: "border-box",
               overflow: "visible",
               ...getListSurfaceStyles({ variant, translucent }),
+              ...getSlotStyle(styles, "list"),
+              ...listSlotStyle,
               ...listStyle,
             }}
           >
