@@ -223,12 +223,22 @@ export const BottomNavigationItem = React.forwardRef<
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
+              width:
+                badge && resolvedBadgeAnchor === "icon"
+                  ? "1.65rem"
+                  : undefined,
+              height:
+                badge && resolvedBadgeAnchor === "icon"
+                  ? "1.35rem"
+                  : undefined,
               minWidth: 0,
               lineHeight: 1,
               flexShrink: 0,
+              overflow: "visible",
               transform: active
                 ? `translateY(-1px) scale(${resolvedActiveIconScale})`
                 : undefined,
+              transformOrigin: "center center",
               transition:
                 "transform var(--ui-duration-normal) var(--ui-ease-standard)",
             }}

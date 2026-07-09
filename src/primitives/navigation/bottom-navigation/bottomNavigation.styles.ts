@@ -188,15 +188,19 @@ export function getBadgePlacementStyles({
   placement: BottomNavigationBadgePlacement;
   offset?: BottomNavigationBadgeOffset;
 }): React.CSSProperties {
+  const offsetTransform = getOffsetTransform(offset);
+
   if (placement === "top-center") {
     return {
       position: "absolute",
-      top: "-0.5rem",
+      top: "-0.9rem",
       left: "50%",
       zIndex: 5,
       minWidth: 0,
       pointerEvents: "none",
-      transform: `translateX(-50%)${getOffsetTransform(offset) ? ` ${getOffsetTransform(offset)}` : ""}`,
+      transform: offsetTransform
+        ? `translateX(-50%) ${offsetTransform}`
+        : "translateX(-50%)",
     };
   }
 
@@ -204,22 +208,24 @@ export function getBadgePlacementStyles({
     return {
       position: "absolute",
       top: "50%",
-      right: "-0.65rem",
+      right: "-0.95rem",
       zIndex: 5,
       minWidth: 0,
       pointerEvents: "none",
-      transform: `translateY(-50%)${getOffsetTransform(offset) ? ` ${getOffsetTransform(offset)}` : ""}`,
+      transform: offsetTransform
+        ? `translateY(-50%) ${offsetTransform}`
+        : "translateY(-50%)",
     };
   }
 
   return {
     position: "absolute",
-    top: "-0.48rem",
-    right: "-0.68rem",
+    top: "-0.82rem",
+    right: "-0.95rem",
     zIndex: 5,
     minWidth: 0,
     pointerEvents: "none",
-    transform: getOffsetTransform(offset),
+    transform: offsetTransform,
   };
 }
 
