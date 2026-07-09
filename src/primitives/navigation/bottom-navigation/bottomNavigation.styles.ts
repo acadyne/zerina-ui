@@ -1,0 +1,226 @@
+import React from "react";
+import {
+  cssSize,
+  getOffsetTransform,
+} from "./bottomNavigation.utils";
+import type {
+  BottomNavigationBadgeOffset,
+  BottomNavigationBadgePlacement,
+  BottomNavigationDensity,
+  BottomNavigationIndicator,
+  BottomNavigationItemShape,
+  BottomNavigationPosition,
+  BottomNavigationVariant,
+} from "./bottomNavigation.types";
+
+export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
+  BottomNavigationDensity,
+  {
+    defaultHeight: number;
+    listPaddingTop: string;
+    listPaddingRight: string;
+    listPaddingBottom: string;
+    listPaddingLeft: string;
+    itemPaddingTop: string;
+    itemPaddingRight: string;
+    itemPaddingBottom: string;
+    itemPaddingLeft: string;
+    iconSize: string;
+    gap: string;
+  }
+> = {
+  compact: {
+    defaultHeight: 58,
+    listPaddingTop: "0.3rem",
+    listPaddingRight: "0.35rem",
+    listPaddingBottom: "0.3rem",
+    listPaddingLeft: "0.35rem",
+    itemPaddingTop: "0.2rem",
+    itemPaddingRight: "0.2rem",
+    itemPaddingBottom: "0.2rem",
+    itemPaddingLeft: "0.2rem",
+    iconSize: "1.05rem",
+    gap: "0.12rem",
+  },
+  comfortable: {
+    defaultHeight: 68,
+    listPaddingTop: "0.4rem",
+    listPaddingRight: "0.45rem",
+    listPaddingBottom: "0.4rem",
+    listPaddingLeft: "0.45rem",
+    itemPaddingTop: "0.25rem",
+    itemPaddingRight: "0.25rem",
+    itemPaddingBottom: "0.25rem",
+    itemPaddingLeft: "0.25rem",
+    iconSize: "1.15rem",
+    gap: "0.2rem",
+  },
+};
+
+export function getRootPositionStyle(
+  position: BottomNavigationPosition
+): React.CSSProperties {
+  if (position === "fixed") {
+    return {
+      position: "fixed",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1400,
+    };
+  }
+
+  if (position === "sticky") {
+    return {
+      position: "sticky",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 10,
+    };
+  }
+
+  return {
+    position: "relative",
+  };
+}
+
+export function getRootSurfaceStyles({
+  variant,
+  translucent,
+}: {
+  variant: BottomNavigationVariant;
+  translucent: boolean;
+}): React.CSSProperties {
+  if (variant === "plain" || variant === "floating") {
+    return {
+      background: "transparent",
+      borderTop: "1px solid transparent",
+      backdropFilter: undefined,
+      WebkitBackdropFilter: undefined,
+    };
+  }
+
+  return {
+    background: translucent
+      ? "color-mix(in srgb, var(--ui-surface) 92%, transparent)"
+      : "var(--ui-surface)",
+    borderTop: "1px solid var(--ui-border)",
+    backdropFilter: translucent ? "blur(14px)" : undefined,
+    WebkitBackdropFilter: translucent ? "blur(14px)" : undefined,
+  };
+}
+
+export function getListSurfaceStyles({
+  variant,
+  translucent,
+}: {
+  variant: BottomNavigationVariant;
+  translucent: boolean;
+}): React.CSSProperties {
+  if (variant !== "floating") {
+    return {};
+  }
+
+  return {
+    marginTop: "0.45rem",
+    marginRight: "0.65rem",
+    marginBottom: "0.45rem",
+    marginLeft: "0.65rem",
+    borderRadius: "9999px",
+    border: "1px solid var(--ui-border)",
+    background: translucent
+      ? "color-mix(in srgb, var(--ui-surface) 88%, transparent)"
+      : "var(--ui-surface)",
+    boxShadow: "var(--ui-shadow-lg)",
+    backdropFilter: translucent ? "blur(16px)" : undefined,
+    WebkitBackdropFilter: translucent ? "blur(16px)" : undefined,
+  };
+}
+
+export function getItemBackground({
+  active,
+  indicator,
+}: {
+  active: boolean;
+  indicator: BottomNavigationIndicator;
+}): string {
+  if (!active) return "transparent";
+  if (indicator === "none" || indicator === "dot") return "transparent";
+
+  return "color-mix(in srgb, var(--ui-primary) 16%, transparent)";
+}
+
+export function getItemBorderColor({
+  active,
+  indicator,
+}: {
+  active: boolean;
+  indicator: BottomNavigationIndicator;
+}): string {
+  if (!active) return "transparent";
+
+  if (indicator === "pill") {
+    return "color-mix(in srgb, var(--ui-primary) 32%, transparent)";
+  }
+
+  return "transparent";
+}
+
+export function getItemBorderRadius({
+  indicator,
+  shape,
+}: {
+  indicator: BottomNavigationIndicator;
+  shape: BottomNavigationItemShape;
+}): string | number {
+  if (shape === "none") return 0;
+  if (shape === "pill" || shape === "circle") return "9999px";
+  if (indicator === "pill") return "9999px";
+
+  return "var(--ui-radius-lg)";
+}
+
+export function getBadgePlacementStyles({
+  placement,
+  offset,
+}: {
+  placement: BottomNavigationBadgePlacement;
+  offset?: BottomNavigationBadgeOffset;
+}): React.CSSProperties {
+  if (placement === "top-center") {
+    return {
+      position: "absolute",
+      top: "-0.5rem",
+      left: "50%",
+      zIndex: 5,
+      minWidth: 0,
+      pointerEvents: "none",
+      transform: `translateX(-50%)${getOffsetTransform(offset) ? ` ${getOffsetTransform(offset)}` : ""}`,
+    };
+  }
+
+  if (placement === "inline-end") {
+    return {
+      position: "absolute",
+      top: "50%",
+      right: "-0.65rem",
+      zIndex: 5,
+      minWidth: 0,
+      pointerEvents: "none",
+      transform: `translateY(-50%)${getOffsetTransform(offset) ? ` ${getOffsetTransform(offset)}` : ""}`,
+    };
+  }
+
+  return {
+    position: "absolute",
+    top: "-0.48rem",
+    right: "-0.68rem",
+    zIndex: 5,
+    minWidth: 0,
+    pointerEvents: "none",
+    transform: getOffsetTransform(offset),
+  };
+}
+
+export { cssSize };
