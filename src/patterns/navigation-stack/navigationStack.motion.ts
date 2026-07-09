@@ -1,4 +1,5 @@
 // src/patterns/navigation-stack/navigationStack.motion.ts
+import type { UIMotionAppTransition } from "../../core/motion";
 import type {
   NavigationStackAnimation,
   NavigationStackEntry,
@@ -30,45 +31,8 @@ export function inferNavigationStackTransitionDirection({
   return "replace";
 }
 
-export function getNavigationStackVariants(
-  animation: NavigationStackAnimation,
-  direction: NavigationStackTransitionDirection
-) {
-  if (animation === "fade") {
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-    };
-  }
-
-  if (animation === "none") {
-    return {
-      initial: { opacity: 1 },
-      animate: { opacity: 1 },
-      exit: { opacity: 1 },
-    };
-  }
-
-  if (direction === "back") {
-    return {
-      initial: { x: "-18%", opacity: 0.96 },
-      animate: { x: 0, opacity: 1 },
-      exit: { x: "100%", opacity: 1 },
-    };
-  }
-
-  if (direction === "replace") {
-    return {
-      initial: { opacity: 0.92, scale: 0.995 },
-      animate: { opacity: 1, scale: 1 },
-      exit: { opacity: 0, scale: 0.995 },
-    };
-  }
-
-  return {
-    initial: { x: "100%", opacity: 1 },
-    animate: { x: 0, opacity: 1 },
-    exit: { x: "-18%", opacity: 0.92 },
-  };
+export function getNavigationStackMotionPreset(
+  animation: NavigationStackAnimation
+): UIMotionAppTransition {
+  return animation;
 }

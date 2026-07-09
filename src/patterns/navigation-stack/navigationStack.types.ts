@@ -1,9 +1,13 @@
 // src/patterns/navigation-stack/navigationStack.types.ts
 import React from "react";
+import type { UIMotionAppTransition } from "../../core/motion";
 
 export type NavigationStackParams = Record<string, unknown>;
 
-export type NavigationStackAnimation = "slide" | "fade" | "none";
+export type NavigationStackAnimation = Extract<
+  UIMotionAppTransition,
+  "slide" | "fade" | "none" | "shared-axis" | "fade-through"
+>;
 
 export type NavigationStackTransitionDirection = "forward" | "back" | "replace";
 

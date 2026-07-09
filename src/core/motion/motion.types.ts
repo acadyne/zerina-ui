@@ -32,6 +32,21 @@ export type UIMotionPreset =
   | "feedback"
   | "layout";
 
+export type UIMotionAppTransition =
+  | "none"
+  | "fade"
+  | "scale"
+  | "slide"
+  | "shared-axis"
+  | "fade-through";
+
+export type UIMotionTransitionDirection =
+  | "enter"
+  | "exit"
+  | "forward"
+  | "back"
+  | "replace";
+
 export type UIMotionPreference = "system" | UIMotionLevel;
 
 export interface UIMotionState {

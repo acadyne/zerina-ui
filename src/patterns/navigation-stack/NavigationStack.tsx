@@ -1,12 +1,11 @@
 // src/patterns/navigation-stack/NavigationStack.tsx
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useOptionalUIMotion } from "../../core/motion";
+import { MotionSwitch } from "../../core/motion";
 import { Box } from "../../primitives/layout";
 import { NavigationStackContext } from "./NavigationStackContext";
 import { NavigationStackScreen } from "./NavigationStackScreen";
 import {
-  getNavigationStackVariants,
+  getNavigationStackMotionPreset,
   inferNavigationStackTransitionDirection,
 } from "./navigationStack.motion";
 import type {
@@ -60,16 +59,6 @@ const NavigationStackRoot = function NavigationStackRoot({
   const screens = React.useMemo(
     () => collectNavigationStackScreens(children),
     [children]
-  );
-
-  const motionState = useOptionalUIMotion();
-  const effectiveMotionLevel = motionState?.effectiveLevel ?? "subtle";
-  const shouldAnimate =
-    animation !== "none" && (motionState?.shouldAnimate ?? true);
-
-  const transition = motionState?.getTransition(
-    effectiveMotionLevel,
-    animation === "fade" ? "fade" : "slide"
   );
 
   const setEntries = React.useCallback(
@@ -155,16 +144,12 @@ const NavigationStackRoot = function NavigationStackRoot({
     return activeScreen.element ?? null;
   }, [activeScreen, current, fallback, navigation]);
 
-  const variants = getNavigationStackVariants(
-    shouldAnimate ? animation : "none",
-    transitionDirection
-  );
-
   return (
     <NavigationStackContext.Provider value={navigation}>
       <Box
         className={className}
         data-ui-navigation-stack=""
+        data-ui-navigation-stack-animation={animation}
         data-ui-navigation-stack-direction={transitionDirection}
         style={{
           position: "relative",
@@ -178,29 +163,27 @@ const NavigationStackRoot = function NavigationStackRoot({
           ...style,
         }}
       >
-        <AnimatePresence mode="wait" initial={false}>
-          {current ? (
-            <motion.div
-              key={current.key}
-              initial={variants.initial}
-              animate={variants.animate}
-              exit={variants.exit}
-              transition={transition}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                minWidth: 0,
-                minHeight: 0,
-                overflow: "hidden",
-                ...screenStyle,
-              }}
-            >
-              {screenContent}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        {current ? (
+          <MotionSwitch
+            motionKey={current.key}
+            preset={getNavigationStackMotionPreset(animation)}
+            direction={transitionDirection}
+            mode="wait"
+            initial={false}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              minWidth: 0,
+              minHeight: 0,
+              overflow: "hidden",
+              ...screenStyle,
+            }}
+          >
+            {screenContent}
+          </MotionSwitch>
+        ) : null}
       </Box>
     </NavigationStackContext.Provider>
   );
