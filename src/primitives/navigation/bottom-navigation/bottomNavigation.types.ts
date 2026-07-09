@@ -1,4 +1,6 @@
+// src/primitives/navigation/bottom-navigation/bottomNavigation.types.ts
 import React from "react";
+import type { SlotPropsMap, SlotStyleMap } from "../../../helpers/css";
 
 export type BottomNavigationPosition = "fixed" | "sticky" | "static";
 
@@ -43,13 +45,9 @@ export type BottomNavigationSlot =
   | "activeBadge"
   | "dot";
 
-export type BottomNavigationStyles = Partial<
-  Record<BottomNavigationSlot, React.CSSProperties>
->;
+export type BottomNavigationStyles = SlotStyleMap<BottomNavigationSlot>;
 
-export type BottomNavigationSlotProps = Partial<
-  Record<BottomNavigationSlot, React.HTMLAttributes<HTMLElement>>
->;
+export type BottomNavigationSlotProps = SlotPropsMap<BottomNavigationSlot>;
 
 export interface BottomNavigationContextValue {
   value: string | null;
@@ -114,18 +112,7 @@ export interface BottomNavigationProps
   indicator?: BottomNavigationIndicator;
   density?: BottomNavigationDensity;
 
-  /**
-   * icon:
-   *   El badge acompaña el movimiento/escala del icono.
-   *
-   * content:
-   *   El badge acompaña el grupo icono + label.
-   *
-   * item:
-   *   El badge queda fijo respecto al botón completo.
-   */
   badgeAnchor?: BottomNavigationBadgeAnchor;
-
   badgePlacement?: BottomNavigationBadgePlacement;
   badgeOffset?: BottomNavigationBadgeOffset;
 
@@ -172,7 +159,6 @@ export interface BottomNavigationItemProps
   badge?: React.ReactNode;
 
   disabled?: boolean;
-
   selectable?: boolean;
 
   ariaLabel?: string;
@@ -211,9 +197,9 @@ export interface BottomNavigationItemProps
   badgeStyle?: React.CSSProperties;
   activeBadgeStyle?: React.CSSProperties;
 
-  className?: string;
-  style?: React.CSSProperties;
-
   styles?: BottomNavigationStyles;
   slotProps?: BottomNavigationSlotProps;
+
+  className?: string;
+  style?: React.CSSProperties;
 }

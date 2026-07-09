@@ -9,6 +9,7 @@ export function cx(
 
 export function cssVar(name: string, fallback?: string): string {
   const normalized = name.startsWith("--") ? name : `--${name}`;
+
   return fallback
     ? `var(${normalized}, ${fallback})`
     : `var(${normalized})`;
@@ -16,6 +17,7 @@ export function cssVar(name: string, fallback?: string): string {
 
 export function px(value?: number | string): string | number | undefined {
   if (value === undefined || value === null) return undefined;
+
   return typeof value === "number" ? `${value}px` : value;
 }
 
@@ -33,12 +35,24 @@ export function omitUndefined<T extends Record<string, unknown>>(
   ) as Partial<T>;
 }
 
+export type SlotDataAttributes = {
+  [key: `data-${string}`]: string | number | boolean | undefined;
+};
+
+export type SlotAriaAttributes = {
+  [key: `aria-${string}`]: string | number | boolean | undefined;
+};
+
+export type SlotElementProps = React.HTMLAttributes<HTMLElement> &
+  SlotDataAttributes &
+  SlotAriaAttributes;
+
 export type SlotStyleMap<TSlot extends string> = Partial<
   Record<TSlot, React.CSSProperties>
 >;
 
 export type SlotPropsMap<TSlot extends string> = Partial<
-  Record<TSlot, React.HTMLAttributes<HTMLElement>>
+  Record<TSlot, SlotElementProps>
 >;
 
 export function getSlotStyle<TSlot extends string>(
@@ -51,6 +65,6 @@ export function getSlotStyle<TSlot extends string>(
 export function getSlotProps<TSlot extends string>(
   slotProps: SlotPropsMap<TSlot> | undefined,
   slot: TSlot
-): React.HTMLAttributes<HTMLElement> {
+): SlotElementProps {
   return slotProps?.[slot] ?? {};
 }

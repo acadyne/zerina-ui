@@ -1,5 +1,6 @@
 // src/primitives/navigation/navigation-rail/navigationRail.types.ts
 import React from "react";
+import type { SlotPropsMap, SlotStyleMap } from "../../../helpers/css";
 
 export type NavigationRailPosition = "fixed" | "sticky" | "static";
 
@@ -49,13 +50,9 @@ export type NavigationRailSlot =
   | "activeBadge"
   | "dot";
 
-export type NavigationRailStyles = Partial<
-  Record<NavigationRailSlot, React.CSSProperties>
->;
+export type NavigationRailStyles = SlotStyleMap<NavigationRailSlot>;
 
-export type NavigationRailSlotProps = Partial<
-  Record<NavigationRailSlot, React.HTMLAttributes<HTMLElement>>
->;
+export type NavigationRailSlotProps = SlotPropsMap<NavigationRailSlot>;
 
 export interface NavigationRailContextValue {
   value: string | null;
@@ -212,9 +209,9 @@ export interface NavigationRailItemProps
   badgeStyle?: React.CSSProperties;
   activeBadgeStyle?: React.CSSProperties;
 
-  className?: string;
-  style?: React.CSSProperties;
-
   styles?: NavigationRailStyles;
   slotProps?: NavigationRailSlotProps;
+
+  className?: string;
+  style?: React.CSSProperties;
 }
