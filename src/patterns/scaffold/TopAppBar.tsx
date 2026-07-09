@@ -1,10 +1,29 @@
 // src/patterns/scaffold/TopAppBar.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Box, Flex } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
 
 export type TopAppBarSize = "sm" | "md" | "lg";
+
 export type TopAppBarVariant = "solid" | "transparent" | "blur";
+
+export type TopAppBarSlot =
+  | "root"
+  | "content"
+  | "leading"
+  | "center"
+  | "title"
+  | "subtitle"
+  | "actions";
+
+export type TopAppBarStyles = SlotStyleMap<TopAppBarSlot>;
+
+export type TopAppBarSlotProps = SlotPropsMap<TopAppBarSlot>;
 
 export interface TopAppBarProps
   extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
@@ -41,7 +60,9 @@ export interface TopAppBarProps
 
   className?: string;
   style?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
+
+  styles?: TopAppBarStyles;
+  slotProps?: TopAppBarSlotProps;
 }
 
 const TOP_APP_BAR_SIZE_MAP: Record<
@@ -116,31 +137,120 @@ export function TopAppBar({
 
   className = "",
   style,
-  contentStyle,
+
+  styles,
+  slotProps,
+
   ...rest
 }: TopAppBarProps) {
   const sizeStyles = TOP_APP_BAR_SIZE_MAP[size];
 
+  const rootSlot = resolveSlot<TopAppBarSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-top-app-bar": "",
+      "data-ui-top-app-bar-size": size,
+      "data-ui-top-app-bar-variant": variant,
+    },
+    baseStyle: {
+      position: sticky ? "sticky" : "relative",
+      top: sticky ? 0 : undefined,
+      zIndex: sticky ? 20 : undefined,
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box",
+      paddingTop: safeAreaTop ? "var(--safe-top-offset)" : undefined,
+      ...getVariantStyles(variant),
+      color: "var(--ui-text)",
+    },
+  });
+
+  const contentSlot = resolveSlot<TopAppBarSlot>({
+    slot: "content",
+    styles,
+    slotProps,
+    baseStyle: {
+      position: "relative",
+      minWidth: 0,
+      minHeight: sizeStyles.minHeight,
+      paddingInline: sizeStyles.paddingInline,
+      boxSizing: "border-box",
+    },
+  });
+
+  const leadingSlot = resolveSlot<TopAppBarSlot>({
+    slot: "leading",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 0,
+      flex: centerTitle ? "0 0 auto" : "1 1 0",
+      maxWidth: centerTitle ? "34%" : undefined,
+      position: "relative",
+      zIndex: 2,
+    },
+  });
+
+  const centerSlot = resolveSlot<TopAppBarSlot>({
+    slot: "center",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 0,
+      textAlign: centerTitle ? "center" : "left",
+    },
+  });
+
+  const titleSlot = resolveSlot<TopAppBarSlot>({
+    slot: "title",
+    styles,
+    slotProps,
+    baseStyle: {
+      margin: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      color: "var(--ui-text)",
+    },
+  });
+
+  const subtitleSlot = resolveSlot<TopAppBarSlot>({
+    slot: "subtitle",
+    styles,
+    slotProps,
+    baseStyle: {
+      marginTop: "0.12rem",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+  });
+
+  const actionsSlot = resolveSlot<TopAppBarSlot>({
+    slot: "actions",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 0,
+      flex: "0 0 auto",
+      position: "relative",
+      zIndex: 2,
+    },
+  });
+
   const titleContent = center ?? (
-    <Box
-      style={{
-        minWidth: 0,
-        textAlign: centerTitle ? "center" : "left",
-      }}
-    >
+    <Box {...centerSlot}>
       {title ? (
         <Typography
           as="div"
           size={sizeStyles.titleSize}
           weight={800}
           leading={1.2}
-          style={{
-            margin: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            color: "var(--ui-text)",
-          }}
+          {...titleSlot}
         >
           {title}
         </Typography>
@@ -152,12 +262,7 @@ export function TopAppBar({
           size={sizeStyles.subtitleSize}
           color="var(--ui-text-muted)"
           leading={1.25}
-          style={{
-            marginTop: "0.12rem",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
+          {...subtitleSlot}
         >
           {subtitle}
         </Typography>
@@ -166,50 +271,14 @@ export function TopAppBar({
   );
 
   return (
-    <Box
-      as="header"
-      className={className}
-      data-ui-top-app-bar=""
-      data-ui-top-app-bar-size={size}
-      data-ui-top-app-bar-variant={variant}
-      {...rest}
-      style={{
-        position: sticky ? "sticky" : "relative",
-        top: sticky ? 0 : undefined,
-        zIndex: sticky ? 20 : undefined,
-        width: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
-        paddingTop: safeAreaTop ? "var(--safe-top-offset)" : undefined,
-        ...getVariantStyles(variant),
-        color: "var(--ui-text)",
-        ...style,
-      }}
-    >
+    <Box as="header" {...rest} {...rootSlot}>
       <Flex
         align="center"
         justify="space-between"
         gap="0.75rem"
-        style={{
-          position: "relative",
-          minWidth: 0,
-          minHeight: sizeStyles.minHeight,
-          paddingInline: sizeStyles.paddingInline,
-          boxSizing: "border-box",
-          ...contentStyle,
-        }}
+        {...contentSlot}
       >
-        <Flex
-          align="center"
-          gap="0.55rem"
-          style={{
-            minWidth: 0,
-            flex: centerTitle ? "0 0 auto" : "1 1 0",
-            maxWidth: centerTitle ? "34%" : undefined,
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
+        <Flex align="center" gap="0.55rem" {...leadingSlot}>
           {leading ? (
             <Box
               style={{
@@ -250,17 +319,7 @@ export function TopAppBar({
           </Box>
         ) : null}
 
-        <Flex
-          align="center"
-          justify="flex-end"
-          gap="0.35rem"
-          style={{
-            minWidth: 0,
-            flex: centerTitle ? "0 0 auto" : "0 0 auto",
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
+        <Flex align="center" justify="flex-end" gap="0.35rem" {...actionsSlot}>
           {actions}
         </Flex>
       </Flex>
