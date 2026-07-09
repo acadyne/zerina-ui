@@ -9,7 +9,12 @@ import {
   ScrollLock,
   getLayerZIndex,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  getOverlayBackdropVariants,
+  getOverlayDrawerVariants,
+  getOverlayMotionIntent,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
@@ -46,10 +51,6 @@ export interface DrawerProps {
   style?: React.CSSProperties;
   backdropStyle?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
-}
-
-function getDrawerInitialX(placement: DrawerPlacement): string {
-  return placement === "left" ? "-100%" : "100%";
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -93,14 +94,23 @@ export const Drawer: React.FC<DrawerProps> = ({
     onOpenChange?.(false);
   }, [onOpenChange]);
 
+  const backdropVariants = getOverlayBackdropVariants(
+    motionState.effectiveLevel
+  );
+
+  const panelVariants = getOverlayDrawerVariants({
+    placement,
+    level: motionState.effectiveLevel,
+  });
+
   const panelTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "slide"
+    getOverlayMotionIntent("drawer")
   );
 
   const backdropTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "fade"
+    getOverlayMotionIntent("backdrop")
   );
 
   const content = (
@@ -116,9 +126,10 @@ export const Drawer: React.FC<DrawerProps> = ({
         >
           <motion.div
             aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={backdropVariants}
             transition={backdropTransition}
             style={{
               position: "fixed",
@@ -168,9 +179,10 @@ export const Drawer: React.FC<DrawerProps> = ({
                 aria-labelledby={title ? titleId : undefined}
                 aria-describedby={description ? descriptionId : undefined}
                 className={className}
-                initial={{ x: getDrawerInitialX(placement), opacity: 1 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: getDrawerInitialX(placement), opacity: 1 }}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={panelVariants}
                 transition={panelTransition}
                 style={{
                   width: "100%",
@@ -194,10 +206,13 @@ export const Drawer: React.FC<DrawerProps> = ({
                   ...style,
                 }}
               >
-                {(title || description || showCloseButton) ? (
+                {title || description || showCloseButton ? (
                   <DrawerHeader style={contentStyle}>
                     <Box style={{ flex: 1, minWidth: 0 }}>
-                      {title ? <DrawerTitle id={titleId}>{title}</DrawerTitle> : null}
+                      {title ? (
+                        <DrawerTitle id={titleId}>{title}</DrawerTitle>
+                      ) : null}
+
                       {description ? (
                         <DrawerDescription id={descriptionId}>
                           {description}

@@ -9,7 +9,12 @@ import {
   ScrollLock,
   getLayerZIndex,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  getOverlayBackdropVariants,
+  getOverlayBottomSheetVariants,
+  getOverlayMotionIntent,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
@@ -89,14 +94,22 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     onOpenChange?.(false);
   }, [onOpenChange]);
 
+  const backdropVariants = getOverlayBackdropVariants(
+    motionState.effectiveLevel
+  );
+
+  const panelVariants = getOverlayBottomSheetVariants(
+    motionState.effectiveLevel
+  );
+
   const panelTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "slide"
+    getOverlayMotionIntent("bottom-sheet")
   );
 
   const backdropTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "fade"
+    getOverlayMotionIntent("backdrop")
   );
 
   const content = (
@@ -112,9 +125,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         >
           <motion.div
             aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={backdropVariants}
             transition={backdropTransition}
             style={{
               position: "fixed",
@@ -164,9 +178,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 aria-labelledby={title ? titleId : undefined}
                 aria-describedby={description ? descriptionId : undefined}
                 className={className}
-                initial={{ y: "100%", opacity: 1 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: "100%", opacity: 1 }}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={panelVariants}
                 transition={panelTransition}
                 style={{
                   width: "100%",
@@ -190,11 +205,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               >
                 {showHandle ? <BottomSheetHandle /> : null}
 
-                {(title || description || showCloseButton) ? (
+                {title || description || showCloseButton ? (
                   <BottomSheetHeader style={contentStyle}>
                     <Box style={{ flex: 1, minWidth: 0 }}>
                       {title ? (
-                        <BottomSheetTitle id={titleId}>{title}</BottomSheetTitle>
+                        <BottomSheetTitle id={titleId}>
+                          {title}
+                        </BottomSheetTitle>
                       ) : null}
 
                       {description ? (

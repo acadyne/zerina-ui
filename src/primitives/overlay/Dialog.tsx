@@ -1,13 +1,19 @@
 // src/primitives/overlay/Dialog.tsx
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";import {
+import { AnimatePresence, motion } from "framer-motion";
+import {
   DismissableLayer,
   FocusScope,
   getLayerZIndex,
   Portal,
   ScrollLock,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  getOverlayBackdropVariants,
+  getOverlayDialogVariants,
+  getOverlayMotionIntent,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import { Button, type ButtonProps } from "../forms/Button";
 
 type DialogSize = "sm" | "md" | "lg" | "xl";
@@ -97,21 +103,23 @@ export const Dialog: React.FC<DialogProps> = ({
 
   const [hasTitle, setHasTitle] = React.useState(false);
   const [hasDescription, setHasDescription] = React.useState(false);
+
   const motionState = useOptionalUIMotion();
 
-  const panelVariants = motionState.getVariants(
-    "dialog",
+  const backdropVariants = getOverlayBackdropVariants(
     motionState.effectiveLevel
   );
 
+  const panelVariants = getOverlayDialogVariants(motionState.effectiveLevel);
+
   const panelTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "scale"
+    getOverlayMotionIntent("dialog")
   );
 
   const backdropTransition = motionState.getTransition(
     motionState.effectiveLevel,
-    "fade"
+    getOverlayMotionIntent("backdrop")
   );
 
   const handleDismiss = React.useCallback(() => {
@@ -163,9 +171,10 @@ export const Dialog: React.FC<DialogProps> = ({
             {modal ? (
               <motion.div
                 aria-hidden="true"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={backdropVariants}
                 transition={backdropTransition}
                 style={{
                   position: "fixed",
@@ -372,6 +381,7 @@ export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps
 
     React.useEffect(() => {
       ctx.setTitleMounted(true);
+
       return () => {
         ctx.setTitleMounted(false);
       };
@@ -412,6 +422,7 @@ export const DialogDescription = React.forwardRef<
 
   React.useEffect(() => {
     ctx.setDescriptionMounted(true);
+
     return () => {
       ctx.setDescriptionMounted(false);
     };
