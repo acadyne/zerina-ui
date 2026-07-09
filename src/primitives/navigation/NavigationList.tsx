@@ -2,6 +2,15 @@
 import React from "react";
 import { Pressable } from "../forms";
 import { Box } from "../layout";
+import {
+  Menu,
+  MenuContent,
+  MenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  type MenuContentProps,
+} from "../overlay";
 import { Typography } from "../typography";
 
 export interface NavigationItemDef {
@@ -27,6 +36,8 @@ export type NavigationListVariant = "sidebar" | "inline";
 
 export type NavigationListActiveBehavior = "exact" | "contains";
 
+export type NavigationListCollapsedBehavior = "icons-only" | "flyout";
+
 export interface NavigationListProps {
   items: NavigationItemDef[];
 
@@ -44,6 +55,20 @@ export interface NavigationListProps {
   variant?: NavigationListVariant;
 
   collapsed?: boolean;
+
+  /**
+   * icons-only:
+   *   En collapsed solo muestra iconos.
+   *
+   * flyout:
+   *   En collapsed, los items con hijos abren un menú lateral.
+   */
+  collapsedBehavior?: NavigationListCollapsedBehavior;
+
+  flyoutPlacement?: MenuContentProps["placement"];
+  flyoutOffset?: number;
+  flyoutContentStyle?: React.CSSProperties;
+
   indentSize?: number;
 
   /**
@@ -75,6 +100,11 @@ export interface NavigationListItemProps {
 
   depth?: number;
   collapsed?: boolean;
+  collapsedBehavior?: NavigationListCollapsedBehavior;
+  flyoutPlacement?: MenuContentProps["placement"];
+  flyoutOffset?: number;
+  flyoutContentStyle?: React.CSSProperties;
+
   indentSize?: number;
   variant?: NavigationListVariant;
 
@@ -107,7 +137,7 @@ function isItemActive({
   item: NavigationItemDef;
   activeId?: string | null;
   activeBehavior: NavigationListActiveBehavior;
-}) {
+}): boolean {
   if (!activeId) return false;
 
   if (activeBehavior === "exact") {
@@ -117,15 +147,18 @@ function isItemActive({
   return itemContainsId(item, activeId);
 }
 
-function isItemDirectlyActive(item: NavigationItemDef, activeId?: string | null) {
+function isItemDirectlyActive(
+  item: NavigationItemDef,
+  activeId?: string | null
+): boolean {
   return Boolean(activeId && item.id === activeId);
 }
 
-function hasChildren(item: NavigationItemDef) {
+function hasChildren(item: NavigationItemDef): boolean {
   return Boolean(item.items?.length);
 }
 
-function isSelectable(item: NavigationItemDef) {
+function isSelectable(item: NavigationItemDef): boolean {
   if (item.selectable !== undefined) return item.selectable;
   return !hasChildren(item);
 }
@@ -136,7 +169,7 @@ function getItemBackground(options: {
   hovered: boolean;
   pressed: boolean;
   focused: boolean;
-}) {
+}): string {
   const { active, directlyActive, hovered, pressed, focused } = options;
 
   if (pressed) return "var(--ui-surface-3)";
@@ -157,7 +190,7 @@ function getItemBackground(options: {
 function getItemBorderColor(options: {
   directlyActive: boolean;
   focused: boolean;
-}) {
+}): string {
   if (options.directlyActive) {
     return "color-mix(in srgb, var(--ui-primary) 32%, var(--ui-border))";
   }
@@ -169,7 +202,7 @@ function getItemBorderColor(options: {
   return "transparent";
 }
 
-function getChevron(open: boolean) {
+function getChevron(open: boolean): string {
   return open ? "⌄" : "›";
 }
 
@@ -181,11 +214,17 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
   openActiveParents,
   depth = 0,
   collapsed = false,
+  collapsedBehavior = "icons-only",
+  flyoutPlacement = "right-start",
+  flyoutOffset = 10,
+  flyoutContentStyle,
   indentSize = 14,
   variant = "sidebar",
   onToggle,
   onSelect,
 }) => {
+  const [flyoutOpen, setFlyoutOpen] = React.useState(false);
+
   const children = item.items ?? [];
   const childrenExist = children.length > 0;
 
@@ -196,6 +235,9 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
   });
 
   const directlyActive = isItemDirectlyActive(item, activeId);
+
+  const usesCollapsedFlyout =
+    collapsed && childrenExist && collapsedBehavior === "flyout";
 
   const open =
     childrenExist &&
@@ -209,19 +251,223 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
     (event: React.MouseEvent<HTMLElement>) => {
       if (item.disabled) return;
 
-      if (childrenExist) {
+      if (childrenExist && !collapsed) {
         onToggle?.(item.id);
+      }
+
+      if (childrenExist && collapsed && collapsedBehavior === "icons-only") {
+        return;
       }
 
       if (selectable) {
         onSelect?.(item, event);
       }
     },
-    [childrenExist, item, onSelect, onToggle, selectable]
+    [
+      childrenExist,
+      collapsed,
+      collapsedBehavior,
+      item,
+      onSelect,
+      onToggle,
+      selectable,
+    ]
   );
 
   const paddingLeft =
-    collapsed || variant === "inline" ? "0.65rem" : `${0.65 + depth * (indentSize / 16)}rem`;
+    collapsed || variant === "inline"
+      ? "0.65rem"
+      : `${0.65 + depth * (indentSize / 16)}rem`;
+
+  const button = (
+    <Pressable
+      as="button"
+      type="button"
+      disabled={item.disabled}
+      onPress={handlePress}
+      aria-current={directlyActive ? "page" : undefined}
+      aria-expanded={childrenExist ? (usesCollapsedFlyout ? flyoutOpen : open) : undefined}
+      aria-disabled={item.disabled || undefined}
+      style={{
+        width: "100%",
+        minWidth: 0,
+        display: "flex",
+        border: 0,
+        padding: 0,
+        background: "transparent",
+        color: "inherit",
+        textAlign: "left",
+        cursor: item.disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      {({ hovered, pressed, focused }) => (
+        <Box
+          style={{
+            width: "100%",
+            minWidth: 0,
+            minHeight: collapsed ? 42 : 38,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: collapsed ? "center" : "flex-start",
+            gap: collapsed ? 0 : "0.65rem",
+            paddingBlock: "0.48rem",
+            paddingLeft,
+            paddingRight: collapsed ? "0.4rem" : "0.65rem",
+            borderRadius: "var(--ui-radius-md)",
+            border: `1px solid ${getItemBorderColor({
+              directlyActive,
+              focused,
+            })}`,
+            background: getItemBackground({
+              active,
+              directlyActive,
+              hovered,
+              pressed,
+              focused,
+            }),
+            color: directlyActive ? "var(--ui-text)" : "var(--ui-text-muted)",
+            opacity: item.disabled
+              ? "var(--ui-state-disabled-opacity, 0.62)"
+              : 1,
+            boxSizing: "border-box",
+          }}
+        >
+          {item.icon ? (
+            <Box
+              aria-hidden="true"
+              style={{
+                width: 24,
+                height: 24,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                color: "inherit",
+                lineHeight: 1,
+              }}
+            >
+              {item.icon}
+            </Box>
+          ) : null}
+
+          {!collapsed ? (
+            <>
+              <Typography
+                as="span"
+                size="sm"
+                weight={directlyActive ? 800 : active ? 700 : 600}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  margin: 0,
+                  color: "inherit",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+              </Typography>
+
+              {item.badge ? (
+                <Box
+                  style={{
+                    flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.badge}
+                </Box>
+              ) : null}
+
+              {childrenExist ? (
+                <Box
+                  aria-hidden="true"
+                  style={{
+                    flexShrink: 0,
+                    color: "var(--ui-text-muted)",
+                    fontSize: "1rem",
+                    lineHeight: 1,
+                  }}
+                >
+                  {getChevron(open)}
+                </Box>
+              ) : null}
+            </>
+          ) : null}
+        </Box>
+      )}
+    </Pressable>
+  );
+
+  const flyoutContent = childrenExist ? (
+    <Box
+      style={{
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.25rem",
+      }}
+    >
+      {children.map((child) => (
+        <NavigationListItem
+          key={child.id}
+          item={child}
+          activeId={activeId}
+          activeBehavior={activeBehavior}
+          openIds={openIds}
+          openActiveParents={openActiveParents}
+          depth={0}
+          collapsed={false}
+          collapsedBehavior="icons-only"
+          flyoutPlacement={flyoutPlacement}
+          flyoutOffset={flyoutOffset}
+          flyoutContentStyle={flyoutContentStyle}
+          indentSize={indentSize}
+          variant="inline"
+          onToggle={onToggle}
+          onSelect={(selectedItem, event) => {
+            setFlyoutOpen(false);
+            onSelect?.(selectedItem, event);
+          }}
+        />
+      ))}
+    </Box>
+  ) : null;
+
+  const collapsedWrappedButton = collapsed ? (
+    usesCollapsedFlyout ? (
+      <Menu open={flyoutOpen} onOpenChange={setFlyoutOpen}>
+        <MenuTrigger asChild>{button}</MenuTrigger>
+
+        <MenuContent
+          placement={flyoutPlacement}
+          offset={flyoutOffset}
+          style={{
+            minWidth: 230,
+            padding: "0.45rem",
+            borderRadius: "var(--ui-radius-xl)",
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 80%, transparent), var(--ui-surface))",
+            border: "1px solid var(--ui-border)",
+            boxShadow: "var(--ui-shadow-lg)",
+            ...flyoutContentStyle,
+          }}
+        >
+          {flyoutContent}
+        </MenuContent>
+      </Menu>
+    ) : (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent placement="right">{item.label}</TooltipContent>
+      </Tooltip>
+    )
+  ) : (
+    button
+  );
 
   return (
     <Box
@@ -229,126 +475,7 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
         minWidth: 0,
       }}
     >
-      <Pressable
-        as="button"
-        type="button"
-        disabled={item.disabled}
-        onPress={handlePress}
-        aria-current={directlyActive ? "page" : undefined}
-        aria-expanded={childrenExist ? open : undefined}
-        aria-disabled={item.disabled || undefined}
-        style={{
-          width: "100%",
-          minWidth: 0,
-          display: "flex",
-          border: 0,
-          padding: 0,
-          background: "transparent",
-          color: "inherit",
-          textAlign: "left",
-          cursor: item.disabled ? "not-allowed" : "pointer",
-        }}
-      >
-        {({ hovered, pressed, focused }) => (
-          <Box
-            style={{
-              width: "100%",
-              minWidth: 0,
-              minHeight: collapsed ? 42 : 38,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "flex-start",
-              gap: collapsed ? 0 : "0.65rem",
-              paddingBlock: "0.48rem",
-              paddingLeft,
-              paddingRight: collapsed ? "0.4rem" : "0.65rem",
-              borderRadius: "var(--ui-radius-md)",
-              border: `1px solid ${getItemBorderColor({
-                directlyActive,
-                focused,
-              })}`,
-              background: getItemBackground({
-                active,
-                directlyActive,
-                hovered,
-                pressed,
-                focused,
-              }),
-              color: directlyActive ? "var(--ui-text)" : "var(--ui-text-muted)",
-              opacity: item.disabled
-                ? "var(--ui-state-disabled-opacity, 0.62)"
-                : 1,
-              boxSizing: "border-box",
-            }}
-          >
-            {item.icon ? (
-              <Box
-                aria-hidden="true"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  color: "inherit",
-                  lineHeight: 1,
-                }}
-              >
-                {item.icon}
-              </Box>
-            ) : null}
-
-            {!collapsed ? (
-              <>
-                <Typography
-                  as="span"
-                  size="sm"
-                  weight={directlyActive ? 800 : active ? 700 : 600}
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    margin: 0,
-                    color: "inherit",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.label}
-                </Typography>
-
-                {item.badge ? (
-                  <Box
-                    style={{
-                      flexShrink: 0,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {item.badge}
-                  </Box>
-                ) : null}
-
-                {childrenExist ? (
-                  <Box
-                    aria-hidden="true"
-                    style={{
-                      flexShrink: 0,
-                      color: "var(--ui-text-muted)",
-                      fontSize: "1rem",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {getChevron(open)}
-                  </Box>
-                ) : null}
-              </>
-            ) : null}
-          </Box>
-        )}
-      </Pressable>
+      {collapsedWrappedButton}
 
       {childrenExist && open ? (
         <Box
@@ -371,6 +498,10 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
               openActiveParents={openActiveParents}
               depth={depth + 1}
               collapsed={collapsed}
+              collapsedBehavior={collapsedBehavior}
+              flyoutPlacement={flyoutPlacement}
+              flyoutOffset={flyoutOffset}
+              flyoutContentStyle={flyoutContentStyle}
               indentSize={indentSize}
               variant={variant}
               onToggle={onToggle}
@@ -394,6 +525,10 @@ export const NavigationList = (({
   onSelect,
   variant = "sidebar",
   collapsed = false,
+  collapsedBehavior = "icons-only",
+  flyoutPlacement = "right-start",
+  flyoutOffset = 10,
+  flyoutContentStyle,
   indentSize = 14,
   openActiveParents = true,
   activeBehavior = "contains",
@@ -407,7 +542,10 @@ export const NavigationList = (({
     React.useState<string[]>(defaultOpenIds);
 
   const currentOpenIds = isControlled ? openIds : internalOpenIds;
-  const openIdSet = React.useMemo(() => new Set(currentOpenIds), [currentOpenIds]);
+  const openIdSet = React.useMemo(
+    () => new Set(currentOpenIds),
+    [currentOpenIds]
+  );
 
   const setOpenIds = React.useCallback(
     (nextIds: string[]) => {
@@ -466,6 +604,10 @@ export const NavigationList = (({
             openActiveParents={openActiveParents}
             depth={0}
             collapsed={collapsed}
+            collapsedBehavior={collapsedBehavior}
+            flyoutPlacement={flyoutPlacement}
+            flyoutOffset={flyoutOffset}
+            flyoutContentStyle={flyoutContentStyle}
             indentSize={indentSize}
             variant={variant}
             onToggle={handleToggle}
