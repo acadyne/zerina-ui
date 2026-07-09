@@ -36,7 +36,8 @@ export interface MobileScaffoldProps
    *   El body usa ScrollArea vertical.
    *
    * false:
-   *   El body no agrega scroll propio.
+   *   El body no agrega scroll propio y ocupa todo el alto disponible.
+   *   Útil para NavigationStack, mapas, canvas, juegos o layouts propios.
    */
   scrollable?: boolean;
 
@@ -129,9 +130,12 @@ export function MobileScaffold({
   const body = (
     <Box
       style={{
+        width: "100%",
+        height: scrollable ? undefined : "100%",
         minWidth: 0,
         minHeight: 0,
         boxSizing: "border-box",
+        overflow: scrollable ? undefined : "hidden",
         ...bodyPaddingStyles,
         ...contentStyle,
       }}
