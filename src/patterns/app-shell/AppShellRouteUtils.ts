@@ -74,6 +74,42 @@ export function flattenAppShellRoutes(
   ]);
 }
 
+export function getAppShellRouteId(route: AppShellProcessedRoute): string {
+  return route.id;
+}
+
+export function getAppShellRouteChildren(
+  route: AppShellProcessedRoute
+): AppShellProcessedRoute[] {
+  return route.subroutes ?? [];
+}
+
+export function appShellRouteHasChildren(
+  route: AppShellProcessedRoute
+): boolean {
+  return getAppShellRouteChildren(route).length > 0;
+}
+
+export function appShellRouteHasRenderableContent(
+  route: AppShellProcessedRoute
+): boolean {
+  return Boolean(route.component || route.element);
+}
+
+export function isAppShellRouteSelectable(
+  route: AppShellProcessedRoute
+): boolean {
+  if (route.disabled || route.readonly) {
+    return false;
+  }
+
+  if (appShellRouteHasRenderableContent(route)) {
+    return true;
+  }
+
+  return !appShellRouteHasChildren(route);
+}
+
 export function findFirstRenderableRoute(
   routes: AppShellProcessedRoute[]
 ): AppShellProcessedRoute | null {
@@ -81,7 +117,7 @@ export function findFirstRenderableRoute(
 
   return (
     flat.find((route) => {
-      return Boolean(route.component || route.element) && !route.disabled;
+      return appShellRouteHasRenderableContent(route) && !route.disabled;
     }) ?? null
   );
 }
@@ -105,7 +141,10 @@ export function findAppShellRouteByPath(
   const normalized = normalizeAppShellPath(path);
   const flat = flattenAppShellRoutes(routes);
 
-  return flat.find((route) => normalizeAppShellPath(route.path) === normalized) ?? null;
+  return (
+    flat.find((route) => normalizeAppShellPath(route.path) === normalized) ??
+    null
+  );
 }
 
 export function isAppShellRouteActive(
@@ -128,24 +167,48 @@ export function isAppShellRouteActive(
   return current.startsWith(`${target}/`);
 }
 
-export function getOpenRouteIdsForPath(
-  routes: AppShellProcessedRoute[],
-  currentPath: string | null | undefined
-): string[] {
-  if (!currentPath) return [];
+export interface AppShellRouteContainsActiveOptions {
+  activeRouteId?: string | null;
+  activePath?: string | null;
+}
 
+export function appShellRouteContainsActive(
+  route: AppShellProcessedRoute,
+  options: AppShellRouteContainsActiveOptions
+): boolean {
+  const { activeRouteId, activePath } = options;
+
+  if (activeRouteId && route.id === activeRouteId) {
+    return true;
+  }
+
+  if (activePath && isAppShellRouteActive(activePath, route)) {
+    return true;
+  }
+
+  return getAppShellRouteChildren(route).some((child) =>
+    appShellRouteContainsActive(child, options)
+  );
+}
+
+export function getOpenRouteIdsForActiveRoute(
+  routes: AppShellProcessedRoute[],
+  options: AppShellRouteContainsActiveOptions
+): string[] {
   const openIds = new Set<string>();
 
   function walk(list: AppShellProcessedRoute[]): boolean {
     for (const route of list) {
-      const active = isAppShellRouteActive(currentPath, route);
-      const childActive = route.subroutes ? walk(route.subroutes) : false;
+      const selfActive = appShellRouteContainsActive(route, options);
+      const childActive = getAppShellRouteChildren(route).some((child) =>
+        walk([child])
+      );
 
-      if ((active || childActive) && route.subroutes?.length) {
+      if ((selfActive || childActive) && appShellRouteHasChildren(route)) {
         openIds.add(route.id);
       }
 
-      if (active || childActive) {
+      if (selfActive || childActive) {
         return true;
       }
     }
@@ -156,6 +219,15 @@ export function getOpenRouteIdsForPath(
   walk(routes);
 
   return Array.from(openIds);
+}
+
+export function getOpenRouteIdsForPath(
+  routes: AppShellProcessedRoute[],
+  currentPath: string | null | undefined
+): string[] {
+  return getOpenRouteIdsForActiveRoute(routes, {
+    activePath: currentPath,
+  });
 }
 
 export function toggleRouteId(ids: string[], id: string): string[] {

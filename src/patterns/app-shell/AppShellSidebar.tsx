@@ -13,6 +13,12 @@ import {
 } from "../../primitives/overlay";
 import { Typography } from "../../primitives/typography";
 import type { AppShellProcessedRoute } from "./AppShell.types";
+import {
+  appShellRouteContainsActive,
+  getAppShellRouteChildren,
+  getAppShellRouteId,
+  isAppShellRouteSelectable,
+} from "./AppShellRouteUtils";
 
 export interface AppShellSidebarProps {
   routes: AppShellProcessedRoute[];
@@ -52,82 +58,11 @@ function toCssSize(value: number | string | undefined, fallback: string): string
   return typeof value === "number" ? `${value}px` : value;
 }
 
-function normalizePath(path?: string): string {
-  const raw = String(path ?? "").trim();
+function areStringArraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
 
-  if (!raw || raw === "/") return "/";
-
-  const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-  return withSlash.length > 1 ? withSlash.replace(/\/+$/, "") : "/";
-}
-
-function getRouteId(route: AppShellProcessedRoute): string {
-  const anyRoute = route as AppShellProcessedRoute & {
-    id?: string;
-    routeId?: string;
-  };
-
-  return String(
-    anyRoute.id ??
-      anyRoute.routeId ??
-      normalizePath(route.path) ??
-      route.name
-  );
-}
-
-function getRouteChildren(
-  route: AppShellProcessedRoute
-): AppShellProcessedRoute[] {
-  const anyRoute = route as AppShellProcessedRoute & {
-    children?: AppShellProcessedRoute[];
-  };
-
-  return route.subroutes ?? anyRoute.children ?? [];
-}
-
-function hasChildren(route: AppShellProcessedRoute): boolean {
-  return getRouteChildren(route).length > 0;
-}
-
-function hasComponent(route: AppShellProcessedRoute): boolean {
-  const anyRoute = route as AppShellProcessedRoute & {
-    Component?: React.ComponentType;
-  };
-
-  return Boolean(route.component ?? anyRoute.Component);
-}
-
-function isSelectable(route: AppShellProcessedRoute): boolean {
-  return hasComponent(route) || !hasChildren(route);
-}
-
-function routeContainsActive(
-  route: AppShellProcessedRoute,
-  activeRouteId?: string | null,
-  activePath?: string
-): boolean {
-  const routeId = getRouteId(route);
-  const normalizedRoutePath = normalizePath(route.path);
-  const normalizedActivePath = normalizePath(activePath);
-
-  if (activeRouteId) {
-    if (routeId === activeRouteId) return true;
-    if (normalizedRoutePath === normalizePath(activeRouteId)) return true;
-  }
-
-  if (activePath) {
-    if (normalizedRoutePath === normalizedActivePath) return true;
-    if (
-      normalizedRoutePath !== "/" &&
-      normalizedActivePath.startsWith(`${normalizedRoutePath}/`)
-    ) {
-      return true;
-    }
-  }
-
-  return getRouteChildren(route).some((child) =>
-    routeContainsActive(child, activeRouteId, activePath)
-  );
+  const set = new Set(a);
+  return b.every((item) => set.has(item));
 }
 
 export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
@@ -156,9 +91,9 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   const isOpenControlled = openRouteIds !== undefined;
 
   const [internalOpenIds, setInternalOpenIds] = React.useState<string[]>([]);
-  const [collapsedMenuOpen, setCollapsedMenuOpen] = React.useState<string | null>(
-    null
-  );
+  const [collapsedMenuOpen, setCollapsedMenuOpen] = React.useState<
+    string | null
+  >(null);
 
   const currentOpenIds = isOpenControlled ? openRouteIds : internalOpenIds;
 
@@ -208,10 +143,14 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
       let foundInside = false;
 
       items.forEach((route) => {
-        const routeId = getRouteId(route);
-        const children = getRouteChildren(route);
+        const routeId = getAppShellRouteId(route);
+        const children = getAppShellRouteChildren(route);
 
-        const selfActive = routeContainsActive(route, activeRouteId, activePath);
+        const selfActive = appShellRouteContainsActive(route, {
+          activeRouteId,
+          activePath,
+        });
+
         const childActive = children.length > 0 ? walk(children) : false;
 
         if (selfActive || childActive) {
@@ -226,11 +165,18 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
     walk(routes);
 
     const resolved = Array.from(next);
+    const current = currentOpenIds ?? [];
 
-    if (resolved.length !== (currentOpenIds ?? []).length) {
+    if (!areStringArraysEqual(resolved, current)) {
       setOpenIds(resolved);
     }
-  }, [activePath, activeRouteId, routes]);
+  }, [
+    activePath,
+    activeRouteId,
+    currentOpenIds,
+    routes,
+    setOpenIds,
+  ]);
 
   const toggleNode = React.useCallback(
     (routeId: string) => {
@@ -251,7 +197,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
 
   const handleRouteSelect = React.useCallback(
     (route: AppShellProcessedRoute) => {
-      if (!isSelectable(route)) return;
+      if (!isAppShellRouteSelectable(route)) return;
 
       onNavigate?.(route);
       onRouteSelect?.(route);
@@ -263,11 +209,15 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   const renderCollapsedMenuItems = React.useCallback(
     (items: AppShellProcessedRoute[], depth = 0): React.ReactNode => {
       return items.map((route) => {
-        const routeId = getRouteId(route);
-        const children = getRouteChildren(route);
+        const routeId = getAppShellRouteId(route);
+        const children = getAppShellRouteChildren(route);
         const routeHasChildren = children.length > 0;
-        const routeSelectable = isSelectable(route);
-        const active = routeContainsActive(route, activeRouteId, activePath);
+        const routeSelectable = isAppShellRouteSelectable(route);
+
+        const active = appShellRouteContainsActive(route, {
+          activeRouteId,
+          activePath,
+        });
 
         if (routeHasChildren) {
           return (
@@ -287,7 +237,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
                     fontWeight: active ? 800 : undefined,
                   }}
                 >
-                  <span aria-hidden="true">{route.emoji ?? "•"}</span>
+                  <span aria-hidden="true">{route.icon ?? route.emoji ?? "•"}</span>
                   <span>{route.name}</span>
                 </MenuItem>
               ) : (
@@ -303,7 +253,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
                   }}
                 >
                   <span aria-hidden="true" style={{ marginRight: "0.5rem" }}>
-                    {route.emoji ?? "•"}
+                    {route.icon ?? route.emoji ?? "•"}
                   </span>
                   {route.name}
                 </Box>
@@ -330,7 +280,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
               fontWeight: active ? 800 : undefined,
             }}
           >
-            <span aria-hidden="true">{route.emoji ?? "•"}</span>
+            <span aria-hidden="true">{route.icon ?? route.emoji ?? "•"}</span>
             <span>{route.name}</span>
           </MenuItem>
         );
@@ -423,7 +373,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
                 lineHeight: 1,
               }}
             >
-              {route.emoji ?? "•"}
+              {route.icon ?? route.emoji ?? "•"}
             </span>
           </Flex>
 
@@ -445,6 +395,20 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
               >
                 {route.name}
               </Typography>
+
+              {route.badge ? (
+                <Box
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    marginRight: routeHasChildren ? "0.4rem" : 0,
+                  }}
+                >
+                  {route.badge}
+                </Box>
+              ) : null}
 
               {routeHasChildren ? (
                 <Box
@@ -469,16 +433,18 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   );
 
   const renderNode = React.useCallback(
-    (
-      route: AppShellProcessedRoute,
-      depth: number
-    ): React.ReactNode => {
-      const routeId = getRouteId(route);
-      const children = getRouteChildren(route);
+    (route: AppShellProcessedRoute, depth: number): React.ReactNode => {
+      const routeId = getAppShellRouteId(route);
+      const children = getAppShellRouteChildren(route);
       const routeHasChildren = children.length > 0;
-      const active = routeContainsActive(route, activeRouteId, activePath);
+
+      const active = appShellRouteContainsActive(route, {
+        activeRouteId,
+        activePath,
+      });
+
       const isOpen = Boolean((currentOpenIds ?? []).includes(routeId));
-      const selectable = isSelectable(route);
+      const selectable = isAppShellRouteSelectable(route);
 
       const tile = renderTile({
         route,
