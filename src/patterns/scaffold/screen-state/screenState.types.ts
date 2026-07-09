@@ -7,11 +7,26 @@ import type {
 } from "../../../components/feedback/LoadingState";
 import type { AlertProps } from "../../../components/feedback/Alert";
 import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../../helpers/css";
+import type {
   ScreenContentPadding,
   ScreenContentProps,
 } from "../ScreenContent";
 
 export type ScreenStateStatus = "loading" | "error" | "empty" | "success";
+
+export type ScreenStateSlot =
+  | "root"
+  | "loading"
+  | "empty"
+  | "error"
+  | "success";
+
+export type ScreenStateStyles = SlotStyleMap<ScreenStateSlot>;
+
+export type ScreenStateSlotProps = SlotPropsMap<ScreenStateSlot>;
 
 export interface ScreenStateRenderContext {
   status: ScreenStateStatus;
@@ -43,8 +58,8 @@ export interface ScreenStateProps
 
   /**
    * Layout del estado.
-   * El contenido success se retorna directo para no envolver pantallas reales
-   * innecesariamente.
+   * El contenido success se retorna directo salvo que root/success necesiten
+   * styles o slotProps.
    */
   padded?: boolean;
   padding?: ScreenContentPadding;
@@ -108,4 +123,7 @@ export interface ScreenStateProps
   className?: string;
   style?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
+
+  styles?: ScreenStateStyles;
+  slotProps?: ScreenStateSlotProps;
 }

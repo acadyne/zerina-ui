@@ -1,5 +1,12 @@
 // src/patterns/scaffold/tab-scaffold/TabScaffold.tsx
 import React from "react";
+import {
+  cx,
+  getSlotProps,
+  getSlotStyle,
+  type SlotElementProps,
+} from "../../../helpers/css";
+import { Box } from "../../../primitives/layout";
 import { BottomNavigation } from "../../../primitives/navigation/BottomNavigation";
 import {
   NavigationStack,
@@ -14,6 +21,8 @@ import type {
   TabScaffoldContextValue,
   TabScaffoldProps,
   TabScaffoldRenderContext,
+  TabScaffoldSlot,
+  TabScaffoldSlotProps,
 } from "./tabScaffold.types";
 import {
   createTabScaffoldEntry,
@@ -24,6 +33,25 @@ import {
   resolveTabScaffoldHeaderValue,
   resolveTabScaffoldSlot,
 } from "./tabScaffold.utils";
+
+interface ResolvedSlotProps {
+  className?: string;
+  style?: React.CSSProperties;
+  rest: Omit<SlotElementProps, "className" | "style">;
+}
+
+function resolveSlotProps(
+  slotProps: TabScaffoldSlotProps | undefined,
+  slot: TabScaffoldSlot
+): ResolvedSlotProps {
+  const { className, style, ...rest } = getSlotProps(slotProps, slot);
+
+  return {
+    className,
+    style,
+    rest,
+  };
+}
 
 export function TabScaffold({
   tabs,
@@ -69,8 +97,21 @@ export function TabScaffold({
   scrollable = false,
   padded = false,
 
+  styles,
+  slotProps,
+
+  className = "",
+  style,
+
   ...mobileScaffoldProps
 }: TabScaffoldProps) {
+  const rootSlot = resolveSlotProps(slotProps, "root");
+  const appBarSlot = resolveSlotProps(slotProps, "appBar");
+  const stackSlot = resolveSlotProps(slotProps, "stack");
+  const screenSlot = resolveSlotProps(slotProps, "screen");
+  const bottomNavigationSlot = resolveSlotProps(slotProps, "bottomNavigation");
+  const floatingSlot = resolveSlotProps(slotProps, "floating");
+
   const initialTab = React.useMemo(
     () => getInitialTab(tabs, initialTabProp),
     [tabs, initialTabProp]
@@ -216,7 +257,7 @@ export function TabScaffold({
     resolveTabScaffoldHeaderValue(subtitle, renderContext) ??
     resolveTabScaffoldHeaderValue(activeMeta?.subtitle, renderContext);
 
-  const appBar = renderAppBar ? (
+  const appBarNode = renderAppBar ? (
     renderAppBar(renderContext)
   ) : showAppBar ? (
     <TopAppBar
@@ -243,7 +284,24 @@ export function TabScaffold({
     />
   ) : null;
 
-  const bottomNavigation = renderBottomNavigation ? (
+  const appBar = appBarNode ? (
+    <Box
+      className={appBarSlot.className}
+      data-ui-tab-scaffold-app-bar=""
+      {...appBarSlot.rest}
+      style={{
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+        ...getSlotStyle(styles, "appBar"),
+        ...appBarSlot.style,
+      }}
+    >
+      {appBarNode}
+    </Box>
+  ) : null;
+
+  const bottomNavigationNode = renderBottomNavigation ? (
     renderBottomNavigation(renderContext)
   ) : showBottomNavigation ? (
     <BottomNavigation
@@ -273,7 +331,39 @@ export function TabScaffold({
     </BottomNavigation>
   ) : null;
 
+  const bottomNavigation = bottomNavigationNode ? (
+    <Box
+      className={bottomNavigationSlot.className}
+      data-ui-tab-scaffold-bottom-navigation=""
+      {...bottomNavigationSlot.rest}
+      style={{
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+        ...getSlotStyle(styles, "bottomNavigation"),
+        ...bottomNavigationSlot.style,
+      }}
+    >
+      {bottomNavigationNode}
+    </Box>
+  ) : null;
+
   const floatingContent = resolveTabScaffoldSlot(floating, renderContext);
+
+  const floatingNode = floatingContent ? (
+    <Box
+      className={floatingSlot.className}
+      data-ui-tab-scaffold-floating=""
+      {...floatingSlot.rest}
+      style={{
+        display: "contents",
+        ...getSlotStyle(styles, "floating"),
+        ...floatingSlot.style,
+      }}
+    >
+      {floatingContent}
+    </Box>
+  ) : null;
 
   if (tabs.length === 0 || !initialTab) {
     return (
@@ -281,7 +371,16 @@ export function TabScaffold({
         viewport={viewport}
         scrollable={false}
         padded={false}
+        className={cx(className, rootSlot.className)}
+        data-ui-tab-scaffold=""
+        data-ui-tab-scaffold-empty=""
+        {...rootSlot.rest}
         {...mobileScaffoldProps}
+        style={{
+          ...getSlotStyle(styles, "root"),
+          ...rootSlot.style,
+          ...style,
+        }}
       >
         {fallback ?? renderTabScaffoldFallback()}
       </MobileScaffold>
@@ -296,49 +395,78 @@ export function TabScaffold({
         padded={padded}
         appBar={appBar}
         bottomNavigation={bottomNavigation}
-        floating={floatingContent}
+        floating={floatingNode}
+        className={cx(className, rootSlot.className)}
+        data-ui-tab-scaffold=""
+        data-ui-tab-scaffold-active-tab={activeTab}
+        data-ui-tab-scaffold-can-go-back={canGoBack || undefined}
+        {...rootSlot.rest}
         {...mobileScaffoldProps}
+        style={{
+          ...getSlotStyle(styles, "root"),
+          ...rootSlot.style,
+          ...style,
+        }}
       >
-        <NavigationStack
-          initialName={initialTab}
-          initialParams={initialParams}
-          entries={stackEntries}
-          onEntriesChange={setEntries}
-          animation={animation}
-          fallback={fallback}
+        <Box
+          className={stackSlot.className}
+          data-ui-tab-scaffold-stack=""
+          {...stackSlot.rest}
           style={{
             height: "100%",
             minHeight: 0,
+            minWidth: 0,
+            overflow: "hidden",
+            ...getSlotStyle(styles, "stack"),
+            ...stackSlot.style,
             ...stackStyle,
           }}
-          screenStyle={screenStyle}
         >
-          {tabs.map((tab) => (
-            <NavigationStack.Screen
-              key={tab.value}
-              name={tab.value}
-              component={tab.component}
-              render={
-                tab.render as
+          <NavigationStack
+            initialName={initialTab}
+            initialParams={initialParams}
+            entries={stackEntries}
+            onEntriesChange={setEntries}
+            animation={animation}
+            fallback={fallback}
+            style={{
+              height: "100%",
+              minHeight: 0,
+              minWidth: 0,
+            }}
+            screenStyle={{
+              ...getSlotStyle(styles, "screen"),
+              ...screenSlot.style,
+              ...screenStyle,
+            }}
+          >
+            {tabs.map((tab) => (
+              <NavigationStack.Screen
+                key={tab.value}
+                name={tab.value}
+                component={tab.component}
+                render={
+                  tab.render as
                   | ((
-                      props: NavigationStackScreenRenderProps<any>
-                    ) => React.ReactNode)
+                    props: NavigationStackScreenRenderProps<any>
+                  ) => React.ReactNode)
                   | undefined
-              }
-              element={tab.element}
-            />
-          ))}
+                }
+                element={tab.element}
+              />
+            ))}
 
-          {screens.map((screen) => (
-            <NavigationStack.Screen
-              key={screen.name}
-              name={screen.name}
-              component={screen.component}
-              render={screen.render}
-              element={screen.element}
-            />
-          ))}
-        </NavigationStack>
+            {screens.map((screen) => (
+              <NavigationStack.Screen
+                key={screen.name}
+                name={screen.name}
+                component={screen.component}
+                render={screen.render}
+                element={screen.element}
+              />
+            ))}
+          </NavigationStack>
+        </Box>
       </MobileScaffold>
     </TabScaffoldContext.Provider>
   );

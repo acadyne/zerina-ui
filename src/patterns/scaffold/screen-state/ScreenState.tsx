@@ -5,6 +5,12 @@ import {
   EmptyState,
   LoadingState,
 } from "../../../components/feedback";
+import {
+  cx,
+  getSlotProps,
+  getSlotStyle,
+  type SlotElementProps,
+} from "../../../helpers/css";
 import { Button } from "../../../primitives/forms";
 import { Box, Stack } from "../../../primitives/layout";
 import { Typography } from "../../../primitives/typography";
@@ -12,12 +18,33 @@ import { ScreenContent } from "../ScreenContent";
 import type {
   ScreenStateProps,
   ScreenStateRenderContext,
+  ScreenStateSlot,
+  ScreenStateSlotProps,
 } from "./screenState.types";
 import {
   createScreenStateContext,
   getScreenStateErrorMessage,
   resolveScreenStateStatus,
 } from "./screenState.utils";
+
+interface ResolvedSlotProps {
+  className?: string;
+  style?: React.CSSProperties;
+  rest: Omit<SlotElementProps, "className" | "style">;
+}
+
+function resolveSlotProps(
+  slotProps: ScreenStateSlotProps | undefined,
+  slot: ScreenStateSlot
+): ResolvedSlotProps {
+  const { className, style, ...rest } = getSlotProps(slotProps, slot);
+
+  return {
+    className,
+    style,
+    rest,
+  };
+}
 
 function renderSuccess({
   children,
@@ -85,6 +112,9 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
       style,
       contentStyle,
 
+      styles,
+      slotProps,
+
       ...rest
     },
     ref
@@ -108,12 +138,58 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
       [empty, error, loading, onRetry, resolvedStatus]
     );
 
+    const rootSlot = resolveSlotProps(slotProps, "root");
+    const stateSlot = resolveSlotProps(slotProps, resolvedStatus);
+
+    const {
+      className: screenContentClassName,
+      style: screenContentStyle,
+      contentStyle: screenContentContentStyle,
+      ...screenContentRest
+    } = screenContentProps ?? {};
+
     if (resolvedStatus === "success") {
-      if (renderSuccessProp) {
-        return <>{renderSuccessProp(context)}</>;
+      const successNode = renderSuccessProp
+        ? renderSuccessProp(context)
+        : renderSuccess({ children, context });
+
+      const shouldWrapSuccess =
+        Boolean(className) ||
+        Boolean(style) ||
+        Object.keys(rest).length > 0 ||
+        Boolean(getSlotStyle(styles, "root")) ||
+        Boolean(getSlotStyle(styles, "success")) ||
+        Boolean(slotProps?.root) ||
+        Boolean(slotProps?.success);
+
+      if (!shouldWrapSuccess) {
+        return <>{successNode}</>;
       }
 
-      return <>{renderSuccess({ children, context })}</>;
+      return (
+        <Box
+          ref={ref}
+          className={cx(className, rootSlot.className, stateSlot.className)}
+          data-ui-screen-state=""
+          data-ui-screen-state-status="success"
+          data-ui-screen-state-success=""
+          {...rootSlot.rest}
+          {...stateSlot.rest}
+          {...rest}
+          style={{
+            width: "100%",
+            minWidth: 0,
+            minHeight: 0,
+            ...getSlotStyle(styles, "root"),
+            ...rootSlot.style,
+            ...style,
+            ...getSlotStyle(styles, "success"),
+            ...stateSlot.style,
+          }}
+        >
+          {successNode}
+        </Box>
+      );
     }
 
     const retryAction =
@@ -197,18 +273,45 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
         centered={centered}
         fill={fill}
         scrollable={scrollable}
-        className={className}
-        contentStyle={contentStyle}
+        className={cx(className, screenContentClassName, rootSlot.className)}
+        contentStyle={{
+          ...contentStyle,
+          ...screenContentContentStyle,
+        }}
         data-ui-screen-state=""
         data-ui-screen-state-status={resolvedStatus}
-        {...screenContentProps}
+        {...screenContentRest}
+        {...rootSlot.rest}
         {...rest}
         style={{
+          ...getSlotStyle(styles, "root"),
+          ...rootSlot.style,
           ...style,
-          ...screenContentProps?.style,
+          ...screenContentStyle,
         }}
       >
-        {stateNode}
+        <Box
+          className={stateSlot.className}
+          data-ui-screen-state-panel=""
+          data-ui-screen-state-panel-status={resolvedStatus}
+          data-ui-screen-state-loading={
+            resolvedStatus === "loading" || undefined
+          }
+          data-ui-screen-state-empty={resolvedStatus === "empty" || undefined}
+          data-ui-screen-state-error={resolvedStatus === "error" || undefined}
+          {...stateSlot.rest}
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minWidth: 0,
+            ...getSlotStyle(styles, resolvedStatus),
+            ...stateSlot.style,
+          }}
+        >
+          {stateNode}
+        </Box>
       </ScreenContent>
     );
   }

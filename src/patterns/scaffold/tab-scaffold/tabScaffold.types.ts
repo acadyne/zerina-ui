@@ -1,5 +1,9 @@
 // src/patterns/scaffold/tab-scaffold/tabScaffold.types.ts
 import React from "react";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../../helpers/css";
 import type { BottomNavigationProps } from "../../../primitives/navigation/BottomNavigation";
 import type {
   NavigationStackAnimation,
@@ -17,6 +21,18 @@ import type { TopAppBarProps } from "../TopAppBar";
 export type TabScaffoldHeaderValue =
   | React.ReactNode
   | ((context: TabScaffoldRenderContext) => React.ReactNode);
+
+export type TabScaffoldSlot =
+  | "root"
+  | "appBar"
+  | "stack"
+  | "screen"
+  | "bottomNavigation"
+  | "floating";
+
+export type TabScaffoldStyles = SlotStyleMap<TabScaffoldSlot>;
+
+export type TabScaffoldSlotProps = SlotPropsMap<TabScaffoldSlot>;
 
 export interface TabScaffoldScreen {
   name: string;
@@ -94,16 +110,16 @@ export interface TabScaffoldProps
   subtitle?: TabScaffoldHeaderValue;
 
   rootLeading?:
-    | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+  | React.ReactNode
+  | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   actions?:
-    | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+  | React.ReactNode
+  | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   floating?:
-    | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+  | React.ReactNode
+  | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   backIcon?: React.ReactNode;
   backAriaLabel?: string;
@@ -130,4 +146,7 @@ export interface TabScaffoldProps
 
   stackStyle?: React.CSSProperties;
   screenStyle?: React.CSSProperties;
+
+  styles?: TabScaffoldStyles;
+  slotProps?: TabScaffoldSlotProps;
 }
