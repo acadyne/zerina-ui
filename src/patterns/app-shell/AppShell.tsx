@@ -4,6 +4,7 @@ import { Box } from "../../primitives/layout";
 import type {
   AppShellCommonProps,
   AppShellProcessedRoute,
+  AppShellViewport,
 } from "./AppShell.types";
 import { processAppShellRoutes } from "./AppShellRouteUtils";
 import { useAppShellState } from "./useAppShellState";
@@ -14,6 +15,30 @@ import { AppShellContent } from "./AppShellContent";
 
 function cssSize(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
+}
+
+function getShellLengthBase(viewport: AppShellViewport): string {
+  return viewport === "contained" ? "100%" : "100dvh";
+}
+
+function getContentHeight({
+  viewport,
+  isMobile,
+  headerHeight,
+  mobileBarHeight,
+}: {
+  viewport: AppShellViewport;
+  isMobile: boolean;
+  headerHeight: string;
+  mobileBarHeight: number;
+}): string {
+  const base = getShellLengthBase(viewport);
+
+  if (isMobile) {
+    return `calc(${base} - ${headerHeight} - ${mobileBarHeight}px - env(safe-area-inset-bottom))`;
+  }
+
+  return `calc(${base} - ${headerHeight})`;
 }
 
 export interface AppShellProps extends AppShellCommonProps {
@@ -36,6 +61,10 @@ export function AppShell({
 
   brand,
   user,
+
+  headerStart,
+  headerCenter,
+  headerEnd,
 
   activePath = "/",
   activeRouteId,
@@ -107,6 +136,13 @@ export function AppShell({
 
   const resolvedActiveRouteId = activeRouteId ?? activePath;
 
+  const contentHeight = getContentHeight({
+    viewport,
+    isMobile: shell.isMobile,
+    headerHeight: resolvedHeaderHeight,
+    mobileBarHeight,
+  });
+
   const handleSidebarRouteSelect = React.useCallback(
     (route: AppShellProcessedRoute) => {
       onNavigate?.(route);
@@ -134,6 +170,9 @@ export function AppShell({
         viewport={viewport}
         brand={brand}
         user={user}
+        headerStart={headerStart}
+        headerCenter={headerCenter}
+        headerEnd={headerEnd}
         collapsed={shell.collapsed}
         isMobile={shell.isMobile}
         height={resolvedHeaderHeight}
@@ -150,7 +189,6 @@ export function AppShell({
 
       {!shell.isMobile ? (
         <AppShellSidebar
-          viewport={viewport}
           routes={processedRoutes}
           activeRouteId={resolvedActiveRouteId}
           activePath={activePath}
@@ -161,29 +199,40 @@ export function AppShell({
           openRouteIds={openRouteIds}
           onOpenRouteIdsChange={onOpenRouteIdsChange}
           onRouteSelect={handleSidebarRouteSelect}
-          style={sidebarStyle}
+          style={{
+            position: isContained ? "absolute" : undefined,
+            height: isContained
+              ? `calc(100% - ${resolvedHeaderHeight})`
+              : undefined,
+            width: resolvedSidebarWidth,
+            ...sidebarStyle,
+          }}
         />
       ) : null}
 
       <AppShellContent
-        viewport={viewport}
         isMobile={shell.isMobile}
         headerHeight={resolvedHeaderHeight}
         mobileBarHeight={mobileBarHeight}
         sidebarWidth={shell.isMobile ? 0 : resolvedSidebarWidth}
-        style={contentStyle}
+        style={{
+          height: contentHeight,
+          ...contentStyle,
+        }}
       >
         {children}
       </AppShellContent>
 
       {shell.isMobile ? (
         <AppShellMobileBar
-          viewport={viewport}
           routes={processedRoutes}
           activePath={activePath}
           height={mobileBarHeight}
           onNavigate={onNavigate}
-          style={mobileBarStyle}
+          style={{
+            position: isContained ? "absolute" : undefined,
+            ...mobileBarStyle,
+          }}
         />
       ) : null}
     </Box>

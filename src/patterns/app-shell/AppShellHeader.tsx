@@ -1,3 +1,4 @@
+// src/patterns/app-shell/AppShellHeader.tsx
 import React from "react";
 import {
   ChevronDown,
@@ -68,6 +69,21 @@ export interface AppShellHeaderProps {
   brand?: AppShellBrand;
   user?: AppShellUserInfo;
 
+  /**
+   * Reemplaza el bloque default de marca/logo.
+   */
+  headerStart?: React.ReactNode;
+
+  /**
+   * Zona central del header.
+   */
+  headerCenter?: React.ReactNode;
+
+  /**
+   * Zona adicional antes de las acciones default.
+   */
+  headerEnd?: React.ReactNode;
+
   collapsed?: boolean;
   isMobile?: boolean;
 
@@ -90,8 +106,13 @@ export interface AppShellHeaderProps {
 
 export function AppShellHeader({
   viewport = "window",
+
   brand,
   user,
+
+  headerStart,
+  headerCenter,
+  headerEnd,
 
   collapsed = false,
   isMobile,
@@ -114,19 +135,92 @@ export function AppShellHeader({
 }: AppShellHeaderProps) {
   const layout = useOptionalUILayout();
   const resolvedMobile = isMobile ?? Boolean(layout?.isMobile);
+  const isContained = viewport === "contained";
 
   const { theme, cycleTheme } = useUITheme();
   const ThemeIcon = themeIconMap[theme] ?? Sparkles;
 
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
-  const isContained = viewport === "contained";
 
   const initials = React.useMemo(() => getInitials(user), [user]);
+
+  const defaultBrand = (
+    <Flex
+      align="center"
+      gap="0.75rem"
+      style={{
+        minWidth: 0,
+        padding: "0.35rem 0.65rem 0.35rem 0.35rem",
+        borderRadius: "var(--ui-radius-xl)",
+        border: "1px solid var(--ui-border)",
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 78%, transparent), var(--ui-surface))",
+        boxShadow: "var(--ui-shadow-sm)",
+      }}
+    >
+      <Box
+        aria-hidden="true"
+        style={{
+          width: 36,
+          height: 36,
+          minWidth: 36,
+          minHeight: 36,
+          borderRadius: "9999px",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "color-mix(in srgb, var(--ui-primary) 16%, transparent)",
+          color: "var(--ui-text)",
+          fontWeight: 800,
+          fontSize: "0.82rem",
+          border: "1px solid var(--ui-border)",
+          boxShadow: "var(--ui-shadow-sm)",
+          flexShrink: 0,
+        }}
+      >
+        {brand?.logo ?? initials}
+      </Box>
+
+      <Box style={{ minWidth: 0 }}>
+        <Typography
+          as="div"
+          size="sm"
+          weight={800}
+          style={{
+            margin: 0,
+            color: "var(--ui-text)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: resolvedMobile ? "140px" : "280px",
+          }}
+        >
+          {brand?.title ?? user?.name ?? "Zerina UI"}
+        </Typography>
+
+        <Typography
+          as="div"
+          size="xs"
+          color="var(--ui-text-muted)"
+          style={{
+            marginTop: "0.1rem",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: resolvedMobile ? "140px" : "280px",
+          }}
+        >
+          {brand?.subtitle ?? user?.role ?? "App Shell"}
+        </Typography>
+      </Box>
+    </Flex>
+  );
 
   return (
     <Box
       as="header"
       className={className}
+      data-ui-app-shell-header-viewport={viewport}
       style={{
         position: isContained ? "absolute" : "sticky",
         top: 0,
@@ -148,12 +242,20 @@ export function AppShellHeader({
         align="center"
         justify="space-between"
         h="100%"
+        gap="0.75rem"
         style={{
           maxWidth: "100%",
           minWidth: 0,
         }}
       >
-        <Flex align="center" gap="0.65rem" style={{ minWidth: 0 }}>
+        <Flex
+          align="center"
+          gap="0.65rem"
+          style={{
+            minWidth: 0,
+            flex: headerCenter ? "0 1 auto" : "1 1 auto",
+          }}
+        >
           {showCollapseButton ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -187,79 +289,57 @@ export function AppShellHeader({
             </Tooltip>
           ) : null}
 
-          <Flex
-            align="center"
-            gap="0.75rem"
+          <Box
             style={{
               minWidth: 0,
-              padding: "0.35rem 0.65rem 0.35rem 0.35rem",
-              borderRadius: "var(--ui-radius-xl)",
-              border: "1px solid var(--ui-border)",
-              background:
-                "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 78%, transparent), var(--ui-surface))",
-              boxShadow: "var(--ui-shadow-sm)",
+              maxWidth: "100%",
+            }}
+          >
+            {headerStart ?? defaultBrand}
+          </Box>
+        </Flex>
+
+        {headerCenter ? (
+          <Box
+            style={{
+              flex: "1 1 auto",
+              minWidth: 0,
+              display: "flex",
+              justifyContent: "center",
             }}
           >
             <Box
-              aria-hidden="true"
               style={{
-                width: 36,
-                height: 36,
-                minWidth: 36,
-                minHeight: 36,
-                borderRadius: "9999px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background:
-                  "color-mix(in srgb, var(--ui-primary) 16%, transparent)",
-                color: "var(--ui-text)",
-                fontWeight: 800,
-                fontSize: "0.82rem",
-                border: "1px solid var(--ui-border)",
-                boxShadow: "var(--ui-shadow-sm)",
-                flexShrink: 0,
+                width: "100%",
+                minWidth: 0,
+                maxWidth: resolvedMobile ? "100%" : 560,
               }}
             >
-              {brand?.logo ?? initials}
+              {headerCenter}
             </Box>
+          </Box>
+        ) : null}
 
-            <Box style={{ minWidth: 0 }}>
-              <Typography
-                as="div"
-                size="sm"
-                weight={800}
-                style={{
-                  margin: 0,
-                  color: "var(--ui-text)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: resolvedMobile ? "140px" : "280px",
-                }}
-              >
-                {brand?.title ?? user?.name ?? "Zerina UI"}
-              </Typography>
-
-              <Typography
-                as="div"
-                size="xs"
-                color="var(--ui-text-muted)"
-                style={{
-                  marginTop: "0.1rem",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: resolvedMobile ? "140px" : "280px",
-                }}
-              >
-                {brand?.subtitle ?? user?.role ?? "App Shell"}
-              </Typography>
+        <Flex
+          align="center"
+          gap="0.5rem"
+          style={{
+            flexShrink: 0,
+            minWidth: 0,
+          }}
+        >
+          {headerEnd ? (
+            <Box
+              style={{
+                minWidth: 0,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              {headerEnd}
             </Box>
-          </Flex>
-        </Flex>
+          ) : null}
 
-        <Flex align="center" gap="0.5rem" style={{ flexShrink: 0 }}>
           {showMobileModeButton ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -387,7 +467,12 @@ export function AppShellHeader({
                     borderBottom: "1px solid var(--ui-border)",
                   }}
                 >
-                  <Typography as="div" size="sm" weight={800} style={{ margin: 0 }}>
+                  <Typography
+                    as="div"
+                    size="sm"
+                    weight={800}
+                    style={{ margin: 0 }}
+                  >
                     {user?.name ?? "Usuario"}
                   </Typography>
 

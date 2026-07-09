@@ -68,6 +68,22 @@ export interface AppShellCommonProps {
   brand?: AppShellBrand;
   user?: AppShellUserInfo;
 
+  /**
+   * Reemplaza el bloque default de marca/logo.
+   */
+  headerStart?: React.ReactNode;
+
+  /**
+   * Zona central del header.
+   * Útil para search, breadcrumbs, tabs, command bar o estado contextual.
+   */
+  headerCenter?: React.ReactNode;
+
+  /**
+   * Zona adicional antes de las acciones default del header.
+   */
+  headerEnd?: React.ReactNode;
+
   activePath?: string;
   activeRouteId?: string | null;
 
