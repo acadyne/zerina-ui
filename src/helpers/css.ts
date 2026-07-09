@@ -32,3 +32,25 @@ export function omitUndefined<T extends Record<string, unknown>>(
     Object.entries(obj).filter(([, value]) => value !== undefined)
   ) as Partial<T>;
 }
+
+export type SlotStyleMap<TSlot extends string> = Partial<
+  Record<TSlot, React.CSSProperties>
+>;
+
+export type SlotPropsMap<TSlot extends string> = Partial<
+  Record<TSlot, React.HTMLAttributes<HTMLElement>>
+>;
+
+export function getSlotStyle<TSlot extends string>(
+  styles: SlotStyleMap<TSlot> | undefined,
+  slot: TSlot
+): React.CSSProperties | undefined {
+  return styles?.[slot];
+}
+
+export function getSlotProps<TSlot extends string>(
+  slotProps: SlotPropsMap<TSlot> | undefined,
+  slot: TSlot
+): React.HTMLAttributes<HTMLElement> {
+  return slotProps?.[slot] ?? {};
+}

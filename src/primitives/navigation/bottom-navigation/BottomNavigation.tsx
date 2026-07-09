@@ -13,6 +13,7 @@ import type {
   BottomNavigationContextValue,
   BottomNavigationProps,
 } from "./bottomNavigation.types";
+import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
 
 const BottomNavigationRoot = React.forwardRef<
   HTMLElement,
@@ -62,6 +63,8 @@ const BottomNavigationRoot = React.forwardRef<
       className = "",
       style,
       listStyle,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -120,6 +123,8 @@ const BottomNavigationRoot = React.forwardRef<
 
         badgeStyle,
         activeBadgeStyle,
+        styles,
+        slotProps,
       }),
       [
         currentValue,
@@ -145,15 +150,32 @@ const BottomNavigationRoot = React.forwardRef<
         activeLabelStyle,
         badgeStyle,
         activeBadgeStyle,
+        styles,
+        slotProps,
       ]
     );
+
+        const rootSlotProps = getSlotProps(slotProps, "root");
+    const listSlotProps = getSlotProps(slotProps, "list");
+
+    const {
+      className: rootSlotClassName,
+      style: rootSlotStyle,
+      ...rootSlotRest
+    } = rootSlotProps;
+
+    const {
+      className: listSlotClassName,
+      style: listSlotStyle,
+      ...listSlotRest
+    } = listSlotProps;
 
     return (
       <BottomNavigationContext.Provider value={contextValue}>
         <Box
           as="nav"
           ref={ref as React.Ref<Element>}
-          className={className}
+          className={cx(className, rootSlotClassName)}
           aria-label={rest["aria-label"] ?? "Navegación inferior"}
           data-ui-bottom-navigation=""
           data-ui-bottom-navigation-variant={variant}

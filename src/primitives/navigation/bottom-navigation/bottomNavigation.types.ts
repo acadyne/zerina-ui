@@ -26,6 +26,31 @@ export interface BottomNavigationBadgeOffset {
   y?: number | string;
 }
 
+export type BottomNavigationSlot =
+  | "root"
+  | "list"
+  | "item"
+  | "activeItem"
+  | "content"
+  | "activeContent"
+  | "iconWrap"
+  | "activeIconWrap"
+  | "icon"
+  | "activeIcon"
+  | "label"
+  | "activeLabel"
+  | "badge"
+  | "activeBadge"
+  | "dot";
+
+export type BottomNavigationStyles = Partial<
+  Record<BottomNavigationSlot, React.CSSProperties>
+>;
+
+export type BottomNavigationSlotProps = Partial<
+  Record<BottomNavigationSlot, React.HTMLAttributes<HTMLElement>>
+>;
+
 export interface BottomNavigationContextValue {
   value: string | null;
   setValue: (value: string, event: React.MouseEvent<HTMLElement>) => void;
@@ -59,6 +84,9 @@ export interface BottomNavigationContextValue {
 
   badgeStyle?: React.CSSProperties;
   activeBadgeStyle?: React.CSSProperties;
+
+  styles?: BottomNavigationStyles;
+  slotProps?: BottomNavigationSlotProps;
 }
 
 export interface BottomNavigationProps
@@ -126,6 +154,9 @@ export interface BottomNavigationProps
   className?: string;
   style?: React.CSSProperties;
   listStyle?: React.CSSProperties;
+
+  styles?: BottomNavigationStyles;
+  slotProps?: BottomNavigationSlotProps;
 }
 
 export interface BottomNavigationItemProps
@@ -182,4 +213,7 @@ export interface BottomNavigationItemProps
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: BottomNavigationStyles;
+  slotProps?: BottomNavigationSlotProps;
 }

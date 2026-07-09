@@ -29,6 +29,34 @@ export interface NavigationRailBadgeOffset {
   y?: number | string;
 }
 
+export type NavigationRailSlot =
+  | "root"
+  | "container"
+  | "list"
+  | "header"
+  | "footer"
+  | "item"
+  | "activeItem"
+  | "content"
+  | "activeContent"
+  | "iconWrap"
+  | "activeIconWrap"
+  | "icon"
+  | "activeIcon"
+  | "label"
+  | "activeLabel"
+  | "badge"
+  | "activeBadge"
+  | "dot";
+
+export type NavigationRailStyles = Partial<
+  Record<NavigationRailSlot, React.CSSProperties>
+>;
+
+export type NavigationRailSlotProps = Partial<
+  Record<NavigationRailSlot, React.HTMLAttributes<HTMLElement>>
+>;
+
 export interface NavigationRailContextValue {
   value: string | null;
   setValue: (value: string, event: React.MouseEvent<HTMLElement>) => void;
@@ -62,6 +90,9 @@ export interface NavigationRailContextValue {
 
   badgeStyle?: React.CSSProperties;
   activeBadgeStyle?: React.CSSProperties;
+
+  styles?: NavigationRailStyles;
+  slotProps?: NavigationRailSlotProps;
 }
 
 export interface NavigationRailProps
@@ -125,6 +156,9 @@ export interface NavigationRailProps
   listStyle?: React.CSSProperties;
   headerStyle?: React.CSSProperties;
   footerStyle?: React.CSSProperties;
+
+  styles?: NavigationRailStyles;
+  slotProps?: NavigationRailSlotProps;
 }
 
 export interface NavigationRailItemProps
@@ -180,4 +214,7 @@ export interface NavigationRailItemProps
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: NavigationRailStyles;
+  slotProps?: NavigationRailSlotProps;
 }
