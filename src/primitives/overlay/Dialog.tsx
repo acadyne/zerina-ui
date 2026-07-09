@@ -1,6 +1,5 @@
 // src/primitives/overlay/Dialog.tsx
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   DismissableLayer,
   FocusScope,
@@ -9,10 +8,10 @@ import {
   ScrollLock,
 } from "../../core/overlay";
 import {
-  getOverlayBackdropVariants,
-  getOverlayDialogVariants,
-  getOverlayMotionIntent,
-  useOptionalUIMotion,
+  MotionOverlayBackdrop,
+  MotionOverlayPanel,
+  MotionOverlayPresence,
+  MotionOverlayRoot,
 } from "../../core/motion";
 import { Button, type ButtonProps } from "../forms/Button";
 
@@ -104,24 +103,6 @@ export const Dialog: React.FC<DialogProps> = ({
   const [hasTitle, setHasTitle] = React.useState(false);
   const [hasDescription, setHasDescription] = React.useState(false);
 
-  const motionState = useOptionalUIMotion();
-
-  const backdropVariants = getOverlayBackdropVariants(
-    motionState.effectiveLevel
-  );
-
-  const panelVariants = getOverlayDialogVariants(motionState.effectiveLevel);
-
-  const panelTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("dialog")
-  );
-
-  const backdropTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("backdrop")
-  );
-
   const handleDismiss = React.useCallback(() => {
     onOpenChange?.(false);
   }, [onOpenChange]);
@@ -151,111 +132,101 @@ export const Dialog: React.FC<DialogProps> = ({
 
   const content = (
     <DialogContext.Provider value={contextValue}>
-      <AnimatePresence>
-        {open ? (
-          <div
+      <MotionOverlayPresence open={open}>
+        <MotionOverlayRoot
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: getLayerZIndex("modal"),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingTop: "max(16px, env(safe-area-inset-top))",
+            paddingRight: "max(16px, env(safe-area-inset-right))",
+            paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+            paddingLeft: "max(16px, env(safe-area-inset-left))",
+            pointerEvents: "none",
+          }}
+        >
+          {modal ? (
+            <MotionOverlayBackdrop
+              aria-hidden="true"
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "var(--ui-overlay)",
+                zIndex: getLayerZIndex("modalBackdrop"),
+                pointerEvents: "auto",
+              }}
+            />
+          ) : null}
+
+          <DismissableLayer
+            overlayId={overlayId}
+            layer={getLayerZIndex("modal")}
+            enabled={open}
+            dismissOnEscape={closeOnEscape}
+            dismissOnPointerDownOutside={closeOnPointerDownOutside}
+            onDismiss={handleDismiss}
             style={{
-              position: "fixed",
-              inset: 0,
+              position: "relative",
               zIndex: getLayerZIndex("modal"),
+              width: "100%",
               display: "flex",
-              alignItems: "center",
               justifyContent: "center",
-              paddingTop: "max(16px, env(safe-area-inset-top))",
-              paddingRight: "max(16px, env(safe-area-inset-right))",
-              paddingBottom: "max(16px, env(safe-area-inset-bottom))",
-              paddingLeft: "max(16px, env(safe-area-inset-left))",
               pointerEvents: "none",
             }}
           >
-            {modal ? (
-              <motion.div
-                aria-hidden="true"
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={backdropVariants}
-                transition={backdropTransition}
-                style={{
-                  position: "fixed",
-                  inset: 0,
-                  background: "var(--ui-overlay)",
-                  zIndex: getLayerZIndex("modalBackdrop"),
-                  pointerEvents: "auto",
-                }}
-              />
-            ) : null}
-
-            <DismissableLayer
+            <FocusScope
               overlayId={overlayId}
-              layer={getLayerZIndex("modal")}
               enabled={open}
-              dismissOnEscape={closeOnEscape}
-              dismissOnPointerDownOutside={closeOnPointerDownOutside}
-              onDismiss={handleDismiss}
+              contain={trapFocus}
+              autoFocus={autoFocus}
+              restoreFocus={restoreFocus}
+              initialFocusRef={initialFocusRef}
               style={{
                 position: "relative",
                 zIndex: getLayerZIndex("modal"),
                 width: "100%",
                 display: "flex",
                 justifyContent: "center",
-                pointerEvents: "none",
+                pointerEvents: "auto",
               }}
             >
-              <FocusScope
-                overlayId={overlayId}
-                enabled={open}
-                contain={trapFocus}
-                autoFocus={autoFocus}
-                restoreFocus={restoreFocus}
-                initialFocusRef={initialFocusRef}
+              <MotionOverlayPanel
+                as="div"
+                kind="dialog"
+                role="dialog"
+                aria-modal={modal ? true : undefined}
+                aria-labelledby={hasTitle ? titleId : undefined}
+                aria-describedby={hasDescription ? descriptionId : undefined}
+                data-ui="modal-content"
                 style={{
-                  position: "relative",
-                  zIndex: getLayerZIndex("modal"),
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  pointerEvents: "auto",
+                  width: DIALOG_SIZE_MAP[size].width,
+                  maxWidth: DIALOG_SIZE_MAP[size].maxWidth,
+                  maxHeight: "min(88vh, 88dvh)",
+                  overflow: "auto",
+                  overscrollBehavior: "contain",
+                  WebkitOverflowScrolling: "touch",
+                  borderRadius: "var(--ui-radius-xl)",
+                  border: "1px solid var(--ui-border)",
+                  background: "var(--ui-surface)",
+                  color: "var(--ui-text)",
+                  boxShadow: "var(--ui-shadow-lg)",
+                  outline: "none",
+                  transformOrigin: "center",
                 }}
               >
-                <motion.div
-                  role="dialog"
-                  aria-modal={modal ? true : undefined}
-                  aria-labelledby={hasTitle ? titleId : undefined}
-                  aria-describedby={hasDescription ? descriptionId : undefined}
-                  data-ui="modal-content"
-                  variants={panelVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={panelTransition}
-                  style={{
-                    width: DIALOG_SIZE_MAP[size].width,
-                    maxWidth: DIALOG_SIZE_MAP[size].maxWidth,
-                    maxHeight: "min(88vh, 88dvh)",
-                    overflow: "auto",
-                    overscrollBehavior: "contain",
-                    WebkitOverflowScrolling: "touch",
-                    borderRadius: "var(--ui-radius-xl)",
-                    border: "1px solid var(--ui-border)",
-                    background: "var(--ui-surface)",
-                    color: "var(--ui-text)",
-                    boxShadow: "var(--ui-shadow-lg)",
-                    outline: "none",
-                    transformOrigin: "center",
-                  }}
-                >
-                  {children}
-                </motion.div>
-              </FocusScope>
+                {children}
+              </MotionOverlayPanel>
+            </FocusScope>
 
-              {lockScroll ? (
-                <ScrollLock overlayId={overlayId} enabled={open} active={open} />
-              ) : null}
-            </DismissableLayer>
-          </div>
-        ) : null}
-      </AnimatePresence>
+            {lockScroll ? (
+              <ScrollLock overlayId={overlayId} enabled={open} active={open} />
+            ) : null}
+          </DismissableLayer>
+        </MotionOverlayRoot>
+      </MotionOverlayPresence>
     </DialogContext.Provider>
   );
 
@@ -377,20 +348,20 @@ export interface DialogTitleProps
 
 export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps>(
   ({ children, as: Comp = "h2", style, ...rest }, ref) => {
-    const ctx = useDialogContext();
+    const { titleId, setTitleMounted } = useDialogContext();
 
     React.useEffect(() => {
-      ctx.setTitleMounted(true);
+      setTitleMounted(true);
 
       return () => {
-        ctx.setTitleMounted(false);
+        setTitleMounted(false);
       };
-    }, [ctx]);
+    }, [setTitleMounted]);
 
     return (
       <Comp
         ref={ref as React.Ref<any>}
-        id={ctx.titleId}
+        id={titleId}
         style={{
           margin: 0,
           fontSize: "1.125rem",
@@ -418,20 +389,20 @@ export const DialogDescription = React.forwardRef<
   HTMLParagraphElement,
   DialogDescriptionProps
 >(({ children, style, ...rest }, ref) => {
-  const ctx = useDialogContext();
+  const { descriptionId, setDescriptionMounted } = useDialogContext();
 
   React.useEffect(() => {
-    ctx.setDescriptionMounted(true);
+    setDescriptionMounted(true);
 
     return () => {
-      ctx.setDescriptionMounted(false);
+      setDescriptionMounted(false);
     };
-  }, [ctx]);
+  }, [setDescriptionMounted]);
 
   return (
     <p
       ref={ref}
-      id={ctx.descriptionId}
+      id={descriptionId}
       style={{
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",

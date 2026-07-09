@@ -7,5 +7,6 @@ export * from "./motion.app";
 export * from "./motion.overlay";
 export * from "./MotionSwitch";
 export * from "./MotionPresence";
+export * from "./MotionOverlay";
 export * from "./UIMotionProvider";
 export * from "./useUIMotion";

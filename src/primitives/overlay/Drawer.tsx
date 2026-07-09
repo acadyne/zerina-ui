@@ -1,6 +1,5 @@
 // src/primitives/overlay/Drawer.tsx
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import {
   DismissableLayer,
@@ -10,10 +9,10 @@ import {
   getLayerZIndex,
 } from "../../core/overlay";
 import {
-  getOverlayBackdropVariants,
-  getOverlayDrawerVariants,
-  getOverlayMotionIntent,
-  useOptionalUIMotion,
+  MotionOverlayBackdrop,
+  MotionOverlayPanel,
+  MotionOverlayPresence,
+  MotionOverlayRoot,
 } from "../../core/motion";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
@@ -88,155 +87,125 @@ export const Drawer: React.FC<DrawerProps> = ({
   const titleId = `${overlayId}-title`;
   const descriptionId = `${overlayId}-description`;
 
-  const motionState = useOptionalUIMotion();
-
   const handleClose = React.useCallback(() => {
     onOpenChange?.(false);
   }, [onOpenChange]);
 
-  const backdropVariants = getOverlayBackdropVariants(
-    motionState.effectiveLevel
-  );
-
-  const panelVariants = getOverlayDrawerVariants({
-    placement,
-    level: motionState.effectiveLevel,
-  });
-
-  const panelTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("drawer")
-  );
-
-  const backdropTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("backdrop")
-  );
-
   const content = (
-    <AnimatePresence>
-      {open ? (
-        <Box
+    <MotionOverlayPresence open={open}>
+      <MotionOverlayRoot
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: getLayerZIndex("modal"),
+          pointerEvents: "none",
+        }}
+      >
+        <MotionOverlayBackdrop
+          aria-hidden="true"
           style={{
             position: "fixed",
             inset: 0,
+            background: "var(--ui-overlay)",
+            zIndex: getLayerZIndex("modalBackdrop"),
+            pointerEvents: "auto",
+            ...backdropStyle,
+          }}
+        />
+
+        <DismissableLayer
+          overlayId={overlayId}
+          layer={getLayerZIndex("modal")}
+          enabled={open}
+          dismissOnEscape={closeOnEscape}
+          dismissOnPointerDownOutside={closeOnPointerDownOutside}
+          onDismiss={handleClose}
+          style={{
+            position: "fixed",
+            top: 0,
+            bottom: 0,
+            left: placement === "left" ? 0 : undefined,
+            right: placement === "right" ? 0 : undefined,
             zIndex: getLayerZIndex("modal"),
-            pointerEvents: "none",
+            width: size,
+            maxWidth: "100vw",
+            pointerEvents: "auto",
           }}
         >
-          <motion.div
-            aria-hidden="true"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={backdropVariants}
-            transition={backdropTransition}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "var(--ui-overlay)",
-              zIndex: getLayerZIndex("modalBackdrop"),
-              pointerEvents: "auto",
-              ...backdropStyle,
-            }}
-          />
-
-          <DismissableLayer
+          <FocusScope
             overlayId={overlayId}
-            layer={getLayerZIndex("modal")}
             enabled={open}
-            dismissOnEscape={closeOnEscape}
-            dismissOnPointerDownOutside={closeOnPointerDownOutside}
-            onDismiss={handleClose}
+            contain={trapFocus}
+            autoFocus={autoFocus}
+            restoreFocus={restoreFocus}
+            initialFocusRef={initialFocusRef}
             style={{
-              position: "fixed",
-              top: 0,
-              bottom: 0,
-              left: placement === "left" ? 0 : undefined,
-              right: placement === "right" ? 0 : undefined,
-              zIndex: getLayerZIndex("modal"),
-              width: size,
-              maxWidth: "100vw",
-              pointerEvents: "auto",
+              height: "100%",
+              minHeight: 0,
+              outline: "none",
             }}
           >
-            <FocusScope
-              overlayId={overlayId}
-              enabled={open}
-              contain={trapFocus}
-              autoFocus={autoFocus}
-              restoreFocus={restoreFocus}
-              initialFocusRef={initialFocusRef}
+            <MotionOverlayPanel
+              as="aside"
+              kind="drawer"
+              placement={placement}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={title ? titleId : undefined}
+              aria-describedby={description ? descriptionId : undefined}
+              className={className}
               style={{
+                width: "100%",
                 height: "100%",
                 minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                background: "var(--ui-surface)",
+                color: "var(--ui-text)",
+                borderLeft:
+                  placement === "right"
+                    ? "1px solid var(--ui-border)"
+                    : undefined,
+                borderRight:
+                  placement === "left"
+                    ? "1px solid var(--ui-border)"
+                    : undefined,
+                boxShadow: "var(--ui-shadow-lg)",
                 outline: "none",
+                overflow: "hidden",
+                ...style,
               }}
             >
-              <motion.aside
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={title ? titleId : undefined}
-                aria-describedby={description ? descriptionId : undefined}
-                className={className}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={panelVariants}
-                transition={panelTransition}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "var(--ui-surface)",
-                  color: "var(--ui-text)",
-                  borderLeft:
-                    placement === "right"
-                      ? "1px solid var(--ui-border)"
-                      : undefined,
-                  borderRight:
-                    placement === "left"
-                      ? "1px solid var(--ui-border)"
-                      : undefined,
-                  boxShadow: "var(--ui-shadow-lg)",
-                  outline: "none",
-                  overflow: "hidden",
-                  ...style,
-                }}
-              >
-                {title || description || showCloseButton ? (
-                  <DrawerHeader style={contentStyle}>
-                    <Box style={{ flex: 1, minWidth: 0 }}>
-                      {title ? (
-                        <DrawerTitle id={titleId}>{title}</DrawerTitle>
-                      ) : null}
-
-                      {description ? (
-                        <DrawerDescription id={descriptionId}>
-                          {description}
-                        </DrawerDescription>
-                      ) : null}
-                    </Box>
-
-                    {showCloseButton ? (
-                      <DrawerClose onClose={handleClose} />
+              {title || description || showCloseButton ? (
+                <DrawerHeader style={contentStyle}>
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    {title ? (
+                      <DrawerTitle id={titleId}>{title}</DrawerTitle>
                     ) : null}
-                  </DrawerHeader>
-                ) : null}
 
-                {children}
-              </motion.aside>
-            </FocusScope>
+                    {description ? (
+                      <DrawerDescription id={descriptionId}>
+                        {description}
+                      </DrawerDescription>
+                    ) : null}
+                  </Box>
 
-            {lockScroll ? (
-              <ScrollLock overlayId={overlayId} enabled={open} active={open} />
-            ) : null}
-          </DismissableLayer>
-        </Box>
-      ) : null}
-    </AnimatePresence>
+                  {showCloseButton ? (
+                    <DrawerClose onClose={handleClose} />
+                  ) : null}
+                </DrawerHeader>
+              ) : null}
+
+              {children}
+            </MotionOverlayPanel>
+          </FocusScope>
+
+          {lockScroll ? (
+            <ScrollLock overlayId={overlayId} enabled={open} active={open} />
+          ) : null}
+        </DismissableLayer>
+      </MotionOverlayRoot>
+    </MotionOverlayPresence>
   );
 
   return portalled ? <Portal container={container}>{content}</Portal> : content;

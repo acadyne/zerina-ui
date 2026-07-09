@@ -1,6 +1,5 @@
 // src/primitives/overlay/BottomSheet.tsx
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import {
   DismissableLayer,
@@ -10,10 +9,10 @@ import {
   getLayerZIndex,
 } from "../../core/overlay";
 import {
-  getOverlayBackdropVariants,
-  getOverlayBottomSheetVariants,
-  getOverlayMotionIntent,
-  useOptionalUIMotion,
+  MotionOverlayBackdrop,
+  MotionOverlayPanel,
+  MotionOverlayPresence,
+  MotionOverlayRoot,
 } from "../../core/motion";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
@@ -88,156 +87,126 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const titleId = `${overlayId}-title`;
   const descriptionId = `${overlayId}-description`;
 
-  const motionState = useOptionalUIMotion();
-
   const handleClose = React.useCallback(() => {
     onOpenChange?.(false);
   }, [onOpenChange]);
 
-  const backdropVariants = getOverlayBackdropVariants(
-    motionState.effectiveLevel
-  );
-
-  const panelVariants = getOverlayBottomSheetVariants(
-    motionState.effectiveLevel
-  );
-
-  const panelTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("bottom-sheet")
-  );
-
-  const backdropTransition = motionState.getTransition(
-    motionState.effectiveLevel,
-    getOverlayMotionIntent("backdrop")
-  );
-
   const content = (
-    <AnimatePresence>
-      {open ? (
-        <Box
+    <MotionOverlayPresence open={open}>
+      <MotionOverlayRoot
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: getLayerZIndex("modal"),
+          pointerEvents: "none",
+        }}
+      >
+        <MotionOverlayBackdrop
+          aria-hidden="true"
           style={{
             position: "fixed",
             inset: 0,
+            background: "var(--ui-overlay)",
+            zIndex: getLayerZIndex("modalBackdrop"),
+            pointerEvents: "auto",
+            ...backdropStyle,
+          }}
+        />
+
+        <DismissableLayer
+          overlayId={overlayId}
+          layer={getLayerZIndex("modal")}
+          enabled={open}
+          dismissOnEscape={closeOnEscape}
+          dismissOnPointerDownOutside={closeOnPointerDownOutside}
+          onDismiss={handleClose}
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
             zIndex: getLayerZIndex("modal"),
-            pointerEvents: "none",
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "auto",
           }}
         >
-          <motion.div
-            aria-hidden="true"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={backdropVariants}
-            transition={backdropTransition}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "var(--ui-overlay)",
-              zIndex: getLayerZIndex("modalBackdrop"),
-              pointerEvents: "auto",
-              ...backdropStyle,
-            }}
-          />
-
-          <DismissableLayer
+          <FocusScope
             overlayId={overlayId}
-            layer={getLayerZIndex("modal")}
             enabled={open}
-            dismissOnEscape={closeOnEscape}
-            dismissOnPointerDownOutside={closeOnPointerDownOutside}
-            onDismiss={handleClose}
+            contain={trapFocus}
+            autoFocus={autoFocus}
+            restoreFocus={restoreFocus}
+            initialFocusRef={initialFocusRef}
             style={{
-              position: "fixed",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: getLayerZIndex("modal"),
+              width: "100%",
               display: "flex",
               justifyContent: "center",
-              pointerEvents: "auto",
+              outline: "none",
             }}
           >
-            <FocusScope
-              overlayId={overlayId}
-              enabled={open}
-              contain={trapFocus}
-              autoFocus={autoFocus}
-              restoreFocus={restoreFocus}
-              initialFocusRef={initialFocusRef}
+            <MotionOverlayPanel
+              as="section"
+              kind="bottom-sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={title ? titleId : undefined}
+              aria-describedby={description ? descriptionId : undefined}
+              className={className}
               style={{
                 width: "100%",
+                height,
+                maxHeight,
+                minHeight: 0,
                 display: "flex",
-                justifyContent: "center",
+                flexDirection: "column",
+                background: "var(--ui-surface)",
+                color: "var(--ui-text)",
+                borderTopLeftRadius: "var(--ui-radius-xl)",
+                borderTopRightRadius: "var(--ui-radius-xl)",
+                border: "1px solid var(--ui-border)",
+                borderBottom: "none",
+                boxShadow: "var(--ui-shadow-lg)",
                 outline: "none",
+                overflow: "hidden",
+                paddingBottom: "env(safe-area-inset-bottom)",
+                ...style,
               }}
             >
-              <motion.section
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={title ? titleId : undefined}
-                aria-describedby={description ? descriptionId : undefined}
-                className={className}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={panelVariants}
-                transition={panelTransition}
-                style={{
-                  width: "100%",
-                  height,
-                  maxHeight,
-                  minHeight: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "var(--ui-surface)",
-                  color: "var(--ui-text)",
-                  borderTopLeftRadius: "var(--ui-radius-xl)",
-                  borderTopRightRadius: "var(--ui-radius-xl)",
-                  border: "1px solid var(--ui-border)",
-                  borderBottom: "none",
-                  boxShadow: "var(--ui-shadow-lg)",
-                  outline: "none",
-                  overflow: "hidden",
-                  paddingBottom: "env(safe-area-inset-bottom)",
-                  ...style,
-                }}
-              >
-                {showHandle ? <BottomSheetHandle /> : null}
+              {showHandle ? <BottomSheetHandle /> : null}
 
-                {title || description || showCloseButton ? (
-                  <BottomSheetHeader style={contentStyle}>
-                    <Box style={{ flex: 1, minWidth: 0 }}>
-                      {title ? (
-                        <BottomSheetTitle id={titleId}>
-                          {title}
-                        </BottomSheetTitle>
-                      ) : null}
-
-                      {description ? (
-                        <BottomSheetDescription id={descriptionId}>
-                          {description}
-                        </BottomSheetDescription>
-                      ) : null}
-                    </Box>
-
-                    {showCloseButton ? (
-                      <BottomSheetClose onClose={handleClose} />
+              {title || description || showCloseButton ? (
+                <BottomSheetHeader style={contentStyle}>
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    {title ? (
+                      <BottomSheetTitle id={titleId}>
+                        {title}
+                      </BottomSheetTitle>
                     ) : null}
-                  </BottomSheetHeader>
-                ) : null}
 
-                {children}
-              </motion.section>
-            </FocusScope>
+                    {description ? (
+                      <BottomSheetDescription id={descriptionId}>
+                        {description}
+                      </BottomSheetDescription>
+                    ) : null}
+                  </Box>
 
-            {lockScroll ? (
-              <ScrollLock overlayId={overlayId} enabled={open} active={open} />
-            ) : null}
-          </DismissableLayer>
-        </Box>
-      ) : null}
-    </AnimatePresence>
+                  {showCloseButton ? (
+                    <BottomSheetClose onClose={handleClose} />
+                  ) : null}
+                </BottomSheetHeader>
+              ) : null}
+
+              {children}
+            </MotionOverlayPanel>
+          </FocusScope>
+
+          {lockScroll ? (
+            <ScrollLock overlayId={overlayId} enabled={open} active={open} />
+          ) : null}
+        </DismissableLayer>
+      </MotionOverlayRoot>
+    </MotionOverlayPresence>
   );
 
   return portalled ? <Portal container={container}>{content}</Portal> : content;
