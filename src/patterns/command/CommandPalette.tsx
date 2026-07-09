@@ -46,13 +46,54 @@ export interface CommandPaletteProps {
   listStyle?: React.CSSProperties;
 }
 
+export type CommandTriggerSize = "sm" | "md" | "lg";
+export type CommandTriggerTone = "default" | "subtle";
+
 export interface CommandTriggerProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   placeholder?: React.ReactNode;
   icon?: React.ReactNode;
   shortcut?: React.ReactNode;
   children?: React.ReactNode;
+
+  size?: CommandTriggerSize;
+  tone?: CommandTriggerTone;
+  maxWidth?: number | string;
+  fullWidth?: boolean;
 }
+
+const COMMAND_TRIGGER_SIZE_MAP: Record<
+  CommandTriggerSize,
+  {
+    height: number;
+    paddingInline: string;
+    fontSize: string;
+    iconSize: number;
+    shortcutPadding: string;
+  }
+> = {
+  sm: {
+    height: 34,
+    paddingInline: "0.75rem",
+    fontSize: "var(--ui-font-size-sm)",
+    iconSize: 15,
+    shortcutPadding: "0.06rem 0.36rem",
+  },
+  md: {
+    height: 38,
+    paddingInline: "0.85rem",
+    fontSize: "var(--ui-font-size-sm)",
+    iconSize: 16,
+    shortcutPadding: "0.1rem 0.42rem",
+  },
+  lg: {
+    height: 44,
+    paddingInline: "1rem",
+    fontSize: "var(--ui-font-size-md)",
+    iconSize: 18,
+    shortcutPadding: "0.14rem 0.48rem",
+  },
+};
 
 function normalizeSearchValue(value: string): string {
   return value.trim().toLowerCase();
@@ -95,6 +136,11 @@ function groupItems(items: CommandPaletteItem[]): Array<{
     group,
     items: groupedItems,
   }));
+}
+
+function toCssSize(value: number | string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return typeof value === "number" ? `${value}px` : value;
 }
 
 export function CommandPalette({
@@ -468,34 +514,95 @@ CommandPalette.displayName = "CommandPalette";
 
 export function CommandTrigger({
   placeholder = "Buscar, navegar o ejecutar comando…",
-  icon = <Search size={16} />,
+  icon,
   shortcut,
   children,
+
+  size = "sm",
+  tone = "subtle",
+  maxWidth,
+  fullWidth = true,
+
   className = "",
   style,
+  onMouseEnter,
+  onMouseLeave,
+  onFocus,
+  onBlur,
   ...rest
 }: CommandTriggerProps) {
+  const sizeStyles = COMMAND_TRIGGER_SIZE_MAP[size];
+  const [hovered, setHovered] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+
+  const SearchIcon = (
+    <Search
+      size={sizeStyles.iconSize}
+      style={{
+        display: "block",
+      }}
+    />
+  );
+
+  const interactive = hovered || focused;
+
   return (
     <button
       type="button"
       className={className}
+      data-ui-command-trigger=""
+      data-ui-command-trigger-size={size}
+      data-ui-command-trigger-tone={tone}
       style={{
-        width: "100%",
-        height: 36,
+        width: fullWidth ? "100%" : undefined,
+        maxWidth: toCssSize(maxWidth),
+        height: sizeStyles.height,
         minWidth: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: "0.75rem",
-        paddingInline: "0.8rem",
+        paddingInline: sizeStyles.paddingInline,
         borderRadius: "9999px",
-        border: "1px solid var(--ui-border)",
-        background: "color-mix(in srgb, var(--ui-surface-2) 76%, transparent)",
-        color: "var(--ui-text-muted)",
+        border: "1px solid",
+        borderColor: interactive
+          ? "color-mix(in srgb, var(--ui-primary) 34%, var(--ui-border))"
+          : "var(--ui-border)",
+        background:
+          tone === "default"
+            ? interactive
+              ? "color-mix(in srgb, var(--ui-surface-2) 92%, var(--ui-primary) 8%)"
+              : "var(--ui-surface)"
+            : interactive
+              ? "color-mix(in srgb, var(--ui-primary) 8%, var(--ui-surface-2))"
+              : "color-mix(in srgb, var(--ui-surface-2) 76%, transparent)",
+        color: interactive ? "var(--ui-text)" : "var(--ui-text-muted)",
         font: "inherit",
         cursor: "pointer",
         boxSizing: "border-box",
+        outline: "none",
+        boxShadow: focused
+          ? "0 0 0 3px color-mix(in srgb, var(--ui-primary) 18%, transparent)"
+          : "none",
+        transition:
+          "border-color var(--ui-duration-fast) var(--ui-ease-standard), background var(--ui-duration-fast) var(--ui-ease-standard), color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard)",
         ...style,
+      }}
+      onMouseEnter={(event) => {
+        setHovered(true);
+        onMouseEnter?.(event);
+      }}
+      onMouseLeave={(event) => {
+        setHovered(false);
+        onMouseLeave?.(event);
+      }}
+      onFocus={(event) => {
+        setFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        onBlur?.(event);
       }}
       {...rest}
     >
@@ -513,9 +620,10 @@ export function CommandTrigger({
             display: "inline-flex",
             alignItems: "center",
             flexShrink: 0,
+            opacity: interactive ? 0.9 : 0.72,
           }}
         >
-          {icon}
+          {icon ?? SearchIcon}
         </Box>
 
         <Box
@@ -525,7 +633,8 @@ export function CommandTrigger({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            fontSize: "var(--ui-font-size-sm)",
+            fontSize: sizeStyles.fontSize,
+            lineHeight: 1.3,
           }}
         >
           {children ?? placeholder}
@@ -535,16 +644,20 @@ export function CommandTrigger({
       {shortcut ? (
         <Box
           as="span"
+          aria-hidden="true"
           style={{
             flexShrink: 0,
             minWidth: 0,
-            padding: "0.1rem 0.4rem",
+            padding: sizeStyles.shortcutPadding,
             borderRadius: "var(--ui-radius-md)",
             border: "1px solid var(--ui-border)",
-            background: "color-mix(in srgb, var(--ui-surface) 80%, transparent)",
+            background: interactive
+              ? "color-mix(in srgb, var(--ui-surface) 86%, transparent)"
+              : "color-mix(in srgb, var(--ui-surface) 72%, transparent)",
             color: "var(--ui-text-muted)",
             fontSize: "var(--ui-font-size-xs)",
-            lineHeight: 1.4,
+            lineHeight: 1.35,
+            boxShadow: interactive ? "var(--ui-shadow-sm)" : "none",
           }}
         >
           {shortcut}

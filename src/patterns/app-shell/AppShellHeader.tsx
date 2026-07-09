@@ -244,6 +244,7 @@ export function AppShellHeader({
         h="100%"
         gap="0.75rem"
         style={{
+          position: "relative",
           maxWidth: "100%",
           minWidth: 0,
         }}
@@ -253,7 +254,10 @@ export function AppShellHeader({
           gap="0.65rem"
           style={{
             minWidth: 0,
-            flex: headerCenter ? "0 1 auto" : "1 1 auto",
+            flex: "0 1 auto",
+            maxWidth: headerCenter ? "34%" : "100%",
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {showCollapseButton ? (
@@ -302,17 +306,25 @@ export function AppShellHeader({
         {headerCenter ? (
           <Box
             style={{
-              flex: "1 1 auto",
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: resolvedMobile
+                ? "min(48vw, 420px)"
+                : "min(44vw, 560px)",
               minWidth: 0,
               display: "flex",
               justifyContent: "center",
+              zIndex: 1,
+              pointerEvents: "none",
             }}
           >
             <Box
               style={{
                 width: "100%",
                 minWidth: 0,
-                maxWidth: resolvedMobile ? "100%" : 560,
+                pointerEvents: "auto",
               }}
             >
               {headerCenter}
@@ -326,6 +338,8 @@ export function AppShellHeader({
           style={{
             flexShrink: 0,
             minWidth: 0,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {headerEnd ? (
@@ -346,18 +360,14 @@ export function AppShellHeader({
                 <span>
                   <IconButton
                     ariaLabel={
-                      resolvedMobile
-                        ? "Salir de modo mobile"
-                        : "Activar modo mobile"
+                      resolvedMobile ? "Salir de modo mobile" : "Activar modo mobile"
                     }
                     icon={<Smartphone size={16} />}
                     variant="ghost"
                     size="sm"
                     onClick={onToggleMobileMode}
                     style={{
-                      color: resolvedMobile
-                        ? "var(--ui-primary)"
-                        : "var(--ui-text)",
+                      color: resolvedMobile ? "var(--ui-primary)" : "var(--ui-text)",
                       border: "1px solid var(--ui-border)",
                       background: resolvedMobile
                         ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
@@ -393,9 +403,7 @@ export function AppShellHeader({
                 </span>
               </TooltipTrigger>
 
-              <TooltipContent>
-                Tema actual: {theme}. Click para cambiar.
-              </TooltipContent>
+              <TooltipContent>Tema actual: {theme}. Click para cambiar.</TooltipContent>
             </Tooltip>
           ) : null}
 
@@ -467,12 +475,7 @@ export function AppShellHeader({
                     borderBottom: "1px solid var(--ui-border)",
                   }}
                 >
-                  <Typography
-                    as="div"
-                    size="sm"
-                    weight={800}
-                    style={{ margin: 0 }}
-                  >
+                  <Typography as="div" size="sm" weight={800} style={{ margin: 0 }}>
                     {user?.name ?? "Usuario"}
                   </Typography>
 
