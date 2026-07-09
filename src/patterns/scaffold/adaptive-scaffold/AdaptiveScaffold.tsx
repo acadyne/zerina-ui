@@ -1,5 +1,11 @@
 // src/patterns/scaffold/adaptive-scaffold/AdaptiveScaffold.tsx
 import React from "react";
+import {
+  cx,
+  getSlotProps,
+  getSlotStyle,
+  type SlotElementProps,
+} from "../../../helpers/css";
 import { Box } from "../../../primitives/layout";
 import {
   BottomNavigation,
@@ -14,6 +20,9 @@ import type {
   AdaptiveScaffoldItem,
   AdaptiveScaffoldProps,
   AdaptiveScaffoldRenderContext,
+  AdaptiveScaffoldSlot,
+  AdaptiveScaffoldSlotProps,
+  AdaptiveScaffoldStyles,
 } from "./adaptiveScaffold.types";
 import {
   adaptiveItemToNavigationItem,
@@ -25,6 +34,29 @@ import {
   resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
+
+interface ResolvedSlotProps {
+  className?: string;
+  style?: React.CSSProperties;
+  rest: Omit<SlotElementProps, "className" | "style">;
+}
+
+function resolveSlotProps(
+  slotProps: AdaptiveScaffoldSlotProps | undefined,
+  slot: AdaptiveScaffoldSlot
+): ResolvedSlotProps {
+  const {
+    className,
+    style,
+    ...rest
+  } = getSlotProps(slotProps, slot);
+
+  return {
+    className,
+    style,
+    rest,
+  };
+}
 
 function useElementWidth<TElement extends HTMLElement>() {
   const ref = React.useRef<TElement | null>(null);
@@ -99,6 +131,43 @@ function renderContent({
   );
 }
 
+function getModeContentSlot(
+  mode: AdaptiveScaffoldRenderContext["mode"]
+): AdaptiveScaffoldSlot {
+  if (mode === "mobile") return "mobileContent";
+  if (mode === "tablet") return "tabletContent";
+
+  return "desktopContent";
+}
+
+function getContentSlotStyles({
+  styles,
+  slotProps,
+  mode,
+}: {
+  styles?: AdaptiveScaffoldStyles;
+  slotProps?: AdaptiveScaffoldSlotProps;
+  mode: AdaptiveScaffoldRenderContext["mode"];
+}) {
+  const modeSlot = getModeContentSlot(mode);
+  const contentSlot = resolveSlotProps(slotProps, "content");
+  const modeContentSlot = resolveSlotProps(slotProps, modeSlot);
+
+  return {
+    className: cx(contentSlot.className, modeContentSlot.className),
+    rest: {
+      ...contentSlot.rest,
+      ...modeContentSlot.rest,
+    },
+    style: {
+      ...getSlotStyle(styles, "content"),
+      ...contentSlot.style,
+      ...getSlotStyle(styles, modeSlot),
+      ...modeContentSlot.style,
+    } satisfies React.CSSProperties,
+  };
+}
+
 export function AdaptiveScaffold({
   children,
 
@@ -142,6 +211,9 @@ export function AdaptiveScaffold({
   contentStyle,
   sidebarStyle,
   railContainerStyle,
+
+  styles,
+  slotProps,
 
   ...rest
 }: AdaptiveScaffoldProps) {
@@ -217,16 +289,41 @@ export function AdaptiveScaffold({
 
   const resolvedSubtitle = resolveAdaptiveValue(subtitle, context);
 
+  const rootSlot = resolveSlotProps(slotProps, "root");
+  const appBarSlot = resolveSlotProps(slotProps, "appBar");
+  const bodySlot = resolveSlotProps(slotProps, "body");
+  const sidebarSlot = resolveSlotProps(slotProps, "sidebar");
+  const railSlot = resolveSlotProps(slotProps, "rail");
+
+  const contentSlot = getContentSlotStyles({
+    styles,
+    slotProps,
+    mode: resolvedMode,
+  });
+
   const appBar = showAppBar ? (
-    <TopAppBar
-      title={resolvedTitle}
-      subtitle={resolvedSubtitle}
-      centerTitle={resolvedMode === "mobile"}
-      variant="blur"
-      leading={resolveAdaptiveValue(leading, context)}
-      actions={resolveAdaptiveValue(actions, context)}
-      {...topAppBarProps}
-    />
+    <Box
+      className={appBarSlot.className}
+      data-ui-adaptive-scaffold-app-bar=""
+      {...appBarSlot.rest}
+      style={{
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+        ...getSlotStyle(styles, "appBar"),
+        ...appBarSlot.style,
+      }}
+    >
+      <TopAppBar
+        title={resolvedTitle}
+        subtitle={resolvedSubtitle}
+        centerTitle={resolvedMode === "mobile"}
+        variant="blur"
+        leading={resolveAdaptiveValue(leading, context)}
+        actions={resolveAdaptiveValue(actions, context)}
+        {...topAppBarProps}
+      />
+    </Box>
   ) : null;
 
   const content = renderContent({
@@ -316,10 +413,11 @@ export function AdaptiveScaffold({
     return (
       <Box
         ref={rootRef}
-        className={className}
+        className={cx(className, rootSlot.className)}
         data-ui-adaptive-scaffold=""
         data-ui-adaptive-scaffold-mode={resolvedMode}
         data-ui-adaptive-scaffold-viewport={viewport}
+        {...rootSlot.rest}
         {...rest}
         style={{
           width: "100%",
@@ -327,6 +425,8 @@ export function AdaptiveScaffold({
           minHeight: viewport === "contained" ? 0 : "100dvh",
           minWidth: 0,
           overflow: "hidden",
+          ...getSlotStyle(styles, "root"),
+          ...rootSlot.style,
           ...style,
         }}
       >
@@ -342,12 +442,17 @@ export function AdaptiveScaffold({
           {...mobileScaffoldProps}
         >
           <Box
+            className={contentSlot.className}
+            data-ui-adaptive-scaffold-content=""
+            data-ui-adaptive-scaffold-mobile-content=""
+            {...contentSlot.rest}
             style={{
               width: "100%",
               height: "100%",
               minWidth: 0,
               minHeight: 0,
               overflow: "hidden",
+              ...contentSlot.style,
               ...contentStyle,
             }}
           >
@@ -364,15 +469,17 @@ export function AdaptiveScaffold({
 
   const showDesktopSidebar =
     resolvedMode === "desktop" && desktopNavigation === "sidebar";
-  const showDesktopRail = resolvedMode === "desktop" && desktopNavigation === "rail";
+  const showDesktopRail =
+    resolvedMode === "desktop" && desktopNavigation === "rail";
 
   return (
     <Box
       ref={rootRef}
-      className={className}
+      className={cx(className, rootSlot.className)}
       data-ui-adaptive-scaffold=""
       data-ui-adaptive-scaffold-mode={resolvedMode}
       data-ui-adaptive-scaffold-viewport={viewport}
+      {...rootSlot.rest}
       {...rest}
       style={{
         width: "100%",
@@ -384,29 +491,39 @@ export function AdaptiveScaffold({
         overflow: "hidden",
         background: "var(--ui-bg)",
         color: "var(--ui-text)",
+        ...getSlotStyle(styles, "root"),
+        ...rootSlot.style,
         ...style,
       }}
     >
       {appBar}
 
       <Box
+        className={bodySlot.className}
         data-ui-adaptive-scaffold-body=""
+        {...bodySlot.rest}
         style={{
           flex: 1,
           minWidth: 0,
           minHeight: 0,
           display: "flex",
           overflow: "hidden",
+          ...getSlotStyle(styles, "body"),
+          ...bodySlot.style,
           ...bodyStyle,
         }}
       >
         {showTabletRail || showDesktopRail ? (
           <Box
+            className={railSlot.className}
             data-ui-adaptive-scaffold-rail=""
+            {...railSlot.rest}
             style={{
               flex: "0 0 auto",
               minHeight: 0,
               borderRight: "1px solid var(--ui-border)",
+              ...getSlotStyle(styles, "rail"),
+              ...railSlot.style,
               ...railContainerStyle,
             }}
           >
@@ -416,7 +533,9 @@ export function AdaptiveScaffold({
 
         {showDesktopSidebar ? (
           <Box
+            className={sidebarSlot.className}
             data-ui-adaptive-scaffold-sidebar=""
+            {...sidebarSlot.rest}
             style={{
               width: cssSize(sidebarWidth),
               minWidth: cssSize(sidebarWidth),
@@ -428,6 +547,8 @@ export function AdaptiveScaffold({
               borderRight: "1px solid var(--ui-border)",
               background:
                 "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
+              ...getSlotStyle(styles, "sidebar"),
+              ...sidebarSlot.style,
               ...sidebarStyle,
             }}
           >
@@ -445,12 +566,21 @@ export function AdaptiveScaffold({
         ) : null}
 
         <Box
+          className={contentSlot.className}
           data-ui-adaptive-scaffold-content=""
+          data-ui-adaptive-scaffold-tablet-content={
+            resolvedMode === "tablet" || undefined
+          }
+          data-ui-adaptive-scaffold-desktop-content={
+            resolvedMode === "desktop" || undefined
+          }
+          {...contentSlot.rest}
           style={{
             flex: 1,
             minWidth: 0,
             minHeight: 0,
             overflow: "hidden",
+            ...contentSlot.style,
             ...contentStyle,
           }}
         >

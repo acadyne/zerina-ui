@@ -1,7 +1,14 @@
 // src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.types.ts
 import React from "react";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../../helpers/css";
 import type { BottomNavigationProps } from "../../../primitives/navigation/BottomNavigation";
-import type { NavigationItemDef, NavigationListProps } from "../../../primitives/navigation/NavigationList";
+import type {
+  NavigationItemDef,
+  NavigationListProps,
+} from "../../../primitives/navigation/NavigationList";
 import type { NavigationRailProps } from "../../../primitives/navigation/NavigationRail";
 import type { MobileScaffoldProps, ScaffoldViewport } from "../MobileScaffold";
 import type { TopAppBarProps } from "../TopAppBar";
@@ -15,6 +22,21 @@ export type AdaptiveScaffoldMobileNavigation = "bottom" | "none";
 export type AdaptiveScaffoldTabletNavigation = "rail" | "bottom" | "none";
 
 export type AdaptiveScaffoldDesktopNavigation = "sidebar" | "rail" | "none";
+
+export type AdaptiveScaffoldSlot =
+  | "root"
+  | "appBar"
+  | "body"
+  | "sidebar"
+  | "rail"
+  | "content"
+  | "mobileContent"
+  | "tabletContent"
+  | "desktopContent";
+
+export type AdaptiveScaffoldStyles = SlotStyleMap<AdaptiveScaffoldSlot>;
+
+export type AdaptiveScaffoldSlotProps = SlotPropsMap<AdaptiveScaffoldSlot>;
 
 export interface AdaptiveScaffoldItem {
   id: string;
@@ -52,7 +74,9 @@ export interface AdaptiveScaffoldProps
     React.HTMLAttributes<HTMLDivElement>,
     "children" | "defaultValue" | "title"
   > {
-  children?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+  children?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
 
   viewport?: ScaffoldViewport;
 
@@ -75,12 +99,25 @@ export interface AdaptiveScaffoldProps
   tabletNavigation?: AdaptiveScaffoldTabletNavigation;
   desktopNavigation?: AdaptiveScaffoldDesktopNavigation;
 
-  title?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
-  subtitle?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+  title?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
 
-  leading?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
-  actions?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
-  floating?: React.ReactNode | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+  subtitle?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+
+  leading?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+
+  actions?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+
+  floating?:
+    | React.ReactNode
+    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
 
   showAppBar?: boolean;
 
@@ -91,7 +128,12 @@ export interface AdaptiveScaffoldProps
 
   mobileScaffoldProps?: Omit<
     MobileScaffoldProps,
-    "children" | "viewport" | "appBar" | "bottomNavigation" | "bottomBar" | "floating"
+    | "children"
+    | "viewport"
+    | "appBar"
+    | "bottomNavigation"
+    | "bottomBar"
+    | "floating"
   >;
 
   bottomNavigationProps?: Omit<
@@ -118,6 +160,9 @@ export interface AdaptiveScaffoldProps
   contentStyle?: React.CSSProperties;
   sidebarStyle?: React.CSSProperties;
   railContainerStyle?: React.CSSProperties;
+
+  styles?: AdaptiveScaffoldStyles;
+  slotProps?: AdaptiveScaffoldSlotProps;
 }
 
 export interface AdaptiveScaffoldNavigationRenderOptions {
