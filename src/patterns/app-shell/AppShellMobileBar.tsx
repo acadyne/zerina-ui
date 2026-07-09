@@ -1,9 +1,17 @@
+// src/patterns/app-shell/AppShellMobileBar.tsx
 import React from "react";
-import { Box, Flex } from "../../primitives/layout";
-import { Typography } from "../../primitives/typography";
-import { RecursiveFloatingMenuLayer } from "../../primitives/navigation";
+import { Box } from "../../primitives/layout";
+import {
+  BottomNavigation,
+  RecursiveFloatingMenuLayer,
+} from "../../primitives/navigation";
 import type { AppShellProcessedRoute } from "./AppShell.types";
-import { isAppShellRouteActive } from "./AppShellRouteUtils";
+import {
+  appShellRouteContainsActive,
+  getAppShellRouteChildren,
+  isAppShellRouteActive,
+  isAppShellRouteSelectable,
+} from "./AppShellRouteUtils";
 
 export interface AppShellMobileBarProps {
   routes: AppShellProcessedRoute[];
@@ -15,6 +23,23 @@ export interface AppShellMobileBarProps {
 
   className?: string;
   style?: React.CSSProperties;
+}
+
+function getRouteIcon(route: AppShellProcessedRoute): React.ReactNode {
+  return route.icon ?? route.emoji ?? "•";
+}
+
+function getActiveRootRouteId(
+  routes: AppShellProcessedRoute[],
+  activePath: string
+): string | null {
+  return (
+    routes.find((route) =>
+      appShellRouteContainsActive(route, {
+        activePath,
+      })
+    )?.id ?? null
+  );
 }
 
 export function AppShellMobileBar({
@@ -33,89 +58,113 @@ export function AppShellMobileBar({
     return routes.find((route) => route.id === openRouteId) ?? null;
   }, [routes, openRouteId]);
 
-  const handleRootClick = (
-    route: AppShellProcessedRoute,
-    event: React.MouseEvent<HTMLElement>
-  ) => {
-    if (route.disabled) return;
+  const activeRootRouteId = React.useMemo(
+    () => getActiveRootRouteId(routes, activePath),
+    [activePath, routes]
+  );
 
-    const rect = event.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
+  const updateAnchor = React.useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const containerRect = containerRef.current?.getBoundingClientRect();
 
-    setAnchorX(rect.left - (containerRect?.left ?? 0) + rect.width / 2);
+      setAnchorX(rect.left - (containerRect?.left ?? 0) + rect.width / 2);
+    },
+    []
+  );
 
-    if (route.subroutes?.length) {
-      setOpenRouteId((current) => (current === route.id ? null : route.id));
-      return;
-    }
+  const handleRootSelect = React.useCallback(
+    (route: AppShellProcessedRoute, event: React.MouseEvent<HTMLElement>) => {
+      if (route.disabled) return;
 
-    setOpenRouteId(null);
-    onNavigate?.(route);
-  };
+      updateAnchor(event);
 
-  const renderMobileMenuItem = (route: AppShellProcessedRoute) => {
-    const active = isAppShellRouteActive(activePath, route);
-    const iconContent = route.icon ?? route.emoji ?? "•";
+      const children = getAppShellRouteChildren(route);
 
-    return (
-      <button
-        key={route.id}
-        type="button"
-        disabled={route.disabled}
-        onClick={() => {
-          if (route.subroutes?.length) return;
-          setOpenRouteId(null);
-          onNavigate?.(route);
-        }}
-        style={{
-          width: "100%",
-          minHeight: 42,
-          display: "flex",
-          alignItems: "center",
-          gap: "0.65rem",
-          padding: "0.55rem 0.7rem",
-          borderRadius: "var(--ui-radius-md)",
-          border: active
-            ? "1px solid color-mix(in srgb, var(--ui-primary) 30%, var(--ui-border))"
-            : "1px solid transparent",
-          background: active
-            ? "color-mix(in srgb, var(--ui-primary) 16%, transparent)"
-            : "transparent",
-          color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
-          cursor: route.disabled ? "not-allowed" : "pointer",
-          opacity: route.disabled ? "var(--ui-state-disabled-opacity)" : 1,
-          textAlign: "left",
-        }}
-      >
-        <span
-          aria-hidden="true"
+      if (children.length > 0) {
+        setOpenRouteId((current) => (current === route.id ? null : route.id));
+        return;
+      }
+
+      setOpenRouteId(null);
+
+      if (isAppShellRouteSelectable(route)) {
+        onNavigate?.(route);
+      }
+    },
+    [onNavigate, updateAnchor]
+  );
+
+  const renderMobileMenuItem = React.useCallback(
+    (route: AppShellProcessedRoute) => {
+      const active = isAppShellRouteActive(activePath, route);
+      const iconContent = getRouteIcon(route);
+
+      return (
+        <button
+          key={route.id}
+          type="button"
+          disabled={route.disabled}
+          onClick={() => {
+            const children = getAppShellRouteChildren(route);
+
+            if (children.length > 0) return;
+            if (!isAppShellRouteSelectable(route)) return;
+
+            setOpenRouteId(null);
+            onNavigate?.(route);
+          }}
           style={{
-            width: 26,
-            height: 26,
-            display: "inline-flex",
+            width: "100%",
+            minHeight: 42,
+            display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
+            gap: "0.65rem",
+            padding: "0.55rem 0.7rem",
+            borderRadius: "var(--ui-radius-md)",
+            border: active
+              ? "1px solid color-mix(in srgb, var(--ui-primary) 30%, var(--ui-border))"
+              : "1px solid transparent",
+            background: active
+              ? "color-mix(in srgb, var(--ui-primary) 16%, transparent)"
+              : "transparent",
+            color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
+            cursor: route.disabled ? "not-allowed" : "pointer",
+            opacity: route.disabled ? "var(--ui-state-disabled-opacity)" : 1,
+            textAlign: "left",
           }}
         >
-          {iconContent}
-        </span>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 26,
+              height: 26,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            {iconContent}
+          </span>
 
-        <span
-          style={{
-            flex: 1,
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            fontWeight: active ? 800 : 700,
-          }}
-        >
-          {route.name}
-        </span>
-      </button>
-    );
-  };
+          <span
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontWeight: active ? 800 : 700,
+            }}
+          >
+            {route.name}
+          </span>
+        </button>
+      );
+    },
+    [activePath, onNavigate]
+  );
 
   return (
     <Box
@@ -127,82 +176,54 @@ export function AppShellMobileBar({
         right: 0,
         bottom: 0,
         zIndex: 1400,
-        paddingBottom: "env(safe-area-inset-bottom)",
-        background: "color-mix(in srgb, var(--ui-surface) 92%, transparent)",
-        borderTop: "1px solid var(--ui-border)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
         ...style,
       }}
     >
-      <Flex
-        align="center"
-        justify="space-around"
+      <Box
         style={{
-          height,
-          minWidth: 0,
-          padding: "0.4rem 0.45rem",
           position: "relative",
+          minWidth: 0,
         }}
       >
-        {routes.map((route) => {
-          const active = isAppShellRouteActive(activePath, route);
-          const iconContent = route.icon ?? route.emoji ?? "•";
+        <BottomNavigation
+          position="static"
+          safeArea
+          translucent
+          height={height}
+          value={activeRootRouteId}
+          onValueChange={() => {
+            /**
+             * AppShellMobileBar maneja navegación por item,
+             * porque los items con subroutes deben abrir flyout
+             * en lugar de cambiar value.
+             */
+          }}
+        >
+          {routes.map((route) => {
+            const children = getAppShellRouteChildren(route);
+            const hasChildren = children.length > 0;
 
-          return (
-            <button
-              key={route.id}
-              type="button"
-              disabled={route.disabled}
-              onClick={(event) => handleRootClick(route, event)}
-              style={{
-                flex: "1 1 0",
-                minWidth: 0,
-                height: "100%",
-                border: "1px solid transparent",
-                borderRadius: "var(--ui-radius-lg)",
-                background: active
-                  ? "color-mix(in srgb, var(--ui-primary) 16%, transparent)"
-                  : "transparent",
-                color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
-                cursor: route.disabled ? "not-allowed" : "pointer",
-                opacity: route.disabled ? "var(--ui-state-disabled-opacity)" : 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.2rem",
-                padding: "0.25rem",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  fontSize: "1.15rem",
-                  lineHeight: 1,
-                }}
-              >
-                {iconContent}
-              </span>
-
-              <Typography
-                as="span"
-                size="xs"
-                weight={active ? 800 : 700}
-                style={{
-                  maxWidth: "100%",
-                  margin: 0,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  color: "inherit",
+            return (
+              <BottomNavigation.Item
+                key={route.id}
+                value={route.id}
+                icon={getRouteIcon(route)}
+                badge={route.badge}
+                disabled={route.disabled}
+                selectable={!hasChildren}
+                aria-haspopup={hasChildren ? "menu" : undefined}
+                aria-expanded={
+                  hasChildren ? openRouteId === route.id : undefined
+                }
+                onSelect={(_, event) => {
+                  handleRootSelect(route, event);
                 }}
               >
                 {route.name}
-              </Typography>
-            </button>
-          );
-        })}
+              </BottomNavigation.Item>
+            );
+          })}
+        </BottomNavigation>
 
         <RecursiveFloatingMenuLayer
           open={Boolean(openRoute?.subroutes?.length)}
@@ -217,7 +238,7 @@ export function AppShellMobileBar({
         >
           {openRoute?.subroutes?.map(renderMobileMenuItem)}
         </RecursiveFloatingMenuLayer>
-      </Flex>
+      </Box>
     </Box>
   );
 }

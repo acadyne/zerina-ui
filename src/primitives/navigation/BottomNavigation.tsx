@@ -21,42 +21,17 @@ export interface BottomNavigationProps
   > {
   children?: React.ReactNode;
 
-  /**
-   * Valor controlado.
-   */
   value?: string | null;
-
-  /**
-   * Valor inicial cuando no está controlado.
-   */
   defaultValue?: string | null;
 
-  /**
-   * Se dispara cuando cambia el item activo.
-   */
   onValueChange?: (
     value: string,
     event: React.MouseEvent<HTMLElement>
   ) => void;
 
-  /**
-   * Alto visual de la barra, sin contar safe-area.
-   */
   height?: number | string;
-
-  /**
-   * Posición de la barra.
-   */
   position?: BottomNavigationPosition;
-
-  /**
-   * Respeta safe-area inferior.
-   */
   safeArea?: boolean;
-
-  /**
-   * Si está activo, añade blur/transparencia tipo mobile bar.
-   */
   translucent?: boolean;
 
   className?: string;
@@ -78,13 +53,17 @@ export interface BottomNavigationItemProps
   disabled?: boolean;
 
   /**
-   * aria-label opcional cuando el item no tiene texto visible.
+   * true:
+   *   Actualiza el value activo del BottomNavigation.
+   *
+   * false:
+   *   Ejecuta onSelect, pero no cambia el value.
+   *   Útil para abrir menús, sheets o flyouts.
    */
+  selectable?: boolean;
+
   ariaLabel?: string;
 
-  /**
-   * Callback adicional del item.
-   */
   onSelect?: (
     value: string,
     event: React.MouseEvent<HTMLElement>
@@ -239,6 +218,7 @@ const BottomNavigationItem = React.forwardRef<
       icon,
       badge,
       disabled = false,
+      selectable = true,
       ariaLabel,
       onSelect,
       className = "",
@@ -270,7 +250,10 @@ const BottomNavigationItem = React.forwardRef<
         aria-label={ariaLabel}
         data-active={active || undefined}
         onPress={(event) => {
-          ctx.setValue(value, event);
+          if (selectable) {
+            ctx.setValue(value, event);
+          }
+
           onSelect?.(value, event);
         }}
         style={{
