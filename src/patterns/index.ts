@@ -13,3 +13,4 @@ export * from "./settings";
 export * from "./actions";
 export * from "./navigation-stack";
 export * from "./drawer-navigation";
+export * from "./command";
