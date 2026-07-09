@@ -14,12 +14,49 @@ export type BottomNavigationIndicator = "background" | "pill" | "dot" | "none";
 
 export type BottomNavigationDensity = "compact" | "comfortable";
 
+export type BottomNavigationBadgePlacement = "icon" | "item" | "floating";
+
+export type BottomNavigationItemShape = "rounded" | "pill" | "circle" | "none";
+
+export type BottomNavigationIconPosition = "top" | "start";
+
+export interface BottomNavigationBadgeOffset {
+  x?: number | string;
+  y?: number | string;
+}
+
 export interface BottomNavigationContextValue {
   value: string | null;
   setValue: (value: string, event: React.MouseEvent<HTMLElement>) => void;
+
   labelBehavior: BottomNavigationLabelBehavior;
   indicator: BottomNavigationIndicator;
   density: BottomNavigationDensity;
+
+  badgePlacement: BottomNavigationBadgePlacement;
+  badgeOffset?: BottomNavigationBadgeOffset;
+
+  itemShape: BottomNavigationItemShape;
+  itemMinWidth?: number | string;
+
+  iconPosition: BottomNavigationIconPosition;
+  activeIconScale: number;
+  activeLabelWeight: number;
+
+  itemStyle?: React.CSSProperties;
+  activeItemStyle?: React.CSSProperties;
+
+  contentStyle?: React.CSSProperties;
+  activeContentStyle?: React.CSSProperties;
+
+  iconStyle?: React.CSSProperties;
+  activeIconStyle?: React.CSSProperties;
+
+  labelStyle?: React.CSSProperties;
+  activeLabelStyle?: React.CSSProperties;
+
+  badgeStyle?: React.CSSProperties;
+  activeBadgeStyle?: React.CSSProperties;
 }
 
 const BottomNavigationContext =
@@ -45,46 +82,45 @@ export interface BottomNavigationProps
   safeArea?: boolean;
   translucent?: boolean;
 
+  variant?: BottomNavigationVariant;
+  labelBehavior?: BottomNavigationLabelBehavior;
+  indicator?: BottomNavigationIndicator;
+  density?: BottomNavigationDensity;
+
   /**
-   * plain:
-   *   Barra simple, pegada al borde.
+   * icon:
+   *   Badge anclado al icono.
    *
-   * surface:
-   *   Barra con superficie y borde superior.
+   * item:
+   *   Badge anclado al botón completo.
    *
    * floating:
-   *   Barra tipo cápsula, con margen lateral e inferior.
+   *   Badge flotante por encima del item. Ideal con indicator="pill".
    */
-  variant?: BottomNavigationVariant;
+  badgePlacement?: BottomNavigationBadgePlacement;
+  badgeOffset?: BottomNavigationBadgeOffset;
 
-  /**
-   * always:
-   *   Siempre muestra labels.
-   *
-   * active:
-   *   Solo muestra label del item activo.
-   *
-   * never:
-   *   Solo muestra iconos.
-   */
-  labelBehavior?: BottomNavigationLabelBehavior;
+  itemShape?: BottomNavigationItemShape;
+  itemMinWidth?: number | string;
 
-  /**
-   * background:
-   *   Fondo rectangular suave en el item activo.
-   *
-   * pill:
-   *   Cápsula más marcada para el item activo.
-   *
-   * dot:
-   *   Punto inferior para el item activo.
-   *
-   * none:
-   *   Sin indicador visual extra.
-   */
-  indicator?: BottomNavigationIndicator;
+  iconPosition?: BottomNavigationIconPosition;
+  activeIconScale?: number;
+  activeLabelWeight?: number;
 
-  density?: BottomNavigationDensity;
+  itemStyle?: React.CSSProperties;
+  activeItemStyle?: React.CSSProperties;
+
+  contentStyle?: React.CSSProperties;
+  activeContentStyle?: React.CSSProperties;
+
+  iconStyle?: React.CSSProperties;
+  activeIconStyle?: React.CSSProperties;
+
+  labelStyle?: React.CSSProperties;
+  activeLabelStyle?: React.CSSProperties;
+
+  badgeStyle?: React.CSSProperties;
+  activeBadgeStyle?: React.CSSProperties;
 
   className?: string;
   style?: React.CSSProperties;
@@ -121,6 +157,34 @@ export interface BottomNavigationItemProps
     value: string,
     event: React.MouseEvent<HTMLElement>
   ) => void;
+
+  labelBehavior?: BottomNavigationLabelBehavior;
+  indicator?: BottomNavigationIndicator;
+
+  badgePlacement?: BottomNavigationBadgePlacement;
+  badgeOffset?: BottomNavigationBadgeOffset;
+
+  itemShape?: BottomNavigationItemShape;
+  itemMinWidth?: number | string;
+
+  iconPosition?: BottomNavigationIconPosition;
+  activeIconScale?: number;
+  activeLabelWeight?: number;
+
+  itemStyle?: React.CSSProperties;
+  activeItemStyle?: React.CSSProperties;
+
+  contentStyle?: React.CSSProperties;
+  activeContentStyle?: React.CSSProperties;
+
+  iconStyle?: React.CSSProperties;
+  activeIconStyle?: React.CSSProperties;
+
+  labelStyle?: React.CSSProperties;
+  activeLabelStyle?: React.CSSProperties;
+
+  badgeStyle?: React.CSSProperties;
+  activeBadgeStyle?: React.CSSProperties;
 
   className?: string;
   style?: React.CSSProperties;
@@ -178,7 +242,7 @@ const DENSITY_MAP: Record<
   },
 };
 
-function cssSize(value: number | string): number | string {
+function cssSize(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
 }
 
@@ -217,16 +281,7 @@ function getRootSurfaceStyles({
   variant: BottomNavigationVariant;
   translucent: boolean;
 }): React.CSSProperties {
-  if (variant === "plain") {
-    return {
-      background: "transparent",
-      borderTop: "1px solid transparent",
-      backdropFilter: undefined,
-      WebkitBackdropFilter: undefined,
-    };
-  }
-
-  if (variant === "floating") {
+  if (variant === "plain" || variant === "floating") {
     return {
       background: "transparent",
       borderTop: "1px solid transparent",
@@ -301,6 +356,71 @@ function getItemBorderColor({
   return "transparent";
 }
 
+function getItemBorderRadius({
+  indicator,
+  shape,
+}: {
+  indicator: BottomNavigationIndicator;
+  shape: BottomNavigationItemShape;
+}): string | number {
+  if (shape === "none") return 0;
+  if (shape === "pill" || shape === "circle") return "9999px";
+  if (indicator === "pill") return "9999px";
+
+  return "var(--ui-radius-lg)";
+}
+
+function getBadgeTransform(offset?: BottomNavigationBadgeOffset): string | undefined {
+  if (!offset?.x && !offset?.y) return undefined;
+
+  const x = offset.x === undefined ? "0px" : cssSize(offset.x);
+  const y = offset.y === undefined ? "0px" : cssSize(offset.y);
+
+  return `translate(${x}, ${y})`;
+}
+
+function getBadgePlacementStyles({
+  placement,
+  offset,
+}: {
+  placement: BottomNavigationBadgePlacement;
+  offset?: BottomNavigationBadgeOffset;
+}): React.CSSProperties {
+  if (placement === "floating") {
+    return {
+      position: "absolute",
+      top: "-0.32rem",
+      right: "0.42rem",
+      zIndex: 5,
+      minWidth: 0,
+      pointerEvents: "none",
+      transform: getBadgeTransform(offset),
+    };
+  }
+
+  if (placement === "item") {
+    return {
+      position: "absolute",
+      top: "0.18rem",
+      right: "0.42rem",
+      zIndex: 5,
+      minWidth: 0,
+      pointerEvents: "none",
+      transform: getBadgeTransform(offset),
+    };
+  }
+
+  return {
+    position: "absolute",
+    top: "-0.48rem",
+    right: "-0.72rem",
+    zIndex: 5,
+    minWidth: 0,
+    pointerEvents: "none",
+    transform: getBadgeTransform(offset),
+  };
+}
+
 const BottomNavigationRoot = React.forwardRef<
   HTMLElement,
   BottomNavigationProps
@@ -319,6 +439,32 @@ const BottomNavigationRoot = React.forwardRef<
       labelBehavior = "always",
       indicator = "background",
       density = "comfortable",
+
+      badgePlacement = "icon",
+      badgeOffset,
+
+      itemShape = "rounded",
+      itemMinWidth,
+
+      iconPosition = "top",
+      activeIconScale = 1,
+      activeLabelWeight = 800,
+
+      itemStyle,
+      activeItemStyle,
+
+      contentStyle,
+      activeContentStyle,
+
+      iconStyle,
+      activeIconStyle,
+
+      labelStyle,
+      activeLabelStyle,
+
+      badgeStyle,
+      activeBadgeStyle,
+
       className = "",
       style,
       listStyle,
@@ -350,11 +496,60 @@ const BottomNavigationRoot = React.forwardRef<
       () => ({
         value: currentValue,
         setValue,
+
         labelBehavior,
         indicator,
         density,
+
+        badgePlacement,
+        badgeOffset,
+
+        itemShape,
+        itemMinWidth,
+
+        iconPosition,
+        activeIconScale,
+        activeLabelWeight,
+
+        itemStyle,
+        activeItemStyle,
+
+        contentStyle,
+        activeContentStyle,
+
+        iconStyle,
+        activeIconStyle,
+
+        labelStyle,
+        activeLabelStyle,
+
+        badgeStyle,
+        activeBadgeStyle,
       }),
-      [currentValue, setValue, labelBehavior, indicator, density]
+      [
+        currentValue,
+        setValue,
+        labelBehavior,
+        indicator,
+        density,
+        badgePlacement,
+        badgeOffset,
+        itemShape,
+        itemMinWidth,
+        iconPosition,
+        activeIconScale,
+        activeLabelWeight,
+        itemStyle,
+        activeItemStyle,
+        contentStyle,
+        activeContentStyle,
+        iconStyle,
+        activeIconStyle,
+        labelStyle,
+        activeLabelStyle,
+        badgeStyle,
+        activeBadgeStyle,
+      ]
     );
 
     return (
@@ -395,6 +590,7 @@ const BottomNavigationRoot = React.forwardRef<
               paddingBottom: densityStyles.listPaddingBottom,
               paddingLeft: densityStyles.listPaddingLeft,
               boxSizing: "border-box",
+              overflow: "visible",
               ...getListSurfaceStyles({ variant, translucent }),
               ...listStyle,
             }}
@@ -424,6 +620,35 @@ const BottomNavigationItem = React.forwardRef<
       selectable = true,
       ariaLabel,
       onSelect,
+
+      labelBehavior,
+      indicator,
+
+      badgePlacement,
+      badgeOffset,
+
+      itemShape,
+      itemMinWidth,
+
+      iconPosition,
+      activeIconScale,
+      activeLabelWeight,
+
+      itemStyle,
+      activeItemStyle,
+
+      contentStyle,
+      activeContentStyle,
+
+      iconStyle,
+      activeIconStyle,
+
+      labelStyle,
+      activeLabelStyle,
+
+      badgeStyle,
+      activeBadgeStyle,
+
       className = "",
       style,
       ...rest
@@ -442,10 +667,40 @@ const BottomNavigationItem = React.forwardRef<
     const itemLabel = children ?? label;
     const densityStyles = DENSITY_MAP[ctx.density];
 
+    const resolvedLabelBehavior = labelBehavior ?? ctx.labelBehavior;
+    const resolvedIndicator = indicator ?? ctx.indicator;
+    const resolvedBadgePlacement = badgePlacement ?? ctx.badgePlacement;
+    const resolvedBadgeOffset = badgeOffset ?? ctx.badgeOffset;
+    const resolvedItemShape = itemShape ?? ctx.itemShape;
+    const resolvedItemMinWidth = itemMinWidth ?? ctx.itemMinWidth;
+    const resolvedIconPosition = iconPosition ?? ctx.iconPosition;
+    const resolvedActiveIconScale = activeIconScale ?? ctx.activeIconScale;
+    const resolvedActiveLabelWeight = activeLabelWeight ?? ctx.activeLabelWeight;
+
     const showLabel =
       Boolean(itemLabel) &&
-      (ctx.labelBehavior === "always" ||
-        (ctx.labelBehavior === "active" && active));
+      (resolvedLabelBehavior === "always" ||
+        (resolvedLabelBehavior === "active" && active));
+
+    const isHorizontal = resolvedIconPosition === "start";
+
+    const badgeNode = badge ? (
+      <Box
+        data-ui-bottom-navigation-item-badge=""
+        style={{
+          ...getBadgePlacementStyles({
+            placement: resolvedBadgePlacement,
+            offset: resolvedBadgeOffset,
+          }),
+          ...(ctx.badgeStyle ?? {}),
+          ...(badgeStyle ?? {}),
+          ...(active ? ctx.activeBadgeStyle ?? {} : {}),
+          ...(active ? activeBadgeStyle ?? {} : {}),
+        }}
+      >
+        {badge}
+      </Box>
+    ) : null;
 
     return (
       <Pressable
@@ -460,6 +715,9 @@ const BottomNavigationItem = React.forwardRef<
         data-active={active || undefined}
         data-ui-bottom-navigation-item=""
         data-ui-bottom-navigation-item-active={active || undefined}
+        data-ui-bottom-navigation-item-badge-placement={
+          badge ? resolvedBadgePlacement : undefined
+        }
         onPress={(event) => {
           if (selectable) {
             ctx.setValue(value, event);
@@ -469,104 +727,139 @@ const BottomNavigationItem = React.forwardRef<
         }}
         style={{
           flex: "1 1 0",
-          minWidth: 0,
+          minWidth:
+            resolvedItemMinWidth !== undefined
+              ? cssSize(resolvedItemMinWidth)
+              : 0,
           height: "100%",
           position: "relative",
           border: "1px solid",
           borderColor: getItemBorderColor({
             active,
-            indicator: ctx.indicator,
+            indicator: resolvedIndicator,
           }),
-          borderRadius:
-            ctx.indicator === "pill" ? "9999px" : "var(--ui-radius-lg)",
+          borderRadius: getItemBorderRadius({
+            indicator: resolvedIndicator,
+            shape: resolvedItemShape,
+          }),
           background: getItemBackground({
             active,
-            indicator: ctx.indicator,
+            indicator: resolvedIndicator,
           }),
           color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
           opacity: disabled ? "var(--ui-state-disabled-opacity, 0.62)" : 1,
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: densityStyles.gap,
           paddingTop: densityStyles.itemPaddingTop,
           paddingRight: densityStyles.itemPaddingRight,
           paddingBottom: densityStyles.itemPaddingBottom,
           paddingLeft: densityStyles.itemPaddingLeft,
           textAlign: "center",
-          overflow: "hidden",
+          overflow: "visible",
           transition:
-            "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
+            "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+          ...(ctx.itemStyle ?? {}),
+          ...(itemStyle ?? {}),
+          ...(active ? ctx.activeItemStyle ?? {} : {}),
+          ...(active ? activeItemStyle ?? {} : {}),
           ...style,
         }}
         {...rest}
       >
         <Box
+          data-ui-bottom-navigation-item-content=""
           style={{
-            position: "relative",
-            display: "inline-flex",
+            width: "100%",
+            height: "100%",
+            minWidth: 0,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: isHorizontal ? "row" : "column",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: 0,
-            lineHeight: 1,
-            transform: active ? "translateY(-1px)" : undefined,
-            transition:
-              "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+            gap: densityStyles.gap,
+            overflow: "hidden",
+            borderRadius: "inherit",
+            boxSizing: "border-box",
+            ...(ctx.contentStyle ?? {}),
+            ...(contentStyle ?? {}),
+            ...(active ? ctx.activeContentStyle ?? {} : {}),
+            ...(active ? activeContentStyle ?? {} : {}),
           }}
         >
-          {icon ? (
-            <Box
-              aria-hidden="true"
-              style={{
-                fontSize: densityStyles.iconSize,
-                lineHeight: 1,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {icon}
-            </Box>
-          ) : null}
+          <Box
+            data-ui-bottom-navigation-item-icon-wrap=""
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 0,
+              lineHeight: 1,
+              flexShrink: 0,
+              transform: active
+                ? `translateY(-1px) scale(${resolvedActiveIconScale})`
+                : undefined,
+              transition:
+                "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+            }}
+          >
+            {icon ? (
+              <Box
+                aria-hidden="true"
+                data-ui-bottom-navigation-item-icon=""
+                style={{
+                  fontSize: densityStyles.iconSize,
+                  lineHeight: 1,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  ...(ctx.iconStyle ?? {}),
+                  ...(iconStyle ?? {}),
+                  ...(active ? ctx.activeIconStyle ?? {} : {}),
+                  ...(active ? activeIconStyle ?? {} : {}),
+                }}
+              >
+                {icon}
+              </Box>
+            ) : null}
 
-          {badge ? (
-            <Box
+            {resolvedBadgePlacement === "icon" ? badgeNode : null}
+          </Box>
+
+          {showLabel ? (
+            <Typography
+              as="span"
+              size="xs"
+              weight={active ? resolvedActiveLabelWeight : 700}
+              data-ui-bottom-navigation-item-label=""
               style={{
-                position: "absolute",
-                top: "-0.5rem",
-                right: "-0.7rem",
+                maxWidth: "100%",
                 minWidth: 0,
-                pointerEvents: "none",
+                margin: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: "inherit",
+                lineHeight: 1.2,
+                ...(ctx.labelStyle ?? {}),
+                ...(labelStyle ?? {}),
+                ...(active ? ctx.activeLabelStyle ?? {} : {}),
+                ...(active ? activeLabelStyle ?? {} : {}),
               }}
             >
-              {badge}
-            </Box>
+              {itemLabel}
+            </Typography>
           ) : null}
         </Box>
 
-        {showLabel ? (
-          <Typography
-            as="span"
-            size="xs"
-            weight={active ? 800 : 700}
-            style={{
-              maxWidth: "100%",
-              margin: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              color: "inherit",
-              lineHeight: 1.2,
-            }}
-          >
-            {itemLabel}
-          </Typography>
-        ) : null}
+        {resolvedBadgePlacement !== "icon" ? badgeNode : null}
 
-        {ctx.indicator === "dot" && active ? (
+        {resolvedIndicator === "dot" && active ? (
           <Box
             aria-hidden="true"
+            data-ui-bottom-navigation-item-dot=""
             style={{
               position: "absolute",
               left: "50%",
@@ -576,6 +869,7 @@ const BottomNavigationItem = React.forwardRef<
               borderRadius: "9999px",
               transform: "translateX(-50%)",
               background: "var(--ui-primary)",
+              pointerEvents: "none",
             }}
           />
         ) : null}
