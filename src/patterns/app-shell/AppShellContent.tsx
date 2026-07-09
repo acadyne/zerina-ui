@@ -1,5 +1,7 @@
+// src/patterns/app-shell/AppShellContent.tsx
 import React from "react";
 import { Box, type BoxProps } from "../../primitives/layout";
+import type { AppShellViewport } from "./AppShell.types";
 
 function cssSize(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
@@ -7,6 +9,7 @@ function cssSize(value: number | string): string {
 
 export interface AppShellContentProps extends BoxProps<"main"> {
   children?: React.ReactNode;
+  viewport?: AppShellViewport;
   isMobile?: boolean;
   headerHeight?: number | string;
   mobileBarHeight?: number;
@@ -15,6 +18,7 @@ export interface AppShellContentProps extends BoxProps<"main"> {
 
 export function AppShellContent({
   children,
+  viewport = "window",
   isMobile = false,
   headerHeight = 64,
   mobileBarHeight = 68,
@@ -22,6 +26,8 @@ export function AppShellContent({
   style,
   ...rest
 }: AppShellContentProps) {
+  const isContained = viewport === "contained";
+
   const resolvedHeaderHeight = cssSize(headerHeight);
   const resolvedSidebarWidth = cssSize(sidebarWidth);
 
@@ -32,15 +38,34 @@ export function AppShellContent({
       style={{
         minWidth: 0,
         minHeight: 0,
-        height: isMobile
-          ? `calc(100dvh - ${resolvedHeaderHeight} - ${mobileBarHeight}px - env(safe-area-inset-bottom))`
-          : `calc(100dvh - ${resolvedHeaderHeight})`,
-        marginLeft: isMobile ? 0 : resolvedSidebarWidth,
-        padding: isMobile ? 0 : "0.85rem",
-        overflow: "hidden",
-        transition:
-          "margin-left var(--ui-duration-slow) var(--ui-ease-emphasized), padding var(--ui-duration-normal) var(--ui-ease-standard)",
         boxSizing: "border-box",
+        overflow: "hidden",
+
+        position: isContained ? "absolute" : undefined,
+        top: isContained ? resolvedHeaderHeight : undefined,
+        left: isContained
+          ? isMobile
+            ? 0
+            : resolvedSidebarWidth
+          : undefined,
+        right: isContained ? 0 : undefined,
+        bottom: isContained
+          ? isMobile
+            ? `calc(${mobileBarHeight}px + env(safe-area-inset-bottom))`
+            : 0
+          : undefined,
+
+        height: isContained
+          ? undefined
+          : isMobile
+            ? `calc(100dvh - ${resolvedHeaderHeight} - ${mobileBarHeight}px - env(safe-area-inset-bottom))`
+            : `calc(100dvh - ${resolvedHeaderHeight})`,
+
+        marginLeft: isContained ? 0 : isMobile ? 0 : resolvedSidebarWidth,
+        padding: isMobile ? 0 : "0.85rem",
+
+        transition:
+          "left var(--ui-duration-slow) var(--ui-ease-emphasized), margin-left var(--ui-duration-slow) var(--ui-ease-emphasized), padding var(--ui-duration-normal) var(--ui-ease-standard)",
         ...style,
       }}
     >

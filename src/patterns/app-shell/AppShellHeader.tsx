@@ -28,7 +28,11 @@ import {
 } from "../../primitives/overlay";
 import { useOptionalUILayout } from "../../core/layout";
 import { useUITheme, type UIThemeMode } from "../../theme/theme";
-import type { AppShellBrand, AppShellUserInfo } from "./AppShell.types";
+import type {
+  AppShellBrand,
+  AppShellUserInfo,
+  AppShellViewport,
+} from "./AppShell.types";
 
 const themeIconMap: Partial<
   Record<UIThemeMode, React.ComponentType<{ size?: number | string }>>
@@ -59,6 +63,8 @@ function getInitials(user?: AppShellUserInfo): string {
 }
 
 export interface AppShellHeaderProps {
+  viewport?: AppShellViewport;
+
   brand?: AppShellBrand;
   user?: AppShellUserInfo;
 
@@ -83,6 +89,7 @@ export interface AppShellHeaderProps {
 }
 
 export function AppShellHeader({
+  viewport = "window",
   brand,
   user,
 
@@ -112,6 +119,7 @@ export function AppShellHeader({
   const ThemeIcon = themeIconMap[theme] ?? Sparkles;
 
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const isContained = viewport === "contained";
 
   const initials = React.useMemo(() => getInitials(user), [user]);
 
@@ -120,8 +128,10 @@ export function AppShellHeader({
       as="header"
       className={className}
       style={{
-        position: "sticky",
+        position: isContained ? "absolute" : "sticky",
         top: 0,
+        left: isContained ? 0 : undefined,
+        right: isContained ? 0 : undefined,
         zIndex: 1300,
         width: "100%",
         height,

@@ -5,7 +5,10 @@ import {
   BottomNavigation,
   RecursiveFloatingMenuLayer,
 } from "../../primitives/navigation";
-import type { AppShellProcessedRoute } from "./AppShell.types";
+import type {
+  AppShellProcessedRoute,
+  AppShellViewport,
+} from "./AppShell.types";
 import {
   appShellRouteContainsActive,
   getAppShellRouteChildren,
@@ -14,6 +17,8 @@ import {
 } from "./AppShellRouteUtils";
 
 export interface AppShellMobileBarProps {
+  viewport?: AppShellViewport;
+
   routes: AppShellProcessedRoute[];
 
   activePath?: string;
@@ -43,6 +48,7 @@ function getActiveRootRouteId(
 }
 
 export function AppShellMobileBar({
+  viewport = "window",
   routes,
   activePath = "/",
   height = 68,
@@ -53,7 +59,7 @@ export function AppShellMobileBar({
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [openRouteId, setOpenRouteId] = React.useState<string | null>(null);
   const [anchorX, setAnchorX] = React.useState(0);
-
+  const isContained = viewport === "contained";
   const openRoute = React.useMemo(() => {
     return routes.find((route) => route.id === openRouteId) ?? null;
   }, [routes, openRouteId]);
@@ -171,7 +177,7 @@ export function AppShellMobileBar({
       ref={containerRef as React.Ref<Element>}
       className={className}
       style={{
-        position: "fixed",
+        position: isContained ? "absolute" : "fixed",
         left: 0,
         right: 0,
         bottom: 0,

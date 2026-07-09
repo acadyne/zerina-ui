@@ -5,7 +5,10 @@ import {
   NavigationList,
   type NavigationItemDef,
 } from "../../primitives/navigation";
-import type { AppShellProcessedRoute } from "./AppShell.types";
+import type {
+  AppShellProcessedRoute,
+  AppShellViewport,
+} from "./AppShell.types";
 import {
   flattenAppShellRoutes,
   getAppShellRouteChildren,
@@ -15,6 +18,8 @@ import {
 } from "./AppShellRouteUtils";
 
 export interface AppShellSidebarProps {
+  viewport?: AppShellViewport;
+
   routes: AppShellProcessedRoute[];
 
   activeRouteId?: string | null;
@@ -109,6 +114,7 @@ function getRouteFromNavigationItem(
 }
 
 export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
+  viewport = "window",
   routes,
   activeRouteId,
   activePath,
@@ -150,6 +156,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
         ? resolvedCollapsedWidth
         : resolvedExpandedWidth;
 
+  const isContained = viewport === "contained";
   const items = React.useMemo(() => {
     return routes.map(routeToNavigationItem);
   }, [routes]);
@@ -182,11 +189,13 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
       as="aside"
       className={className}
       style={{
-        position: "fixed",
+        position: isContained ? "absolute" : "fixed",
         top: resolvedHeaderHeight,
         left: 0,
         width: resolvedWidth,
-        height: `calc(100dvh - ${resolvedHeaderHeight})`,
+        height: isContained
+          ? `calc(100% - ${resolvedHeaderHeight})`
+          : `calc(100dvh - ${resolvedHeaderHeight})`,
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
