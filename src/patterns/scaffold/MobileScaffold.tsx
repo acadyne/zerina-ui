@@ -41,7 +41,7 @@ export interface MobileScaffoldProps
   scrollable?: boolean;
 
   /**
-   * Aplica padding horizontal al body.
+   * Aplica padding horizontal/vertical al body.
    */
   padded?: boolean;
 
@@ -65,6 +65,32 @@ export interface MobileScaffoldProps
 
 function getViewportHeight(viewport: ScaffoldViewport): string {
   return viewport === "contained" ? "100%" : "100dvh";
+}
+
+function getBodyPaddingStyles({
+  padded,
+  hasBottom,
+  reserveBottomInset,
+}: {
+  padded: boolean;
+  hasBottom: boolean;
+  reserveBottomInset: boolean;
+}): React.CSSProperties {
+  const basePadding = padded ? "1rem" : undefined;
+
+  return {
+    paddingTop: basePadding,
+    paddingRight: basePadding,
+    paddingLeft: basePadding,
+    paddingBottom:
+      padded && hasBottom && reserveBottomInset
+        ? "calc(1rem + env(safe-area-inset-bottom, 0px))"
+        : padded
+          ? "1rem"
+          : hasBottom && reserveBottomInset
+            ? "env(safe-area-inset-bottom, 0px)"
+            : undefined,
+  };
 }
 
 export function MobileScaffold({
@@ -94,21 +120,19 @@ export function MobileScaffold({
   const hasBottom = Boolean(bottom);
   const isContained = viewport === "contained";
 
+  const bodyPaddingStyles = getBodyPaddingStyles({
+    padded,
+    hasBottom,
+    reserveBottomInset,
+  });
+
   const body = (
     <Box
       style={{
         minWidth: 0,
         minHeight: 0,
         boxSizing: "border-box",
-        padding: padded ? "1rem" : undefined,
-        paddingBottom:
-          padded && hasBottom && reserveBottomInset
-            ? "calc(1rem + env(safe-area-inset-bottom, 0px))"
-            : padded
-              ? "1rem"
-              : hasBottom && reserveBottomInset
-                ? "env(safe-area-inset-bottom, 0px)"
-                : undefined,
+        ...bodyPaddingStyles,
         ...contentStyle,
       }}
     >
@@ -118,7 +142,6 @@ export function MobileScaffold({
 
   return (
     <Screen
-      ref={undefined}
       className={className}
       fullHeight={viewport === "window"}
       safeArea={
