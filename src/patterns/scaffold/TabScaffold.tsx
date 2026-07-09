@@ -1,7 +1,7 @@
 // src/patterns/scaffold/TabScaffold.tsx
 import React from "react";
 import { Box } from "../../primitives/layout";
-import { IconButton } from "../../primitives/forms";
+import { BackButton, type BackButtonProps } from "./BackButton";
 import {
     BottomNavigation,
     type BottomNavigationProps,
@@ -105,6 +105,7 @@ export interface TabScaffoldProps
 
     backIcon?: React.ReactNode;
     backAriaLabel?: string;
+    backButtonProps?: Omit<BackButtonProps, "onBack">;
 
     renderAppBar?: (context: TabScaffoldRenderContext) => React.ReactNode;
     renderBottomNavigation?: (context: TabScaffoldRenderContext) => React.ReactNode;
@@ -268,6 +269,7 @@ export function TabScaffold({
 
     backIcon = "‹",
     backAriaLabel = "Volver",
+    backButtonProps,
 
     renderAppBar,
     renderBottomNavigation,
@@ -439,12 +441,13 @@ export function TabScaffold({
             variant="blur"
             leading={
                 canGoBack ? (
-                    <IconButton
+                    <BackButton
                         ariaLabel={backAriaLabel}
+                        icon={backIcon}
                         size="sm"
                         variant="ghost"
-                        icon={backIcon}
-                        onClick={contextValue.pop}
+                        {...backButtonProps}
+                        onBack={contextValue.pop}
                     />
                 ) : (
                     resolveSlot(rootLeading, renderContext)
