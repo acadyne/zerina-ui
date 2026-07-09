@@ -1,6 +1,6 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigation.tsx
 import React from "react";
-import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
+import { resolveSlot } from "../../../helpers/css";
 import { Box } from "../../layout";
 import { BottomNavigationContext } from "./BottomNavigationContext";
 import { BottomNavigationItem } from "./BottomNavigationItem";
@@ -14,6 +14,7 @@ import {
 import type {
   BottomNavigationContextValue,
   BottomNavigationProps,
+  BottomNavigationSlot,
 } from "./bottomNavigation.types";
 
 const BottomNavigationRoot = React.forwardRef<
@@ -26,10 +27,12 @@ const BottomNavigationRoot = React.forwardRef<
       value,
       defaultValue = null,
       onValueChange,
+
       height,
       position = "fixed",
       safeArea = true,
       translucent = true,
+
       variant = "surface",
       labelBehavior = "always",
       indicator = "background",
@@ -46,24 +49,8 @@ const BottomNavigationRoot = React.forwardRef<
       activeIconScale = 1,
       activeLabelWeight = 800,
 
-      itemStyle,
-      activeItemStyle,
-
-      contentStyle,
-      activeContentStyle,
-
-      iconStyle,
-      activeIconStyle,
-
-      labelStyle,
-      activeLabelStyle,
-
-      badgeStyle,
-      activeBadgeStyle,
-
       className = "",
       style,
-      listStyle,
 
       styles,
       slotProps,
@@ -112,21 +99,6 @@ const BottomNavigationRoot = React.forwardRef<
         activeIconScale,
         activeLabelWeight,
 
-        itemStyle,
-        activeItemStyle,
-
-        contentStyle,
-        activeContentStyle,
-
-        iconStyle,
-        activeIconStyle,
-
-        labelStyle,
-        activeLabelStyle,
-
-        badgeStyle,
-        activeBadgeStyle,
-
         styles,
         slotProps,
       }),
@@ -144,88 +116,69 @@ const BottomNavigationRoot = React.forwardRef<
         iconPosition,
         activeIconScale,
         activeLabelWeight,
-        itemStyle,
-        activeItemStyle,
-        contentStyle,
-        activeContentStyle,
-        iconStyle,
-        activeIconStyle,
-        labelStyle,
-        activeLabelStyle,
-        badgeStyle,
-        activeBadgeStyle,
         styles,
         slotProps,
       ]
     );
 
-    const rootSlotProps = getSlotProps(slotProps, "root");
-    const listSlotProps = getSlotProps(slotProps, "list");
+    const rootSlot = resolveSlot<BottomNavigationSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "aria-label": rest["aria-label"] ?? "Navegación inferior",
+        "data-ui-bottom-navigation": "",
+        "data-ui-bottom-navigation-variant": variant,
+        "data-ui-bottom-navigation-density": density,
+        "data-ui-bottom-navigation-indicator": indicator,
+        "data-ui-bottom-navigation-label-behavior": labelBehavior,
+      },
+      baseStyle: {
+        ...getRootPositionStyle(position),
+        minWidth: 0,
+        paddingBottom: safeArea
+          ? "env(safe-area-inset-bottom, 0px)"
+          : undefined,
+        boxSizing: "border-box",
+        ...getRootSurfaceStyles({ variant, translucent }),
+      },
+    });
 
-    const {
-      className: rootSlotClassName,
-      style: rootSlotStyle,
-      ...rootSlotRest
-    } = rootSlotProps;
-
-    const {
-      className: listSlotClassName,
-      style: listSlotStyle,
-      ...listSlotRest
-    } = listSlotProps;
+    const listSlot = resolveSlot<BottomNavigationSlot>({
+      slot: "list",
+      styles,
+      slotProps,
+      baseProps: {
+        role: "tablist",
+      },
+      baseStyle: {
+        height: cssSize(resolvedHeight),
+        minWidth: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-around",
+        gap: "0.25rem",
+        paddingTop: densityStyles.listPaddingTop,
+        paddingRight: densityStyles.listPaddingRight,
+        paddingBottom: densityStyles.listPaddingBottom,
+        paddingLeft: densityStyles.listPaddingLeft,
+        boxSizing: "border-box",
+        overflow: "visible",
+        ...getListSurfaceStyles({ variant, translucent }),
+      },
+    });
 
     return (
       <BottomNavigationContext.Provider value={contextValue}>
         <Box
           as="nav"
           ref={ref as React.Ref<Element>}
-          className={cx(className, rootSlotClassName)}
-          aria-label={rest["aria-label"] ?? "Navegación inferior"}
-          data-ui-bottom-navigation=""
-          data-ui-bottom-navigation-variant={variant}
-          data-ui-bottom-navigation-density={density}
-          data-ui-bottom-navigation-indicator={indicator}
-          data-ui-bottom-navigation-label-behavior={labelBehavior}
-          {...rootSlotRest}
           {...rest}
-          style={{
-            ...getRootPositionStyle(position),
-            minWidth: 0,
-            paddingBottom: safeArea
-              ? "env(safe-area-inset-bottom, 0px)"
-              : undefined,
-            boxSizing: "border-box",
-            ...getRootSurfaceStyles({ variant, translucent }),
-            ...getSlotStyle(styles, "root"),
-            ...rootSlotStyle,
-            ...style,
-          }}
+          {...rootSlot}
         >
-          <Box
-            role="tablist"
-            className={listSlotClassName}
-            {...listSlotRest}
-            style={{
-              height: cssSize(resolvedHeight),
-              minWidth: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-around",
-              gap: "0.25rem",
-              paddingTop: densityStyles.listPaddingTop,
-              paddingRight: densityStyles.listPaddingRight,
-              paddingBottom: densityStyles.listPaddingBottom,
-              paddingLeft: densityStyles.listPaddingLeft,
-              boxSizing: "border-box",
-              overflow: "visible",
-              ...getListSurfaceStyles({ variant, translucent }),
-              ...getSlotStyle(styles, "list"),
-              ...listSlotStyle,
-              ...listStyle,
-            }}
-          >
-            {children}
-          </Box>
+          <Box {...listSlot}>{children}</Box>
         </Box>
       </BottomNavigationContext.Provider>
     );

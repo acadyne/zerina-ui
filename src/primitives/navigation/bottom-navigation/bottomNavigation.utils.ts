@@ -1,8 +1,8 @@
+// src/primitives/navigation/bottom-navigation/bottomNavigation.utils.ts
+import { cssSize } from "../../../helpers/css";
 import type { BottomNavigationBadgeOffset } from "./bottomNavigation.types";
 
-export function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
-}
+export { cssSize };
 
 export function getOffsetTransform(
   offset?: BottomNavigationBadgeOffset

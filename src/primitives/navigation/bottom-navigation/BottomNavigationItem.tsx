@@ -1,6 +1,11 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigationItem.tsx
 import React from "react";
-import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
+import {
+  cx,
+  mergeStyles,
+  resolveMergedSlot,
+  type SlotElementProps,
+} from "../../../helpers/css";
 import { Pressable } from "../../forms";
 import { Box } from "../../layout";
 import { Typography } from "../../typography";
@@ -16,6 +21,9 @@ import {
 import type {
   BottomNavigationBadgeAnchor,
   BottomNavigationItemProps,
+  BottomNavigationSlot,
+  BottomNavigationSlotProps,
+  BottomNavigationStyles,
 } from "./bottomNavigation.types";
 
 function renderAnchoredBadge({
@@ -30,6 +38,49 @@ function renderAnchoredBadge({
   if (anchor !== target) return null;
 
   return badgeNode;
+}
+
+function resolveNavigationItemSlot({
+  slots,
+  ctxStyles,
+  ctxSlotProps,
+  styles,
+  slotProps,
+  className,
+  style,
+  baseStyle,
+  baseProps,
+}: {
+  slots: BottomNavigationSlot[];
+  ctxStyles?: BottomNavigationStyles;
+  ctxSlotProps?: BottomNavigationSlotProps;
+  styles?: BottomNavigationStyles;
+  slotProps?: BottomNavigationSlotProps;
+  className?: string;
+  style?: React.CSSProperties;
+  baseStyle?: React.CSSProperties;
+  baseProps?: SlotElementProps;
+}): SlotElementProps {
+  const contextSlot = resolveMergedSlot({
+    slots,
+    styles: ctxStyles,
+    slotProps: ctxSlotProps,
+    baseStyle,
+    baseProps,
+  });
+
+  const localSlot = resolveMergedSlot({
+    slots,
+    styles,
+    slotProps,
+  });
+
+  return {
+    ...contextSlot,
+    ...localSlot,
+    className: cx(contextSlot.className, className, localSlot.className),
+    style: mergeStyles(contextSlot.style, localSlot.style, style),
+  };
 }
 
 export const BottomNavigationItem = React.forwardRef<
@@ -61,21 +112,6 @@ export const BottomNavigationItem = React.forwardRef<
       iconPosition,
       activeIconScale,
       activeLabelWeight,
-
-      itemStyle,
-      activeItemStyle,
-
-      contentStyle,
-      activeContentStyle,
-
-      iconStyle,
-      activeIconStyle,
-
-      labelStyle,
-      activeLabelStyle,
-
-      badgeStyle,
-      activeBadgeStyle,
 
       styles,
       slotProps,
@@ -111,139 +147,226 @@ export const BottomNavigationItem = React.forwardRef<
       (resolvedLabelBehavior === "always" ||
         (resolvedLabelBehavior === "active" && active));
 
-    const isHorizontal = resolvedIconPosition === "start";
+    const itemSlots: BottomNavigationSlot[] = active
+      ? ["item", "activeItem"]
+      : ["item"];
 
-    const itemSlotProps = getSlotProps(ctx.slotProps, "item");
-    const itemLocalSlotProps = getSlotProps(slotProps, "item");
+    const contentSlots: BottomNavigationSlot[] = active
+      ? ["content", "activeContent"]
+      : ["content"];
 
-    const contentSlotProps = getSlotProps(ctx.slotProps, "content");
-    const contentLocalSlotProps = getSlotProps(slotProps, "content");
+    const iconWrapSlots: BottomNavigationSlot[] = active
+      ? ["iconWrap", "activeIconWrap"]
+      : ["iconWrap"];
 
-    const iconWrapSlotProps = getSlotProps(ctx.slotProps, "iconWrap");
-    const iconWrapLocalSlotProps = getSlotProps(slotProps, "iconWrap");
+    const iconSlots: BottomNavigationSlot[] = active
+      ? ["icon", "activeIcon"]
+      : ["icon"];
 
-    const iconSlotProps = getSlotProps(ctx.slotProps, "icon");
-    const iconLocalSlotProps = getSlotProps(slotProps, "icon");
+    const labelSlots: BottomNavigationSlot[] = active
+      ? ["label", "activeLabel"]
+      : ["label"];
 
-    const labelSlotProps = getSlotProps(ctx.slotProps, "label");
-    const labelLocalSlotProps = getSlotProps(slotProps, "label");
+    const badgeSlots: BottomNavigationSlot[] = active
+      ? ["badge", "activeBadge"]
+      : ["badge"];
 
-    const badgeSlotProps = getSlotProps(ctx.slotProps, "badge");
-    const badgeLocalSlotProps = getSlotProps(slotProps, "badge");
+    const itemSlot = resolveNavigationItemSlot({
+      slots: itemSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        role: "tab",
+        "aria-selected": active,
+        "aria-label": ariaLabel,
+        "data-active": active || undefined,
+        "data-ui-bottom-navigation-item": "",
+        "data-ui-bottom-navigation-item-active": active || undefined,
+        "data-ui-bottom-navigation-item-badge-anchor": badge
+          ? resolvedBadgeAnchor
+          : undefined,
+        "data-ui-bottom-navigation-item-badge-placement": badge
+          ? resolvedBadgePlacement
+          : undefined,
+      },
+      baseStyle: {
+        flex: "1 1 0",
+        minWidth:
+          resolvedItemMinWidth !== undefined
+            ? cssSize(resolvedItemMinWidth)
+            : 0,
+        position: "relative",
+        border: "1px solid",
+        borderColor: getItemBorderColor({
+          active,
+          indicator: resolvedIndicator,
+        }),
+        borderRadius: getItemBorderRadius({
+          indicator: resolvedIndicator,
+          shape: resolvedItemShape,
+        }),
+        background: getItemBackground({
+          active,
+          indicator: resolvedIndicator,
+        }),
+        color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
+        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.62)" : 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingTop: densityStyles.itemPaddingTop,
+        paddingRight: densityStyles.itemPaddingRight,
+        paddingBottom: densityStyles.itemPaddingBottom,
+        paddingLeft: densityStyles.itemPaddingLeft,
+        textAlign: "center",
+        overflow: "visible",
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
 
-    const dotSlotProps = getSlotProps(ctx.slotProps, "dot");
-    const dotLocalSlotProps = getSlotProps(slotProps, "dot");
+    const contentSlot = resolveNavigationItemSlot({
+      slots: contentSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-bottom-navigation-item-content": "",
+      },
+      baseStyle: {
+        minWidth: 0,
+        minHeight: 0,
+        position: "relative",
+        display: "flex",
+        flexDirection: resolvedIconPosition === "start" ? "row" : "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: densityStyles.gap,
+        overflow: "visible",
+        borderRadius: "inherit",
+        boxSizing: "border-box",
+      },
+    });
 
-    const {
-      className: itemSlotClassName,
-      style: itemSlotStyle,
-      ...itemSlotRest
-    } = itemSlotProps;
+    const iconWrapSlot = resolveNavigationItemSlot({
+      slots: iconWrapSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-bottom-navigation-item-icon-wrap": "",
+      },
+      baseStyle: {
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width:
+          badge && resolvedBadgeAnchor === "icon"
+            ? "1.65rem"
+            : undefined,
+        height:
+          badge && resolvedBadgeAnchor === "icon"
+            ? "1.35rem"
+            : undefined,
+        minWidth: 0,
+        lineHeight: 1,
+        flexShrink: 0,
+        overflow: "visible",
+        transform: active
+          ? `translateY(-1px) scale(${resolvedActiveIconScale})`
+          : undefined,
+        transformOrigin: "center center",
+        transition:
+          "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
 
-    const {
-      className: itemLocalSlotClassName,
-      style: itemLocalSlotStyle,
-      ...itemLocalSlotRest
-    } = itemLocalSlotProps;
+    const iconSlot = resolveNavigationItemSlot({
+      slots: iconSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+        "data-ui-bottom-navigation-item-icon": "",
+      },
+      baseStyle: {
+        fontSize: densityStyles.iconSize,
+        lineHeight: 1,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+    });
 
-    const {
-      className: contentSlotClassName,
-      style: contentSlotStyle,
-      ...contentSlotRest
-    } = contentSlotProps;
+    const labelSlot = resolveNavigationItemSlot({
+      slots: labelSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-bottom-navigation-item-label": "",
+      },
+      baseStyle: {
+        maxWidth: "100%",
+        minWidth: 0,
+        margin: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        color: "inherit",
+        lineHeight: 1.1,
+      },
+    });
 
-    const {
-      className: contentLocalSlotClassName,
-      style: contentLocalSlotStyle,
-      ...contentLocalSlotRest
-    } = contentLocalSlotProps;
+    const badgeSlot = resolveNavigationItemSlot({
+      slots: badgeSlots,
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-bottom-navigation-item-badge": "",
+      },
+      baseStyle: getBadgePlacementStyles({
+        placement: resolvedBadgePlacement,
+        offset: resolvedBadgeOffset,
+      }),
+    });
 
-    const {
-      className: iconWrapSlotClassName,
-      style: iconWrapSlotStyle,
-      ...iconWrapSlotRest
-    } = iconWrapSlotProps;
+    const dotSlot = resolveNavigationItemSlot({
+      slots: ["dot"],
+      ctxStyles: ctx.styles,
+      ctxSlotProps: ctx.slotProps,
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+        "data-ui-bottom-navigation-item-dot": "",
+      },
+      baseStyle: {
+        position: "absolute",
+        left: "50%",
+        bottom: "0.18rem",
+        width: 18,
+        height: 4,
+        borderRadius: "9999px",
+        transform: "translateX(-50%)",
+        background: "var(--ui-primary)",
+        pointerEvents: "none",
+      },
+    });
 
-    const {
-      className: iconWrapLocalSlotClassName,
-      style: iconWrapLocalSlotStyle,
-      ...iconWrapLocalSlotRest
-    } = iconWrapLocalSlotProps;
-
-    const {
-      className: iconSlotClassName,
-      style: iconSlotStyle,
-      ...iconSlotRest
-    } = iconSlotProps;
-
-    const {
-      className: iconLocalSlotClassName,
-      style: iconLocalSlotStyle,
-      ...iconLocalSlotRest
-    } = iconLocalSlotProps;
-
-    const {
-      className: labelSlotClassName,
-      style: labelSlotStyle,
-      ...labelSlotRest
-    } = labelSlotProps;
-
-    const {
-      className: labelLocalSlotClassName,
-      style: labelLocalSlotStyle,
-      ...labelLocalSlotRest
-    } = labelLocalSlotProps;
-
-    const {
-      className: badgeSlotClassName,
-      style: badgeSlotStyle,
-      ...badgeSlotRest
-    } = badgeSlotProps;
-
-    const {
-      className: badgeLocalSlotClassName,
-      style: badgeLocalSlotStyle,
-      ...badgeLocalSlotRest
-    } = badgeLocalSlotProps;
-
-    const {
-      className: dotSlotClassName,
-      style: dotSlotStyle,
-      ...dotSlotRest
-    } = dotSlotProps;
-
-    const {
-      className: dotLocalSlotClassName,
-      style: dotLocalSlotStyle,
-      ...dotLocalSlotRest
-    } = dotLocalSlotProps;
-
-    const badgeNode = badge ? (
-      <Box
-        data-ui-bottom-navigation-item-badge=""
-        className={cx(badgeSlotClassName, badgeLocalSlotClassName)}
-        {...badgeSlotRest}
-        {...badgeLocalSlotRest}
-        style={{
-          ...getBadgePlacementStyles({
-            placement: resolvedBadgePlacement,
-            offset: resolvedBadgeOffset,
-          }),
-          ...getSlotStyle(ctx.styles, "badge"),
-          ...getSlotStyle(styles, "badge"),
-          ...badgeSlotStyle,
-          ...badgeLocalSlotStyle,
-          ...(ctx.badgeStyle ?? {}),
-          ...(badgeStyle ?? {}),
-          ...(active ? ctx.activeBadgeStyle ?? {} : {}),
-          ...(active ? activeBadgeStyle ?? {} : {}),
-          ...(active ? getSlotStyle(ctx.styles, "activeBadge") ?? {} : {}),
-          ...(active ? getSlotStyle(styles, "activeBadge") ?? {} : {}),
-        }}
-      >
-        {badge}
-      </Box>
-    ) : null;
+    const badgeNode = badge ? <Box {...badgeSlot}>{badge}</Box> : null;
 
     return (
       <Pressable
@@ -251,19 +374,8 @@ export const BottomNavigationItem = React.forwardRef<
         ref={ref as React.Ref<HTMLElement>}
         type="button"
         disabled={disabled}
-        className={cx(className, itemSlotClassName, itemLocalSlotClassName)}
-        role="tab"
-        aria-selected={active}
-        aria-label={ariaLabel}
-        data-active={active || undefined}
-        data-ui-bottom-navigation-item=""
-        data-ui-bottom-navigation-item-active={active || undefined}
-        data-ui-bottom-navigation-item-badge-anchor={
-          badge ? resolvedBadgeAnchor : undefined
-        }
-        data-ui-bottom-navigation-item-badge-placement={
-          badge ? resolvedBadgePlacement : undefined
-        }
+        {...itemSlot}
+        {...rest}
         onPress={(event) => {
           if (selectable) {
             ctx.setValue(value, event);
@@ -271,151 +383,10 @@ export const BottomNavigationItem = React.forwardRef<
 
           onSelect?.(value, event);
         }}
-        style={{
-          flex: "1 1 0",
-          minWidth:
-            resolvedItemMinWidth !== undefined
-              ? cssSize(resolvedItemMinWidth)
-              : 0,
-          height: "100%",
-          position: "relative",
-          border: "1px solid",
-          borderColor: getItemBorderColor({
-            active,
-            indicator: resolvedIndicator,
-          }),
-          borderRadius: getItemBorderRadius({
-            indicator: resolvedIndicator,
-            shape: resolvedItemShape,
-          }),
-          background: getItemBackground({
-            active,
-            indicator: resolvedIndicator,
-          }),
-          color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
-          opacity: disabled ? "var(--ui-state-disabled-opacity, 0.62)" : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: densityStyles.itemPaddingTop,
-          paddingRight: densityStyles.itemPaddingRight,
-          paddingBottom: densityStyles.itemPaddingBottom,
-          paddingLeft: densityStyles.itemPaddingLeft,
-          textAlign: "center",
-          overflow: "visible",
-          transition:
-            "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-          ...getSlotStyle(ctx.styles, "item"),
-          ...getSlotStyle(styles, "item"),
-          ...itemSlotStyle,
-          ...itemLocalSlotStyle,
-          ...(active ? getSlotStyle(ctx.styles, "activeItem") ?? {} : {}),
-          ...(active ? getSlotStyle(styles, "activeItem") ?? {} : {}),
-          ...(ctx.itemStyle ?? {}),
-          ...(itemStyle ?? {}),
-          ...(active ? ctx.activeItemStyle ?? {} : {}),
-          ...(active ? activeItemStyle ?? {} : {}),
-          ...style,
-        }}
-        {...itemSlotRest}
-        {...itemLocalSlotRest}
-        {...rest}
       >
-        <Box
-          data-ui-bottom-navigation-item-content=""
-          className={cx(contentSlotClassName, contentLocalSlotClassName)}
-          {...contentSlotRest}
-          {...contentLocalSlotRest}
-          style={{
-            width: "100%",
-            height: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            position: "relative",
-            display: "flex",
-            flexDirection: isHorizontal ? "row" : "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: densityStyles.gap,
-            overflow: "visible",
-            borderRadius: "inherit",
-            boxSizing: "border-box",
-            ...getSlotStyle(ctx.styles, "content"),
-            ...getSlotStyle(styles, "content"),
-            ...contentSlotStyle,
-            ...contentLocalSlotStyle,
-            ...(active ? getSlotStyle(ctx.styles, "activeContent") ?? {} : {}),
-            ...(active ? getSlotStyle(styles, "activeContent") ?? {} : {}),
-            ...(ctx.contentStyle ?? {}),
-            ...(contentStyle ?? {}),
-            ...(active ? ctx.activeContentStyle ?? {} : {}),
-            ...(active ? activeContentStyle ?? {} : {}),
-          }}
-        >
-          <Box
-            data-ui-bottom-navigation-item-icon-wrap=""
-            className={cx(iconWrapSlotClassName, iconWrapLocalSlotClassName)}
-            {...iconWrapSlotRest}
-            {...iconWrapLocalSlotRest}
-            style={{
-              position: "relative",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width:
-                badge && resolvedBadgeAnchor === "icon"
-                  ? "1.65rem"
-                  : undefined,
-              height:
-                badge && resolvedBadgeAnchor === "icon"
-                  ? "1.35rem"
-                  : undefined,
-              minWidth: 0,
-              lineHeight: 1,
-              flexShrink: 0,
-              overflow: "visible",
-              transform: active
-                ? `translateY(-1px) scale(${resolvedActiveIconScale})`
-                : undefined,
-              transformOrigin: "center center",
-              transition:
-                "transform var(--ui-duration-normal) var(--ui-ease-standard)",
-              ...getSlotStyle(ctx.styles, "iconWrap"),
-              ...getSlotStyle(styles, "iconWrap"),
-              ...iconWrapSlotStyle,
-              ...iconWrapLocalSlotStyle,
-              ...(active ? getSlotStyle(ctx.styles, "activeIconWrap") ?? {} : {}),
-              ...(active ? getSlotStyle(styles, "activeIconWrap") ?? {} : {}),
-            }}
-          >
-            {icon ? (
-              <Box
-                aria-hidden="true"
-                data-ui-bottom-navigation-item-icon=""
-                className={cx(iconSlotClassName, iconLocalSlotClassName)}
-                {...iconSlotRest}
-                {...iconLocalSlotRest}
-                style={{
-                  fontSize: densityStyles.iconSize,
-                  lineHeight: 1,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  ...getSlotStyle(ctx.styles, "icon"),
-                  ...getSlotStyle(styles, "icon"),
-                  ...iconSlotStyle,
-                  ...iconLocalSlotStyle,
-                  ...(active ? getSlotStyle(ctx.styles, "activeIcon") ?? {} : {}),
-                  ...(active ? getSlotStyle(styles, "activeIcon") ?? {} : {}),
-                  ...(ctx.iconStyle ?? {}),
-                  ...(iconStyle ?? {}),
-                  ...(active ? ctx.activeIconStyle ?? {} : {}),
-                  ...(active ? activeIconStyle ?? {} : {}),
-                }}
-              >
-                {icon}
-              </Box>
-            ) : null}
+        <Box {...contentSlot}>
+          <Box {...iconWrapSlot}>
+            {icon ? <Box {...iconSlot}>{icon}</Box> : null}
 
             {renderAnchoredBadge({
               anchor: resolvedBadgeAnchor,
@@ -429,30 +400,7 @@ export const BottomNavigationItem = React.forwardRef<
               as="span"
               size="xs"
               weight={active ? resolvedActiveLabelWeight : 700}
-              data-ui-bottom-navigation-item-label=""
-              className={cx(labelSlotClassName, labelLocalSlotClassName)}
-              {...labelSlotRest}
-              {...labelLocalSlotRest}
-              style={{
-                maxWidth: "100%",
-                minWidth: 0,
-                margin: 0,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                color: "inherit",
-                lineHeight: 1.2,
-                ...getSlotStyle(ctx.styles, "label"),
-                ...getSlotStyle(styles, "label"),
-                ...labelSlotStyle,
-                ...labelLocalSlotStyle,
-                ...(active ? getSlotStyle(ctx.styles, "activeLabel") ?? {} : {}),
-                ...(active ? getSlotStyle(styles, "activeLabel") ?? {} : {}),
-                ...(ctx.labelStyle ?? {}),
-                ...(labelStyle ?? {}),
-                ...(active ? ctx.activeLabelStyle ?? {} : {}),
-                ...(active ? activeLabelStyle ?? {} : {}),
-              }}
+              {...labelSlot}
             >
               {itemLabel}
             </Typography>
@@ -471,30 +419,7 @@ export const BottomNavigationItem = React.forwardRef<
           badgeNode,
         })}
 
-        {resolvedIndicator === "dot" && active ? (
-          <Box
-            aria-hidden="true"
-            data-ui-bottom-navigation-item-dot=""
-            className={cx(dotSlotClassName, dotLocalSlotClassName)}
-            {...dotSlotRest}
-            {...dotLocalSlotRest}
-            style={{
-              position: "absolute",
-              left: "50%",
-              bottom: "0.22rem",
-              width: 4,
-              height: 4,
-              borderRadius: "9999px",
-              transform: "translateX(-50%)",
-              background: "var(--ui-primary)",
-              pointerEvents: "none",
-              ...getSlotStyle(ctx.styles, "dot"),
-              ...getSlotStyle(styles, "dot"),
-              ...dotSlotStyle,
-              ...dotLocalSlotStyle,
-            }}
-          />
-        ) : null}
+        {resolvedIndicator === "dot" && active ? <Box {...dotSlot} /> : null}
       </Pressable>
     );
   }

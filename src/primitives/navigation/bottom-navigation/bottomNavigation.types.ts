@@ -68,21 +68,6 @@ export interface BottomNavigationContextValue {
   activeIconScale: number;
   activeLabelWeight: number;
 
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
-
   styles?: BottomNavigationStyles;
   slotProps?: BottomNavigationSlotProps;
 }
@@ -123,24 +108,8 @@ export interface BottomNavigationProps
   activeIconScale?: number;
   activeLabelWeight?: number;
 
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
-
   className?: string;
   style?: React.CSSProperties;
-  listStyle?: React.CSSProperties;
 
   styles?: BottomNavigationStyles;
   slotProps?: BottomNavigationSlotProps;
@@ -181,21 +150,6 @@ export interface BottomNavigationItemProps
   iconPosition?: BottomNavigationIconPosition;
   activeIconScale?: number;
   activeLabelWeight?: number;
-
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
 
   styles?: BottomNavigationStyles;
   slotProps?: BottomNavigationSlotProps;
