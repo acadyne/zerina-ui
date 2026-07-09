@@ -1,10 +1,13 @@
 // src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.utils.tsx
 import React from "react";
+import type {
+  UIViewportBreakpoints,
+  UIViewportKind,
+  UIViewportMode,
+} from "../../../core/viewport";
 import type { NavigationItemDef } from "../../../primitives/navigation/NavigationList";
 import type {
   AdaptiveScaffoldItem,
-  AdaptiveScaffoldMode,
-  AdaptiveScaffoldResolvedMode,
   AdaptiveScaffoldRenderContext,
 } from "./adaptiveScaffold.types";
 
@@ -61,25 +64,31 @@ export function getFirstSelectableAdaptiveScaffoldItem(
 export function resolveAdaptiveScaffoldMode({
   mode,
   width,
-  mobileBreakpoint,
-  tabletBreakpoint,
+  fallbackKind,
+  breakpoints,
 }: {
-  mode: AdaptiveScaffoldMode;
+  mode: UIViewportMode;
   width: number;
-  mobileBreakpoint: number;
-  tabletBreakpoint: number;
-}): AdaptiveScaffoldResolvedMode {
-  if (mode !== "auto") return mode;
-
-  if (width > 0 && width < mobileBreakpoint) {
-    return "mobile";
+  fallbackKind: UIViewportKind;
+  breakpoints: UIViewportBreakpoints;
+}): UIViewportKind {
+  if (mode !== "auto") {
+    return mode;
   }
 
-  if (width > 0 && width < tabletBreakpoint) {
+  if (width <= 0) {
+    return fallbackKind;
+  }
+
+  if (width >= breakpoints.desktop) {
+    return "desktop";
+  }
+
+  if (width >= breakpoints.tablet) {
     return "tablet";
   }
 
-  return "desktop";
+  return "mobile";
 }
 
 export function resolveAdaptiveValue(

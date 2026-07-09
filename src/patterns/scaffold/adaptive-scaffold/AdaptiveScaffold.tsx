@@ -6,6 +6,7 @@ import {
   getSlotStyle,
   type SlotElementProps,
 } from "../../../helpers/css";
+import { useOptionalUIViewport } from "../../../core/viewport";
 import { Box } from "../../../primitives/layout";
 import {
   BottomNavigation,
@@ -41,15 +42,16 @@ interface ResolvedSlotProps {
   rest: Omit<SlotElementProps, "className" | "style">;
 }
 
+const FALLBACK_VIEWPORT_BREAKPOINTS = {
+  tablet: 768,
+  desktop: 1024,
+};
+
 function resolveSlotProps(
   slotProps: AdaptiveScaffoldSlotProps | undefined,
   slot: AdaptiveScaffoldSlot
 ): ResolvedSlotProps {
-  const {
-    className,
-    style,
-    ...rest
-  } = getSlotProps(slotProps, slot);
+  const { className, style, ...rest } = getSlotProps(slotProps, slot);
 
   return {
     className,
@@ -180,9 +182,6 @@ export function AdaptiveScaffold({
   defaultActiveId,
   onActiveIdChange,
 
-  mobileBreakpoint = 640,
-  tabletBreakpoint = 1024,
-
   mobileNavigation = "bottom",
   tabletNavigation = "rail",
   desktopNavigation = "sidebar",
@@ -207,16 +206,12 @@ export function AdaptiveScaffold({
   className = "",
   style,
 
-  bodyStyle,
-  contentStyle,
-  sidebarStyle,
-  railContainerStyle,
-
   styles,
   slotProps,
 
   ...rest
 }: AdaptiveScaffoldProps) {
+  const viewportInfo = useOptionalUIViewport();
   const [rootRef, measuredWidth] = useElementWidth<HTMLDivElement>();
 
   const fallbackItem = React.useMemo(
@@ -243,11 +238,16 @@ export function AdaptiveScaffold({
     [currentActiveId, items]
   );
 
+  const responsiveWidth =
+    viewport === "contained"
+      ? measuredWidth
+      : viewportInfo?.width ?? measuredWidth;
+
   const resolvedMode = resolveAdaptiveScaffoldMode({
     mode,
-    width: measuredWidth,
-    mobileBreakpoint,
-    tabletBreakpoint,
+    width: responsiveWidth,
+    fallbackKind: viewportInfo?.kind ?? "mobile",
+    breakpoints: viewportInfo?.breakpoints ?? FALLBACK_VIEWPORT_BREAKPOINTS,
   });
 
   const setActiveItem = React.useCallback(
@@ -453,7 +453,6 @@ export function AdaptiveScaffold({
               minHeight: 0,
               overflow: "hidden",
               ...contentSlot.style,
-              ...contentStyle,
             }}
           >
             {content}
@@ -510,7 +509,6 @@ export function AdaptiveScaffold({
           overflow: "hidden",
           ...getSlotStyle(styles, "body"),
           ...bodySlot.style,
-          ...bodyStyle,
         }}
       >
         {showTabletRail || showDesktopRail ? (
@@ -524,7 +522,6 @@ export function AdaptiveScaffold({
               borderRight: "1px solid var(--ui-border)",
               ...getSlotStyle(styles, "rail"),
               ...railSlot.style,
-              ...railContainerStyle,
             }}
           >
             {railNavigation}
@@ -549,7 +546,6 @@ export function AdaptiveScaffold({
                 "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
               ...getSlotStyle(styles, "sidebar"),
               ...sidebarSlot.style,
-              ...sidebarStyle,
             }}
           >
             <NavigationList
@@ -581,7 +577,6 @@ export function AdaptiveScaffold({
             minHeight: 0,
             overflow: "hidden",
             ...contentSlot.style,
-            ...contentStyle,
           }}
         >
           {content}

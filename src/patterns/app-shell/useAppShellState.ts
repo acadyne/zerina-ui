@@ -1,5 +1,6 @@
+// src/patterns/app-shell/useAppShellState.ts
 import React from "react";
-import { useOptionalUILayout } from "../../core/layout";
+import { useOptionalUIViewport } from "../../core/viewport";
 import type { AppShellMobileMode } from "./AppShell.types";
 
 export interface UseAppShellStateOptions {
@@ -39,10 +40,22 @@ export interface UseAppShellStateResult {
   setActiveRouteId: (id: string | null) => void;
 }
 
+function resolveIsMobile(options: {
+  mobileMode: AppShellMobileMode;
+  viewportIsMobile: boolean;
+}): boolean {
+  const { mobileMode, viewportIsMobile } = options;
+
+  if (mobileMode === "mobile") return true;
+  if (mobileMode === "desktop") return false;
+
+  return viewportIsMobile;
+}
+
 export function useAppShellState(
   options: UseAppShellStateOptions = {}
 ): UseAppShellStateResult {
-  const layout = useOptionalUILayout();
+  const viewport = useOptionalUIViewport();
 
   const {
     collapsed: controlledCollapsed,
@@ -79,12 +92,10 @@ export function useAppShellState(
   const openRouteIds = controlledOpenRouteIds ?? internalOpenRouteIds;
   const activeRouteId = controlledActiveRouteId ?? internalActiveRouteId;
 
-  const isMobile =
-    mobileMode === "mobile"
-      ? true
-      : mobileMode === "desktop"
-        ? false
-        : Boolean(layout?.isMobile);
+  const isMobile = resolveIsMobile({
+    mobileMode,
+    viewportIsMobile: Boolean(viewport?.isMobile),
+  });
 
   const setCollapsed = React.useCallback(
     (next: boolean) => {

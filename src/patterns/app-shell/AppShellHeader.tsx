@@ -27,7 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "../../primitives/overlay";
-import { useOptionalUILayout } from "../../core/layout";
+import { useOptionalUIViewport } from "../../core/viewport";
 import { useUITheme, type UIThemeMode } from "../../theme/theme";
 import type {
   AppShellBrand,
@@ -133,8 +133,8 @@ export function AppShellHeader({
   className = "",
   style,
 }: AppShellHeaderProps) {
-  const layout = useOptionalUILayout();
-  const resolvedMobile = isMobile ?? Boolean(layout?.isMobile);
+  const viewportInfo = useOptionalUIViewport();
+  const resolvedMobile = isMobile ?? Boolean(viewportInfo?.isMobile);
   const isContained = viewport === "contained";
 
   const { theme, cycleTheme } = useUITheme();
@@ -221,6 +221,7 @@ export function AppShellHeader({
       as="header"
       className={className}
       data-ui-app-shell-header-viewport={viewport}
+      data-ui-app-shell-header-mobile={resolvedMobile || undefined}
       style={{
         position: isContained ? "absolute" : "sticky",
         top: 0,
@@ -360,14 +361,18 @@ export function AppShellHeader({
                 <span>
                   <IconButton
                     ariaLabel={
-                      resolvedMobile ? "Salir de modo mobile" : "Activar modo mobile"
+                      resolvedMobile
+                        ? "Salir de modo mobile"
+                        : "Activar modo mobile"
                     }
                     icon={<Smartphone size={16} />}
                     variant="ghost"
                     size="sm"
                     onClick={onToggleMobileMode}
                     style={{
-                      color: resolvedMobile ? "var(--ui-primary)" : "var(--ui-text)",
+                      color: resolvedMobile
+                        ? "var(--ui-primary)"
+                        : "var(--ui-text)",
                       border: "1px solid var(--ui-border)",
                       background: resolvedMobile
                         ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
@@ -403,7 +408,9 @@ export function AppShellHeader({
                 </span>
               </TooltipTrigger>
 
-              <TooltipContent>Tema actual: {theme}. Click para cambiar.</TooltipContent>
+              <TooltipContent>
+                Tema actual: {theme}. Click para cambiar.
+              </TooltipContent>
             </Tooltip>
           ) : null}
 
@@ -475,7 +482,12 @@ export function AppShellHeader({
                     borderBottom: "1px solid var(--ui-border)",
                   }}
                 >
-                  <Typography as="div" size="sm" weight={800} style={{ margin: 0 }}>
+                  <Typography
+                    as="div"
+                    size="sm"
+                    weight={800}
+                    style={{ margin: 0 }}
+                  >
                     {user?.name ?? "Usuario"}
                   </Typography>
 

@@ -6,26 +6,59 @@ import {
   type UIDensityMode,
   type UIInputKind,
   type UIOrientation,
+  type UIViewportBreakpoints,
   type UIViewportInfo,
+  type UIViewportKind,
+  type UIViewportMode,
 } from "./viewport.types";
+
+type SetViewportModeAction =
+  | UIViewportMode
+  | ((prevMode: UIViewportMode) => UIViewportMode);
+
+export interface UIViewportContextValue extends UIViewportInfo {
+  setMode: (action: SetViewportModeAction) => void;
+  setAutoMode: () => void;
+  setMobileMode: () => void;
+  setTabletMode: () => void;
+  setDesktopMode: () => void;
+}
 
 export interface UIViewportProviderProps {
   children: React.ReactNode;
 
   /**
-   * Density controlada.
+   * Modo responsive controlado.
    *
    * auto:
-   *   Resuelve automáticamente según input y dimensiones.
+   *   Resuelve mobile/tablet/desktop usando breakpoints.
    *
-   * compact:
-   *   UI más densa, útil para mobile landscape o pantallas pequeñas.
+   * mobile/tablet/desktop:
+   *   Fuerza el modo efectivo.
+   */
+  mode?: UIViewportMode;
+
+  /**
+   * Modo inicial cuando mode no está controlado.
+   */
+  defaultMode?: UIViewportMode;
+
+  /**
+   * Se dispara cuando cambia el modo configurado.
+   */
+  onModeChange?: (mode: UIViewportMode) => void;
+
+  /**
+   * Breakpoints oficiales para resolver kind.
    *
-   * comfortable:
-   *   Valor base recomendado.
-   *
-   * spacious:
-   *   UI más aireada, útil para desktop/tablet amplio.
+   * width < tablet => mobile
+   * width >= tablet && width < desktop => tablet
+   * width >= desktop => desktop
+   */
+  breakpoints?: Partial<UIViewportBreakpoints>;
+
+  /**
+   * Density controlada.
    */
   densityMode?: UIDensityMode;
 
@@ -36,11 +69,15 @@ export interface UIViewportProviderProps {
 
   /**
    * width < narrowBreakpoint => isNarrow.
+   *
+   * Señal auxiliar. No decide mobile/tablet/desktop.
    */
   narrowBreakpoint?: number;
 
   /**
    * width >= wideBreakpoint => isWide.
+   *
+   * Señal auxiliar. No decide mobile/tablet/desktop.
    */
   wideBreakpoint?: number;
 
@@ -58,17 +95,22 @@ export interface UIViewportProviderProps {
    * Evita leer window/matchMedia durante el primer render.
    *
    * Útil para SSR/Next.js.
-   * En Vite/Tauri/CSR normalmente puede quedarse en false.
    */
   ssrSafe?: boolean;
 }
+
+const DEFAULT_VIEWPORT_BREAKPOINTS: UIViewportBreakpoints = {
+  tablet: 768,
+  desktop: 1024,
+};
 
 const DEFAULT_NARROW_BREAKPOINT = 480;
 const DEFAULT_WIDE_BREAKPOINT = 1024;
 const DEFAULT_SHORT_BREAKPOINT = 500;
 const DEFAULT_TALL_BREAKPOINT = 800;
 
-const UIViewportContext = React.createContext<UIViewportInfo | null>(null);
+const UIViewportContext =
+  React.createContext<UIViewportContextValue | null>(null);
 
 function resolveOrientation(width: number, height: number): UIOrientation {
   if (width <= 0 || height <= 0) {
@@ -76,6 +118,30 @@ function resolveOrientation(width: number, height: number): UIOrientation {
   }
 
   return height > width ? "portrait" : "landscape";
+}
+
+function resolveViewportKind({
+  mode,
+  width,
+  breakpoints,
+}: {
+  mode: UIViewportMode;
+  width: number;
+  breakpoints: UIViewportBreakpoints;
+}): UIViewportKind {
+  if (mode !== "auto") {
+    return mode;
+  }
+
+  if (width >= breakpoints.desktop) {
+    return "desktop";
+  }
+
+  if (width >= breakpoints.tablet) {
+    return "tablet";
+  }
+
+  return "mobile";
 }
 
 function resolveInputKind(options: {
@@ -153,6 +219,10 @@ function resolveDensity(options: {
 
 export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   children,
+  mode,
+  defaultMode = "auto",
+  onModeChange,
+  breakpoints,
   densityMode,
   defaultDensityMode = "auto",
   narrowBreakpoint = DEFAULT_NARROW_BREAKPOINT,
@@ -161,6 +231,21 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   tallBreakpoint = DEFAULT_TALL_BREAKPOINT,
   ssrSafe = false,
 }) => {
+  const isModeControlled = mode !== undefined;
+
+  const [internalMode, setInternalMode] =
+    React.useState<UIViewportMode>(defaultMode);
+
+  const currentMode = isModeControlled ? mode : internalMode;
+
+  const resolvedBreakpoints = React.useMemo<UIViewportBreakpoints>(
+    () => ({
+      ...DEFAULT_VIEWPORT_BREAKPOINTS,
+      ...breakpoints,
+    }),
+    [breakpoints]
+  );
+
   const viewportSize = useViewportSize({ ssrSafe });
 
   const initializeWithValue = !ssrSafe;
@@ -187,7 +272,37 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
   const resolvedDensityMode = densityMode ?? defaultDensityMode;
 
-  const value = React.useMemo<UIViewportInfo>(() => {
+  const setMode = React.useCallback(
+    (action: SetViewportModeAction) => {
+      const nextMode =
+        typeof action === "function" ? action(currentMode) : action;
+
+      if (!isModeControlled) {
+        setInternalMode(nextMode);
+      }
+
+      onModeChange?.(nextMode);
+    },
+    [currentMode, isModeControlled, onModeChange]
+  );
+
+  const setAutoMode = React.useCallback(() => {
+    setMode("auto");
+  }, [setMode]);
+
+  const setMobileMode = React.useCallback(() => {
+    setMode("mobile");
+  }, [setMode]);
+
+  const setTabletMode = React.useCallback(() => {
+    setMode("tablet");
+  }, [setMode]);
+
+  const setDesktopMode = React.useCallback(() => {
+    setMode("desktop");
+  }, [setMode]);
+
+  const value = React.useMemo<UIViewportContextValue>(() => {
     const { width, height } = viewportSize;
 
     const aspectRatio = height > 0 ? width / height : 0;
@@ -195,6 +310,16 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     const orientation = resolveOrientation(width, height);
     const isPortrait = orientation === "portrait";
     const isLandscape = orientation === "landscape";
+
+    const kind = resolveViewportKind({
+      mode: currentMode,
+      width,
+      breakpoints: resolvedBreakpoints,
+    });
+
+    const isMobile = kind === "mobile";
+    const isTablet = kind === "tablet";
+    const isDesktop = kind === "desktop";
 
     const isNarrow = width > 0 && width < narrowBreakpoint;
     const isWide = width >= wideBreakpoint;
@@ -223,6 +348,15 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     });
 
     return {
+      mode: currentMode,
+      kind,
+
+      isMobile,
+      isTablet,
+      isDesktop,
+
+      breakpoints: resolvedBreakpoints,
+
       width,
       height,
       aspectRatio,
@@ -242,9 +376,17 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
       densityMode: resolvedDensityMode,
       density,
+
+      setMode,
+      setAutoMode,
+      setMobileMode,
+      setTabletMode,
+      setDesktopMode,
     };
   }, [
     viewportSize,
+    currentMode,
+    resolvedBreakpoints,
     narrowBreakpoint,
     wideBreakpoint,
     shortBreakpoint,
@@ -255,6 +397,11 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     isPrimaryFine,
     hasHover,
     resolvedDensityMode,
+    setMode,
+    setAutoMode,
+    setMobileMode,
+    setTabletMode,
+    setDesktopMode,
   ]);
 
   React.useEffect(() => {
@@ -262,11 +409,20 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
     const root = document.documentElement;
 
+    root.setAttribute("data-ui-viewport", value.kind);
+    root.setAttribute("data-ui-viewport-mode", value.mode);
     root.setAttribute("data-ui-orientation", value.orientation);
     root.setAttribute("data-ui-density", value.density);
     root.setAttribute("data-ui-density-mode", value.densityMode);
     root.setAttribute("data-ui-input", value.inputKind);
-  }, [value.orientation, value.density, value.densityMode, value.inputKind]);
+  }, [
+    value.kind,
+    value.mode,
+    value.orientation,
+    value.density,
+    value.densityMode,
+    value.inputKind,
+  ]);
 
   return (
     <UIViewportContext.Provider value={value}>
@@ -277,7 +433,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
 UIViewportProvider.displayName = "UIViewportProvider";
 
-export function useUIViewport(): UIViewportInfo {
+export function useUIViewport(): UIViewportContextValue {
   const ctx = React.useContext(UIViewportContext);
 
   if (!ctx) {
@@ -289,6 +445,6 @@ export function useUIViewport(): UIViewportInfo {
   return ctx;
 }
 
-export function useOptionalUIViewport(): UIViewportInfo | null {
+export function useOptionalUIViewport(): UIViewportContextValue | null {
   return React.useContext(UIViewportContext);
 }

@@ -4,6 +4,10 @@ import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
+import type {
+  UIViewportKind,
+  UIViewportMode,
+} from "../../../core/viewport";
 import type { BottomNavigationProps } from "../../../primitives/navigation/BottomNavigation";
 import type {
   NavigationItemDef,
@@ -13,9 +17,9 @@ import type { NavigationRailProps } from "../../../primitives/navigation/Navigat
 import type { MobileScaffoldProps, ScaffoldViewport } from "../MobileScaffold";
 import type { TopAppBarProps } from "../TopAppBar";
 
-export type AdaptiveScaffoldMode = "auto" | "mobile" | "tablet" | "desktop";
+export type AdaptiveScaffoldMode = UIViewportMode;
 
-export type AdaptiveScaffoldResolvedMode = "mobile" | "tablet" | "desktop";
+export type AdaptiveScaffoldResolvedMode = UIViewportKind;
 
 export type AdaptiveScaffoldMobileNavigation = "bottom" | "none";
 
@@ -82,7 +86,10 @@ export interface AdaptiveScaffoldProps
 
   /**
    * auto:
-   *   Resuelve según el ancho real del contenedor.
+   *   Usa el modo responsive del viewport.
+   *
+   * mobile/tablet/desktop:
+   *   Fuerza el modo del scaffold.
    */
   mode?: AdaptiveScaffoldMode;
 
@@ -91,9 +98,6 @@ export interface AdaptiveScaffoldProps
   activeId?: string | null;
   defaultActiveId?: string | null;
   onActiveIdChange?: (id: string, item: AdaptiveScaffoldItem) => void;
-
-  mobileBreakpoint?: number;
-  tabletBreakpoint?: number;
 
   mobileNavigation?: AdaptiveScaffoldMobileNavigation;
   tabletNavigation?: AdaptiveScaffoldTabletNavigation;
@@ -156,11 +160,9 @@ export interface AdaptiveScaffoldProps
   className?: string;
   style?: React.CSSProperties;
 
-  bodyStyle?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
-  sidebarStyle?: React.CSSProperties;
-  railContainerStyle?: React.CSSProperties;
-
+  /**
+   * API oficial de personalización.
+   */
   styles?: AdaptiveScaffoldStyles;
   slotProps?: AdaptiveScaffoldSlotProps;
 }

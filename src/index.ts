@@ -24,7 +24,7 @@ export * from "./patterns";
 export * from "./theme/theme";
 export * from "./helpers";
 
-export * from "./core/layout";
+export * from "./core/dom";
 export * from "./core/motion";
 export * from "./core/viewport";
 export * from "./provider";
