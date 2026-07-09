@@ -1,9 +1,8 @@
 // src/primitives/navigation/navigation-rail/navigationRail.utils.ts
+import { cssSize } from "../../../helpers/css";
 import type { NavigationRailBadgeOffset } from "./navigationRail.types";
 
-export function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
-}
+export { cssSize };
 
 export function getOffsetTransform(
   offset?: NavigationRailBadgeOffset

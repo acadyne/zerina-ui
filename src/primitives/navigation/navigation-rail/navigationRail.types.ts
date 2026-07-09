@@ -73,21 +73,6 @@ export interface NavigationRailContextValue {
   activeIconScale: number;
   activeLabelWeight: number;
 
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
-
   styles?: NavigationRailStyles;
   slotProps?: NavigationRailSlotProps;
 }
@@ -133,26 +118,8 @@ export interface NavigationRailProps
   activeIconScale?: number;
   activeLabelWeight?: number;
 
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
-
   className?: string;
   style?: React.CSSProperties;
-  listStyle?: React.CSSProperties;
-  headerStyle?: React.CSSProperties;
-  footerStyle?: React.CSSProperties;
 
   styles?: NavigationRailStyles;
   slotProps?: NavigationRailSlotProps;
@@ -193,21 +160,6 @@ export interface NavigationRailItemProps
 
   activeIconScale?: number;
   activeLabelWeight?: number;
-
-  itemStyle?: React.CSSProperties;
-  activeItemStyle?: React.CSSProperties;
-
-  contentStyle?: React.CSSProperties;
-  activeContentStyle?: React.CSSProperties;
-
-  iconStyle?: React.CSSProperties;
-  activeIconStyle?: React.CSSProperties;
-
-  labelStyle?: React.CSSProperties;
-  activeLabelStyle?: React.CSSProperties;
-
-  badgeStyle?: React.CSSProperties;
-  activeBadgeStyle?: React.CSSProperties;
 
   styles?: NavigationRailStyles;
   slotProps?: NavigationRailSlotProps;

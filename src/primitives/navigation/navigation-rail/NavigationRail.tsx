@@ -1,6 +1,6 @@
 // src/primitives/navigation/navigation-rail/NavigationRail.tsx
 import React from "react";
-import { cx, getSlotProps, getSlotStyle } from "../../../helpers/css";
+import { resolveSlot } from "../../../helpers/css";
 import { Box } from "../../layout";
 import { NavigationRailContext } from "./NavigationRailContext";
 import { NavigationRailItem } from "./NavigationRailItem";
@@ -16,6 +16,7 @@ import type {
   NavigationRailContextValue,
   NavigationRailItemProps,
   NavigationRailProps,
+  NavigationRailSlot,
 } from "./navigationRail.types";
 
 const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
@@ -52,26 +53,8 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
       activeIconScale = 1,
       activeLabelWeight = 800,
 
-      itemStyle,
-      activeItemStyle,
-
-      contentStyle,
-      activeContentStyle,
-
-      iconStyle,
-      activeIconStyle,
-
-      labelStyle,
-      activeLabelStyle,
-
-      badgeStyle,
-      activeBadgeStyle,
-
       className = "",
       style,
-      listStyle,
-      headerStyle,
-      footerStyle,
 
       styles,
       slotProps,
@@ -120,21 +103,6 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
         activeIconScale,
         activeLabelWeight,
 
-        itemStyle,
-        activeItemStyle,
-
-        contentStyle,
-        activeContentStyle,
-
-        iconStyle,
-        activeIconStyle,
-
-        labelStyle,
-        activeLabelStyle,
-
-        badgeStyle,
-        activeBadgeStyle,
-
         styles,
         slotProps,
       }),
@@ -152,189 +120,148 @@ const NavigationRailRoot = React.forwardRef<HTMLElement, NavigationRailProps>(
         itemMinHeight,
         activeIconScale,
         activeLabelWeight,
-        itemStyle,
-        activeItemStyle,
-        contentStyle,
-        activeContentStyle,
-        iconStyle,
-        activeIconStyle,
-        labelStyle,
-        activeLabelStyle,
-        badgeStyle,
-        activeBadgeStyle,
         styles,
         slotProps,
       ]
     );
 
-    const rootSlotProps = getSlotProps(slotProps, "root");
-    const containerSlotProps = getSlotProps(slotProps, "container");
-    const listSlotProps = getSlotProps(slotProps, "list");
-    const headerSlotProps = getSlotProps(slotProps, "header");
-    const footerSlotProps = getSlotProps(slotProps, "footer");
+    const rootSlot = resolveSlot<NavigationRailSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "aria-label": rest["aria-label"] ?? "Navegación lateral compacta",
+        "data-ui-navigation-rail": "",
+        "data-ui-navigation-rail-position": position,
+        "data-ui-navigation-rail-placement": placement,
+        "data-ui-navigation-rail-variant": variant,
+        "data-ui-navigation-rail-density": density,
+        "data-ui-navigation-rail-indicator": indicator,
+        "data-ui-navigation-rail-label-behavior": labelBehavior,
+      },
+      baseStyle: {
+        ...getRootPositionStyle({ position, placement }),
+        width: cssSize(resolvedWidth),
+        minWidth: cssSize(resolvedWidth),
+        maxWidth: cssSize(resolvedWidth),
+        height: position === "static" ? "100%" : undefined,
+        minHeight: 0,
+        paddingTop: safeArea
+          ? "env(safe-area-inset-top, 0px)"
+          : undefined,
+        paddingBottom: safeArea
+          ? "env(safe-area-inset-bottom, 0px)"
+          : undefined,
+        paddingLeft:
+          safeArea && placement === "left"
+            ? "env(safe-area-inset-left, 0px)"
+            : undefined,
+        paddingRight:
+          safeArea && placement === "right"
+            ? "env(safe-area-inset-right, 0px)"
+            : undefined,
+        boxSizing: "border-box",
+        color: "var(--ui-text)",
+        ...getRootSurfaceStyles({ variant, translucent, placement }),
+      },
+    });
 
-    const {
-      className: rootSlotClassName,
-      style: rootSlotStyle,
-      ...rootSlotRest
-    } = rootSlotProps;
+    const containerSlot = resolveSlot<NavigationRailSlot>({
+      slot: "container",
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-navigation-rail-container": "",
+      },
+      baseStyle: {
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+        overflow: "visible",
+        paddingTop: densityStyles.rootPaddingTop,
+        paddingRight: densityStyles.rootPaddingRight,
+        paddingBottom: densityStyles.rootPaddingBottom,
+        paddingLeft: densityStyles.rootPaddingLeft,
+        ...getListSurfaceStyles({ variant, translucent }),
+      },
+    });
 
-    const {
-      className: containerSlotClassName,
-      style: containerSlotStyle,
-      ...containerSlotRest
-    } = containerSlotProps;
+    const headerSlot = resolveSlot<NavigationRailSlot>({
+      slot: "header",
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-navigation-rail-header": "",
+      },
+      baseStyle: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexShrink: 0,
+        marginBottom: "0.4rem",
+      },
+    });
 
-    const {
-      className: listSlotClassName,
-      style: listSlotStyle,
-      ...listSlotRest
-    } = listSlotProps;
+    const listSlot = resolveSlot<NavigationRailSlot>({
+      slot: "list",
+      styles,
+      slotProps,
+      baseProps: {
+        role: "tablist",
+        "aria-orientation": "vertical",
+        "data-ui-navigation-rail-list": "",
+      },
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.35rem",
+        boxSizing: "border-box",
+        overflow: "visible",
+        flex: 1,
+        ...getListAlignmentStyle(alignment),
+      },
+    });
 
-    const {
-      className: headerSlotClassName,
-      style: headerSlotStyle,
-      ...headerSlotRest
-    } = headerSlotProps;
-
-    const {
-      className: footerSlotClassName,
-      style: footerSlotStyle,
-      ...footerSlotRest
-    } = footerSlotProps;
+    const footerSlot = resolveSlot<NavigationRailSlot>({
+      slot: "footer",
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-navigation-rail-footer": "",
+      },
+      baseStyle: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexShrink: 0,
+        marginTop: "0.4rem",
+      },
+    });
 
     return (
       <NavigationRailContext.Provider value={contextValue}>
         <Box
           as="nav"
           ref={ref as React.Ref<Element>}
-          className={cx(className, rootSlotClassName)}
-          aria-label={rest["aria-label"] ?? "Navegación lateral compacta"}
-          data-ui-navigation-rail=""
-          data-ui-navigation-rail-position={position}
-          data-ui-navigation-rail-placement={placement}
-          data-ui-navigation-rail-variant={variant}
-          data-ui-navigation-rail-density={density}
-          data-ui-navigation-rail-indicator={indicator}
-          data-ui-navigation-rail-label-behavior={labelBehavior}
-          {...rootSlotRest}
           {...rest}
-          style={{
-            ...getRootPositionStyle({ position, placement }),
-            width: cssSize(resolvedWidth),
-            minWidth: cssSize(resolvedWidth),
-            maxWidth: cssSize(resolvedWidth),
-            height: position === "static" ? "100%" : undefined,
-            minHeight: 0,
-            paddingTop: safeArea
-              ? "env(safe-area-inset-top, 0px)"
-              : undefined,
-            paddingBottom: safeArea
-              ? "env(safe-area-inset-bottom, 0px)"
-              : undefined,
-            paddingLeft:
-              safeArea && placement === "left"
-                ? "env(safe-area-inset-left, 0px)"
-                : undefined,
-            paddingRight:
-              safeArea && placement === "right"
-                ? "env(safe-area-inset-right, 0px)"
-                : undefined,
-            boxSizing: "border-box",
-            color: "var(--ui-text)",
-            ...getRootSurfaceStyles({ variant, translucent, placement }),
-            ...getSlotStyle(styles, "root"),
-            ...rootSlotStyle,
-            ...style,
-          }}
+          {...rootSlot}
         >
-          <Box
-            className={containerSlotClassName}
-            data-ui-navigation-rail-container=""
-            {...containerSlotRest}
-            style={{
-              width: "100%",
-              height: "100%",
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              boxSizing: "border-box",
-              overflow: "visible",
-              paddingTop: densityStyles.rootPaddingTop,
-              paddingRight: densityStyles.rootPaddingRight,
-              paddingBottom: densityStyles.rootPaddingBottom,
-              paddingLeft: densityStyles.rootPaddingLeft,
-              ...getListSurfaceStyles({ variant, translucent }),
-              ...getSlotStyle(styles, "container"),
-              ...containerSlotStyle,
-            }}
-          >
-            {header ? (
-              <Box
-                data-ui-navigation-rail-header=""
-                className={headerSlotClassName}
-                {...headerSlotRest}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexShrink: 0,
-                  marginBottom: "0.4rem",
-                  ...getSlotStyle(styles, "header"),
-                  ...headerSlotStyle,
-                  ...headerStyle,
-                }}
-              >
-                {header}
-              </Box>
-            ) : null}
+          <Box {...containerSlot}>
+            {header ? <Box {...headerSlot}>{header}</Box> : null}
 
-            <Box
-              role="tablist"
-              aria-orientation="vertical"
-              data-ui-navigation-rail-list=""
-              className={listSlotClassName}
-              {...listSlotRest}
-              style={{
-                width: "100%",
-                minWidth: 0,
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "0.35rem",
-                boxSizing: "border-box",
-                overflow: "visible",
-                flex: 1,
-                ...getListAlignmentStyle(alignment),
-                ...getSlotStyle(styles, "list"),
-                ...listSlotStyle,
-                ...listStyle,
-              }}
-            >
-              {children}
-            </Box>
+            <Box {...listSlot}>{children}</Box>
 
-            {footer ? (
-              <Box
-                data-ui-navigation-rail-footer=""
-                className={footerSlotClassName}
-                {...footerSlotRest}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexShrink: 0,
-                  marginTop: "0.4rem",
-                  ...getSlotStyle(styles, "footer"),
-                  ...footerSlotStyle,
-                  ...footerStyle,
-                }}
-              >
-                {footer}
-              </Box>
-            ) : null}
+            {footer ? <Box {...footerSlot}>{footer}</Box> : null}
           </Box>
         </Box>
       </NavigationRailContext.Provider>
