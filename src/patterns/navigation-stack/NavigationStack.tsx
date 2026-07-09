@@ -10,6 +10,8 @@ export type NavigationStackParams = Record<string, unknown>;
 
 export type NavigationStackAnimation = "slide" | "fade" | "none";
 
+type NavigationStackTransitionDirection = "forward" | "back" | "replace";
+
 export interface NavigationStackEntry<
   TParams extends NavigationStackParams = NavigationStackParams,
 > {
@@ -161,7 +163,35 @@ function collectScreens(children: React.ReactNode): Map<string, RegisteredScreen
   return screens;
 }
 
-function getVariants(animation: NavigationStackAnimation) {
+function inferTransitionDirection({
+  previousEntries,
+  nextEntries,
+}: {
+  previousEntries: NavigationStackEntry[];
+  nextEntries: NavigationStackEntry[];
+}): NavigationStackTransitionDirection {
+  if (nextEntries.length > previousEntries.length) {
+    return "forward";
+  }
+
+  if (nextEntries.length < previousEntries.length) {
+    return "back";
+  }
+
+  const previousCurrent = previousEntries[previousEntries.length - 1] ?? null;
+  const nextCurrent = nextEntries[nextEntries.length - 1] ?? null;
+
+  if (previousCurrent?.key !== nextCurrent?.key) {
+    return "replace";
+  }
+
+  return "replace";
+}
+
+function getVariants(
+  animation: NavigationStackAnimation,
+  direction: NavigationStackTransitionDirection
+) {
   if (animation === "fade") {
     return {
       initial: { opacity: 0 },
@@ -175,6 +205,22 @@ function getVariants(animation: NavigationStackAnimation) {
       initial: { opacity: 1 },
       animate: { opacity: 1 },
       exit: { opacity: 1 },
+    };
+  }
+
+  if (direction === "back") {
+    return {
+      initial: { x: "-18%", opacity: 0.96 },
+      animate: { x: 0, opacity: 1 },
+      exit: { x: "100%", opacity: 1 },
+    };
+  }
+
+  if (direction === "replace") {
+    return {
+      initial: { opacity: 0.92, scale: 0.995 },
+      animate: { opacity: 1, scale: 1 },
+      exit: { opacity: 0, scale: 0.995 },
     };
   }
 
@@ -207,9 +253,7 @@ export function useNavigationStack(): NavigationStackContextValue {
   const context = React.useContext(NavigationStackContext);
 
   if (!context) {
-    throw new Error(
-      "useNavigationStack must be used inside <NavigationStack />"
-    );
+    throw new Error("useNavigationStack must be used inside <NavigationStack />");
   }
 
   return context;
@@ -238,6 +282,17 @@ const NavigationStackRoot = function NavigationStackRoot({
   >([initialEntryRef.current]);
 
   const stackEntries = isControlled ? entries : internalEntries;
+
+  const previousEntriesRef = React.useRef<NavigationStackEntry[]>(stackEntries);
+
+  const transitionDirection = inferTransitionDirection({
+    previousEntries: previousEntriesRef.current,
+    nextEntries: stackEntries,
+  });
+
+  React.useEffect(() => {
+    previousEntriesRef.current = stackEntries;
+  }, [stackEntries]);
 
   const screens = React.useMemo(() => collectScreens(children), [children]);
 
@@ -326,12 +381,17 @@ const NavigationStackRoot = function NavigationStackRoot({
     return activeScreen.element ?? null;
   }, [activeScreen, current, fallback, navigation]);
 
-  const variants = getVariants(shouldAnimate ? animation : "none");
+  const variants = getVariants(
+    shouldAnimate ? animation : "none",
+    transitionDirection
+  );
 
   return (
     <NavigationStackContext.Provider value={navigation}>
       <Box
         className={className}
+        data-ui-navigation-stack=""
+        data-ui-navigation-stack-direction={transitionDirection}
         style={{
           position: "relative",
           width: "100%",
