@@ -1,15 +1,14 @@
-// src/core/layout/useMediaQuery.ts
+// src/core/dom/useMediaQuery.ts
 import React from "react";
 
 export interface UseMediaQueryOptions {
   /**
    * true:
    *   Lee matchMedia durante el primer render del cliente.
-   *   Mejor para React puro / CSR.
    *
    * false:
    *   Usa defaultMatches en el primer render y actualiza después del mount.
-   *   Mejor para SSR / Next.
+   *   Útil para SSR.
    */
   initializeWithValue?: boolean;
 }

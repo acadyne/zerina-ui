@@ -27,7 +27,7 @@ export * from "./helpers";
 export * from "./core/layout";
 export * from "./core/motion";
 export * from "./core/viewport";
-export * from "./core/provider";
+export * from "./provider";
 
 export { Portal } from "./core/overlay";
 export type { PortalProps } from "./core/overlay";

@@ -6,7 +6,7 @@ import {
   type UILayoutState,
   type UIResolvedLayoutMode,
 } from "./layout.types";
-import { useMediaQuery } from "./useMediaQuery";
+import { useMediaQuery } from "../dom/useMediaQuery";
 
 type SetLayoutModeAction =
   | UILayoutMode

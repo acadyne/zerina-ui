@@ -1,5 +1,5 @@
 // src/core/layout/index.ts
 
 export * from "./layout.types";
-export * from "./useMediaQuery";
+export * from "../dom/useMediaQuery";
 export * from "./UILayoutProvider";

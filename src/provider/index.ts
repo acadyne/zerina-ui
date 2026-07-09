@@ -1,3 +1,3 @@
-// src/core/provider/index.ts
+// src/provider/index.ts
 
 export * from "./ZerinaProvider";

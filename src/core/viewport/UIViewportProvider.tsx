@@ -1,6 +1,6 @@
 // src/core/viewport/UIViewportProvider.tsx
 import React from "react";
-import { useMediaQuery } from "../layout";
+import { useMediaQuery, useViewportSize } from "../dom";
 import {
   type UIDensity,
   type UIDensityMode,
@@ -63,31 +63,12 @@ export interface UIViewportProviderProps {
   ssrSafe?: boolean;
 }
 
-type ViewportSize = {
-  width: number;
-  height: number;
-};
-
 const DEFAULT_NARROW_BREAKPOINT = 480;
 const DEFAULT_WIDE_BREAKPOINT = 1024;
 const DEFAULT_SHORT_BREAKPOINT = 500;
 const DEFAULT_TALL_BREAKPOINT = 800;
 
 const UIViewportContext = React.createContext<UIViewportInfo | null>(null);
-
-function getViewportSize(): ViewportSize {
-  if (typeof window === "undefined") {
-    return {
-      width: 0,
-      height: 0,
-    };
-  }
-
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-}
 
 function resolveOrientation(width: number, height: number): UIOrientation {
   if (width <= 0 || height <= 0) {
@@ -180,40 +161,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   tallBreakpoint = DEFAULT_TALL_BREAKPOINT,
   ssrSafe = false,
 }) => {
-  const [viewportSize, setViewportSize] = React.useState<ViewportSize>(() => {
-    if (ssrSafe) {
-      return {
-        width: 0,
-        height: 0,
-      };
-    }
-
-    return getViewportSize();
-  });
-
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const update = () => {
-      setViewportSize(getViewportSize());
-    };
-
-    update();
-
-    window.addEventListener("resize", update);
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", update);
-    }
-
-    return () => {
-      window.removeEventListener("resize", update);
-
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", update);
-      }
-    };
-  }, []);
+  const viewportSize = useViewportSize({ ssrSafe });
 
   const initializeWithValue = !ssrSafe;
 
