@@ -33,6 +33,8 @@ export interface AppShellProcessedRoute extends AppShellRoute {
 
 export type AppShellMobileMode = "auto" | "mobile" | "desktop";
 
+export type AppShellViewport = "window" | "contained";
+
 export interface AppShellUserInfo {
   name?: React.ReactNode;
   role?: React.ReactNode;
@@ -53,6 +55,15 @@ export interface AppShellNavigationPayload {
 
 export interface AppShellCommonProps {
   routes: AppShellRoute[];
+
+  /**
+   * window:
+   *   App shell de ventana completa.
+   *
+   * contained:
+   *   App shell embebible dentro de cards, sandboxes, docs o previews.
+   */
+  viewport?: AppShellViewport;
 
   brand?: AppShellBrand;
   user?: AppShellUserInfo;
