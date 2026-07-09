@@ -1,0 +1,72 @@
+// src/patterns/navigation-stack/navigationStack.utils.tsx
+import React from "react";
+import { Box } from "../../primitives/layout";
+import type {
+  NavigationStackEntry,
+  NavigationStackParams,
+  NavigationStackScreenProps,
+  RegisteredNavigationStackScreen,
+} from "./navigationStack.types";
+
+export const NAVIGATION_STACK_SCREEN_MARKER =
+  "__ZERINA_NAVIGATION_STACK_SCREEN__";
+
+export function createNavigationStackEntry(
+  name: string,
+  params?: NavigationStackParams
+): NavigationStackEntry {
+  return {
+    key: `${name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name,
+    params,
+  };
+}
+
+export function isNavigationStackScreenElement(
+  child: React.ReactNode
+): child is React.ReactElement<NavigationStackScreenProps> {
+  return (
+    React.isValidElement(child) &&
+    Boolean((child.type as any)?.[NAVIGATION_STACK_SCREEN_MARKER])
+  );
+}
+
+export function collectNavigationStackScreens(
+  children: React.ReactNode
+): Map<string, RegisteredNavigationStackScreen> {
+  const screens = new Map<string, RegisteredNavigationStackScreen>();
+
+  React.Children.forEach(children, (child) => {
+    if (!isNavigationStackScreenElement(child)) return;
+
+    const { name, title, component, render, element } = child.props;
+
+    screens.set(name, {
+      name,
+      title,
+      component,
+      render,
+      element,
+    });
+  });
+
+  return screens;
+}
+
+export function renderMissingNavigationStackScreen(name: string) {
+  return (
+    <Box
+      style={{
+        height: "100%",
+        minHeight: 0,
+        display: "grid",
+        placeItems: "center",
+        padding: "1rem",
+        color: "var(--ui-text-muted)",
+        textAlign: "center",
+      }}
+    >
+      NavigationStack: no existe una pantalla registrada con name="{name}".
+    </Box>
+  );
+}
