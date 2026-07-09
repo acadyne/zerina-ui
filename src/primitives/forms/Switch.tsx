@@ -44,7 +44,9 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
     const s = sizeMap[size];
 
     const isControlled = checked !== undefined;
-    const [internalChecked, setInternalChecked] = useState(Boolean(defaultChecked));
+    const [internalChecked, setInternalChecked] = useState(
+      Boolean(defaultChecked)
+    );
     const isOn = isControlled ? Boolean(checked) : internalChecked;
 
     const WrapperTag = label ? "label" : "div";
@@ -88,6 +90,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
               opacity: 0,
               margin: 0,
               cursor: disabled ? "not-allowed" : "pointer",
+              zIndex: 1,
             }}
             onChange={(e) => {
               if (!isControlled) {
@@ -96,14 +99,18 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
               onChange?.(e);
             }}
             onFocus={(e) => {
-              const track = e.currentTarget.nextElementSibling as HTMLSpanElement | null;
+              const track = e.currentTarget.nextElementSibling as
+                | HTMLSpanElement
+                | null;
               if (track) {
                 track.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
               }
               onFocus?.(e);
             }}
             onBlur={(e) => {
-              const track = e.currentTarget.nextElementSibling as HTMLSpanElement | null;
+              const track = e.currentTarget.nextElementSibling as
+                | HTMLSpanElement
+                | null;
               if (track) {
                 track.style.boxShadow = "none";
               }
@@ -127,6 +134,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
               alignItems: "center",
               padding: 0,
               opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+              pointerEvents: "none",
               ...style,
             }}
           >
@@ -137,8 +145,12 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
                 borderRadius: 9999,
                 background: "#fff",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                transform: `translateX(${isOn ? s.trackW - s.knob - s.offset : s.offset}px)`,
-                transition: "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+                transform: `translateX(${
+                  isOn ? s.trackW - s.knob - s.offset : s.offset
+                }px)`,
+                transition:
+                  "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+                pointerEvents: "none",
               }}
             />
           </span>
