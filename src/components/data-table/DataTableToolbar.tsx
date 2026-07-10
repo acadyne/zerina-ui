@@ -1,8 +1,13 @@
 // src/components/data-table/DataTableToolbar.tsx
-
+import type React from "react";
 import { Download, Plus, Trash2 } from "lucide-react";
-import { Box, Flex } from "../../primitives/layout";
 import { Button, Input, Select } from "../../primitives/forms";
+import { resolveSlot } from "../../helpers/css";
+import type {
+  DataTableSlot,
+  DataTableSlotProps,
+  DataTableStyles,
+} from "./dataTable.types";
 
 interface DataTableToolbarProps {
   search: string;
@@ -24,6 +29,9 @@ interface DataTableToolbarProps {
   enableDeleteRows?: boolean;
   canDeleteRows?: boolean;
   onDeleteRows?: () => void;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export function DataTableToolbar({
@@ -41,6 +49,8 @@ export function DataTableToolbar({
   enableDeleteRows = false,
   canDeleteRows = false,
   onDeleteRows,
+  styles,
+  slotProps,
 }: DataTableToolbarProps) {
   const shouldRender =
     enableSearch ||
@@ -51,17 +61,97 @@ export function DataTableToolbar({
 
   if (!shouldRender) return null;
 
+  const toolbarSlot = resolveSlot<DataTableSlot>({
+    slot: "toolbar",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-data-table-toolbar": "",
+    },
+    baseStyle: {
+      minWidth: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+      flexWrap: "wrap",
+      marginBottom: 12,
+    },
+  });
+
+  const actionsSlot = resolveSlot<DataTableSlot>({
+    slot: "toolbarActions",
+    styles,
+    slotProps,
+    baseStyle: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      gap: 8,
+      flexWrap: "wrap",
+      minWidth: 0,
+    },
+  });
+
+  const controlsSlot = resolveSlot<DataTableSlot>({
+    slot: "toolbarControls",
+    styles,
+    slotProps,
+    baseStyle: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 10,
+      flexWrap: "wrap",
+      minWidth: 0,
+    },
+  });
+
+  const searchSlot = resolveSlot<DataTableSlot>({
+    slot: "search",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 220,
+    },
+  });
+
+  const rowsPerPageSlot = resolveSlot<DataTableSlot>({
+    slot: "rowsPerPage",
+    styles,
+    slotProps,
+  });
+
+  const addButtonSlot = resolveSlot<DataTableSlot>({
+    slot: "addButton",
+    styles,
+    slotProps,
+  });
+
+  const deleteButtonSlot = resolveSlot<DataTableSlot>({
+    slot: "deleteButton",
+    styles,
+    slotProps,
+  });
+
+  const exportButtonSlot = resolveSlot<DataTableSlot>({
+    slot: "exportButton",
+    styles,
+    slotProps,
+    baseProps: {
+      title: "Exporta lo filtrado y ordenado",
+    },
+    baseStyle: {
+      minHeight: 34,
+      fontWeight: 700,
+      borderRadius: 10,
+    },
+  });
+
   return (
-    <Flex
-      justify="space-between"
-      align="center"
-      mb="12px"
-      gap="12px"
-      wrap="wrap"
-      style={{ minWidth: 0 }}
-    >
-      <Flex align="center" justify="flex-start" gap="8px" wrap="wrap">
-        {renderActions ? <Box>{renderActions()}</Box> : null}
+    <div {...toolbarSlot}>
+      <div {...actionsSlot}>
+        {renderActions ? <div>{renderActions()}</div> : null}
 
         {enableAddRow ? (
           <Button
@@ -70,6 +160,8 @@ export function DataTableToolbar({
             colorScheme="primary"
             leftIcon={<Plus size={14} />}
             onClick={onAddRow}
+            className={addButtonSlot.className}
+            style={addButtonSlot.style}
           >
             Fila
           </Button>
@@ -84,13 +176,15 @@ export function DataTableToolbar({
             leftIcon={<Trash2 size={14} />}
             disabled={!canDeleteRows}
             onClick={onDeleteRows}
+            className={deleteButtonSlot.className}
+            style={deleteButtonSlot.style}
           >
             Eliminar
           </Button>
         ) : null}
-      </Flex>
+      </div>
 
-      <Flex align="center" justify="flex-end" gap="10px" wrap="wrap">
+      <div {...controlsSlot}>
         {enableSearch ? (
           <Input
             type="text"
@@ -98,13 +192,16 @@ export function DataTableToolbar({
             value={search}
             onChange={(event) => onSearchChange(event.currentTarget.value)}
             fullWidth={false}
-            style={{ minWidth: 220 }}
+            className={searchSlot.className}
+            style={searchSlot.style}
           />
         ) : null}
 
         <Select
           value={String(rowsPerPage)}
-          onChange={(event) => onRowsPerPageChange(Number(event.currentTarget.value))}
+          onChange={(event) =>
+            onRowsPerPageChange(Number(event.currentTarget.value))
+          }
           fullWidth={false}
           size="sm"
           options={[
@@ -113,6 +210,8 @@ export function DataTableToolbar({
             { label: "50", value: "50" },
             { label: "100", value: "100" },
           ]}
+          className={rowsPerPageSlot.className}
+          style={rowsPerPageSlot.style}
         />
 
         {enableExportCSV && canExport ? (
@@ -123,17 +222,14 @@ export function DataTableToolbar({
             leftIcon={<Download size={16} />}
             px="10px"
             py="6px"
-            style={{
-              minHeight: 34,
-              fontWeight: 700,
-              borderRadius: 10,
-            }}
-            title="Exporta lo filtrado y ordenado"
+            className={exportButtonSlot.className}
+            style={exportButtonSlot.style}
+            title={exportButtonSlot.title}
           >
             CSV
           </Button>
         ) : null}
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }

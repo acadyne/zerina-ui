@@ -2,21 +2,52 @@
 import React from "react";
 import { SearchX } from "lucide-react";
 import { EmptyState } from "../feedback/EmptyState";
-import type { DataTableEmptyStateConfig } from "./dataTable.types";
+import { resolveSlot } from "../../helpers/css";
+import type {
+  DataTableEmptyStateConfig,
+  DataTableSlot,
+  DataTableSlotProps,
+  DataTableStyles,
+} from "./dataTable.types";
 
 export interface DataTableEmptyStateProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   emptyState?: DataTableEmptyStateConfig;
   colSpan?: number;
   asTableRow?: boolean;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export function DataTableEmptyState({
   emptyState,
   colSpan = 1,
   asTableRow = false,
+  className = "",
+  style,
+  styles,
+  slotProps,
   ...rest
 }: DataTableEmptyStateProps) {
+  const emptySlot = resolveSlot<DataTableSlot>({
+    slot: "empty",
+    styles,
+    slotProps,
+    className,
+    style,
+  });
+
+  const emptyCellSlot = resolveSlot<DataTableSlot>({
+    slot: "emptyCell",
+    styles,
+    slotProps,
+    baseStyle: {
+      padding: "1rem",
+      borderBottom: "1px solid var(--ui-border)",
+    },
+  });
+
   const content = (
     <EmptyState
       compact
@@ -30,6 +61,8 @@ export function DataTableEmptyState({
       action={emptyState?.action}
       actionLabel={emptyState?.actionLabel}
       onAction={emptyState?.onAction}
+      className={emptySlot.className}
+      style={emptySlot.style}
       {...rest}
     />
   );
@@ -39,16 +72,8 @@ export function DataTableEmptyState({
   }
 
   return (
-    <tr>
-      <td
-        colSpan={colSpan}
-        style={{
-          padding: "1rem",
-          borderBottom: "1px solid var(--ui-border)",
-        }}
-      >
-        {content}
-      </td>
-    </tr>
+    <td {...emptyCellSlot} colSpan={colSpan}>
+      {content}
+    </td>
   );
 }

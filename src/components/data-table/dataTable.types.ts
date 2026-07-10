@@ -23,8 +23,31 @@ export type DataTableSlot =
   | "body"
   | "row"
   | "selectionCell"
-  | "cell";
-
+  | "cell"
+  | "toolbar"
+  | "toolbarActions"
+  | "toolbarControls"
+  | "search"
+  | "rowsPerPage"
+  | "exportButton"
+  | "addButton"
+  | "deleteButton"
+  | "mobileList"
+  | "mobileCard"
+  | "mobileCardHeader"
+  | "mobileCardTitle"
+  | "mobileCardBody"
+  | "mobileCardField"
+  | "mobileCardLabel"
+  | "mobileCardValue"
+  | "mobileCardId"
+  | "pagination"
+  | "paginationInfo"
+  | "paginationActions"
+  | "empty"
+  | "emptyCell"
+  | "skeleton";
+  
 export type DataTableStyles = SlotStyleMap<DataTableSlot>;
 
 export type DataTableSlotProps = SlotPropsMap<DataTableSlot>;

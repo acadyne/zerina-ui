@@ -1,7 +1,12 @@
 // src/components/data-table/DataTableSkeleton.tsx
 import React from "react";
-import { Box } from "../../primitives/layout";
 import { SkeletonTable } from "../feedback/SkeletonTable";
+import { resolveSlot } from "../../helpers/css";
+import type {
+  DataTableSlot,
+  DataTableSlotProps,
+  DataTableStyles,
+} from "./dataTable.types";
 
 export interface DataTableSkeletonProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -11,6 +16,9 @@ export interface DataTableSkeletonProps
   fallback?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export const DataTableSkeleton = React.forwardRef<
@@ -25,28 +33,35 @@ export const DataTableSkeleton = React.forwardRef<
       fallback,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
+    const skeletonSlot = resolveSlot<DataTableSlot>({
+      slot: "skeleton",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "aria-busy": "true",
+        "aria-live": "polite",
+        "data-ui": "data-table-skeleton",
+      },
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+      },
+    });
+
     return (
-      <Box
-        ref={ref as React.Ref<Element>}
-        className={className}
-        aria-busy="true"
-        aria-live="polite"
-        data-ui="data-table-skeleton"
-        style={{
-          width: "100%",
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...skeletonSlot} ref={ref} {...rest}>
         {fallback ?? (
           <SkeletonTable rows={rows} columns={columns} animated={animated} />
         )}
-      </Box>
+      </div>
     );
   }
 );

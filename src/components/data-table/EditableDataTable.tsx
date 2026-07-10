@@ -69,6 +69,9 @@ export function EditableDataTable<
   enableAddRow = true,
   enableDeleteRows = true,
   enableSelection = true,
+
+  styles,
+  slotProps,
 }: EditableDataTableProps<T, IDType>) {
   const searchKeys = useMemo(
     () =>
@@ -180,7 +183,7 @@ export function EditableDataTable<
   const skeletonRowCount = Math.max(1, loadingRows ?? table.rowsPerPage);
 
   return (
-    <DataTableRoot loading={loading}>
+    <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
       <DataTableToolbar
         search={table.search}
         onSearchChange={table.setSearch}
@@ -195,6 +198,8 @@ export function EditableDataTable<
         enableDeleteRows={enableDeleteRows}
         canDeleteRows={selectedIds.length > 0}
         onDeleteRows={handleDeleteRows}
+        styles={styles}
+        slotProps={slotProps}
       />
 
       {loading ? (
@@ -202,6 +207,8 @@ export function EditableDataTable<
           rows={skeletonRowCount}
           columns={skeletonColumnCount}
           fallback={loadingFallback}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : isMobile ? (
         <DataTableMobileCards
@@ -214,6 +221,8 @@ export function EditableDataTable<
           onToggleRow={selection.toggleSelectRow}
           onCellChange={handleCellChange}
           emptyState={emptyState}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : (
         <DataTableEditableDesktop
@@ -231,6 +240,8 @@ export function EditableDataTable<
           dense={dense}
           emptyState={emptyState}
           onCellChange={handleCellChange}
+          styles={styles}
+          slotProps={slotProps}
         />
       )}
 
@@ -241,6 +252,8 @@ export function EditableDataTable<
           totalRows={table.sortedData.length}
           onPreviousPage={table.goToPreviousPage}
           onNextPage={table.goToNextPage}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : null}
     </DataTableRoot>

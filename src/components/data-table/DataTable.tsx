@@ -1,6 +1,10 @@
 // src/components/data-table/DataTable.tsx
 import { useMemo } from "react";
-import type { DataTableColumn, DataTableProps, DataTableRowId } from "./dataTable.types";
+import type {
+  DataTableColumn,
+  DataTableProps,
+  DataTableRowId,
+} from "./dataTable.types";
 import {
   useDataTableExport,
   useDataTableResponsiveMode,
@@ -47,13 +51,16 @@ export function DataTable<
   mobileBreakpoint,
 
   enableSelection = true,
+
+  styles,
+  slotProps,
 }: DataTableProps<T, IDType>) {
-const table = useDataTableState<T, DataTableColumn<T>>({
-  data,
-  columns,
-  searchKeys,
-  initialRowsPerPage,
-});
+  const table = useDataTableState<T, DataTableColumn<T>>({
+    data,
+    columns,
+    searchKeys,
+    initialRowsPerPage,
+  });
 
   const isMobile = useDataTableResponsiveMode({
     mobileMode,
@@ -94,7 +101,7 @@ const table = useDataTableState<T, DataTableColumn<T>>({
   const skeletonRowCount = Math.max(1, loadingRows ?? table.rowsPerPage);
 
   return (
-    <DataTableRoot loading={loading}>
+    <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
       <DataTableToolbar
         search={table.search}
         onSearchChange={table.setSearch}
@@ -105,6 +112,8 @@ const table = useDataTableState<T, DataTableColumn<T>>({
         renderActions={renderActions}
         rowsPerPage={table.rowsPerPage}
         onRowsPerPageChange={table.setRowsPerPage}
+        styles={styles}
+        slotProps={slotProps}
       />
 
       {loading ? (
@@ -112,6 +121,8 @@ const table = useDataTableState<T, DataTableColumn<T>>({
           rows={skeletonRowCount}
           columns={skeletonColumnCount}
           fallback={loadingFallback}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : isMobile ? (
         <DataTableMobileCards
@@ -122,6 +133,8 @@ const table = useDataTableState<T, DataTableColumn<T>>({
           getRowId={getId}
           onToggleRow={selection.toggleSelectRow}
           emptyState={emptyState}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : (
         <DataTableDesktop
@@ -139,6 +152,8 @@ const table = useDataTableState<T, DataTableColumn<T>>({
           dense={dense}
           rowKeyFallback={rowKeyFallback}
           emptyState={emptyState}
+          styles={styles}
+          slotProps={slotProps}
         />
       )}
 
@@ -149,6 +164,8 @@ const table = useDataTableState<T, DataTableColumn<T>>({
           totalRows={table.sortedData.length}
           onPreviousPage={table.goToPreviousPage}
           onNextPage={table.goToNextPage}
+          styles={styles}
+          slotProps={slotProps}
         />
       ) : null}
     </DataTableRoot>
