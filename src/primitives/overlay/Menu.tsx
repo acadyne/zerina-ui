@@ -79,6 +79,61 @@ function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   }
 }
 
+function getFloatingSide(
+  placement: FloatingPlacement
+): "top" | "bottom" | "left" | "right" {
+  return placement.split("-")[0] as
+    | "top"
+    | "bottom"
+    | "left"
+    | "right";
+}
+
+function getMenuTransformOrigin(
+  placement: FloatingPlacement
+): React.CSSProperties["transformOrigin"] {
+  switch (placement) {
+    case "top":
+      return "bottom center";
+
+    case "top-start":
+      return "bottom left";
+
+    case "top-end":
+      return "bottom right";
+
+    case "bottom":
+      return "top center";
+
+    case "bottom-start":
+      return "top left";
+
+    case "bottom-end":
+      return "top right";
+
+    case "left":
+      return "center right";
+
+    case "left-start":
+      return "top right";
+
+    case "left-end":
+      return "bottom right";
+
+    case "right":
+      return "center left";
+
+    case "right-start":
+      return "top left";
+
+    case "right-end":
+      return "bottom left";
+
+    default:
+      return "top left";
+  }
+}
+
 type TriggerChildProps = {
   onClick?: React.MouseEventHandler<HTMLElement>;
   onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
@@ -507,62 +562,105 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
           strategy="fixed"
           matchAnchorWidth={matchAnchorWidth}
         >
-          {({ ref: floatingRef, style: floatingStyle, placement: side }) => {
-            const dismissableLayerSlot = resolveSlot<MenuSlot>({
-              slot: "dismissableLayer",
-              styles: resolvedStyles,
-              slotProps: resolvedSlotProps,
-              baseStyle: {
-                ...floatingStyle,
-                zIndex: getLayerZIndex("dropdown"),
-              },
-            });
+          {({
+            ref: floatingRef,
+            style: floatingStyle,
+            placement: resolvedPlacement,
+          }) => {
+            const side = getFloatingSide(
+              resolvedPlacement
+            );
 
-            const contentSlot = resolveSlot<MenuSlot>({
-              slot: "content",
-              styles: resolvedStyles,
-              slotProps: resolvedSlotProps,
-              className,
-              style,
-              baseProps: {
-                "data-side": side,
-                "data-ui-menu-content": "",
-              },
-              baseStyle: {
-                minWidth: 180,
-                maxWidth: "min(320px, calc(100vw - 16px))",
-                padding: "0.4rem",
-                borderRadius: "var(--ui-radius-lg)",
-                border: "1px solid var(--ui-border)",
-                background: "var(--ui-surface)",
-                color: "var(--ui-text)",
-                boxShadow: "var(--ui-shadow-lg)",
-                outline: "none",
-                transformOrigin: "top left",
-              },
-            });
+            const dismissableLayerSlot =
+              resolveSlot<MenuSlot>({
+                slot: "dismissableLayer",
+                styles: resolvedStyles,
+                slotProps: resolvedSlotProps,
+                baseProps: {
+                  "data-ui-menu-dismissable-layer": "",
+                  "data-side": side,
+                  "data-placement": resolvedPlacement,
+                },
+                baseStyle: {
+                  ...floatingStyle,
+                  zIndex:
+                    getLayerZIndex("dropdown"),
+                },
+              });
+
+            const contentSlot =
+              resolveSlot<MenuSlot>({
+                slot: "content",
+                styles: resolvedStyles,
+                slotProps: resolvedSlotProps,
+                className,
+                style,
+                baseProps: {
+                  "data-ui-menu-content": "",
+                  "data-side": side,
+                  "data-placement":
+                    resolvedPlacement,
+                },
+                baseStyle: {
+                  minWidth: 180,
+                  maxWidth:
+                    "min(320px, calc(100vw - 16px))",
+                  padding: "0.4rem",
+                  borderRadius:
+                    "var(--ui-radius-lg)",
+                  border:
+                    "1px solid var(--ui-border)",
+                  background:
+                    "var(--ui-surface)",
+                  color: "var(--ui-text)",
+                  boxShadow:
+                    "var(--ui-shadow-lg)",
+                  outline: "none",
+                  transformOrigin:
+                    getMenuTransformOrigin(
+                      resolvedPlacement
+                    ),
+                },
+              });
 
             return (
               <DismissableLayer
                 overlayId={ctx.contentId}
-                layer={getLayerZIndex("dropdown")}
+                layer={
+                  getLayerZIndex("dropdown")
+                }
                 enabled={ctx.open}
                 dismissOnEscape={closeOnEscape}
-                dismissOnPointerDownOutside={closeOnPointerDownOutside}
+                dismissOnPointerDownOutside={
+                  closeOnPointerDownOutside
+                }
                 onDismiss={handleDismiss}
-                className={dismissableLayerSlot.className}
-                style={dismissableLayerSlot.style}
+                className={
+                  dismissableLayerSlot.className
+                }
+                style={
+                  dismissableLayerSlot.style
+                }
               >
                 <motion.div
                   {...rest}
-                  {...toMotionSlotProps(contentSlot)}
+                  {...toMotionSlotProps(
+                    contentSlot
+                  )}
                   ref={(node) => {
-                    assignRef(floatingRef, node);
+                    assignRef(
+                      floatingRef,
+                      node
+                    );
+
                     setRefs(node);
                   }}
                   id={ctx.contentId}
                   role="menu"
-                  aria-labelledby={ctx.triggerId}
+                  aria-orientation="vertical"
+                  aria-labelledby={
+                    ctx.triggerId
+                  }
                   variants={variants}
                   initial="initial"
                   animate="animate"
