@@ -1,12 +1,34 @@
 // src/components/feedback/Progress.tsx
 import React from "react";
 import { motion } from "framer-motion";
-import { Box } from "../../primitives/layout";
-import { Typography } from "../../primitives/typography";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 export type ProgressSize = "sm" | "md" | "lg";
-export type ProgressVariant = "primary" | "success" | "warning" | "danger" | "neutral";
+
+export type ProgressVariant =
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "neutral";
+
+export type ProgressSlot =
+  | "root"
+  | "labelRow"
+  | "label"
+  | "value"
+  | "track"
+  | "bar";
+
+export type ProgressStyles = SlotStyleMap<ProgressSlot>;
+
+export type ProgressSlotProps = SlotPropsMap<ProgressSlot>;
 
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number;
@@ -20,6 +42,9 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   rounded?: React.CSSProperties["borderRadius"];
   trackColor?: React.CSSProperties["backgroundColor"];
   barColor?: React.CSSProperties["backgroundColor"];
+
+  styles?: ProgressStyles;
+  slotProps?: ProgressSlotProps;
 }
 
 const heightMap: Record<ProgressSize, number> = {
@@ -57,6 +82,8 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       barColor,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -68,105 +95,144 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
     const height = heightMap[size];
     const resolvedBarColor = barColor ?? variantColorMap[variant];
 
+    const rootSlot = resolveSlot<ProgressSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        role: "progressbar",
+        "aria-valuemin": indeterminate ? undefined : min,
+        "aria-valuemax": indeterminate ? undefined : max,
+        "aria-valuenow": indeterminate ? undefined : safeValue,
+        "data-ui-progress": "",
+        "data-ui-progress-size": size,
+        "data-ui-progress-variant": variant,
+        "data-ui-progress-indeterminate": indeterminate || undefined,
+      },
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+      },
+    });
+
+    const labelRowSlot = resolveSlot<ProgressSlot>({
+      slot: "labelRow",
+      styles,
+      slotProps,
+      baseStyle: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        marginBottom: "0.4rem",
+        minWidth: 0,
+      },
+    });
+
+    const labelSlot = resolveSlot<ProgressSlot>({
+      slot: "label",
+      styles,
+      slotProps,
+      baseStyle: {
+        margin: 0,
+        minWidth: 0,
+        fontSize: "var(--ui-font-size-sm)",
+        fontWeight: 700,
+        color: "var(--ui-text)",
+        lineHeight: 1.4,
+      },
+    });
+
+    const valueSlot = resolveSlot<ProgressSlot>({
+      slot: "value",
+      styles,
+      slotProps,
+      baseStyle: {
+        margin: 0,
+        flexShrink: 0,
+        fontSize: "var(--ui-font-size-sm)",
+        color: "var(--ui-text-muted)",
+        lineHeight: 1.4,
+      },
+    });
+
+    const trackSlot = resolveSlot<ProgressSlot>({
+      slot: "track",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "relative",
+        width: "100%",
+        height,
+        overflow: "hidden",
+        borderRadius: rounded,
+        background: trackColor,
+      },
+    });
+
+    const barSlot = resolveSlot<ProgressSlot>({
+      slot: "bar",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: indeterminate
+        ? {
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            width: "42%",
+            borderRadius: rounded,
+            background: resolvedBarColor,
+          }
+        : {
+            height: "100%",
+            borderRadius: rounded,
+            background: resolvedBarColor,
+          },
+    });
+
     return (
-      <Box
-        ref={ref as React.Ref<Element>}
-        className={className}
-        role="progressbar"
-        aria-valuemin={indeterminate ? undefined : min}
-        aria-valuemax={indeterminate ? undefined : max}
-        aria-valuenow={indeterminate ? undefined : safeValue}
-        style={{
-          width: "100%",
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...rootSlot} ref={ref} {...rest}>
         {label || showValue ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              marginBottom: "0.4rem",
-              minWidth: 0,
-            }}
-          >
-            {label ? (
-              <Typography
-                as="span"
-                size="sm"
-                weight={700}
-                style={{ margin: 0, minWidth: 0 }}
-              >
-                {label}
-              </Typography>
-            ) : (
-              <span />
-            )}
+          <div {...labelRowSlot}>
+            {label ? <span {...labelSlot}>{label}</span> : <span />}
 
             {showValue && !indeterminate ? (
-              <Typography
-                as="span"
-                size="sm"
-                color="var(--ui-text-muted)"
-                style={{ margin: 0, flexShrink: 0 }}
-              >
-                {Math.round(percent)}%
-              </Typography>
+              <span {...valueSlot}>{Math.round(percent)}%</span>
             ) : null}
           </div>
         ) : null}
 
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            height,
-            overflow: "hidden",
-            borderRadius: rounded,
-            background: trackColor,
-          }}
-        >
+        <div {...trackSlot}>
           {indeterminate ? (
             <motion.div
-              aria-hidden="true"
+              {...toMotionSlotProps(barSlot)}
               initial={{ x: "-45%" }}
               animate={{ x: "145%" }}
               transition={{
-                duration: motionState.effectiveLevel === "expressive" ? 1.1 : 1.35,
+                duration:
+                  motionState.effectiveLevel === "expressive" ? 1.1 : 1.35,
                 ease: "linear",
                 repeat: Infinity,
-              }}
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                width: "42%",
-                borderRadius: rounded,
-                background: resolvedBarColor,
               }}
             />
           ) : (
             <motion.div
-              aria-hidden="true"
+              {...toMotionSlotProps(barSlot)}
               initial={false}
               animate={{ width: `${percent}%` }}
               transition={motionState.getTransition(
                 motionState.effectiveLevel,
                 "layout"
               )}
-              style={{
-                height: "100%",
-                borderRadius: rounded,
-                background: resolvedBarColor,
-              }}
             />
           )}
         </div>
-      </Box>
+      </div>
     );
   }
 );

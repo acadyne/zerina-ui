@@ -1,5 +1,16 @@
 // src/components/feedback/Spinner.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type SpinnerSlot = "root";
+
+export type SpinnerStyles = SlotStyleMap<SpinnerSlot>;
+
+export type SpinnerSlotProps = SlotPropsMap<SpinnerSlot>;
 
 export interface SpinnerProps {
   size?: "sm" | "md" | "lg" | "xl" | number;
@@ -7,6 +18,9 @@ export interface SpinnerProps {
   className?: string;
   thickness?: number;
   style?: React.CSSProperties;
+
+  styles?: SpinnerStyles;
+  slotProps?: SpinnerSlotProps;
 }
 
 const sizeMap: Record<string, number> = {
@@ -16,22 +30,33 @@ const sizeMap: Record<string, number> = {
   xl: 64,
 };
 
-export const Spinner: React.FC<SpinnerProps> = ({
-  size = "md",
-  color = "var(--ui-text)",
-  thickness = 4,
-  className = "",
-  style,
-}) => {
-  const px = typeof size === "number" ? size : sizeMap[size] ?? 32;
+export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
+  (
+    {
+      size = "md",
+      color = "var(--ui-text)",
+      thickness = 4,
+      className = "",
+      style,
+      styles,
+      slotProps,
+    },
+    ref
+  ) => {
+    const px = typeof size === "number" ? size : sizeMap[size] ?? 32;
 
-  return (
-    <div
-      data-ui-spinner="true"
-      className={className}
-      role="status"
-      aria-label="Cargando"
-      style={{
+    const rootSlot = resolveSlot<SpinnerSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-spinner": "true",
+        role: "status",
+        "aria-label": "Cargando",
+      },
+      baseStyle: {
         width: px,
         height: px,
         minWidth: px,
@@ -41,8 +66,11 @@ export const Spinner: React.FC<SpinnerProps> = ({
         borderRadius: "50%",
         animation: "ui-spin var(--ui-spinner-duration, 0.9s) linear infinite",
         flexShrink: 0,
-        ...style,
-      }}
-    />
-  );
-};
+      },
+    });
+
+    return <div {...rootSlot} ref={ref} />;
+  }
+);
+
+Spinner.displayName = "Spinner";

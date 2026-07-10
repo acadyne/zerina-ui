@@ -1,13 +1,22 @@
 // src/components/feedback/LoadingState.tsx
 import React from "react";
-import { Box, Stack } from "../../primitives/layout";
-import { Typography } from "../../primitives/typography";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Spinner } from "./Spinner";
 import { SkeletonCard } from "./SkeletonCard";
 import { SkeletonTable } from "./SkeletonTable";
 import { SkeletonText } from "./SkeletonText";
 
 export type LoadingStateVariant = "spinner" | "text" | "card" | "table";
+
+export type LoadingStateSlot = "root" | "content" | "spinner" | "label";
+
+export type LoadingStateStyles = SlotStyleMap<LoadingStateSlot>;
+
+export type LoadingStateSlotProps = SlotPropsMap<LoadingStateSlot>;
 
 export interface LoadingStateProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
@@ -26,6 +35,9 @@ export interface LoadingStateProps
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: LoadingStateStyles;
+  slotProps?: LoadingStateSlotProps;
 }
 
 export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
@@ -42,6 +54,8 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
       animated = true,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -50,62 +64,105 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
       return <>{children}</>;
     }
 
+    const rootSlot = resolveSlot<LoadingStateSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-loading-state": "",
+        "data-ui-loading-state-variant": variant,
+      },
+      baseStyle:
+        variant === "spinner"
+          ? {
+              width: "100%",
+              minWidth: 0,
+              display: "flex",
+              alignItems: centered ? "center" : "flex-start",
+              justifyContent: centered ? "center" : "flex-start",
+              padding: centered ? "1.5rem" : undefined,
+            }
+          : {
+              width: "100%",
+              minWidth: 0,
+            },
+    });
+
     if (variant === "table") {
       return (
-        <Box ref={ref as React.Ref<Element>} className={className} style={style} {...rest}>
+        <div {...rootSlot} ref={ref} {...rest}>
           <SkeletonTable rows={rows} columns={columns} animated={animated} />
-        </Box>
+        </div>
       );
     }
 
     if (variant === "card") {
       return (
-        <Box ref={ref as React.Ref<Element>} className={className} style={style} {...rest}>
+        <div {...rootSlot} ref={ref} {...rest}>
           <SkeletonCard lines={lines} animated={animated} />
-        </Box>
+        </div>
       );
     }
 
     if (variant === "text") {
       return (
-        <Box ref={ref as React.Ref<Element>} className={className} style={style} {...rest}>
+        <div {...rootSlot} ref={ref} {...rest}>
           <SkeletonText lines={lines} animated={animated} />
-        </Box>
+        </div>
       );
     }
 
+    const contentSlot = resolveSlot<LoadingStateSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseStyle: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.75rem",
+      },
+    });
+
+    const spinnerSlot = resolveSlot<LoadingStateSlot>({
+      slot: "spinner",
+      styles,
+      slotProps,
+    });
+
+    const labelSlot = resolveSlot<LoadingStateSlot>({
+      slot: "label",
+      styles,
+      slotProps,
+      baseStyle: {
+        margin: 0,
+        fontSize: "var(--ui-font-size-sm)",
+        lineHeight: 1.45,
+        color: "var(--ui-text-muted)",
+        textAlign: "center",
+      },
+    });
+
     return (
-      <Box
-        ref={ref as React.Ref<Element>}
-        className={className}
+      <div
+        {...rootSlot}
+        ref={ref}
         role="status"
         aria-live="polite"
-        style={{
-          width: "100%",
-          minWidth: 0,
-          display: "flex",
-          alignItems: centered ? "center" : "flex-start",
-          justifyContent: centered ? "center" : "flex-start",
-          padding: centered ? "1.5rem" : undefined,
-          ...style,
-        }}
         {...rest}
       >
-        <Stack align="center" spacing="0.75rem">
-          <Spinner size="md" />
+        <div {...contentSlot}>
+          <Spinner
+            size="md"
+            className={spinnerSlot.className}
+            style={spinnerSlot.style}
+          />
 
-          {label ? (
-            <Typography
-              size="sm"
-              color="var(--ui-text-muted)"
-              align="center"
-              style={{ margin: 0 }}
-            >
-              {label}
-            </Typography>
-          ) : null}
-        </Stack>
-      </Box>
+          {label ? <div {...labelSlot}>{label}</div> : null}
+        </div>
+      </div>
     );
   }
 );
