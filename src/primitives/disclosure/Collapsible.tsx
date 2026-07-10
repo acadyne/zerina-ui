@@ -3,7 +3,24 @@ import React from "react";
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Box, Flex } from "../layout";
+
+export type CollapsibleSlot =
+  | "trigger"
+  | "triggerContent"
+  | "triggerIcon"
+  | "content"
+  | "inner";
+
+export type CollapsibleStyles = SlotStyleMap<CollapsibleSlot>;
+
+export type CollapsibleSlotProps = SlotPropsMap<CollapsibleSlot>;
 
 type CollapsibleContextValue = {
   open: boolean;
@@ -116,6 +133,8 @@ export interface CollapsibleTriggerProps {
   className?: string;
   style?: React.CSSProperties;
   showIcon?: boolean;
+  styles?: CollapsibleStyles;
+  slotProps?: CollapsibleSlotProps;
 }
 
 export const CollapsibleTrigger = React.forwardRef<
@@ -129,10 +148,13 @@ export const CollapsibleTrigger = React.forwardRef<
       className = "",
       style,
       showIcon = true,
+      styles,
+      slotProps,
     },
     ref
   ) => {
     const ctx = useCollapsibleContext();
+    const [focused, setFocused] = React.useState(false);
 
     const handleToggle = React.useCallback(() => {
       ctx.onOpenChange?.(!ctx.open);
@@ -140,6 +162,56 @@ export const CollapsibleTrigger = React.forwardRef<
 
     const content =
       typeof children === "function" ? children({ open: ctx.open }) : children;
+
+    const triggerSlot = resolveSlot<CollapsibleSlot>({
+      slot: "trigger",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        border: "none",
+        background: "transparent",
+        color: "var(--ui-text)",
+        padding: 0,
+        cursor: ctx.disabled ? "not-allowed" : "pointer",
+        opacity: ctx.disabled ? "var(--ui-state-disabled-opacity)" : 1,
+        textAlign: "left",
+        font: "inherit",
+        outline: "none",
+        WebkitTapHighlightColor: "transparent",
+        borderRadius: "var(--ui-radius-sm)",
+        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+      },
+    });
+
+    const triggerContentSlot = resolveSlot<CollapsibleSlot>({
+      slot: "triggerContent",
+      styles,
+      slotProps,
+      baseStyle: {
+        flex: 1,
+        minWidth: 0,
+      },
+    });
+
+    const triggerIconSlot = resolveSlot<CollapsibleSlot>({
+      slot: "triggerIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: "var(--ui-text-muted)",
+      },
+    });
 
     if (asChild && React.isValidElement<TriggerChildProps>(content)) {
       return React.cloneElement(content, {
@@ -172,53 +244,29 @@ export const CollapsibleTrigger = React.forwardRef<
 
     return (
       <button
+        {...triggerSlot}
         ref={ref}
         id={ctx.triggerId}
         type="button"
         aria-expanded={ctx.open}
         aria-controls={ctx.contentId}
         disabled={ctx.disabled}
-        className={className}
-        style={{
-          width: "100%",
-          minWidth: 0,
-          border: "none",
-          background: "transparent",
-          color: "var(--ui-text)",
-          padding: 0,
-          cursor: ctx.disabled ? "not-allowed" : "pointer",
-          opacity: ctx.disabled ? "var(--ui-state-disabled-opacity)" : 1,
-          textAlign: "left",
-          font: "inherit",
-          outline: "none",
-          WebkitTapHighlightColor: "transparent",
-          borderRadius: "var(--ui-radius-sm)",
-          ...style,
-        }}
         onClick={handleToggle}
-        onFocus={(event) => {
-          event.currentTarget.style.boxShadow =
-            "0 0 0 3px var(--ui-focus-ring)";
+        onFocus={() => {
+          setFocused(true);
         }}
-        onBlur={(event) => {
-          event.currentTarget.style.boxShadow = "none";
+        onBlur={() => {
+          setFocused(false);
         }}
       >
         <Flex align="center" justify="space-between" gap="0.75rem">
-          <Box style={{ flex: 1, minWidth: 0 }}>{content}</Box>
+          <Box {...triggerContentSlot}>{content}</Box>
 
           {showIcon ? (
             <motion.span
-              aria-hidden="true"
+              {...toMotionSlotProps(triggerIconSlot)}
               animate={{ rotate: ctx.open ? 180 : 0 }}
               transition={{ duration: 0.16 }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                color: "var(--ui-text-muted)",
-              }}
             >
               <ChevronDown size={18} />
             </motion.span>
@@ -248,7 +296,8 @@ export interface CollapsibleContentProps
   unmountOnExit?: boolean;
   className?: string;
   style?: React.CSSProperties;
-  innerStyle?: React.CSSProperties;
+  styles?: CollapsibleStyles;
+  slotProps?: CollapsibleSlotProps;
 }
 
 export const CollapsibleContent = React.forwardRef<
@@ -262,7 +311,8 @@ export const CollapsibleContent = React.forwardRef<
       unmountOnExit = true,
       className = "",
       style,
-      innerStyle,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -272,14 +322,36 @@ export const CollapsibleContent = React.forwardRef<
 
     const shouldRender = forceMount || ctx.open || !unmountOnExit;
 
+    const contentSlot = resolveSlot<CollapsibleSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseStyle: {
+        overflow: "hidden",
+        minWidth: 0,
+      },
+    });
+
+    const innerSlot = resolveSlot<CollapsibleSlot>({
+      slot: "inner",
+      styles,
+      slotProps,
+      baseStyle: {
+        minWidth: 0,
+      },
+    });
+
     const content = shouldRender ? (
       <motion.div
+        {...rest}
+        {...toMotionSlotProps(contentSlot)}
         key="collapsible-content"
         id={ctx.contentId}
         role="region"
         aria-labelledby={ctx.triggerId}
         ref={ref}
-        className={className}
         initial={false}
         animate={{
           height: ctx.open ? "auto" : 0,
@@ -293,21 +365,8 @@ export const CollapsibleContent = React.forwardRef<
           motionState.effectiveLevel,
           ctx.open ? "expand" : "collapse"
         )}
-        style={{
-          overflow: "hidden",
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
       >
-        <div
-          style={{
-            minWidth: 0,
-            ...innerStyle,
-          }}
-        >
-          {children}
-        </div>
+        <div {...innerSlot}>{children}</div>
       </motion.div>
     ) : null;
 

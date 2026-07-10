@@ -1,7 +1,11 @@
 // src/primitives/disclosure/Accordion.tsx
 import React from "react";
-import { Collapsible, CollapsibleContent, CollapsibleContentProps, CollapsibleTrigger } from "./Collapsible";
-import { Box } from "../layout";
+import {
+  Collapsible,
+  CollapsibleContent,
+  type CollapsibleContentProps,
+  CollapsibleTrigger,
+} from "./Collapsible";
 import { Typography } from "../typography";
 
 export type AccordionType = "single" | "multiple";
@@ -27,7 +31,10 @@ function useAccordionContext() {
 }
 
 export interface AccordionProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "defaultValue" | "onChange"
+  > {
   children?: React.ReactNode;
   type?: AccordionType;
   value?: string | string[];
@@ -271,12 +278,10 @@ export const AccordionTrigger = React.forwardRef<
 });
 
 AccordionTrigger.displayName = "AccordionTrigger";
-AccordionTrigger.displayName = "AccordionTrigger";
 
 export interface AccordionContentProps
-  extends Omit<CollapsibleContentProps, "children" | "innerStyle"> {
+  extends Omit<CollapsibleContentProps, "children"> {
   children?: React.ReactNode;
-  innerStyle?: React.CSSProperties;
 }
 
 export const AccordionContent = React.forwardRef<
@@ -286,9 +291,7 @@ export const AccordionContent = React.forwardRef<
   (
     {
       children,
-      className = "",
-      style,
-      innerStyle,
+      styles,
       ...rest
     },
     ref
@@ -296,24 +299,20 @@ export const AccordionContent = React.forwardRef<
     return (
       <CollapsibleContent
         ref={ref}
-        className={className}
-        style={style}
-        innerStyle={{
-          paddingBottom: "1rem",
-          ...innerStyle,
-        }}
-        {...rest}
-      >
-        <Box
-          style={{
+        styles={{
+          ...styles,
+          inner: {
+            paddingBottom: "1rem",
             color: "var(--ui-text-muted)",
             fontSize: "var(--ui-font-size-sm)",
             lineHeight: 1.5,
             minWidth: 0,
-          }}
-        >
-          {children}
-        </Box>
+            ...styles?.inner,
+          },
+        }}
+        {...rest}
+      >
+        {children}
       </CollapsibleContent>
     );
   }
