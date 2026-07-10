@@ -1,6 +1,11 @@
 // src/patterns/drawer-navigation/DrawerNavigation.tsx
 import React from "react";
 import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+import {
   Drawer,
   DrawerBody,
   DrawerFooter,
@@ -13,8 +18,19 @@ import {
 } from "../../primitives/navigation";
 import { Box } from "../../primitives/layout";
 
+export type DrawerNavigationSlot =
+  | "root"
+  | "body"
+  | "navigation"
+  | "footer"
+  | "footerContent";
+
+export type DrawerNavigationStyles = SlotStyleMap<DrawerNavigationSlot>;
+
+export type DrawerNavigationSlotProps = SlotPropsMap<DrawerNavigationSlot>;
+
 export interface DrawerNavigationProps
-  extends Omit<DrawerProps, "children"> {
+  extends Omit<DrawerProps, "children" | "className" | "style"> {
   items: NavigationItemDef[];
 
   activeId?: string | null;
@@ -53,8 +69,11 @@ export interface DrawerNavigationProps
 
   footer?: React.ReactNode;
 
-  bodyStyle?: React.CSSProperties;
-  footerStyle?: React.CSSProperties;
+  className?: string;
+  style?: React.CSSProperties;
+
+  styles?: DrawerNavigationStyles;
+  slotProps?: DrawerNavigationSlotProps;
 }
 
 export const DrawerNavigation: React.FC<DrawerNavigationProps> = ({
@@ -76,8 +95,11 @@ export const DrawerNavigation: React.FC<DrawerNavigationProps> = ({
 
   footer,
 
-  bodyStyle,
-  footerStyle,
+  className = "",
+  style,
+
+  styles,
+  slotProps,
 
   open,
   onOpenChange,
@@ -100,6 +122,63 @@ export const DrawerNavigation: React.FC<DrawerNavigationProps> = ({
     [closeOnSelect, onOpenChange, onSelect]
   );
 
+  const rootSlot = resolveSlot<DrawerNavigationSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-drawer-navigation": "",
+    },
+  });
+
+  const bodySlot = resolveSlot<DrawerNavigationSlot>({
+    slot: "body",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-navigation-body": "",
+    },
+    baseStyle: {
+      padding: "0.75rem",
+    },
+  });
+
+  const navigationSlot = resolveSlot<DrawerNavigationSlot>({
+    slot: "navigation",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-navigation-list": "",
+    },
+  });
+
+  const footerSlot = resolveSlot<DrawerNavigationSlot>({
+    slot: "footer",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-navigation-footer": "",
+    },
+    baseStyle: {
+      justifyContent: "stretch",
+    },
+  });
+
+  const footerContentSlot = resolveSlot<DrawerNavigationSlot>({
+    slot: "footerContent",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-navigation-footer-content": "",
+    },
+    baseStyle: {
+      width: "100%",
+      minWidth: 0,
+    },
+  });
+
   return (
     <Drawer
       {...drawerProps}
@@ -109,42 +188,29 @@ export const DrawerNavigation: React.FC<DrawerNavigationProps> = ({
       size={size}
       title={title}
       description={description}
+      className={rootSlot.className}
+      style={rootSlot.style}
     >
-      <DrawerBody
-        style={{
-          padding: "0.75rem",
-          ...bodyStyle,
-        }}
-      >
-        <NavigationList
-          items={items}
-          activeId={activeId}
-          openIds={openIds}
-          defaultOpenIds={defaultOpenIds}
-          onOpenIdsChange={onOpenIdsChange}
-          onSelect={handleSelect}
-          openActiveParents={openActiveParents}
-          activeBehavior={activeBehavior}
-          indentSize={indentSize}
-          ariaLabel={navigationLabel}
-        />
+      <DrawerBody {...bodySlot}>
+        <Box {...navigationSlot}>
+          <NavigationList
+            items={items}
+            activeId={activeId}
+            openIds={openIds}
+            defaultOpenIds={defaultOpenIds}
+            onOpenIdsChange={onOpenIdsChange}
+            onSelect={handleSelect}
+            openActiveParents={openActiveParents}
+            activeBehavior={activeBehavior}
+            indentSize={indentSize}
+            ariaLabel={navigationLabel}
+          />
+        </Box>
       </DrawerBody>
 
       {footer ? (
-        <DrawerFooter
-          style={{
-            justifyContent: "stretch",
-            ...footerStyle,
-          }}
-        >
-          <Box
-            style={{
-              width: "100%",
-              minWidth: 0,
-            }}
-          >
-            {footer}
-          </Box>
+        <DrawerFooter {...footerSlot}>
+          <Box {...footerContentSlot}>{footer}</Box>
         </DrawerFooter>
       ) : null}
     </Drawer>
