@@ -2,6 +2,18 @@
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type IconButtonSlot = "root" | "icon";
+
+export type IconButtonStyles = SlotStyleMap<IconButtonSlot>;
+
+export type IconButtonSlotProps = SlotPropsMap<IconButtonSlot>;
 
 export interface IconButtonProps
   extends Omit<
@@ -17,6 +29,9 @@ export interface IconButtonProps
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: IconButtonStyles;
+  slotProps?: IconButtonSlotProps;
 }
 
 const sizeMap: Record<string, number> = {
@@ -75,86 +90,111 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       onFocus,
       onBlur,
 
+      styles,
+      slotProps,
+
       ...rest
     },
     ref
   ) => {
     const motionState = useOptionalUIMotion();
+    const [hovered, setHovered] = React.useState(false);
+    const [focused, setFocused] = React.useState(false);
+
     const pressMotion = motionState.getPressMotion(motionState.effectiveLevel);
 
     const pxSize = typeof size === "number" ? size : sizeMap[size] ?? 42;
     const borderRadius = radiusMap[rounded] || rounded;
     const v = variantMap[variant];
 
+    const rootSlot = resolveSlot<IconButtonSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-icon-button": "",
+        "data-ui-icon-button-variant": variant,
+      },
+      baseStyle: {
+        width: pxSize,
+        height: pxSize,
+        minWidth: pxSize,
+        minHeight: pxSize,
+        borderRadius,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: hovered && !disabled ? v.hover : v.bg,
+        color: v.fg,
+        border: v.border,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+        outline: "none",
+        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        touchAction: "manipulation",
+        WebkitTapHighlightColor: "transparent",
+        padding: 0,
+        flexShrink: 0,
+      },
+    });
+
+    const iconSlot = resolveSlot<IconButtonSlot>({
+      slot: "icon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        lineHeight: 1,
+        flexShrink: 0,
+      },
+    });
+
     return (
       <motion.button
+        {...rest}
+        {...toMotionSlotProps(rootSlot)}
         ref={ref}
         type={type}
         aria-label={ariaLabel}
         disabled={disabled}
-        className={className}
         whileTap={!disabled && pressMotion ? pressMotion : undefined}
         transition={motionState.getTransition(
           motionState.effectiveLevel,
           "press"
         )}
-        style={{
-          width: pxSize,
-          height: pxSize,
-          minWidth: pxSize,
-          minHeight: pxSize,
-          borderRadius,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: v.bg,
-          color: v.fg,
-          border: v.border,
-          cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.6 : 1,
-          transition:
-            "background-color var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-          outline: "none",
-          boxShadow: "none",
-          touchAction: "manipulation",
-          WebkitTapHighlightColor: "transparent",
-          padding: 0,
-          flexShrink: 0,
-          ...style,
-        }}
         onMouseEnter={(event) => {
           if (!disabled) {
-            event.currentTarget.style.background = v.hover;
+            setHovered(true);
           }
 
           onMouseEnter?.(event);
         }}
         onMouseLeave={(event) => {
-          event.currentTarget.style.background = v.bg;
+          setHovered(false);
           onMouseLeave?.(event);
         }}
         onFocus={(event) => {
-          event.currentTarget.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
+          if (!disabled) {
+            setFocused(true);
+          }
+
           onFocus?.(event);
         }}
         onBlur={(event) => {
-          event.currentTarget.style.boxShadow = "none";
+          setFocused(false);
           onBlur?.(event);
         }}
-        {...rest}
       >
-        <span
-          aria-hidden="true"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </span>
+        <span {...iconSlot}>{icon}</span>
       </motion.button>
     );
   }

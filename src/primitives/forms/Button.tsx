@@ -1,16 +1,33 @@
 // src/primitives/forms/Button.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import { useOptionalUIMotion } from "../../core/motion";
 import {
   type SizeProps,
   type SpaceProps,
   getSizeStyles,
   getSpacingStyles,
 } from "../../helpers";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 type ButtonSize = "sm" | "md" | "lg";
 type ButtonVariant = "solid" | "outline" | "ghost";
+
+export type ButtonSlot =
+  | "root"
+  | "spinner"
+  | "content"
+  | "leftIcon"
+  | "rightIcon";
+
+export type ButtonStyles = SlotStyleMap<ButtonSlot>;
+
+export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
 
 export interface ButtonProps
   extends Omit<
@@ -34,6 +51,9 @@ export interface ButtonProps
   rightIcon?: React.ReactNode;
 
   style?: React.CSSProperties;
+
+  styles?: ButtonStyles;
+  slotProps?: ButtonSlotProps;
 }
 
 const sizeStyles: Record<
@@ -88,7 +108,8 @@ const schemeMap = {
     solidText: "var(--ui-secondary-contrast)",
 
     outlineText: "var(--ui-secondary)",
-    outlineBorder: "color-mix(in srgb, var(--ui-secondary) 42%, var(--ui-border))",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-secondary) 42%, var(--ui-border))",
     outlineHover: "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
 
     ghostText: "var(--ui-secondary)",
@@ -112,7 +133,7 @@ function getVariantStyles(
   colorScheme: NonNullable<ButtonProps["colorScheme"]>,
   variant: ButtonVariant
 ): {
-  backgroundColor: string;
+  background: string;
   color: string;
   border: string;
   hoverBackground: string;
@@ -124,7 +145,7 @@ function getVariantStyles(
 
   if (variant === "outline") {
     return {
-      backgroundColor: "transparent",
+      background: "transparent",
       color: s.outlineText,
       border: `1px solid ${s.outlineBorder}`,
       hoverBackground: s.outlineHover,
@@ -136,7 +157,7 @@ function getVariantStyles(
 
   if (variant === "ghost") {
     return {
-      backgroundColor: "transparent",
+      background: "transparent",
       color: s.ghostText,
       border: "1px solid transparent",
       hoverBackground: s.ghostHover,
@@ -147,7 +168,7 @@ function getVariantStyles(
   }
 
   return {
-    backgroundColor: s.solidBg,
+    background: s.solidBg,
     color: s.solidText,
     border: "1px solid transparent",
     hoverBackground: s.solidHover,
@@ -204,16 +225,18 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       onMouseLeave,
       onFocus,
       onBlur,
-      onMouseDown,
-      onMouseUp,
-      onTouchStart,
-      onTouchEnd,
-      onTouchCancel,
+
+      styles,
+      slotProps,
+
       ...rest
     },
     ref
   ) => {
     const motionState = useOptionalUIMotion();
+    const [hovered, setHovered] = React.useState(false);
+    const [focused, setFocused] = React.useState(false);
+
     const isDisabled = disabled || isLoading;
     const sizeStyle = sizeStyles[size];
     const variantStyle = getVariantStyles(colorScheme, variant);
@@ -222,173 +245,194 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const spinnerColor =
       variant === "solid" ? "rgba(255,255,255,0.78)" : "currentColor";
 
+    const rootSlot = resolveSlot<ButtonSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-button": "",
+        "data-ui-button-variant": variant,
+        "data-ui-button-color-scheme": colorScheme,
+        "data-ui-button-size": size,
+        "data-ui-button-loading": isLoading || undefined,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "0.55rem",
+        lineHeight: 1.1,
+        fontWeight: 700,
+        letterSpacing: "0.2px",
+        touchAction: "manipulation",
+        userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
+        whiteSpace: "nowrap",
+        verticalAlign: "middle",
+        opacity: isDisabled ? 0.62 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+        outline: "none",
+        boxShadow: focused
+          ? `0 0 0 3px var(--ui-focus-ring), ${
+              hovered && !isDisabled ? variantStyle.hoverShadow : variantStyle.shadow
+            }`
+          : hovered && !isDisabled
+            ? variantStyle.hoverShadow
+            : variantStyle.shadow,
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+
+        ...getSizeStyles({
+          w,
+          h,
+          minW,
+          maxW,
+          minH: minH ?? sizeStyle.minHeight,
+          maxH,
+        }),
+
+        ...getSpacingStyles({
+          p,
+          px: px ?? sizeStyle.paddingX,
+          py: py ?? sizeStyle.paddingY,
+          pt,
+          pb,
+          pl,
+          pr,
+          m,
+          mx,
+          my,
+          mt,
+          mb,
+          ml,
+          mr,
+        }),
+
+        width: fullWidth ? "100%" : w,
+        minWidth: fullWidth ? 0 : minW,
+
+        fontSize: sizeStyle.fontSize,
+        borderRadius: rounded ?? sizeStyle.borderRadius,
+        background:
+          hovered && !isDisabled
+            ? variantStyle.hoverBackground
+            : variantStyle.background,
+        color: variantStyle.color,
+        border: variantStyle.border,
+      },
+    });
+
+    const spinnerSlot = resolveSlot<ButtonSlot>({
+      slot: "spinner",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        width: 16,
+        height: 16,
+        borderRadius: "9999px",
+        border: `2px solid ${spinnerColor}`,
+        borderTopColor: "transparent",
+        animation: "ui-spin 0.8s linear infinite",
+        flexShrink: 0,
+      },
+    });
+
+    const contentSlot = resolveSlot<ButtonSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 0,
+        opacity: isLoading ? 0.95 : undefined,
+      },
+    });
+
+    const leftIconSlot = resolveSlot<ButtonSlot>({
+      slot: "leftIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        lineHeight: 1,
+      },
+    });
+
+    const rightIconSlot = resolveSlot<ButtonSlot>({
+      slot: "rightIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        lineHeight: 1,
+      },
+    });
+
     return (
       <motion.button
+        {...rest}
+        {...toMotionSlotProps(rootSlot)}
         ref={ref}
         type={type}
         disabled={isDisabled}
-        className={className}
         aria-busy={isLoading || undefined}
         whileTap={!isDisabled && pressMotion ? pressMotion : undefined}
         transition={motionState.getTransition(
           motionState.effectiveLevel,
           "press"
         )}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.55rem",
-          lineHeight: 1.1,
-          fontWeight: 700,
-          letterSpacing: "0.2px",
-          touchAction: "manipulation",
-          userSelect: "none",
-          WebkitTapHighlightColor: "transparent",
-          whiteSpace: "nowrap",
-          verticalAlign: "middle",
-          opacity: isDisabled ? 0.62 : 1,
-          cursor: isDisabled ? "not-allowed" : "pointer",
-          outline: "none",
-          boxShadow: variantStyle.shadow,
-          transition:
-            "background-color var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-
-          ...getSizeStyles({
-            w,
-            h,
-            minW,
-            maxW,
-            minH: minH ?? sizeStyle.minHeight,
-            maxH,
-          }),
-
-          ...getSpacingStyles({
-            p,
-            px: px ?? sizeStyle.paddingX,
-            py: py ?? sizeStyle.paddingY,
-            pt,
-            pb,
-            pl,
-            pr,
-            m,
-            mx,
-            my,
-            mt,
-            mb,
-            ml,
-            mr,
-          }),
-
-          width: fullWidth ? "100%" : w,
-          minWidth: fullWidth ? 0 : minW,
-
-          fontSize: sizeStyle.fontSize,
-          borderRadius: rounded ?? sizeStyle.borderRadius,
-          backgroundColor: variantStyle.backgroundColor,
-          color: variantStyle.color,
-          border: variantStyle.border,
-
-          ...style,
-        }}
         onMouseEnter={(event) => {
           if (!isDisabled) {
-            event.currentTarget.style.backgroundColor =
-              variantStyle.hoverBackground;
-            event.currentTarget.style.boxShadow = variantStyle.hoverShadow;
+            setHovered(true);
           }
 
           onMouseEnter?.(event);
         }}
         onMouseLeave={(event) => {
-          event.currentTarget.style.backgroundColor =
-            variantStyle.backgroundColor;
-          event.currentTarget.style.boxShadow = variantStyle.shadow;
+          setHovered(false);
           onMouseLeave?.(event);
         }}
         onFocus={(event) => {
-          event.currentTarget.style.boxShadow = `0 0 0 3px var(--ui-focus-ring), ${variantStyle.shadow}`;
+          if (!isDisabled) {
+            setFocused(true);
+          }
+
           onFocus?.(event);
         }}
         onBlur={(event) => {
-          event.currentTarget.style.boxShadow = variantStyle.shadow;
+          setFocused(false);
           onBlur?.(event);
         }}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        onTouchCancel={onTouchCancel}
-        {...rest}
       >
         {isLoading ? (
           <>
-            <span
-              aria-hidden="true"
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: "9999px",
-                border: `2px solid ${spinnerColor}`,
-                borderTopColor: "transparent",
-                animation: "ui-spin 0.8s linear infinite",
-                flexShrink: 0,
-              }}
-            />
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: 0,
-                opacity: 0.95,
-              }}
-            >
-              {loadingText}
-            </span>
+            <span {...spinnerSlot} />
+            <span {...contentSlot}>{loadingText}</span>
           </>
         ) : (
           <>
-            {leftIcon ? (
-              <span
-                aria-hidden="true"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  lineHeight: 1,
-                }}
-              >
-                {leftIcon}
-              </span>
-            ) : null}
-
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: 0,
-              }}
-            >
-              {children}
-            </span>
-
-            {rightIcon ? (
-              <span
-                aria-hidden="true"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  lineHeight: 1,
-                }}
-              >
-                {rightIcon}
-              </span>
-            ) : null}
+            {leftIcon ? <span {...leftIconSlot}>{leftIcon}</span> : null}
+            <span {...contentSlot}>{children}</span>
+            {rightIcon ? <span {...rightIconSlot}>{rightIcon}</span> : null}
           </>
         )}
       </motion.button>

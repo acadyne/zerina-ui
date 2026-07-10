@@ -1,5 +1,10 @@
 // src/primitives/forms/Pressable.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 export type PressableRenderState = {
   pressed: boolean;
@@ -19,6 +24,12 @@ export type PressableTouchAction =
   | "pan-x"
   | "pan-y"
   | "pan-x pan-y";
+
+export type PressableSlot = "root";
+
+export type PressableStyles = SlotStyleMap<PressableSlot>;
+
+export type PressableSlotProps = SlotPropsMap<PressableSlot>;
 
 export interface PressableProps
   extends Omit<React.HTMLAttributes<HTMLElement>, "children" | "onClick"> {
@@ -44,7 +55,11 @@ export interface PressableProps
 
   type?: "button" | "submit" | "reset";
 
+  className?: string;
   style?: React.CSSProperties;
+
+  styles?: PressableStyles;
+  slotProps?: PressableSlotProps;
 }
 
 const LONG_PRESS_DELAY = 450;
@@ -95,6 +110,9 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
       role,
       className = "",
       style,
+
+      styles,
+      slotProps,
 
       onPointerEnter,
       onPointerLeave,
@@ -160,39 +178,52 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
     const renderedChildren =
       typeof children === "function" ? children(state) : children;
 
-    const resolvedStyle: React.CSSProperties = {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minWidth: 0,
-      minHeight: 0,
-      cursor: disabled ? "not-allowed" : "pointer",
-      opacity: disabled ? 0.62 : undefined,
-      userSelect: "none",
-      WebkitTapHighlightColor: "transparent",
-      touchAction,
-      outline: "none",
-      transition:
-        "transform var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), background-color var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-      ...style,
-      transform: getPressTransform({
-        pressed,
-        pressEffect,
-        pressedScale,
-        userTransform: style?.transform,
-      }),
-    };
+    const rootSlot = resolveSlot<PressableSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        role: resolvedRole,
+        tabIndex: resolvedTabIndex,
+        "aria-disabled": disabled || undefined,
+        "data-ui-pressable": "",
+        "data-ui-pressable-pressed": pressed || undefined,
+        "data-ui-pressable-hovered": hovered || undefined,
+        "data-ui-pressable-focused": focused || undefined,
+        "data-ui-pressable-disabled": disabled || undefined,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 0,
+        minHeight: 0,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.62 : undefined,
+        userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
+        touchAction,
+        outline: "none",
+        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : undefined,
+        transition:
+          "transform var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+        transform: getPressTransform({
+          pressed,
+          pressEffect,
+          pressedScale,
+          userTransform: style?.transform,
+        }),
+      },
+    });
 
     const elementProps: React.HTMLAttributes<HTMLElement> & {
       disabled?: boolean;
       type?: "button" | "submit" | "reset";
     } = {
       ...rest,
-      className,
-      role: resolvedRole,
-      tabIndex: resolvedTabIndex,
-      "aria-disabled": disabled || undefined,
-      style: resolvedStyle,
+      ...rootSlot,
 
       onPointerEnter: (event) => {
         if (!disabled) {
@@ -267,8 +298,6 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
       onFocus: (event) => {
         if (!disabled) {
           setFocused(true);
-          event.currentTarget.style.boxShadow =
-            "0 0 0 3px var(--ui-focus-ring)";
         }
 
         onFocus?.(event);
@@ -277,7 +306,6 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
       onBlur: (event) => {
         setFocused(false);
         resetPressState();
-        event.currentTarget.style.boxShadow = "none";
 
         onBlur?.(event);
       },
