@@ -1,4 +1,6 @@
+// src/patterns/app-shell/AppShell.types.ts
 import React from "react";
+import type { SlotPropsMap, SlotStyleMap } from "../../helpers/css";
 
 export type AppShellRouteId = string;
 
@@ -34,6 +36,18 @@ export interface AppShellProcessedRoute extends AppShellRoute {
 export type AppShellMobileMode = "auto" | "mobile" | "desktop";
 
 export type AppShellViewport = "window" | "contained";
+
+export type AppShellSlot =
+  | "root"
+  | "header"
+  | "sidebar"
+  | "content"
+  | "contentPanel"
+  | "mobileBar";
+
+export type AppShellStyles = SlotStyleMap<AppShellSlot>;
+
+export type AppShellSlotProps = SlotPropsMap<AppShellSlot>;
 
 export interface AppShellUserInfo {
   name?: React.ReactNode;
@@ -115,10 +129,9 @@ export interface AppShellCommonProps {
 
   className?: string;
   style?: React.CSSProperties;
-  headerStyle?: React.CSSProperties;
-  sidebarStyle?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
-  mobileBarStyle?: React.CSSProperties;
+
+  styles?: AppShellStyles;
+  slotProps?: AppShellSlotProps;
 }
 
 export interface AppShellRenderRouteContext {

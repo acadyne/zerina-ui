@@ -1,9 +1,11 @@
 // src/patterns/app-shell/AppShell.tsx
 import React from "react";
+import { cssSize, resolveSlot } from "../../helpers/css";
 import { Box } from "../../primitives/layout";
 import type {
   AppShellCommonProps,
   AppShellProcessedRoute,
+  AppShellSlot,
 } from "./AppShell.types";
 import { processAppShellRoutes } from "./AppShellRouteUtils";
 import { useAppShellState } from "./useAppShellState";
@@ -11,10 +13,6 @@ import { AppShellHeader } from "./AppShellHeader";
 import { AppShellSidebar } from "./AppShellSidebar";
 import { AppShellMobileBar } from "./AppShellMobileBar";
 import { AppShellContent } from "./AppShellContent";
-
-function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
-}
 
 export interface AppShellProps extends AppShellCommonProps {
   children?: React.ReactNode;
@@ -74,10 +72,9 @@ export function AppShell({
 
   className = "",
   style,
-  headerStyle,
-  sidebarStyle,
-  contentStyle,
-  mobileBarStyle,
+
+  styles,
+  slotProps,
 }: AppShellProps) {
   const isContained = viewport === "contained";
 
@@ -118,22 +115,62 @@ export function AppShell({
     [onNavigate]
   );
 
+  const rootSlot = resolveSlot<AppShellSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-app-shell": "",
+      "data-ui-app-shell-viewport": viewport,
+      "data-ui-app-shell-mobile": shell.isMobile || undefined,
+      "data-ui-app-shell-collapsed": shell.collapsed || undefined,
+    },
+    baseStyle: {
+      width: "100%",
+      height: isContained ? "100%" : undefined,
+      minHeight: isContained ? 0 : "100dvh",
+      minWidth: 0,
+      position: "relative",
+      overflow: isContained ? "hidden" : undefined,
+      background: "var(--ui-bg)",
+      color: "var(--ui-text)",
+    },
+  });
+
+  const headerSlot = resolveSlot<AppShellSlot>({
+    slot: "header",
+    styles,
+    slotProps,
+  });
+
+  const sidebarSlot = resolveSlot<AppShellSlot>({
+    slot: "sidebar",
+    styles,
+    slotProps,
+  });
+
+  const contentSlot = resolveSlot<AppShellSlot>({
+    slot: "content",
+    styles,
+    slotProps,
+  });
+
+  const contentPanelSlot = resolveSlot<AppShellSlot>({
+    slot: "contentPanel",
+    styles,
+    slotProps,
+  });
+
+  const mobileBarSlot = resolveSlot<AppShellSlot>({
+    slot: "mobileBar",
+    styles,
+    slotProps,
+  });
+
   return (
-    <Box
-      className={className}
-      data-ui-app-shell-viewport={viewport}
-      style={{
-        width: "100%",
-        height: isContained ? "100%" : undefined,
-        minHeight: isContained ? 0 : "100dvh",
-        minWidth: 0,
-        position: "relative",
-        overflow: isContained ? "hidden" : undefined,
-        background: "var(--ui-bg)",
-        color: "var(--ui-text)",
-        ...style,
-      }}
-    >
+    <Box {...rootSlot}>
       <AppShellHeader
         viewport={viewport}
         brand={brand}
@@ -152,7 +189,8 @@ export function AppShell({
         onToggleMobileMode={shell.toggleMobileMode}
         logoutLabel={logoutLabel}
         onLogout={onLogout}
-        style={headerStyle}
+        className={headerSlot.className}
+        style={headerSlot.style}
       />
 
       {!shell.isMobile ? (
@@ -168,7 +206,8 @@ export function AppShell({
           openRouteIds={openRouteIds}
           onOpenRouteIdsChange={onOpenRouteIdsChange}
           onRouteSelect={handleSidebarRouteSelect}
-          style={sidebarStyle}
+          className={sidebarSlot.className}
+          style={sidebarSlot.style}
         />
       ) : null}
 
@@ -178,7 +217,16 @@ export function AppShell({
         headerHeight={resolvedHeaderHeight}
         mobileBarHeight={mobileBarHeight}
         sidebarWidth={shell.isMobile ? 0 : resolvedSidebarWidth}
-        style={contentStyle}
+        className={contentSlot.className}
+        style={contentSlot.style}
+        styles={{
+          panel: contentPanelSlot.style,
+        }}
+        slotProps={{
+          panel: {
+            className: contentPanelSlot.className,
+          },
+        }}
       >
         {children}
       </AppShellContent>
@@ -190,7 +238,8 @@ export function AppShell({
           activePath={activePath}
           height={mobileBarHeight}
           onNavigate={onNavigate}
-          style={mobileBarStyle}
+          className={mobileBarSlot.className}
+          style={mobileBarSlot.style}
         />
       ) : null}
     </Box>
