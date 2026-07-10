@@ -1,5 +1,12 @@
 // src/primitives/navigation/NavigationList.tsx
 import React from "react";
+import {
+  resolveMergedSlot,
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Pressable } from "../forms";
 import { Box } from "../layout";
 import {
@@ -38,6 +45,25 @@ export type NavigationListActiveBehavior = "exact" | "contains";
 
 export type NavigationListCollapsedBehavior = "icons-only" | "flyout";
 
+export type NavigationListSlot =
+  | "root"
+  | "list"
+  | "item"
+  | "itemButton"
+  | "itemContent"
+  | "activeItem"
+  | "directActiveItem"
+  | "icon"
+  | "label"
+  | "badge"
+  | "chevron"
+  | "group"
+  | "flyoutContent";
+
+export type NavigationListStyles = SlotStyleMap<NavigationListSlot>;
+
+export type NavigationListSlotProps = SlotPropsMap<NavigationListSlot>;
+
 export interface NavigationListProps {
   items: NavigationItemDef[];
 
@@ -67,7 +93,6 @@ export interface NavigationListProps {
 
   flyoutPlacement?: MenuContentProps["placement"];
   flyoutOffset?: number;
-  flyoutContentStyle?: React.CSSProperties;
 
   indentSize?: number;
 
@@ -87,6 +112,9 @@ export interface NavigationListProps {
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: NavigationListStyles;
+  slotProps?: NavigationListSlotProps;
 }
 
 export interface NavigationListItemProps {
@@ -103,10 +131,12 @@ export interface NavigationListItemProps {
   collapsedBehavior?: NavigationListCollapsedBehavior;
   flyoutPlacement?: MenuContentProps["placement"];
   flyoutOffset?: number;
-  flyoutContentStyle?: React.CSSProperties;
 
   indentSize?: number;
   variant?: NavigationListVariant;
+
+  styles?: NavigationListStyles;
+  slotProps?: NavigationListSlotProps;
 
   onToggle?: (id: string) => void;
   onSelect?: (
@@ -217,9 +247,10 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
   collapsedBehavior = "icons-only",
   flyoutPlacement = "right-start",
   flyoutOffset = 10,
-  flyoutContentStyle,
   indentSize = 14,
   variant = "sidebar",
+  styles,
+  slotProps,
   onToggle,
   onSelect,
 }) => {
@@ -279,30 +310,156 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
       ? "0.65rem"
       : `${0.65 + depth * (indentSize / 16)}rem`;
 
+  const itemSlot = resolveSlot<NavigationListSlot>({
+    slot: "item",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-navigation-list-item": "",
+      "data-ui-navigation-list-item-id": item.id,
+      "data-ui-navigation-list-item-active": active || undefined,
+      "data-ui-navigation-list-item-direct-active": directlyActive || undefined,
+      "data-ui-navigation-list-item-disabled": item.disabled || undefined,
+      "data-ui-navigation-list-item-depth": depth,
+      "data-ui-navigation-list-item-collapsed": collapsed || undefined,
+    },
+    baseStyle: {
+      minWidth: 0,
+    },
+  });
+
+  const itemButtonSlot = resolveSlot<NavigationListSlot>({
+    slot: "itemButton",
+    styles,
+    slotProps,
+    baseStyle: {
+      width: "100%",
+      minWidth: 0,
+      display: "flex",
+      border: 0,
+      padding: 0,
+      background: "transparent",
+      color: "inherit",
+      textAlign: "left",
+      cursor: item.disabled ? "not-allowed" : "pointer",
+    },
+  });
+
+  const iconSlot = resolveSlot<NavigationListSlot>({
+    slot: "icon",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+    },
+    baseStyle: {
+      width: 24,
+      height: 24,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      color: "inherit",
+      lineHeight: 1,
+    },
+  });
+
+  const labelSlot = resolveSlot<NavigationListSlot>({
+    slot: "label",
+    styles,
+    slotProps,
+    baseStyle: {
+      flex: 1,
+      minWidth: 0,
+      margin: 0,
+      color: "inherit",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+  });
+
+  const badgeSlot = resolveSlot<NavigationListSlot>({
+    slot: "badge",
+    styles,
+    slotProps,
+    baseStyle: {
+      flexShrink: 0,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
+
+  const chevronSlot = resolveSlot<NavigationListSlot>({
+    slot: "chevron",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+    },
+    baseStyle: {
+      flexShrink: 0,
+      color: "var(--ui-text-muted)",
+      fontSize: "1rem",
+      lineHeight: 1,
+    },
+  });
+
+  const groupSlot = resolveSlot<NavigationListSlot>({
+    slot: "group",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 0,
+      marginTop: "0.25rem",
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.25rem",
+    },
+  });
+
+  const flyoutContentSlot = resolveSlot<NavigationListSlot>({
+    slot: "flyoutContent",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 230,
+      padding: "0.45rem",
+      borderRadius: "var(--ui-radius-xl)",
+      background:
+        "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 80%, transparent), var(--ui-surface))",
+      border: "1px solid var(--ui-border)",
+      boxShadow: "var(--ui-shadow-lg)",
+    },
+  });
+
   const button = (
     <Pressable
+      {...itemButtonSlot}
       as="button"
       type="button"
       disabled={item.disabled}
       onPress={handlePress}
       aria-current={directlyActive ? "page" : undefined}
-      aria-expanded={childrenExist ? (usesCollapsedFlyout ? flyoutOpen : open) : undefined}
+      aria-expanded={
+        childrenExist ? (usesCollapsedFlyout ? flyoutOpen : open) : undefined
+      }
       aria-disabled={item.disabled || undefined}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        display: "flex",
-        border: 0,
-        padding: 0,
-        background: "transparent",
-        color: "inherit",
-        textAlign: "left",
-        cursor: item.disabled ? "not-allowed" : "pointer",
-      }}
     >
-      {({ hovered, pressed, focused }) => (
-        <Box
-          style={{
+      {({ hovered, pressed, focused }) => {
+        const itemContentSlot = resolveMergedSlot<NavigationListSlot>({
+          slots: [
+            "itemContent",
+            ...(active ? (["activeItem"] as const) : []),
+            ...(directlyActive ? (["directActiveItem"] as const) : []),
+          ],
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-navigation-list-item-content": "",
+          },
+          baseStyle: {
             width: "100%",
             minWidth: 0,
             minHeight: collapsed ? 42 : 38,
@@ -330,75 +487,34 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
               ? "var(--ui-state-disabled-opacity, 0.62)"
               : 1,
             boxSizing: "border-box",
-          }}
-        >
-          {item.icon ? (
-            <Box
-              aria-hidden="true"
-              style={{
-                width: 24,
-                height: 24,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                color: "inherit",
-                lineHeight: 1,
-              }}
-            >
-              {item.icon}
-            </Box>
-          ) : null}
+          },
+        });
 
-          {!collapsed ? (
-            <>
-              <Typography
-                as="span"
-                size="sm"
-                weight={directlyActive ? 800 : active ? 700 : 600}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  margin: 0,
-                  color: "inherit",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {item.label}
-              </Typography>
+        return (
+          <Box {...itemContentSlot}>
+            {item.icon ? <Box {...iconSlot}>{item.icon}</Box> : null}
 
-              {item.badge ? (
-                <Box
-                  style={{
-                    flexShrink: 0,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+            {!collapsed ? (
+              <>
+                <Typography
+                  {...labelSlot}
+                  as="span"
+                  size="sm"
+                  weight={directlyActive ? 800 : active ? 700 : 600}
                 >
-                  {item.badge}
-                </Box>
-              ) : null}
+                  {item.label}
+                </Typography>
 
-              {childrenExist ? (
-                <Box
-                  aria-hidden="true"
-                  style={{
-                    flexShrink: 0,
-                    color: "var(--ui-text-muted)",
-                    fontSize: "1rem",
-                    lineHeight: 1,
-                  }}
-                >
-                  {getChevron(open)}
-                </Box>
-              ) : null}
-            </>
-          ) : null}
-        </Box>
-      )}
+                {item.badge ? <Box {...badgeSlot}>{item.badge}</Box> : null}
+
+                {childrenExist ? (
+                  <Box {...chevronSlot}>{getChevron(open)}</Box>
+                ) : null}
+              </>
+            ) : null}
+          </Box>
+        );
+      }}
     </Pressable>
   );
 
@@ -424,9 +540,10 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
           collapsedBehavior="icons-only"
           flyoutPlacement={flyoutPlacement}
           flyoutOffset={flyoutOffset}
-          flyoutContentStyle={flyoutContentStyle}
           indentSize={indentSize}
           variant="inline"
+          styles={styles}
+          slotProps={slotProps}
           onToggle={onToggle}
           onSelect={(selectedItem, event) => {
             setFlyoutOpen(false);
@@ -442,22 +559,13 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
       <Menu open={flyoutOpen} onOpenChange={setFlyoutOpen}>
         <MenuTrigger asChild>{button}</MenuTrigger>
 
-        <MenuContent
-          placement={flyoutPlacement}
-          offset={flyoutOffset}
-          style={{
-            minWidth: 230,
-            padding: "0.45rem",
-            borderRadius: "var(--ui-radius-xl)",
-            background:
-              "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 80%, transparent), var(--ui-surface))",
-            border: "1px solid var(--ui-border)",
-            boxShadow: "var(--ui-shadow-lg)",
-            ...flyoutContentStyle,
-          }}
-        >
-          {flyoutContent}
-        </MenuContent>
+<MenuContent
+  {...toMotionSlotProps(flyoutContentSlot)}
+  placement={flyoutPlacement}
+  offset={flyoutOffset}
+>
+  {flyoutContent}
+</MenuContent>
       </Menu>
     ) : (
       <Tooltip>
@@ -470,24 +578,11 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
   );
 
   return (
-    <Box
-      style={{
-        minWidth: 0,
-      }}
-    >
+    <Box {...itemSlot}>
       {collapsedWrappedButton}
 
       {childrenExist && open ? (
-        <Box
-          role="group"
-          style={{
-            minWidth: 0,
-            marginTop: "0.25rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.25rem",
-          }}
-        >
+        <Box {...groupSlot} role="group">
           {children.map((child) => (
             <NavigationListItem
               key={child.id}
@@ -501,9 +596,10 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
               collapsedBehavior={collapsedBehavior}
               flyoutPlacement={flyoutPlacement}
               flyoutOffset={flyoutOffset}
-              flyoutContentStyle={flyoutContentStyle}
               indentSize={indentSize}
               variant={variant}
+              styles={styles}
+              slotProps={slotProps}
               onToggle={onToggle}
               onSelect={onSelect}
             />
@@ -528,13 +624,14 @@ export const NavigationList = (({
   collapsedBehavior = "icons-only",
   flyoutPlacement = "right-start",
   flyoutOffset = 10,
-  flyoutContentStyle,
   indentSize = 14,
   openActiveParents = true,
   activeBehavior = "contains",
   ariaLabel = "Navegación",
   className = "",
   style,
+  styles,
+  slotProps,
 }: NavigationListProps) => {
   const isControlled = openIds !== undefined;
 
@@ -573,27 +670,37 @@ export const NavigationList = (({
     [currentOpenIds, setOpenIds]
   );
 
+  const rootSlot = resolveSlot<NavigationListSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "aria-label": ariaLabel,
+    },
+    baseStyle: {
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box",
+    },
+  });
+
+  const listSlot = resolveSlot<NavigationListSlot>({
+    slot: "list",
+    styles,
+    slotProps,
+    baseStyle: {
+      minWidth: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.25rem",
+    },
+  });
+
   return (
-    <Box
-      as="nav"
-      className={className}
-      aria-label={ariaLabel}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
-        ...style,
-      }}
-    >
-      <Box
-        role="list"
-        style={{
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.25rem",
-        }}
-      >
+    <Box as="nav" {...rootSlot}>
+      <Box role="list" {...listSlot}>
         {items.map((item) => (
           <NavigationListItem
             key={item.id}
@@ -607,9 +714,10 @@ export const NavigationList = (({
             collapsedBehavior={collapsedBehavior}
             flyoutPlacement={flyoutPlacement}
             flyoutOffset={flyoutOffset}
-            flyoutContentStyle={flyoutContentStyle}
             indentSize={indentSize}
             variant={variant}
+            styles={styles}
+            slotProps={slotProps}
             onToggle={handleToggle}
             onSelect={onSelect}
           />
