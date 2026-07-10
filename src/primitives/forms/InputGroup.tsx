@@ -10,6 +10,17 @@ import React, {
   useState,
 } from "react";
 import { FormControlContext } from "./FormControl";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type InputGroupSlot = "root";
+
+export type InputGroupStyles = SlotStyleMap<InputGroupSlot>;
+
+export type InputGroupSlotProps = SlotPropsMap<InputGroupSlot>;
 
 export interface InputGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -18,6 +29,9 @@ export interface InputGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   isInvalid?: boolean;
   isDisabled?: boolean;
   rounded?: React.CSSProperties["borderRadius"];
+
+  styles?: InputGroupStyles;
+  slotProps?: InputGroupSlotProps;
 }
 
 type MeasuredNodeMap = Map<number, HTMLDivElement>;
@@ -52,9 +66,10 @@ type UIElementType = React.ElementType & {
   name?: string;
 };
 
-type UIElementWithMarkers<P = Record<string, unknown>> = React.ReactElement<P> & {
-  type: UIElementType;
-};
+type UIElementWithMarkers<P = Record<string, unknown>> =
+  React.ReactElement<P> & {
+    type: UIElementType;
+  };
 
 function isReactElementWithMarkers(
   value: React.ReactNode
@@ -85,7 +100,9 @@ function isSupportedControl(
   return kind === "input" || kind === "textarea" || kind === "select";
 }
 
-function getControlSize(element: UIElementWithMarkers<SupportedControlProps>): ControlSize {
+function getControlSize(
+  element: UIElementWithMarkers<SupportedControlProps>
+): ControlSize {
   const size = element.props.size;
   return size === "sm" || size === "lg" ? size : "md";
 }
@@ -119,6 +136,8 @@ export const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
       isInvalid,
       isDisabled,
       rounded = "var(--ui-radius-md)",
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -174,7 +193,8 @@ export const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
     }, [children, rightElementCount]);
 
     const resolvedChildren = useMemo(() => {
-      const extraRightSpace = rightWidth > 0 ? `${rightWidth + 12}px` : undefined;
+      const extraRightSpace =
+        rightWidth > 0 ? `${rightWidth + 12}px` : undefined;
 
       return Children.map(children, (child, index) => {
         if (!isReactElementWithMarkers(child)) {
@@ -242,31 +262,36 @@ export const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
       });
     }, [children, rightWidth, finalInvalid, finalDisabled, rounded]);
 
+    const rootSlot = resolveSlot<InputGroupSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui": "input-group",
+        "data-invalid": finalInvalid || undefined,
+        "data-disabled": finalDisabled || undefined,
+      },
+      baseStyle: {
+        position: "relative",
+        width: "100%",
+        display: "flex",
+        alignItems: "stretch",
+        minWidth: 0,
+        borderRadius: rounded,
+        background: "var(--ui-surface)",
+        border: `1px solid ${
+          finalInvalid ? "var(--ui-danger)" : "var(--ui-border)"
+        }`,
+        opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+        transition:
+          "border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        className={className}
-        data-ui="input-group"
-        data-invalid={finalInvalid || undefined}
-        data-disabled={finalDisabled || undefined}
-        style={{
-          position: "relative",
-          width: "100%",
-          display: "flex",
-          alignItems: "stretch",
-          minWidth: 0,
-          borderRadius: rounded,
-          background: "var(--ui-surface)",
-          border: `1px solid ${
-            finalInvalid ? "var(--ui-danger)" : "var(--ui-border)"
-          }`,
-          opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
-          transition:
-            "border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard)",
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...rootSlot} ref={ref} {...rest}>
         {resolvedChildren}
       </div>
     );

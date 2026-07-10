@@ -1,5 +1,16 @@
 // src/primitives/forms/InputRightElement.tsx
 import React, { forwardRef } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type InputRightElementSlot = "root";
+
+export type InputRightElementStyles = SlotStyleMap<InputRightElementSlot>;
+
+export type InputRightElementSlotProps = SlotPropsMap<InputRightElementSlot>;
 
 export interface InputRightElementProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -10,6 +21,9 @@ export interface InputRightElementProps
   right?: number | string;
   width?: number | string;
   pointerEvents?: "auto" | "none";
+
+  styles?: InputRightElementStyles;
+  slotProps?: InputRightElementSlotProps;
 }
 
 type InputRightElementComponent = React.ForwardRefExoticComponent<
@@ -30,36 +44,43 @@ export const InputRightElement = forwardRef<
       right = "10px",
       width,
       pointerEvents = "auto",
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
+    const rootSlot = resolveSlot<InputRightElementSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-input-right-element": "true",
+      },
+      baseStyle: {
+        position: "absolute",
+        top: "50%",
+        right,
+        transform: "translateY(-50%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        width,
+        gap: "0.35rem",
+        paddingLeft: "0.25rem",
+        paddingRight: "0.25rem",
+        color: "var(--ui-text)",
+        pointerEvents,
+        zIndex: 1,
+        minWidth: 0,
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        className={className}
-        data-ui-input-right-element="true"
-        style={{
-          position: "absolute",
-          top: "50%",
-          right,
-          transform: "translateY(-50%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-          width,
-          gap: "0.35rem",
-          paddingLeft: "0.25rem",
-          paddingRight: "0.25rem",
-          color: "var(--ui-text)",
-          pointerEvents,
-          zIndex: 1,
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...rootSlot} ref={ref} {...rest}>
         {children}
       </div>
     );

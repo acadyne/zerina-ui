@@ -8,9 +8,20 @@ import {
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 type InputSize = "sm" | "md" | "lg";
 type InputVariant = "outline" | "unstyled";
+
+export type InputSlot = "root";
+
+export type InputStyles = SlotStyleMap<InputSlot>;
+
+export type InputSlotProps = SlotPropsMap<InputSlot>;
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
@@ -25,6 +36,9 @@ export interface InputProps
   leftPadding?: number | string;
   rightPadding?: number | string;
   fullWidth?: boolean;
+
+  styles?: InputStyles;
+  slotProps?: InputSlotProps;
 }
 
 type InputComponent = React.ForwardRefExoticComponent<
@@ -66,6 +80,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       mb,
       ml,
       mr,
+
+      styles,
+      slotProps,
 
       ...props
     },
@@ -120,12 +137,38 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       mr,
     });
 
+    const rootSlot = resolveSlot<InputSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseStyle: {
+        width: fullWidth ? "100%" : undefined,
+        minWidth: fullWidth ? 0 : undefined,
+        appearance: "none",
+        WebkitAppearance: "none",
+
+        ...controlStyles,
+
+        paddingTop: pt ?? py ?? p ?? sizeStyles.paddingY,
+        paddingBottom: pb ?? py ?? p ?? sizeStyles.paddingY,
+        paddingLeft: leftPadding ?? pl ?? px ?? p ?? sizeStyles.paddingX,
+        paddingRight: rightPadding ?? pr ?? px ?? p ?? sizeStyles.paddingX,
+
+        marginTop: spacingStyles.marginTop,
+        marginBottom: spacingStyles.marginBottom,
+        marginLeft: spacingStyles.marginLeft,
+        marginRight: spacingStyles.marginRight,
+      },
+    });
+
     return (
       <input
+        {...rootSlot}
         ref={ref}
         id={finalId}
         type={type}
-        className={className}
         disabled={finalDisabled}
         aria-invalid={finalInvalid || undefined}
         aria-labelledby={ctx?.labelId}
@@ -135,26 +178,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           invalid: finalInvalid,
           disabled: finalDisabled,
         })}
-        style={{
-          width: fullWidth ? "100%" : undefined,
-          minWidth: fullWidth ? 0 : undefined,
-          appearance: "none",
-          WebkitAppearance: "none",
-
-          ...controlStyles,
-
-          paddingTop: pt ?? py ?? p ?? sizeStyles.paddingY,
-          paddingBottom: pb ?? py ?? p ?? sizeStyles.paddingY,
-          paddingLeft: leftPadding ?? pl ?? px ?? p ?? sizeStyles.paddingX,
-          paddingRight: rightPadding ?? pr ?? px ?? p ?? sizeStyles.paddingX,
-
-          marginTop: spacingStyles.marginTop,
-          marginBottom: spacingStyles.marginBottom,
-          marginLeft: spacingStyles.marginLeft,
-          marginRight: spacingStyles.marginRight,
-
-          ...style,
-        }}
         onFocus={(event) => {
           setIsFocused(true);
           onFocus?.(event);

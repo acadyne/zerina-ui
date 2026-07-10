@@ -1,69 +1,135 @@
 // src/primitives/forms/PasswordInput.tsx
 import React from "react";
 import { Eye, EyeOff } from "lucide-react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { InputRightElement } from "./InputRightElement";
 
+export type PasswordInputSlot =
+  | "group"
+  | "input"
+  | "rightElement"
+  | "toggleButton";
+
+export type PasswordInputStyles = SlotStyleMap<PasswordInputSlot>;
+
+export type PasswordInputSlotProps = SlotPropsMap<PasswordInputSlot>;
+
 export interface PasswordInputProps
-  extends Omit<InputProps, "type" | "rightPadding"> {
+  extends Omit<InputProps, "type" | "rightPadding" | "styles" | "slotProps"> {
   showLabel?: string;
   hideLabel?: string;
+
+  styles?: PasswordInputStyles;
+  slotProps?: PasswordInputSlotProps;
 }
 
-export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
+export const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  PasswordInputProps
+>(
   (
     {
       showLabel = "Mostrar contraseña",
       hideLabel = "Ocultar contraseña",
       disabled,
       isDisabled,
+      className = "",
+      style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
     const [visible, setVisible] = React.useState(false);
+    const [toggleHovered, setToggleHovered] = React.useState(false);
+
     const finalDisabled = isDisabled ?? disabled ?? false;
 
+    const groupSlot = resolveSlot<PasswordInputSlot>({
+      slot: "group",
+      styles,
+      slotProps,
+      className,
+      style,
+    });
+
+    const inputSlot = resolveSlot<PasswordInputSlot>({
+      slot: "input",
+      styles,
+      slotProps,
+    });
+
+    const rightElementSlot = resolveSlot<PasswordInputSlot>({
+      slot: "rightElement",
+      styles,
+      slotProps,
+    });
+
+    const toggleButtonSlot = resolveSlot<PasswordInputSlot>({
+      slot: "toggleButton",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: 28,
+        height: 28,
+        borderRadius: "var(--ui-radius-full)",
+        border: "1px solid transparent",
+        background:
+          toggleHovered && !finalDisabled
+            ? "var(--ui-surface-hover)"
+            : "transparent",
+        color:
+          toggleHovered && !finalDisabled
+            ? "var(--ui-text)"
+            : "var(--ui-text-muted)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: finalDisabled ? "not-allowed" : "pointer",
+        opacity: finalDisabled ? 0.55 : 1,
+        padding: 0,
+      },
+    });
+
     return (
-      <InputGroup isDisabled={finalDisabled}>
+      <InputGroup
+        isDisabled={finalDisabled}
+        className={groupSlot.className}
+        style={groupSlot.style}
+      >
         <Input
           ref={ref}
           type={visible ? "text" : "password"}
           disabled={disabled}
           isDisabled={isDisabled}
           rightPadding="2.75rem"
+          className={inputSlot.className}
+          style={inputSlot.style}
           {...rest}
         />
 
-        <InputRightElement>
+        <InputRightElement
+          className={rightElementSlot.className}
+          style={rightElementSlot.style}
+        >
           <button
+            {...toggleButtonSlot}
             type="button"
             aria-label={visible ? hideLabel : showLabel}
             disabled={finalDisabled}
             onClick={() => setVisible((current) => !current)}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: "var(--ui-radius-full)",
-              border: "1px solid transparent",
-              background: "transparent",
-              color: "var(--ui-text-muted)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: finalDisabled ? "not-allowed" : "pointer",
-              opacity: finalDisabled ? 0.55 : 1,
-              padding: 0,
+            onMouseEnter={() => {
+              setToggleHovered(true);
             }}
-            onMouseEnter={(event) => {
-              if (finalDisabled) return;
-              event.currentTarget.style.background = "var(--ui-surface-hover)";
-              event.currentTarget.style.color = "var(--ui-text)";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.background = "transparent";
-              event.currentTarget.style.color = "var(--ui-text-muted)";
+            onMouseLeave={() => {
+              setToggleHovered(false);
             }}
           >
             {visible ? <EyeOff size={16} /> : <Eye size={16} />}

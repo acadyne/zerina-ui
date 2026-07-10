@@ -8,9 +8,20 @@ import {
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 type TextareaSize = "sm" | "md" | "lg";
 type TextareaVariant = "outline" | "unstyled";
+
+export type TextareaSlot = "root";
+
+export type TextareaStyles = SlotStyleMap<TextareaSlot>;
+
+export type TextareaSlotProps = SlotPropsMap<TextareaSlot>;
 
 export interface TextareaProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "size">,
@@ -25,6 +36,9 @@ export interface TextareaProps
   resize?: React.CSSProperties["resize"];
   fullWidth?: boolean;
   rightPadding?: number | string;
+
+  styles?: TextareaStyles;
+  slotProps?: TextareaSlotProps;
 }
 
 const textareaMinHeightMap: Record<
@@ -74,6 +88,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       mb,
       ml,
       mr,
+
+      styles,
+      slotProps,
 
       ...props
     },
@@ -128,11 +145,40 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       mr,
     });
 
+    const rootSlot = resolveSlot<TextareaSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseStyle: {
+        width: fullWidth ? "100%" : undefined,
+        minWidth: 0,
+        outline: "none",
+        lineHeight: 1.5,
+        resize,
+
+        ...controlStyles,
+
+        minHeight: textareaMinHeightMap[size],
+
+        paddingTop: pt ?? py ?? p ?? sizeStyles.paddingY,
+        paddingBottom: pb ?? py ?? p ?? sizeStyles.paddingY,
+        paddingLeft: pl ?? px ?? p ?? sizeStyles.paddingX,
+        paddingRight: rightPadding ?? pr ?? px ?? p ?? sizeStyles.paddingX,
+
+        marginTop: spacingStyles.marginTop,
+        marginBottom: spacingStyles.marginBottom,
+        marginLeft: spacingStyles.marginLeft,
+        marginRight: spacingStyles.marginRight,
+      },
+    });
+
     return (
       <textarea
+        {...rootSlot}
         ref={ref}
         id={finalId}
-        className={className}
         disabled={finalDisabled}
         aria-invalid={finalInvalid || undefined}
         aria-labelledby={ctx?.labelId}
@@ -142,29 +188,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           invalid: finalInvalid,
           disabled: finalDisabled,
         })}
-        style={{
-          width: fullWidth ? "100%" : undefined,
-          minWidth: 0,
-          outline: "none",
-          lineHeight: 1.5,
-          resize,
-
-          ...controlStyles,
-
-          minHeight: textareaMinHeightMap[size],
-
-          paddingTop: pt ?? py ?? p ?? sizeStyles.paddingY,
-          paddingBottom: pb ?? py ?? p ?? sizeStyles.paddingY,
-          paddingLeft: pl ?? px ?? p ?? sizeStyles.paddingX,
-          paddingRight: rightPadding ?? pr ?? px ?? p ?? sizeStyles.paddingX,
-
-          marginTop: spacingStyles.marginTop,
-          marginBottom: spacingStyles.marginBottom,
-          marginLeft: spacingStyles.marginLeft,
-          marginRight: spacingStyles.marginRight,
-
-          ...style,
-        }}
         onFocus={(event) => {
           setIsFocused(true);
           onFocus?.(event);

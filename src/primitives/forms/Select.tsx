@@ -8,6 +8,11 @@ import {
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 export interface Option {
   label: string;
@@ -17,10 +22,16 @@ export interface Option {
 type SelectSize = "sm" | "md" | "lg";
 type SelectVariant = "outline" | "unstyled";
 
+export type SelectSlot = "root" | "control" | "indicator";
+
+export type SelectStyles = SlotStyleMap<SelectSlot>;
+
+export type SelectSlotProps = SlotPropsMap<SelectSlot>;
+
 export interface SelectProps
   extends Omit<
       React.SelectHTMLAttributes<HTMLSelectElement>,
-      "value" | "onChange" | "size"
+      "value" | "onChange" | "size" | "style" | "className"
     >,
     SpaceProps {
   value: string;
@@ -43,6 +54,9 @@ export interface SelectProps
   placeholder?: string;
   rightPadding?: number | string;
   indicatorOffset?: number | string;
+
+  styles?: SelectStyles;
+  slotProps?: SelectSlotProps;
 }
 
 type SelectComponent = React.ForwardRefExoticComponent<
@@ -92,6 +106,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       ml,
       mr,
 
+      styles,
+      slotProps,
+
       ...props
     },
     ref
@@ -129,40 +146,86 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       focused: isFocused,
     });
 
-    return (
-      <div
-        style={{
-          position: "relative",
-          display: fullWidth ? "flex" : "inline-flex",
-          width: fullWidth ? "100%" : undefined,
-          minWidth: fullWidth ? 0 : minW,
-          maxWidth: "100%",
+    const rootSlot = resolveSlot<SelectSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseStyle: {
+        position: "relative",
+        display: fullWidth ? "flex" : "inline-flex",
+        width: fullWidth ? "100%" : undefined,
+        minWidth: fullWidth ? 0 : minW,
+        maxWidth: "100%",
 
-          ...getSpacingStyles({
-            p,
-            px,
-            py,
-            pt,
-            pb,
-            pl,
-            pr,
-            m,
-            mx,
-            my,
-            mt,
-            mb,
-            ml,
-            mr,
-          }),
-        }}
-      >
+        ...getSpacingStyles({
+          p,
+          px,
+          py,
+          pt,
+          pb,
+          pl,
+          pr,
+          m,
+          mx,
+          my,
+          mt,
+          mb,
+          ml,
+          mr,
+        }),
+      },
+    });
+
+    const controlSlot = resolveSlot<SelectSlot>({
+      slot: "control",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: fullWidth ? "100%" : undefined,
+        minWidth: fullWidth ? 0 : minW,
+        maxWidth: "100%",
+        lineHeight: 1.2,
+        appearance: "none",
+        WebkitAppearance: "none",
+        MozAppearance: "none",
+
+        ...controlStyles,
+        borderRadius: rounded ?? sizeStyles.borderRadius,
+        paddingRight: rightPadding ?? "2.2rem",
+      },
+    });
+
+    const indicatorSlot = resolveSlot<SelectSlot>({
+      slot: "indicator",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        position: "absolute",
+        right: indicatorOffset,
+        top: "50%",
+        transform: "translateY(-50%)",
+        pointerEvents: "none",
+        opacity: finalDisabled ? 0.55 : 0.8,
+        fontSize: 12,
+        color: "var(--ui-text-muted)",
+        lineHeight: 1,
+      },
+    });
+
+    return (
+      <div {...rootSlot}>
         <select
+          {...controlSlot}
           ref={ref}
           id={finalId}
           value={value}
           onChange={onChange}
           disabled={finalDisabled}
-          className={className}
           aria-invalid={finalInvalid || undefined}
           aria-labelledby={ctx?.labelId}
           aria-describedby={describedBy}
@@ -171,21 +234,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             invalid: finalInvalid,
             disabled: finalDisabled,
           })}
-          style={{
-            width: fullWidth ? "100%" : undefined,
-            minWidth: fullWidth ? 0 : minW,
-            maxWidth: "100%",
-            lineHeight: 1.2,
-            appearance: "none",
-            WebkitAppearance: "none",
-            MozAppearance: "none",
-
-            ...controlStyles,
-            borderRadius: rounded ?? sizeStyles.borderRadius,
-            paddingRight: rightPadding ?? "2.2rem",
-
-            ...style,
-          }}
           onFocus={(event) => {
             setIsFocused(true);
             onFocus?.(event);
@@ -211,22 +259,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             : children}
         </select>
 
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: indicatorOffset,
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-            opacity: finalDisabled ? 0.55 : 0.8,
-            fontSize: 12,
-            color: "var(--ui-text-muted)",
-            lineHeight: 1,
-          }}
-        >
-          ▼
-        </span>
+        <span {...indicatorSlot}>▼</span>
       </div>
     );
   }
