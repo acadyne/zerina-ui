@@ -1,6 +1,13 @@
 // src/patterns/command/CommandPalette.tsx
 import React from "react";
 import { Search } from "lucide-react";
+import {
+  cssSize,
+  resolveMergedSlot,
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Box, Flex } from "../../primitives/layout";
 import { Input } from "../../primitives/forms";
 import {
@@ -24,6 +31,31 @@ export interface CommandPaletteItem {
   onSelect?: (item: CommandPaletteItem) => void;
 }
 
+export type CommandPaletteSlot =
+  | "dialog"
+  | "header"
+  | "title"
+  | "search"
+  | "searchIcon"
+  | "input"
+  | "body"
+  | "list"
+  | "group"
+  | "groupLabel"
+  | "groupItems"
+  | "item"
+  | "activeItem"
+  | "itemContent"
+  | "itemIcon"
+  | "itemText"
+  | "itemLabel"
+  | "itemDescription"
+  | "empty";
+
+export type CommandPaletteStyles = SlotStyleMap<CommandPaletteSlot>;
+
+export type CommandPaletteSlotProps = SlotPropsMap<CommandPaletteSlot>;
+
 export interface CommandPaletteProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -42,8 +74,9 @@ export interface CommandPaletteProps {
 
   className?: string;
   style?: React.CSSProperties;
-  inputStyle?: React.CSSProperties;
-  listStyle?: React.CSSProperties;
+
+  styles?: CommandPaletteStyles;
+  slotProps?: CommandPaletteSlotProps;
 }
 
 export type CommandTriggerSize = "sm" | "md" | "lg";
@@ -138,11 +171,6 @@ function groupItems(items: CommandPaletteItem[]): Array<{
   }));
 }
 
-function toCssSize(value: number | string | undefined): string | undefined {
-  if (value === undefined) return undefined;
-  return typeof value === "number" ? `${value}px` : value;
-}
-
 export function CommandPalette({
   open,
   onOpenChange,
@@ -161,8 +189,9 @@ export function CommandPalette({
 
   className = "",
   style,
-  inputStyle,
-  listStyle,
+
+  styles,
+  slotProps,
 }: CommandPaletteProps) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -252,6 +281,134 @@ export function CommandPalette({
     [activeId, selectableItems]
   );
 
+  const dialogSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "dialog",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-command-palette": "",
+    },
+    baseStyle: {
+      overflow: "hidden",
+    },
+  });
+
+  const headerSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "header",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-header": "",
+    },
+    baseStyle: {
+      padding: "0.85rem",
+      gap: "0.75rem",
+    },
+  });
+
+  const titleSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "title",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-title": "",
+    },
+    baseStyle: {
+      fontSize: "0.95rem",
+    },
+  });
+
+  const searchSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "search",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-search": "",
+    },
+    baseStyle: {
+      position: "relative",
+      minWidth: 0,
+    },
+  });
+
+  const searchIconSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "searchIcon",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+      "data-ui-command-palette-search-icon": "",
+    },
+    baseStyle: {
+      position: "absolute",
+      left: "0.85rem",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "var(--ui-text-muted)",
+      display: "inline-flex",
+      alignItems: "center",
+      pointerEvents: "none",
+    },
+  });
+
+  const inputSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "input",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-input": "",
+    },
+    baseStyle: {
+      height: 42,
+    },
+  });
+
+  const bodySlot = resolveSlot<CommandPaletteSlot>({
+    slot: "body",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-body": "",
+    },
+    baseStyle: {
+      padding: "0.45rem",
+    },
+  });
+
+  const listSlot = resolveSlot<CommandPaletteSlot>({
+    slot: "list",
+    styles,
+    slotProps,
+    baseProps: {
+      role: "listbox",
+      "aria-label": "Resultados de comandos",
+      "data-ui-command-palette-list": "",
+    },
+    baseStyle: {
+      maxHeight: "min(56vh, 460px)",
+      overflow: "auto",
+      overscrollBehavior: "contain",
+      WebkitOverflowScrolling: "touch",
+      padding: "0.25rem",
+    },
+  });
+
+  const emptySlot = resolveSlot<CommandPaletteSlot>({
+    slot: "empty",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-command-palette-empty": "",
+    },
+    baseStyle: {
+      padding: "2.25rem 1rem",
+      textAlign: "center",
+      color: "var(--ui-text-muted)",
+    },
+  });
+
   return (
     <Dialog
       open={open}
@@ -259,46 +416,12 @@ export function CommandPalette({
       size="lg"
       initialFocusRef={inputRef}
     >
-      <DialogContent
-        className={className}
-        style={{
-          overflow: "hidden",
-          ...style,
-        }}
-      >
-        <DialogHeader
-          style={{
-            padding: "0.85rem",
-            gap: "0.75rem",
-          }}
-        >
-          <DialogTitle
-            style={{
-              fontSize: "0.95rem",
-            }}
-          >
-            {title}
-          </DialogTitle>
+      <DialogContent {...dialogSlot}>
+        <DialogHeader {...headerSlot}>
+          <DialogTitle {...titleSlot}>{title}</DialogTitle>
 
-          <Box
-            style={{
-              position: "relative",
-              minWidth: 0,
-            }}
-          >
-            <Box
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: "0.85rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--ui-text-muted)",
-                display: "inline-flex",
-                alignItems: "center",
-                pointerEvents: "none",
-              }}
-            >
+          <Box {...searchSlot}>
+            <Box {...searchIconSlot}>
               <Search size={17} />
             </Box>
 
@@ -329,74 +452,86 @@ export function CommandPalette({
                   }
                 }
               }}
-              style={{
-                height: 42,
-                ...inputStyle,
-              }}
+              {...inputSlot}
             />
           </Box>
         </DialogHeader>
 
-        <DialogBody
-          style={{
-            padding: "0.45rem",
-          }}
-        >
-          <Box
-            role="listbox"
-            aria-label="Resultados de comandos"
-            style={{
-              maxHeight: "min(56vh, 460px)",
-              overflow: "auto",
-              overscrollBehavior: "contain",
-              WebkitOverflowScrolling: "touch",
-              padding: "0.25rem",
-              ...listStyle,
-            }}
-          >
+        <DialogBody {...bodySlot}>
+          <Box {...listSlot}>
             {groupedItems.length > 0 ? (
-              groupedItems.map((group) => (
-                <Box key={group.group ?? "__ungrouped"}>
-                  {group.group ? (
-                    <Typography
-                      as="div"
-                      size="xs"
-                      weight={800}
-                      color="var(--ui-text-muted)"
-                      style={{
-                        padding: "0.6rem 0.65rem 0.35rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                      }}
-                    >
-                      {group.group}
-                    </Typography>
-                  ) : null}
+              groupedItems.map((group) => {
+                const groupSlot = resolveSlot<CommandPaletteSlot>({
+                  slot: "group",
+                  styles,
+                  slotProps,
+                  baseProps: {
+                    "data-ui-command-palette-group": "",
+                    "data-ui-command-palette-group-name":
+                      group.group ?? undefined,
+                  },
+                });
 
-                  <Box
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.2rem",
-                    }}
-                  >
-                    {group.items.map((item) => {
-                      const active = item.id === activeId;
+                const groupLabelSlot = resolveSlot<CommandPaletteSlot>({
+                  slot: "groupLabel",
+                  styles,
+                  slotProps,
+                  baseProps: {
+                    "data-ui-command-palette-group-label": "",
+                  },
+                  baseStyle: {
+                    padding: "0.6rem 0.65rem 0.35rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  },
+                });
 
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          role="option"
-                          aria-selected={active}
-                          disabled={item.disabled}
-                          onMouseEnter={() => {
-                            if (!item.disabled) {
-                              setActiveId(item.id);
-                            }
-                          }}
-                          onClick={() => selectItem(item)}
-                          style={{
+                const groupItemsSlot = resolveSlot<CommandPaletteSlot>({
+                  slot: "groupItems",
+                  styles,
+                  slotProps,
+                  baseProps: {
+                    "data-ui-command-palette-group-items": "",
+                  },
+                  baseStyle: {
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.2rem",
+                  },
+                });
+
+                return (
+                  <Box key={group.group ?? "__ungrouped"} {...groupSlot}>
+                    {group.group ? (
+                      <Typography
+                        as="div"
+                        size="xs"
+                        weight={800}
+                        color="var(--ui-text-muted)"
+                        {...groupLabelSlot}
+                      >
+                        {group.group}
+                      </Typography>
+                    ) : null}
+
+                    <Box {...groupItemsSlot}>
+                      {group.items.map((item) => {
+                        const active = item.id === activeId;
+
+                        const itemSlot = resolveMergedSlot<CommandPaletteSlot>({
+                          slots: active ? ["item", "activeItem"] : ["item"],
+                          styles,
+                          slotProps,
+                          baseProps: {
+                            role: "option",
+                            "aria-selected": active,
+                            "data-ui-command-palette-item": "",
+                            "data-ui-command-palette-item-active":
+                              active || undefined,
+                            "data-ui-command-palette-item-disabled":
+                              item.disabled || undefined,
+                          },
+                          baseStyle: {
                             width: "100%",
                             minWidth: 0,
                             display: "block",
@@ -417,87 +552,138 @@ export function CommandPalette({
                               : "var(--ui-text)",
                             opacity: item.disabled ? 0.56 : 1,
                             cursor: item.disabled ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          <Flex
-                            align="center"
-                            gap="0.7rem"
-                            style={{
+                          },
+                        });
+
+                        const itemContentSlot =
+                          resolveSlot<CommandPaletteSlot>({
+                            slot: "itemContent",
+                            styles,
+                            slotProps,
+                            baseProps: {
+                              "data-ui-command-palette-item-content": "",
+                            },
+                            baseStyle: {
                               minWidth: 0,
+                            },
+                          });
+
+                        const itemIconSlot = resolveSlot<CommandPaletteSlot>({
+                          slot: "itemIcon",
+                          styles,
+                          slotProps,
+                          baseProps: {
+                            "aria-hidden": true,
+                            "data-ui-command-palette-item-icon": "",
+                          },
+                          baseStyle: {
+                            width: 30,
+                            height: 30,
+                            minWidth: 30,
+                            borderRadius: "var(--ui-radius-md)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: "1px solid var(--ui-border)",
+                            background:
+                              "color-mix(in srgb, var(--ui-surface-2) 78%, transparent)",
+                            flexShrink: 0,
+                          },
+                        });
+
+                        const itemTextSlot = resolveSlot<CommandPaletteSlot>({
+                          slot: "itemText",
+                          styles,
+                          slotProps,
+                          baseProps: {
+                            "data-ui-command-palette-item-text": "",
+                          },
+                          baseStyle: {
+                            minWidth: 0,
+                            flex: "1 1 auto",
+                          },
+                        });
+
+                        const itemLabelSlot = resolveSlot<CommandPaletteSlot>({
+                          slot: "itemLabel",
+                          styles,
+                          slotProps,
+                          baseProps: {
+                            "data-ui-command-palette-item-label": "",
+                          },
+                          baseStyle: {
+                            margin: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          },
+                        });
+
+                        const itemDescriptionSlot =
+                          resolveSlot<CommandPaletteSlot>({
+                            slot: "itemDescription",
+                            styles,
+                            slotProps,
+                            baseProps: {
+                              "data-ui-command-palette-item-description": "",
+                            },
+                            baseStyle: {
+                              marginTop: "0.18rem",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            },
+                          });
+
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            disabled={item.disabled}
+                            onMouseEnter={() => {
+                              if (!item.disabled) {
+                                setActiveId(item.id);
+                              }
                             }}
+                            onClick={() => selectItem(item)}
+                            {...itemSlot}
                           >
-                            {item.icon ? (
-                              <Box
-                                aria-hidden="true"
-                                style={{
-                                  width: 30,
-                                  height: 30,
-                                  minWidth: 30,
-                                  borderRadius: "var(--ui-radius-md)",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  border: "1px solid var(--ui-border)",
-                                  background:
-                                    "color-mix(in srgb, var(--ui-surface-2) 78%, transparent)",
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {item.icon}
-                              </Box>
-                            ) : null}
+                            <Flex align="center" gap="0.7rem" {...itemContentSlot}>
+                              {item.icon ? (
+                                <Box {...itemIconSlot}>{item.icon}</Box>
+                              ) : null}
 
-                            <Box
-                              style={{
-                                minWidth: 0,
-                                flex: "1 1 auto",
-                              }}
-                            >
-                              <Typography
-                                as="div"
-                                size="sm"
-                                weight={700}
-                                style={{
-                                  margin: 0,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {item.label}
-                              </Typography>
-
-                              {item.description ? (
+                              <Box {...itemTextSlot}>
                                 <Typography
                                   as="div"
-                                  size="xs"
-                                  color="var(--ui-text-muted)"
-                                  style={{
-                                    marginTop: "0.18rem",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
+                                  size="sm"
+                                  weight={700}
+                                  {...itemLabelSlot}
                                 >
-                                  {item.description}
+                                  {item.label}
                                 </Typography>
-                              ) : null}
-                            </Box>
-                          </Flex>
-                        </button>
-                      );
-                    })}
+
+                                {item.description ? (
+                                  <Typography
+                                    as="div"
+                                    size="xs"
+                                    color="var(--ui-text-muted)"
+                                    {...itemDescriptionSlot}
+                                  >
+                                    {item.description}
+                                  </Typography>
+                                ) : null}
+                              </Box>
+                            </Flex>
+                          </button>
+                        );
+                      })}
+                    </Box>
                   </Box>
-                </Box>
-              ))
+                );
+              })
             ) : (
-              <Box
-                style={{
-                  padding: "2.25rem 1rem",
-                  textAlign: "center",
-                  color: "var(--ui-text-muted)",
-                }}
-              >
+              <Box {...emptySlot}>
                 <Typography as="div" size="sm" weight={700}>
                   {emptyLabel}
                 </Typography>
@@ -555,7 +741,7 @@ export function CommandTrigger({
       data-ui-command-trigger-tone={tone}
       style={{
         width: fullWidth ? "100%" : undefined,
-        maxWidth: toCssSize(maxWidth),
+        maxWidth: maxWidth !== undefined ? cssSize(maxWidth) : undefined,
         height: sizeStyles.height,
         minWidth: 0,
         display: "flex",
