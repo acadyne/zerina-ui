@@ -3,8 +3,8 @@ import React from "react";
 import { Box } from "../../primitives/layout";
 import {
   BottomNavigation,
-  RecursiveFloatingMenuLayer,
 } from "../../primitives/navigation";
+import { RecursiveFloatingMenuLayer } from "../../primitives/navigation/RecursiveFloatingMenuLayer";
 import type {
   AppShellProcessedRoute,
   AppShellViewport,
