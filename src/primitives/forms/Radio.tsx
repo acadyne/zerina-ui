@@ -12,6 +12,7 @@ export type RadioSlot =
   | "input"
   | "control"
   | "indicator"
+  | "indicatorDot"
   | "label";
 
 export type RadioStyles = SlotStyleMap<RadioSlot>;
@@ -72,11 +73,12 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
 
     const WrapperTag = label ? "label" : "div";
 
-    const rootSlot = resolveSlot({
+    const rootSlot = resolveSlot<RadioSlot>({
       slot: "root",
       styles,
       slotProps,
       className,
+      style,
       baseStyle: {
         display: "inline-flex",
         alignItems: "center",
@@ -88,7 +90,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       },
     });
 
-    const controlSlot = resolveSlot({
+    const controlSlot = resolveSlot<RadioSlot>({
       slot: "control",
       styles,
       slotProps,
@@ -99,7 +101,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       },
     });
 
-    const inputSlot = resolveSlot({
+    const inputSlot = resolveSlot<RadioSlot>({
       slot: "input",
       styles,
       slotProps,
@@ -125,7 +127,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       },
     });
 
-    const indicatorSlot = resolveSlot({
+    const indicatorSlot = resolveSlot<RadioSlot>({
       slot: "indicator",
       styles,
       slotProps,
@@ -138,7 +140,21 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       },
     });
 
-    const labelSlot = resolveSlot({
+    const indicatorDotSlot = resolveSlot<RadioSlot>({
+      slot: "indicatorDot",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: Math.max(6, boxSize - 8),
+        height: Math.max(6, boxSize - 8),
+        borderRadius: "50%",
+        background: color,
+        transform: visualChecked ? "scale(1)" : "scale(0)",
+        transition: "transform 0.15s ease-in-out",
+      },
+    });
+
+    const labelSlot = resolveSlot<RadioSlot>({
       slot: "label",
       styles,
       slotProps,
@@ -156,10 +172,6 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       <WrapperTag
         {...rootSlot}
         {...(label ? { htmlFor: inputId } : {})}
-        style={{
-          ...rootSlot.style,
-          ...style,
-        }}
       >
         <span {...controlSlot}>
           <input
@@ -173,7 +185,6 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
             checked={resolvedChecked}
             defaultChecked={defaultChecked}
             disabled={resolvedDisabled}
-            style={inputSlot.style}
             onChange={(e) => {
               onChange?.(e);
 
@@ -192,16 +203,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
           />
 
           <span {...indicatorSlot}>
-            <span
-              style={{
-                width: Math.max(6, boxSize - 8),
-                height: Math.max(6, boxSize - 8),
-                borderRadius: "50%",
-                background: color,
-                transform: visualChecked ? "scale(1)" : "scale(0)",
-                transition: "transform 0.15s ease-in-out",
-              }}
-            />
+            <span {...indicatorDotSlot} />
           </span>
         </span>
 
