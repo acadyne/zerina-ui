@@ -14,11 +14,33 @@ import {
   MotionOverlayPresence,
   MotionOverlayRoot,
 } from "../../core/motion";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
 
 export type DrawerPlacement = "left" | "right";
+
+export type DrawerSlot =
+  | "root"
+  | "backdrop"
+  | "positioner"
+  | "focusScope"
+  | "panel"
+  | "header"
+  | "title"
+  | "description"
+  | "closeButton"
+  | "body"
+  | "footer";
+
+export type DrawerStyles = SlotStyleMap<DrawerSlot>;
+
+export type DrawerSlotProps = SlotPropsMap<DrawerSlot>;
 
 export interface DrawerProps {
   children?: React.ReactNode;
@@ -48,8 +70,9 @@ export interface DrawerProps {
 
   className?: string;
   style?: React.CSSProperties;
-  backdropStyle?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
+
+  styles?: DrawerStyles;
+  slotProps?: DrawerSlotProps;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -79,8 +102,9 @@ export const Drawer: React.FC<DrawerProps> = ({
 
   className = "",
   style,
-  backdropStyle,
-  contentStyle,
+
+  styles,
+  slotProps,
 }) => {
   const reactId = React.useId().replace(/:/g, "");
   const overlayId = overlayIdProp ?? `drawer-${reactId}`;
@@ -91,28 +115,148 @@ export const Drawer: React.FC<DrawerProps> = ({
     onOpenChange?.(false);
   }, [onOpenChange]);
 
+  const rootSlot = resolveSlot<DrawerSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-root": "",
+      "data-ui-drawer-open": open || undefined,
+      "data-ui-drawer-placement": placement,
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      zIndex: getLayerZIndex("modal"),
+      pointerEvents: "none",
+    },
+  });
+
+  const backdropSlot = resolveSlot<DrawerSlot>({
+    slot: "backdrop",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+      "data-ui-drawer-backdrop": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      background: "var(--ui-overlay)",
+      zIndex: getLayerZIndex("modalBackdrop"),
+      pointerEvents: "auto",
+    },
+  });
+
+  const positionerSlot = resolveSlot<DrawerSlot>({
+    slot: "positioner",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-positioner": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      top: 0,
+      bottom: 0,
+      left: placement === "left" ? 0 : undefined,
+      right: placement === "right" ? 0 : undefined,
+      zIndex: getLayerZIndex("modal"),
+      width: size,
+      maxWidth: "100vw",
+      pointerEvents: "auto",
+    },
+  });
+
+  const focusScopeSlot = resolveSlot<DrawerSlot>({
+    slot: "focusScope",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-drawer-focus-scope": "",
+    },
+    baseStyle: {
+      height: "100%",
+      minHeight: 0,
+      outline: "none",
+    },
+  });
+
+  const panelSlot = resolveSlot<DrawerSlot>({
+    slot: "panel",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-drawer-panel": "",
+    },
+    baseStyle: {
+      width: "100%",
+      height: "100%",
+      minHeight: 0,
+      display: "flex",
+      flexDirection: "column",
+      background: "var(--ui-surface)",
+      color: "var(--ui-text)",
+      borderLeft:
+        placement === "right" ? "1px solid var(--ui-border)" : undefined,
+      borderRight:
+        placement === "left" ? "1px solid var(--ui-border)" : undefined,
+      boxShadow: "var(--ui-shadow-lg)",
+      outline: "none",
+      overflow: "hidden",
+    },
+  });
+
+  const headerSlot = resolveSlot<DrawerSlot>({
+    slot: "header",
+    styles,
+    slotProps,
+  });
+
+  const titleSlot = resolveSlot<DrawerSlot>({
+    slot: "title",
+    styles,
+    slotProps,
+  });
+
+  const descriptionSlot = resolveSlot<DrawerSlot>({
+    slot: "description",
+    styles,
+    slotProps,
+  });
+
+  const closeButtonSlot = resolveSlot<DrawerSlot>({
+    slot: "closeButton",
+    styles,
+    slotProps,
+  });
+
+  function pickMotionSlotProps(slot: {
+  className?: string;
+  style?: React.CSSProperties;
+  [key: `data-${string}`]: unknown;
+  [key: `aria-${string}`]: unknown;
+}) {
+  const { className, style, ...rest } = slot;
+
+  return {
+    className,
+    style,
+    ...Object.fromEntries(
+      Object.entries(rest).filter(
+        ([key]) => key.startsWith("data-") || key.startsWith("aria-")
+      )
+    ),
+  };
+}
+
   const content = (
     <MotionOverlayPresence open={open}>
-      <MotionOverlayRoot
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: getLayerZIndex("modal"),
-          pointerEvents: "none",
-        }}
-      >
-        <MotionOverlayBackdrop
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "var(--ui-overlay)",
-            zIndex: getLayerZIndex("modalBackdrop"),
-            pointerEvents: "auto",
-            ...backdropStyle,
-          }}
-        />
-
+      <MotionOverlayRoot {...pickMotionSlotProps(rootSlot)}>
+        <MotionOverlayBackdrop {...pickMotionSlotProps(backdropSlot)} />
         <DismissableLayer
           overlayId={overlayId}
           layer={getLayerZIndex("modal")}
@@ -120,17 +264,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           dismissOnEscape={closeOnEscape}
           dismissOnPointerDownOutside={closeOnPointerDownOutside}
           onDismiss={handleClose}
-          style={{
-            position: "fixed",
-            top: 0,
-            bottom: 0,
-            left: placement === "left" ? 0 : undefined,
-            right: placement === "right" ? 0 : undefined,
-            zIndex: getLayerZIndex("modal"),
-            width: size,
-            maxWidth: "100vw",
-            pointerEvents: "auto",
-          }}
+          {...positionerSlot}
         >
           <FocusScope
             overlayId={overlayId}
@@ -139,11 +273,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             autoFocus={autoFocus}
             restoreFocus={restoreFocus}
             initialFocusRef={initialFocusRef}
-            style={{
-              height: "100%",
-              minHeight: 0,
-              outline: "none",
-            }}
+            {...focusScopeSlot}
           >
             <MotionOverlayPanel
               as="aside"
@@ -153,45 +283,33 @@ export const Drawer: React.FC<DrawerProps> = ({
               aria-modal="true"
               aria-labelledby={title ? titleId : undefined}
               aria-describedby={description ? descriptionId : undefined}
-              className={className}
-              style={{
-                width: "100%",
-                height: "100%",
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                background: "var(--ui-surface)",
-                color: "var(--ui-text)",
-                borderLeft:
-                  placement === "right"
-                    ? "1px solid var(--ui-border)"
-                    : undefined,
-                borderRight:
-                  placement === "left"
-                    ? "1px solid var(--ui-border)"
-                    : undefined,
-                boxShadow: "var(--ui-shadow-lg)",
-                outline: "none",
-                overflow: "hidden",
-                ...style,
-              }}
+              {...pickMotionSlotProps(panelSlot)}
             >
               {title || description || showCloseButton ? (
-                <DrawerHeader style={contentStyle}>
+                <DrawerHeader {...headerSlot}>
                   <Box style={{ flex: 1, minWidth: 0 }}>
                     {title ? (
-                      <DrawerTitle id={titleId}>{title}</DrawerTitle>
+                      <DrawerTitle id={titleId} {...titleSlot}>
+                        {title}
+                      </DrawerTitle>
                     ) : null}
 
                     {description ? (
-                      <DrawerDescription id={descriptionId}>
+                      <DrawerDescription
+                        id={descriptionId}
+                        {...descriptionSlot}
+                      >
                         {description}
                       </DrawerDescription>
                     ) : null}
                   </Box>
 
                   {showCloseButton ? (
-                    <DrawerClose onClose={handleClose} />
+                    <DrawerClose
+                      onClose={handleClose}
+                      className={closeButtonSlot.className}
+                      style={closeButtonSlot.style}
+                    />
                   ) : null}
                 </DrawerHeader>
               ) : null}
@@ -304,26 +422,27 @@ export interface DrawerTitleProps
   children?: React.ReactNode;
 }
 
-export const DrawerTitle = React.forwardRef<HTMLHeadingElement, DrawerTitleProps>(
-  ({ children, style, ...rest }, ref) => {
-    return (
-      <h2
-        ref={ref}
-        style={{
-          margin: 0,
-          color: "var(--ui-text)",
-          fontSize: "1.05rem",
-          fontWeight: 800,
-          lineHeight: 1.2,
-          ...style,
-        }}
-        {...rest}
-      >
-        {children}
-      </h2>
-    );
-  }
-);
+export const DrawerTitle = React.forwardRef<
+  HTMLHeadingElement,
+  DrawerTitleProps
+>(({ children, style, ...rest }, ref) => {
+  return (
+    <h2
+      ref={ref}
+      style={{
+        margin: 0,
+        color: "var(--ui-text)",
+        fontSize: "1.05rem",
+        fontWeight: 800,
+        lineHeight: 1.2,
+        ...style,
+      }}
+      {...rest}
+    >
+      {children}
+    </h2>
+  );
+});
 
 DrawerTitle.displayName = "DrawerTitle";
 
@@ -358,10 +477,12 @@ DrawerDescription.displayName = "DrawerDescription";
 export interface DrawerCloseProps {
   onClose?: () => void;
   ariaLabel?: string;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const DrawerClose = React.forwardRef<HTMLButtonElement, DrawerCloseProps>(
-  ({ onClose, ariaLabel = "Cerrar" }, ref) => {
+  ({ onClose, ariaLabel = "Cerrar", className, style }, ref) => {
     return (
       <IconButton
         ref={ref}
@@ -370,6 +491,8 @@ export const DrawerClose = React.forwardRef<HTMLButtonElement, DrawerCloseProps>
         size="sm"
         variant="ghost"
         onClick={onClose}
+        className={className}
+        style={style}
       />
     );
   }

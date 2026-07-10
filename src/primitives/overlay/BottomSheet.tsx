@@ -14,9 +14,33 @@ import {
   MotionOverlayPresence,
   MotionOverlayRoot,
 } from "../../core/motion";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
+
+export type BottomSheetSlot =
+  | "root"
+  | "backdrop"
+  | "positioner"
+  | "focusScope"
+  | "panel"
+  | "handle"
+  | "handleIndicator"
+  | "header"
+  | "title"
+  | "description"
+  | "closeButton"
+  | "body"
+  | "footer";
+
+export type BottomSheetStyles = SlotStyleMap<BottomSheetSlot>;
+
+export type BottomSheetSlotProps = SlotPropsMap<BottomSheetSlot>;
 
 export interface BottomSheetProps {
   children?: React.ReactNode;
@@ -47,8 +71,9 @@ export interface BottomSheetProps {
 
   className?: string;
   style?: React.CSSProperties;
-  backdropStyle?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
+
+  styles?: BottomSheetStyles;
+  slotProps?: BottomSheetSlotProps;
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -79,8 +104,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   className = "",
   style,
-  backdropStyle,
-  contentStyle,
+
+  styles,
+  slotProps,
 }) => {
   const reactId = React.useId().replace(/:/g, "");
   const overlayId = overlayIdProp ?? `bottom-sheet-${reactId}`;
@@ -91,27 +117,161 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     onOpenChange?.(false);
   }, [onOpenChange]);
 
+  const rootSlot = resolveSlot<BottomSheetSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-bottom-sheet-root": "",
+      "data-ui-bottom-sheet-open": open || undefined,
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      zIndex: getLayerZIndex("modal"),
+      pointerEvents: "none",
+    },
+  });
+
+  const backdropSlot = resolveSlot<BottomSheetSlot>({
+    slot: "backdrop",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+      "data-ui-bottom-sheet-backdrop": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      background: "var(--ui-overlay)",
+      zIndex: getLayerZIndex("modalBackdrop"),
+      pointerEvents: "auto",
+    },
+  });
+
+  const positionerSlot = resolveSlot<BottomSheetSlot>({
+    slot: "positioner",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-bottom-sheet-positioner": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: getLayerZIndex("modal"),
+      display: "flex",
+      justifyContent: "center",
+      pointerEvents: "auto",
+    },
+  });
+
+  const focusScopeSlot = resolveSlot<BottomSheetSlot>({
+    slot: "focusScope",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-bottom-sheet-focus-scope": "",
+    },
+    baseStyle: {
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      outline: "none",
+    },
+  });
+
+  const panelSlot = resolveSlot<BottomSheetSlot>({
+    slot: "panel",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-bottom-sheet-panel": "",
+    },
+    baseStyle: {
+      width: "100%",
+      height,
+      maxHeight,
+      minHeight: 0,
+      display: "flex",
+      flexDirection: "column",
+      background: "var(--ui-surface)",
+      color: "var(--ui-text)",
+      borderTopLeftRadius: "var(--ui-radius-xl)",
+      borderTopRightRadius: "var(--ui-radius-xl)",
+      border: "1px solid var(--ui-border)",
+      borderBottom: "none",
+      boxShadow: "var(--ui-shadow-lg)",
+      outline: "none",
+      overflow: "hidden",
+      paddingBottom: "env(safe-area-inset-bottom)",
+    },
+  });
+
+  const handleSlot = resolveSlot<BottomSheetSlot>({
+    slot: "handle",
+    styles,
+    slotProps,
+  });
+
+  const handleIndicatorSlot = resolveSlot<BottomSheetSlot>({
+    slot: "handleIndicator",
+    styles,
+    slotProps,
+  });
+
+  const headerSlot = resolveSlot<BottomSheetSlot>({
+    slot: "header",
+    styles,
+    slotProps,
+  });
+
+  const titleSlot = resolveSlot<BottomSheetSlot>({
+    slot: "title",
+    styles,
+    slotProps,
+  });
+
+  const descriptionSlot = resolveSlot<BottomSheetSlot>({
+    slot: "description",
+    styles,
+    slotProps,
+  });
+
+  const closeButtonSlot = resolveSlot<BottomSheetSlot>({
+    slot: "closeButton",
+    styles,
+    slotProps,
+  });
+
+  function pickMotionSlotProps(slot: {
+  className?: string;
+  style?: React.CSSProperties;
+  [key: `data-${string}`]: unknown;
+  [key: `aria-${string}`]: unknown;
+}) {
+  const { className, style, ...rest } = slot;
+
+  return {
+    className,
+    style,
+    ...Object.fromEntries(
+      Object.entries(rest).filter(
+        ([key]) => key.startsWith("data-") || key.startsWith("aria-")
+      )
+    ),
+  };
+}
+
   const content = (
     <MotionOverlayPresence open={open}>
-      <MotionOverlayRoot
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: getLayerZIndex("modal"),
-          pointerEvents: "none",
-        }}
-      >
-        <MotionOverlayBackdrop
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "var(--ui-overlay)",
-            zIndex: getLayerZIndex("modalBackdrop"),
-            pointerEvents: "auto",
-            ...backdropStyle,
-          }}
-        />
+      <MotionOverlayRoot {...pickMotionSlotProps(rootSlot)}>
+        <MotionOverlayBackdrop {...pickMotionSlotProps(backdropSlot)} />
 
         <DismissableLayer
           overlayId={overlayId}
@@ -120,16 +280,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           dismissOnEscape={closeOnEscape}
           dismissOnPointerDownOutside={closeOnPointerDownOutside}
           onDismiss={handleClose}
-          style={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: getLayerZIndex("modal"),
-            display: "flex",
-            justifyContent: "center",
-            pointerEvents: "auto",
-          }}
+          {...positionerSlot}
         >
           <FocusScope
             overlayId={overlayId}
@@ -138,12 +289,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             autoFocus={autoFocus}
             restoreFocus={restoreFocus}
             initialFocusRef={initialFocusRef}
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              outline: "none",
-            }}
+            {...focusScopeSlot}
           >
             <MotionOverlayPanel
               as="section"
@@ -152,47 +298,40 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               aria-modal="true"
               aria-labelledby={title ? titleId : undefined}
               aria-describedby={description ? descriptionId : undefined}
-              className={className}
-              style={{
-                width: "100%",
-                height,
-                maxHeight,
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                background: "var(--ui-surface)",
-                color: "var(--ui-text)",
-                borderTopLeftRadius: "var(--ui-radius-xl)",
-                borderTopRightRadius: "var(--ui-radius-xl)",
-                border: "1px solid var(--ui-border)",
-                borderBottom: "none",
-                boxShadow: "var(--ui-shadow-lg)",
-                outline: "none",
-                overflow: "hidden",
-                paddingBottom: "env(safe-area-inset-bottom)",
-                ...style,
-              }}
+              {...pickMotionSlotProps(panelSlot)}
             >
-              {showHandle ? <BottomSheetHandle /> : null}
+              {showHandle ? (
+                <BottomSheetHandle
+                  {...handleSlot}
+                  indicatorProps={handleIndicatorSlot}
+                />
+              ) : null}
 
               {title || description || showCloseButton ? (
-                <BottomSheetHeader style={contentStyle}>
+                <BottomSheetHeader {...headerSlot}>
                   <Box style={{ flex: 1, minWidth: 0 }}>
                     {title ? (
-                      <BottomSheetTitle id={titleId}>
+                      <BottomSheetTitle id={titleId} {...titleSlot}>
                         {title}
                       </BottomSheetTitle>
                     ) : null}
 
                     {description ? (
-                      <BottomSheetDescription id={descriptionId}>
+                      <BottomSheetDescription
+                        id={descriptionId}
+                        {...descriptionSlot}
+                      >
                         {description}
                       </BottomSheetDescription>
                     ) : null}
                   </Box>
 
                   {showCloseButton ? (
-                    <BottomSheetClose onClose={handleClose} />
+                    <BottomSheetClose
+                      onClose={handleClose}
+                      className={closeButtonSlot.className}
+                      style={closeButtonSlot.style}
+                    />
                   ) : null}
                 </BottomSheetHeader>
               ) : null}
@@ -215,12 +354,16 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 BottomSheet.displayName = "BottomSheet";
 
 export interface BottomSheetHandleProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> {
+  indicatorProps?: React.HTMLAttributes<HTMLDivElement>;
+}
 
 export const BottomSheetHandle = React.forwardRef<
   HTMLDivElement,
   BottomSheetHandleProps
->(({ style, ...rest }, ref) => {
+>(({ indicatorProps, style, ...rest }, ref) => {
+  const { style: indicatorStyle, ...indicatorRest } = indicatorProps ?? {};
+
   return (
     <Flex
       ref={ref}
@@ -240,7 +383,9 @@ export const BottomSheetHandle = React.forwardRef<
           borderRadius: 999,
           background: "var(--ui-border-strong)",
           opacity: 0.8,
+          ...indicatorStyle,
         }}
+        {...indicatorRest}
       />
     </Flex>
   );
@@ -400,12 +545,14 @@ BottomSheetDescription.displayName = "BottomSheetDescription";
 export interface BottomSheetCloseProps {
   onClose?: () => void;
   ariaLabel?: string;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const BottomSheetClose = React.forwardRef<
   HTMLButtonElement,
   BottomSheetCloseProps
->(({ onClose, ariaLabel = "Cerrar" }, ref) => {
+>(({ onClose, ariaLabel = "Cerrar", className, style }, ref) => {
   return (
     <IconButton
       ref={ref}
@@ -414,6 +561,8 @@ export const BottomSheetClose = React.forwardRef<
       size="sm"
       variant="ghost"
       onClick={onClose}
+      className={className}
+      style={style}
     />
   );
 });
