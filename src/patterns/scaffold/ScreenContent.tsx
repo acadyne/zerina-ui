@@ -1,6 +1,12 @@
 // src/patterns/scaffold/ScreenContent.tsx
 import React from "react";
 import {
+  cssSize,
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+import {
   Box,
   type BoxProps,
   ScrollArea,
@@ -22,6 +28,12 @@ export interface ScreenContentSafeAreaEdges {
   bottom?: boolean;
   left?: boolean;
 }
+
+export type ScreenContentSlot = "root" | "scrollArea" | "content";
+
+export type ScreenContentStyles = SlotStyleMap<ScreenContentSlot>;
+
+export type ScreenContentSlotProps = SlotPropsMap<ScreenContentSlot>;
 
 export interface ScreenContentProps
   extends Omit<BoxProps<"div">, "children"> {
@@ -88,15 +100,8 @@ export interface ScreenContentProps
   className?: string;
   style?: React.CSSProperties;
 
-  /**
-   * Cuando scrollable=true, este estilo va al Box interno.
-   * Cuando scrollable=false, se mezcla con el root.
-   */
-  contentStyle?: React.CSSProperties;
-}
-
-function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
+  styles?: ScreenContentStyles;
+  slotProps?: ScreenContentSlotProps;
 }
 
 function resolvePadding({
@@ -222,7 +227,9 @@ export const ScreenContent = React.forwardRef<
 
       className = "",
       style,
-      contentStyle,
+
+      styles,
+      slotProps,
 
       ...rest
     },
@@ -234,27 +241,63 @@ export const ScreenContent = React.forwardRef<
       safeArea,
     });
 
-    const innerContent = (
-      <Box
-        data-ui-screen-content-inner=""
-        style={{
-          width: "100%",
-          maxWidth:
-            maxContentWidth !== undefined ? cssSize(maxContentWidth) : undefined,
-          minWidth: 0,
-          minHeight: centered ? "100%" : 0,
-          boxSizing: "border-box",
-          marginLeft: centerContent && maxContentWidth !== undefined ? "auto" : undefined,
-          marginRight: centerContent && maxContentWidth !== undefined ? "auto" : undefined,
-          display: centered ? "grid" : undefined,
-          placeItems: centered ? "center" : undefined,
-          ...paddingStyles,
-          ...contentStyle,
-        }}
-      >
-        {children}
-      </Box>
-    );
+    const rootSlot = resolveSlot<ScreenContentSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-screen-content": "",
+        "data-ui-screen-content-scrollable": scrollable || undefined,
+      },
+      baseStyle: {
+        width: "100%",
+        height: fill ? "100%" : undefined,
+        minWidth: 0,
+        minHeight: 0,
+        boxSizing: "border-box",
+      },
+    });
+
+    const scrollAreaSlot = resolveSlot<ScreenContentSlot>({
+      slot: "scrollArea",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: "100%",
+        height: fill ? "100%" : undefined,
+        minWidth: 0,
+        minHeight: 0,
+        boxSizing: "border-box",
+      },
+    });
+
+    const contentSlot = resolveSlot<ScreenContentSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseProps: {
+        "data-ui-screen-content-inner": "",
+      },
+      baseStyle: {
+        width: "100%",
+        maxWidth:
+          maxContentWidth !== undefined
+            ? cssSize(maxContentWidth)
+            : undefined,
+        minWidth: 0,
+        minHeight: centered ? "100%" : 0,
+        boxSizing: "border-box",
+        marginLeft:
+          centerContent && maxContentWidth !== undefined ? "auto" : undefined,
+        marginRight:
+          centerContent && maxContentWidth !== undefined ? "auto" : undefined,
+        display: centered ? "grid" : undefined,
+        placeItems: centered ? "center" : undefined,
+        ...paddingStyles,
+      },
+    });
 
     if (scrollable) {
       return (
@@ -265,20 +308,14 @@ export const ScreenContent = React.forwardRef<
           contain={contain}
           momentum={momentum}
           touchAction={touchAction}
-          className={className}
-          data-ui-screen-content=""
-          data-ui-screen-content-scrollable=""
           {...rest}
+          {...rootSlot}
           style={{
-            width: "100%",
-            height: fill ? "100%" : undefined,
-            minWidth: 0,
-            minHeight: 0,
-            boxSizing: "border-box",
-            ...style,
+            ...rootSlot.style,
+            ...scrollAreaSlot.style,
           }}
         >
-          {innerContent}
+          <Box {...contentSlot}>{children}</Box>
         </ScrollArea>
       );
     }
@@ -286,21 +323,14 @@ export const ScreenContent = React.forwardRef<
     return (
       <Box
         ref={ref}
-        className={className}
-        data-ui-screen-content=""
         {...rest}
+        {...rootSlot}
         style={{
-          width: "100%",
-          height: fill ? "100%" : undefined,
-          minWidth: 0,
-          minHeight: 0,
-          boxSizing: "border-box",
+          ...rootSlot.style,
           overflow: "hidden",
           display: centered ? "grid" : undefined,
           placeItems: centered ? "center" : undefined,
           ...paddingStyles,
-          ...contentStyle,
-          ...style,
         }}
       >
         {children}

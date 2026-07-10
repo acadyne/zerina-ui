@@ -1,8 +1,26 @@
 // src/patterns/scaffold/MobileScaffold.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Box, Screen, ScrollArea } from "../../primitives/layout";
 
 export type ScaffoldViewport = "window" | "contained";
+
+export type MobileScaffoldSlot =
+  | "root"
+  | "appBar"
+  | "body"
+  | "scrollArea"
+  | "content"
+  | "floating"
+  | "footer";
+
+export type MobileScaffoldStyles = SlotStyleMap<MobileScaffoldSlot>;
+
+export type MobileScaffoldSlotProps = SlotPropsMap<MobileScaffoldSlot>;
 
 export interface MobileScaffoldProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
@@ -42,7 +60,7 @@ export interface MobileScaffoldProps
   scrollable?: boolean;
 
   /**
-   * Aplica padding horizontal/vertical al body.
+   * Aplica padding horizontal/vertical al content.
    */
   padded?: boolean;
 
@@ -53,15 +71,15 @@ export interface MobileScaffoldProps
 
   /**
    * Cuando hay bottomBar/bottomNavigation, agrega padding inferior
-   * al área scrolleable para evitar que el contenido quede tapado.
+   * al área de contenido para evitar que quede tapado.
    */
   reserveBottomInset?: boolean;
 
   className?: string;
   style?: React.CSSProperties;
-  bodyStyle?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
-  floatingStyle?: React.CSSProperties;
+
+  styles?: MobileScaffoldStyles;
+  slotProps?: MobileScaffoldSlotProps;
 }
 
 function getViewportHeight(viewport: ScaffoldViewport): string {
@@ -111,9 +129,9 @@ export function MobileScaffold({
 
   className = "",
   style,
-  bodyStyle,
-  contentStyle,
-  floatingStyle,
+
+  styles,
+  slotProps,
 
   ...rest
 }: MobileScaffoldProps) {
@@ -127,26 +145,114 @@ export function MobileScaffold({
     reserveBottomInset,
   });
 
-  const body = (
-    <Box
-      style={{
-        width: "100%",
-        height: scrollable ? undefined : "100%",
-        minWidth: 0,
-        minHeight: 0,
-        boxSizing: "border-box",
-        overflow: scrollable ? undefined : "hidden",
-        ...bodyPaddingStyles,
-        ...contentStyle,
-      }}
-    >
-      {children}
-    </Box>
-  );
+  const rootSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    style,
+    baseProps: {
+      "data-ui-mobile-scaffold": "",
+      "data-ui-mobile-scaffold-viewport": viewport,
+      "data-ui-mobile-scaffold-scrollable": scrollable || undefined,
+    },
+    baseStyle: {
+      height: getViewportHeight(viewport),
+      minHeight: isContained ? 0 : getViewportHeight(viewport),
+      width: "100%",
+      minWidth: 0,
+      position: "relative",
+      overflow: "hidden",
+      background: "var(--ui-bg)",
+      color: "var(--ui-text)",
+    },
+  });
+
+  const appBarSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "appBar",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-app-bar": "",
+    },
+  });
+
+  const bodySlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "body",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-body": "",
+    },
+    baseStyle: {
+      minWidth: 0,
+      minHeight: 0,
+      overflow: "hidden",
+    },
+  });
+
+  const scrollAreaSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "scrollArea",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-scroll-area": "",
+    },
+    baseStyle: {
+      width: "100%",
+      height: "100%",
+    },
+  });
+
+  const contentSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "content",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-content": "",
+    },
+    baseStyle: {
+      width: "100%",
+      height: scrollable ? undefined : "100%",
+      minWidth: 0,
+      minHeight: 0,
+      boxSizing: "border-box",
+      overflow: scrollable ? undefined : "hidden",
+      ...bodyPaddingStyles,
+    },
+  });
+
+  const floatingSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "floating",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-floating": "",
+    },
+    baseStyle: {
+      position: "absolute",
+      right: "max(1rem, env(safe-area-inset-right, 0px))",
+      bottom: hasBottom
+        ? "calc(5.25rem + env(safe-area-inset-bottom, 0px))"
+        : "max(1rem, env(safe-area-inset-bottom, 0px))",
+      zIndex: 30,
+    },
+  });
+
+  const footerSlot = resolveSlot<MobileScaffoldSlot>({
+    slot: "footer",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-mobile-scaffold-footer": "",
+    },
+  });
+
+  const body = <Box {...contentSlot}>{children}</Box>;
 
   return (
     <Screen
-      className={className}
+      className={rootSlot.className}
       fullHeight={viewport === "window"}
       safeArea={
         safeArea
@@ -159,38 +265,15 @@ export function MobileScaffold({
           : false
       }
       {...rest}
-      style={{
-        height: getViewportHeight(viewport),
-        minHeight: isContained ? 0 : getViewportHeight(viewport),
-        width: "100%",
-        minWidth: 0,
-        position: "relative",
-        overflow: "hidden",
-        background: "var(--ui-bg)",
-        color: "var(--ui-text)",
-        ...style,
-      }}
+      style={rootSlot.style}
     >
-      {appBar ? <Screen.Header>{appBar}</Screen.Header> : null}
+      {appBar ? (
+        <Screen.Header {...appBarSlot}>{appBar}</Screen.Header>
+      ) : null}
 
-      <Screen.Body
-        style={{
-          minWidth: 0,
-          minHeight: 0,
-          overflow: "hidden",
-          ...bodyStyle,
-        }}
-      >
+      <Screen.Body {...bodySlot}>
         {scrollable ? (
-          <ScrollArea
-            axis="y"
-            contain
-            momentum
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
-          >
+          <ScrollArea axis="y" contain momentum {...scrollAreaSlot}>
             {body}
           </ScrollArea>
         ) : (
@@ -198,23 +281,9 @@ export function MobileScaffold({
         )}
       </Screen.Body>
 
-      {floating ? (
-        <Box
-          style={{
-            position: "absolute",
-            right: "max(1rem, env(safe-area-inset-right, 0px))",
-            bottom: hasBottom
-              ? "calc(5.25rem + env(safe-area-inset-bottom, 0px))"
-              : "max(1rem, env(safe-area-inset-bottom, 0px))",
-            zIndex: 30,
-            ...floatingStyle,
-          }}
-        >
-          {floating}
-        </Box>
-      ) : null}
+      {floating ? <Box {...floatingSlot}>{floating}</Box> : null}
 
-      {bottom ? <Screen.Footer>{bottom}</Screen.Footer> : null}
+      {bottom ? <Screen.Footer {...footerSlot}>{bottom}</Screen.Footer> : null}
     </Screen>
   );
 }
