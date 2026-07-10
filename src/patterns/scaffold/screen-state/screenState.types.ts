@@ -19,6 +19,8 @@ export type ScreenStateStatus = "loading" | "error" | "empty" | "success";
 
 export type ScreenStateSlot =
   | "root"
+  | "content"
+  | "panel"
   | "loading"
   | "empty"
   | "error"
@@ -122,7 +124,6 @@ export interface ScreenStateProps
 
   className?: string;
   style?: React.CSSProperties;
-  contentStyle?: React.CSSProperties;
 
   styles?: ScreenStateStyles;
   slotProps?: ScreenStateSlotProps;

@@ -7,8 +7,9 @@ import {
 } from "../../../components/feedback";
 import {
   cx,
-  getSlotProps,
-  getSlotStyle,
+  mergeStyles,
+  resolveMergedSlot,
+  resolveSlot,
   type SlotElementProps,
 } from "../../../helpers/css";
 import { Button } from "../../../primitives/forms";
@@ -20,31 +21,13 @@ import type {
   ScreenStateRenderContext,
   ScreenStateSlot,
   ScreenStateSlotProps,
+  ScreenStateStyles,
 } from "./screenState.types";
 import {
   createScreenStateContext,
   getScreenStateErrorMessage,
   resolveScreenStateStatus,
 } from "./screenState.utils";
-
-interface ResolvedSlotProps {
-  className?: string;
-  style?: React.CSSProperties;
-  rest: Omit<SlotElementProps, "className" | "style">;
-}
-
-function resolveSlotProps(
-  slotProps: ScreenStateSlotProps | undefined,
-  slot: ScreenStateSlot
-): ResolvedSlotProps {
-  const { className, style, ...rest } = getSlotProps(slotProps, slot);
-
-  return {
-    className,
-    style,
-    rest,
-  };
-}
 
 function renderSuccess({
   children,
@@ -58,6 +41,36 @@ function renderSuccess({
   }
 
   return children ?? null;
+}
+
+function resolveScreenStatePanelSlot({
+  status,
+  styles,
+  slotProps,
+}: {
+  status: Exclude<ScreenStateRenderContext["status"], "success">;
+  styles?: ScreenStateStyles;
+  slotProps?: ScreenStateSlotProps;
+}): SlotElementProps {
+  return resolveMergedSlot<ScreenStateSlot>({
+    slots: ["panel", status],
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-screen-state-panel": "",
+      "data-ui-screen-state-panel-status": status,
+      "data-ui-screen-state-loading": status === "loading" || undefined,
+      "data-ui-screen-state-empty": status === "empty" || undefined,
+      "data-ui-screen-state-error": status === "error" || undefined,
+    },
+    baseStyle: {
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minWidth: 0,
+    },
+  });
 }
 
 export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
@@ -110,7 +123,6 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
 
       className = "",
       style,
-      contentStyle,
 
       styles,
       slotProps,
@@ -138,13 +150,11 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
       [empty, error, loading, onRetry, resolvedStatus]
     );
 
-    const rootSlot = resolveSlotProps(slotProps, "root");
-    const stateSlot = resolveSlotProps(slotProps, resolvedStatus);
-
     const {
       className: screenContentClassName,
       style: screenContentStyle,
-      contentStyle: screenContentContentStyle,
+      styles: screenContentStyles,
+      slotProps: screenContentSlotProps,
       ...screenContentRest
     } = screenContentProps ?? {};
 
@@ -153,14 +163,38 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
         ? renderSuccessProp(context)
         : renderSuccess({ children, context });
 
+      const rootSlot = resolveSlot<ScreenStateSlot>({
+        slot: "root",
+        styles,
+        slotProps,
+        className,
+        style,
+        baseProps: {
+          "data-ui-screen-state": "",
+          "data-ui-screen-state-status": "success",
+        },
+        baseStyle: {
+          width: "100%",
+          minWidth: 0,
+          minHeight: 0,
+        },
+      });
+
+      const successSlot = resolveSlot<ScreenStateSlot>({
+        slot: "success",
+        styles,
+        slotProps,
+        baseProps: {
+          "data-ui-screen-state-success": "",
+        },
+      });
+
       const shouldWrapSuccess =
-        Boolean(className) ||
-        Boolean(style) ||
-        Object.keys(rest).length > 0 ||
-        Boolean(getSlotStyle(styles, "root")) ||
-        Boolean(getSlotStyle(styles, "success")) ||
-        Boolean(slotProps?.root) ||
-        Boolean(slotProps?.success);
+        Boolean(rootSlot.className) ||
+        Boolean(successSlot.className) ||
+        Boolean(rootSlot.style && Object.keys(rootSlot.style).length > 0) ||
+        Boolean(successSlot.style && Object.keys(successSlot.style).length > 0) ||
+        Object.keys(rest).length > 0;
 
       if (!shouldWrapSuccess) {
         return <>{successNode}</>;
@@ -169,23 +203,11 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
       return (
         <Box
           ref={ref}
-          className={cx(className, rootSlot.className, stateSlot.className)}
-          data-ui-screen-state=""
-          data-ui-screen-state-status="success"
-          data-ui-screen-state-success=""
-          {...rootSlot.rest}
-          {...stateSlot.rest}
+          {...rootSlot}
+          {...successSlot}
           {...rest}
-          style={{
-            width: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            ...getSlotStyle(styles, "root"),
-            ...rootSlot.style,
-            ...style,
-            ...getSlotStyle(styles, "success"),
-            ...stateSlot.style,
-          }}
+          className={cx(rootSlot.className, successSlot.className)}
+          style={mergeStyles(rootSlot.style, successSlot.style)}
         >
           {successNode}
         </Box>
@@ -265,6 +287,30 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
         />
       );
 
+    const rootSlot = resolveSlot<ScreenStateSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className: cx(className, screenContentClassName),
+      style: mergeStyles(style, screenContentStyle),
+      baseProps: {
+        "data-ui-screen-state": "",
+        "data-ui-screen-state-status": resolvedStatus,
+      },
+    });
+
+    const contentSlot = resolveSlot<ScreenStateSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+    });
+
+    const panelSlot = resolveScreenStatePanelSlot({
+      status: resolvedStatus,
+      styles,
+      slotProps,
+    });
+
     return (
       <ScreenContent
         ref={ref}
@@ -273,45 +319,39 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
         centered={centered}
         fill={fill}
         scrollable={scrollable}
-        className={cx(className, screenContentClassName, rootSlot.className)}
-        contentStyle={{
-          ...contentStyle,
-          ...screenContentContentStyle,
-        }}
-        data-ui-screen-state=""
-        data-ui-screen-state-status={resolvedStatus}
         {...screenContentRest}
-        {...rootSlot.rest}
         {...rest}
-        style={{
-          ...getSlotStyle(styles, "root"),
-          ...rootSlot.style,
-          ...style,
-          ...screenContentStyle,
+        {...rootSlot}
+        styles={{
+          ...screenContentStyles,
+          root: {
+            ...screenContentStyles?.root,
+            ...rootSlot.style,
+          },
+          content: {
+            ...screenContentStyles?.content,
+            ...contentSlot.style,
+          },
+        }}
+        slotProps={{
+          ...screenContentSlotProps,
+          root: {
+            ...screenContentSlotProps?.root,
+            className: cx(
+              screenContentSlotProps?.root?.className,
+              rootSlot.className
+            ),
+          },
+          content: {
+            ...screenContentSlotProps?.content,
+            className: cx(
+              screenContentSlotProps?.content?.className,
+              contentSlot.className
+            ),
+          },
         }}
       >
-        <Box
-          className={stateSlot.className}
-          data-ui-screen-state-panel=""
-          data-ui-screen-state-panel-status={resolvedStatus}
-          data-ui-screen-state-loading={
-            resolvedStatus === "loading" || undefined
-          }
-          data-ui-screen-state-empty={resolvedStatus === "empty" || undefined}
-          data-ui-screen-state-error={resolvedStatus === "error" || undefined}
-          {...stateSlot.rest}
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minWidth: 0,
-            ...getSlotStyle(styles, resolvedStatus),
-            ...stateSlot.style,
-          }}
-        >
-          {stateNode}
-        </Box>
+        <Box {...panelSlot}>{stateNode}</Box>
       </ScreenContent>
     );
   }
