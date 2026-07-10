@@ -143,10 +143,6 @@ export interface TabScaffoldProps
   onTabChange?: (tab: string) => void;
 
   fallback?: React.ReactNode;
-
-  stackStyle?: React.CSSProperties;
-  screenStyle?: React.CSSProperties;
-
   styles?: TabScaffoldStyles;
   slotProps?: TabScaffoldSlotProps;
 }

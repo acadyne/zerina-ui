@@ -68,9 +68,6 @@ export function TabScaffold({
 
   fallback,
 
-  stackStyle,
-  screenStyle,
-
   scrollable = false,
   padded = false,
 
@@ -415,10 +412,6 @@ export function TabScaffold({
         <Box
           {...stackSlot}
           data-ui-tab-scaffold-stack=""
-          style={{
-            ...stackSlot.style,
-            ...stackStyle,
-          }}
         >
           <NavigationStack
             initialName={initialTab}
@@ -432,10 +425,7 @@ export function TabScaffold({
               minHeight: 0,
               minWidth: 0,
             }}
-            screenStyle={{
-              ...screenSlot.style,
-              ...screenStyle,
-            }}
+            screenStyle={screenSlot.style}
           >
             {tabs.map((tab) => (
               <NavigationStack.Screen
