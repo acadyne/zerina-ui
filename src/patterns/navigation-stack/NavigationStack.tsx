@@ -1,6 +1,7 @@
 // src/patterns/navigation-stack/NavigationStack.tsx
 import React from "react";
 import { MotionSwitch } from "../../core/motion";
+import { resolveSlot } from "../../helpers/css";
 import { Box } from "../../primitives/layout";
 import { NavigationStackContext } from "./NavigationStackContext";
 import { NavigationStackScreen } from "./NavigationStackScreen";
@@ -31,7 +32,8 @@ const NavigationStackRoot = function NavigationStackRoot({
   fallback,
   className = "",
   style,
-  screenStyle,
+  styles,
+  slotProps,
 }: NavigationStackProps) {
   const isControlled = entries !== undefined;
 
@@ -120,6 +122,38 @@ const NavigationStackRoot = function NavigationStackRoot({
 
   const activeScreen = current ? screens.get(current.name) : null;
 
+  const rootSlot = resolveSlot({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+    baseStyle: {
+      position: "relative",
+      width: "100%",
+      height: "100%",
+      minWidth: 0,
+      minHeight: 0,
+      overflow: "hidden",
+      background: "var(--ui-bg)",
+      color: "var(--ui-text)",
+    },
+  });
+
+  const screenSlot = resolveSlot({
+    slot: "screen",
+    styles,
+    slotProps,
+    baseStyle: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      minWidth: 0,
+      minHeight: 0,
+      overflow: "hidden",
+    },
+  });
+
   const screenContent = React.useMemo(() => {
     if (!current) return null;
 
@@ -147,19 +181,12 @@ const NavigationStackRoot = function NavigationStackRoot({
   return (
     <NavigationStackContext.Provider value={navigation}>
       <Box
-        className={className}
+        {...rootSlot}
         data-ui-navigation-stack=""
         data-ui-navigation-stack-animation={animation}
         data-ui-navigation-stack-direction={transitionDirection}
         style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          minWidth: 0,
-          minHeight: 0,
-          overflow: "hidden",
-          background: "var(--ui-bg)",
-          color: "var(--ui-text)",
+          ...rootSlot.style,
           ...style,
         }}
       >
@@ -170,16 +197,8 @@ const NavigationStackRoot = function NavigationStackRoot({
             direction={transitionDirection}
             mode="wait"
             initial={false}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              minWidth: 0,
-              minHeight: 0,
-              overflow: "hidden",
-              ...screenStyle,
-            }}
+            className={screenSlot.className}
+            style={screenSlot.style}
           >
             {screenContent}
           </MotionSwitch>

@@ -1,6 +1,10 @@
 // src/patterns/navigation-stack/navigationStack.types.ts
 import React from "react";
 import type { UIMotionAppTransition } from "../../core/motion";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../helpers/css";
 
 export type NavigationStackParams = Record<string, unknown>;
 
@@ -10,6 +14,12 @@ export type NavigationStackAnimation = Extract<
 >;
 
 export type NavigationStackTransitionDirection = "forward" | "back" | "replace";
+
+export type NavigationStackSlot = "root" | "screen";
+
+export type NavigationStackStyles = SlotStyleMap<NavigationStackSlot>;
+
+export type NavigationStackSlotProps = SlotPropsMap<NavigationStackSlot>;
 
 export interface NavigationStackEntry<
   TParams extends NavigationStackParams = NavigationStackParams,
@@ -104,7 +114,9 @@ export interface NavigationStackProps {
 
   className?: string;
   style?: React.CSSProperties;
-  screenStyle?: React.CSSProperties;
+
+  styles?: NavigationStackStyles;
+  slotProps?: NavigationStackSlotProps;
 }
 
 export type RegisteredNavigationStackScreen = {

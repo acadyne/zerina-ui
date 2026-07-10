@@ -413,7 +413,7 @@ export function TabScaffold({
           {...stackSlot}
           data-ui-tab-scaffold-stack=""
         >
-          <NavigationStack
+                    <NavigationStack
             initialName={initialTab}
             initialParams={initialParams}
             entries={stackEntries}
@@ -425,7 +425,14 @@ export function TabScaffold({
               minHeight: 0,
               minWidth: 0,
             }}
-            screenStyle={screenSlot.style}
+            styles={{
+              screen: screenSlot.style,
+            }}
+            slotProps={{
+              screen: {
+                className: screenSlot.className,
+              },
+            }}
           >
             {tabs.map((tab) => (
               <NavigationStack.Screen
