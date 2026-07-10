@@ -1,10 +1,7 @@
 // src/patterns/scaffold/tab-scaffold/TabScaffold.tsx
 import React from "react";
 import {
-  cx,
-  getSlotProps,
-  getSlotStyle,
-  type SlotElementProps,
+  resolveSlot,
 } from "../../../helpers/css";
 import { Box } from "../../../primitives/layout";
 import { BottomNavigation } from "../../../primitives/navigation/BottomNavigation";
@@ -21,8 +18,6 @@ import type {
   TabScaffoldContextValue,
   TabScaffoldProps,
   TabScaffoldRenderContext,
-  TabScaffoldSlot,
-  TabScaffoldSlotProps,
 } from "./tabScaffold.types";
 import {
   createTabScaffoldEntry,
@@ -34,24 +29,6 @@ import {
   resolveTabScaffoldSlot,
 } from "./tabScaffold.utils";
 
-interface ResolvedSlotProps {
-  className?: string;
-  style?: React.CSSProperties;
-  rest: Omit<SlotElementProps, "className" | "style">;
-}
-
-function resolveSlotProps(
-  slotProps: TabScaffoldSlotProps | undefined,
-  slot: TabScaffoldSlot
-): ResolvedSlotProps {
-  const { className, style, ...rest } = getSlotProps(slotProps, slot);
-
-  return {
-    className,
-    style,
-    rest,
-  };
-}
 
 export function TabScaffold({
   tabs,
@@ -105,12 +82,61 @@ export function TabScaffold({
 
   ...mobileScaffoldProps
 }: TabScaffoldProps) {
-  const rootSlot = resolveSlotProps(slotProps, "root");
-  const appBarSlot = resolveSlotProps(slotProps, "appBar");
-  const stackSlot = resolveSlotProps(slotProps, "stack");
-  const screenSlot = resolveSlotProps(slotProps, "screen");
-  const bottomNavigationSlot = resolveSlotProps(slotProps, "bottomNavigation");
-  const floatingSlot = resolveSlotProps(slotProps, "floating");
+  const rootSlot = resolveSlot({
+    slot: "root",
+    styles,
+    slotProps,
+    className,
+  });
+
+  const appBarSlot = resolveSlot({
+    slot: "appBar",
+    styles,
+    slotProps,
+    baseStyle: {
+      width: "100%",
+      minWidth: 0,
+      flexShrink: 0,
+    },
+  });
+
+  const stackSlot = resolveSlot({
+    slot: "stack",
+    styles,
+    slotProps,
+    baseStyle: {
+      height: "100%",
+      minHeight: 0,
+      minWidth: 0,
+      overflow: "hidden",
+    },
+  });
+
+  const screenSlot = resolveSlot({
+    slot: "screen",
+    styles,
+    slotProps,
+  });
+
+  const bottomNavigationSlot = resolveSlot({
+    slot: "bottomNavigation",
+    styles,
+    slotProps,
+    baseStyle: {
+      width: "100%",
+      minWidth: 0,
+      flexShrink: 0,
+    },
+  });
+
+  const floatingSlot = resolveSlot({
+    slot: "floating",
+    styles,
+    slotProps,
+    baseStyle: {
+      display: "contents",
+    },
+  });
 
   const initialTab = React.useMemo(
     () => getInitialTab(tabs, initialTabProp),
@@ -286,16 +312,8 @@ export function TabScaffold({
 
   const appBar = appBarNode ? (
     <Box
-      className={appBarSlot.className}
+      {...appBarSlot}
       data-ui-tab-scaffold-app-bar=""
-      {...appBarSlot.rest}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-        ...getSlotStyle(styles, "appBar"),
-        ...appBarSlot.style,
-      }}
     >
       {appBarNode}
     </Box>
@@ -333,16 +351,8 @@ export function TabScaffold({
 
   const bottomNavigation = bottomNavigationNode ? (
     <Box
-      className={bottomNavigationSlot.className}
+      {...bottomNavigationSlot}
       data-ui-tab-scaffold-bottom-navigation=""
-      {...bottomNavigationSlot.rest}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-        ...getSlotStyle(styles, "bottomNavigation"),
-        ...bottomNavigationSlot.style,
-      }}
     >
       {bottomNavigationNode}
     </Box>
@@ -352,14 +362,8 @@ export function TabScaffold({
 
   const floatingNode = floatingContent ? (
     <Box
-      className={floatingSlot.className}
+      {...floatingSlot}
       data-ui-tab-scaffold-floating=""
-      {...floatingSlot.rest}
-      style={{
-        display: "contents",
-        ...getSlotStyle(styles, "floating"),
-        ...floatingSlot.style,
-      }}
     >
       {floatingContent}
     </Box>
@@ -369,15 +373,17 @@ export function TabScaffold({
     return (
       <MobileScaffold
         viewport={viewport}
-        scrollable={false}
-        padded={false}
-        className={cx(className, rootSlot.className)}
+        scrollable={scrollable}
+        padded={padded}
+        appBar={appBar}
+        bottomNavigation={bottomNavigation}
+        floating={floatingNode}
+        {...rootSlot}
         data-ui-tab-scaffold=""
-        data-ui-tab-scaffold-empty=""
-        {...rootSlot.rest}
+        data-ui-tab-scaffold-active-tab={activeTab}
+        data-ui-tab-scaffold-can-go-back={canGoBack || undefined}
         {...mobileScaffoldProps}
         style={{
-          ...getSlotStyle(styles, "root"),
           ...rootSlot.style,
           ...style,
         }}
@@ -396,28 +402,20 @@ export function TabScaffold({
         appBar={appBar}
         bottomNavigation={bottomNavigation}
         floating={floatingNode}
-        className={cx(className, rootSlot.className)}
+        {...rootSlot}
         data-ui-tab-scaffold=""
         data-ui-tab-scaffold-active-tab={activeTab}
         data-ui-tab-scaffold-can-go-back={canGoBack || undefined}
-        {...rootSlot.rest}
         {...mobileScaffoldProps}
         style={{
-          ...getSlotStyle(styles, "root"),
           ...rootSlot.style,
           ...style,
         }}
       >
         <Box
-          className={stackSlot.className}
+          {...stackSlot}
           data-ui-tab-scaffold-stack=""
-          {...stackSlot.rest}
           style={{
-            height: "100%",
-            minHeight: 0,
-            minWidth: 0,
-            overflow: "hidden",
-            ...getSlotStyle(styles, "stack"),
             ...stackSlot.style,
             ...stackStyle,
           }}
@@ -435,7 +433,6 @@ export function TabScaffold({
               minWidth: 0,
             }}
             screenStyle={{
-              ...getSlotStyle(styles, "screen"),
               ...screenSlot.style,
               ...screenStyle,
             }}
