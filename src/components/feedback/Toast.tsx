@@ -8,11 +8,30 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import { Box, Flex, Stack } from "../../primitives/layout";
-import { Typography } from "../../primitives/typography";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 export type ToastVariant = "info" | "success" | "warning" | "danger" | "neutral";
+
+export type ToastSlot =
+  | "root"
+  | "inner"
+  | "icon"
+  | "content"
+  | "title"
+  | "description"
+  | "action"
+  | "closeButton"
+  | "closeIcon";
+
+export type ToastStyles = SlotStyleMap<ToastSlot>;
+
+export type ToastSlotProps = SlotPropsMap<ToastSlot>;
 
 export interface ToastProps
   extends Omit<HTMLMotionProps<"div">, "children" | "style" | "title"> {
@@ -24,7 +43,11 @@ export interface ToastProps
   icon?: React.ReactNode;
   onClose?: () => void;
   closable?: boolean;
+  className?: string;
   style?: React.CSSProperties;
+
+  styles?: ToastStyles;
+  slotProps?: ToastSlotProps;
 }
 
 const toastVariantMap: Record<
@@ -74,12 +97,17 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       closable = true,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
     const motionState = useOptionalUIMotion();
     const config = toastVariantMap[variant];
+
+    const [closeHovered, setCloseHovered] = React.useState(false);
+    const [closeFocused, setCloseFocused] = React.useState(false);
 
     const variants = motionState.getVariants(
       "feedback",
@@ -91,115 +119,195 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       "feedback"
     );
 
+    const rootSlot = resolveSlot<ToastSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        role: variant === "danger" || variant === "warning" ? "alert" : "status",
+        "aria-live":
+          variant === "danger" || variant === "warning" ? "assertive" : "polite",
+        "data-ui-toast": "",
+        "data-ui-toast-variant": variant,
+      },
+      baseStyle: {
+        width: "min(420px, calc(100vw - 24px))",
+        borderRadius: "var(--ui-radius-xl)",
+        border: `1px solid ${config.border}`,
+        background: "var(--ui-surface)",
+        color: "var(--ui-text)",
+        boxShadow: "var(--ui-shadow-lg)",
+        overflow: "hidden",
+      },
+    });
+
+    const innerSlot = resolveSlot<ToastSlot>({
+      slot: "inner",
+      styles,
+      slotProps,
+      baseStyle: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+        gap: "0.75rem",
+        padding: "0.85rem",
+        minWidth: 0,
+      },
+    });
+
+    const iconSlot = resolveSlot<ToastSlot>({
+      slot: "icon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: config.color,
+        flexShrink: 0,
+        marginTop: 2,
+      },
+    });
+
+    const contentSlot = resolveSlot<ToastSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseStyle: {
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.25rem",
+      },
+    });
+
+    const titleSlot = resolveSlot<ToastSlot>({
+      slot: "title",
+      styles,
+      slotProps,
+      baseStyle: {
+        margin: 0,
+        fontSize: "var(--ui-font-size-sm)",
+        fontWeight: 800,
+        lineHeight: 1.45,
+        color: "var(--ui-text)",
+      },
+    });
+
+    const descriptionSlot = resolveSlot<ToastSlot>({
+      slot: "description",
+      styles,
+      slotProps,
+      baseStyle: {
+        margin: 0,
+        fontSize: "var(--ui-font-size-sm)",
+        fontWeight: 400,
+        lineHeight: 1.45,
+        color: "var(--ui-text-muted)",
+      },
+    });
+
+    const actionSlot = resolveSlot<ToastSlot>({
+      slot: "action",
+      styles,
+      slotProps,
+      baseStyle: {
+        marginTop: "0.45rem",
+      },
+    });
+
+    const closeButtonSlot = resolveSlot<ToastSlot>({
+      slot: "closeButton",
+      styles,
+      slotProps,
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 28,
+        height: 28,
+        borderRadius: "var(--ui-radius-full)",
+        border: "1px solid transparent",
+        background: closeHovered ? "var(--ui-surface-hover)" : "transparent",
+        color: closeHovered ? "var(--ui-text)" : "var(--ui-text-muted)",
+        cursor: "pointer",
+        flexShrink: 0,
+        outline: "none",
+        boxShadow: closeFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
+
+    const closeIconSlot = resolveSlot<ToastSlot>({
+      slot: "closeIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+    });
+
     return (
       <motion.div
+        {...rest}
+        {...toMotionSlotProps(rootSlot)}
         ref={ref}
-        role={variant === "danger" || variant === "warning" ? "alert" : "status"}
-        aria-live={variant === "danger" || variant === "warning" ? "assertive" : "polite"}
-        className={className}
         variants={variants}
         initial="initial"
         animate="animate"
         exit="exit"
         transition={transition}
-        style={{
-          width: "min(420px, calc(100vw - 24px))",
-          borderRadius: "var(--ui-radius-xl)",
-          border: `1px solid ${config.border}`,
-          background: "var(--ui-surface)",
-          color: "var(--ui-text)",
-          boxShadow: "var(--ui-shadow-lg)",
-          overflow: "hidden",
-          ...style,
-        }}
-        {...rest}
       >
-        <Box style={{ padding: "0.85rem", minWidth: 0 }}>
-          <Flex align="flex-start" justify="flex-start" gap="0.75rem">
-            <Box
-              aria-hidden="true"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: config.color,
-                flexShrink: 0,
-                marginTop: 2,
+        <div {...innerSlot}>
+          <div {...iconSlot}>{icon ?? config.icon}</div>
+
+          <div {...contentSlot}>
+            {title ? <div {...titleSlot}>{title}</div> : null}
+
+            {description ? (
+              <div {...descriptionSlot}>{description}</div>
+            ) : null}
+
+            {action ? <div {...actionSlot}>{action}</div> : null}
+          </div>
+
+          {closable ? (
+            <button
+              {...closeButtonSlot}
+              type="button"
+              aria-label="Cerrar notificación"
+              onClick={onClose}
+              onMouseEnter={() => {
+                setCloseHovered(true);
+              }}
+              onMouseLeave={() => {
+                setCloseHovered(false);
+              }}
+              onFocus={() => {
+                setCloseFocused(true);
+              }}
+              onBlur={() => {
+                setCloseFocused(false);
               }}
             >
-              {icon ?? config.icon}
-            </Box>
-
-            <Stack spacing="0.25rem" style={{ flex: 1, minWidth: 0 }}>
-              {title ? (
-                <Typography
-                  as="div"
-                  size="sm"
-                  weight={800}
-                  style={{ margin: 0 }}
-                >
-                  {title}
-                </Typography>
-              ) : null}
-
-              {description ? (
-                <Typography
-                  as="div"
-                  size="sm"
-                  color="var(--ui-text-muted)"
-                  style={{ margin: 0 }}
-                >
-                  {description}
-                </Typography>
-              ) : null}
-
-              {action ? (
-                <Box style={{ marginTop: "0.45rem" }}>
-                  {action}
-                </Box>
-              ) : null}
-            </Stack>
-
-            {closable ? (
-              <button
-                type="button"
-                aria-label="Cerrar notificación"
-                onClick={onClose}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 28,
-                  height: 28,
-                  borderRadius: "var(--ui-radius-full)",
-                  border: "1px solid transparent",
-                  background: "transparent",
-                  color: "var(--ui-text-muted)",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  outline: "none",
-                }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.background = "var(--ui-surface-hover)";
-                  event.currentTarget.style.color = "var(--ui-text)";
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.background = "transparent";
-                  event.currentTarget.style.color = "var(--ui-text-muted)";
-                }}
-                onFocus={(event) => {
-                  event.currentTarget.style.boxShadow =
-                    "0 0 0 3px var(--ui-focus-ring)";
-                }}
-                onBlur={(event) => {
-                  event.currentTarget.style.boxShadow = "none";
-                }}
-              >
+              <span {...closeIconSlot}>
                 <X size={16} />
-              </button>
-            ) : null}
-          </Flex>
-        </Box>
+              </span>
+            </button>
+          ) : null}
+        </div>
       </motion.div>
     );
   }
