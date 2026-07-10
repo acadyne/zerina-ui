@@ -8,6 +8,18 @@ import {
   type FloatingPlacement,
 } from "../../core/overlay";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type TooltipSlot = "trigger" | "content";
+
+export type TooltipStyles = SlotStyleMap<TooltipSlot>;
+
+export type TooltipSlotProps = SlotPropsMap<TooltipSlot>;
 
 type TooltipContextValue = {
   open: boolean;
@@ -19,6 +31,8 @@ type TooltipContextValue = {
   openDelayMs: number;
   closeDelayMs: number;
   enableTouch: boolean;
+  styles?: TooltipStyles;
+  slotProps?: TooltipSlotProps;
 };
 
 const TooltipContext = React.createContext<TooltipContextValue | null>(null);
@@ -66,6 +80,8 @@ type TriggerChildProps = {
   onBlur?: React.FocusEventHandler<HTMLElement>;
   onClick?: React.MouseEventHandler<HTMLElement>;
   id?: string;
+  className?: string;
+  style?: React.CSSProperties;
   "aria-describedby"?: string;
 };
 
@@ -74,6 +90,9 @@ export interface TooltipProps {
   openDelayMs?: number;
   closeDelayMs?: number;
   enableTouch?: boolean;
+
+  styles?: TooltipStyles;
+  slotProps?: TooltipSlotProps;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -81,6 +100,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   openDelayMs = 150,
   closeDelayMs = 80,
   enableTouch = true,
+  styles,
+  slotProps,
 }) => {
   const reactId = React.useId().replace(/:/g, "");
   const [open, setOpen] = React.useState(false);
@@ -101,8 +122,19 @@ export const Tooltip: React.FC<TooltipProps> = ({
       openDelayMs,
       closeDelayMs,
       enableTouch,
+      styles,
+      slotProps,
     }),
-    [open, reactId, setAnchorNode, openDelayMs, closeDelayMs, enableTouch]
+    [
+      open,
+      reactId,
+      setAnchorNode,
+      openDelayMs,
+      closeDelayMs,
+      enableTouch,
+      styles,
+      slotProps,
+    ]
   );
 
   return (
@@ -115,13 +147,36 @@ Tooltip.displayName = "Tooltip";
 export interface TooltipTriggerProps {
   children: React.ReactElement<TriggerChildProps>;
   asChild?: boolean;
+
+  className?: string;
+  style?: React.CSSProperties;
+  styles?: TooltipStyles;
+  slotProps?: TooltipSlotProps;
 }
 
 export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>(
-  ({ children, asChild = true }, ref) => {
+  (
+    {
+      children,
+      asChild = true,
+      className = "",
+      style,
+      styles,
+      slotProps,
+    },
+    ref
+  ) => {
     const ctx = useTooltipContext();
     const openTimerRef = React.useRef<number | null>(null);
     const closeTimerRef = React.useRef<number | null>(null);
+
+    const triggerSlot = resolveSlot<TooltipSlot>({
+      slot: "trigger",
+      styles: styles ?? ctx.styles,
+      slotProps: slotProps ?? ctx.slotProps,
+      className,
+      style,
+    });
 
     const touch = React.useMemo(
       () => (ctx.enableTouch ? isTouchDevice() : false),
@@ -176,6 +231,13 @@ export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>
       return React.cloneElement(children, {
         ref: setRefs,
         id: ctx.triggerId,
+        className: [children.props.className, triggerSlot.className]
+          .filter(Boolean)
+          .join(" "),
+        style: {
+          ...children.props.style,
+          ...triggerSlot.style,
+        },
         "aria-describedby": ctx.open ? ctx.contentId : undefined,
         onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
           children.props.onMouseEnter?.(event);
@@ -215,6 +277,8 @@ export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>
         id={ctx.triggerId}
         type="button"
         aria-describedby={ctx.open ? ctx.contentId : undefined}
+        className={triggerSlot.className}
+        style={triggerSlot.style}
         onMouseEnter={() => {
           if (!touch) scheduleOpen();
         }}
@@ -273,6 +337,9 @@ export interface TooltipContentProps
   shift?: boolean;
   viewportPadding?: number;
   closeOnClickOutside?: boolean;
+
+  styles?: TooltipStyles;
+  slotProps?: TooltipSlotProps;
 }
 
 export const TooltipContent = React.forwardRef<
@@ -292,6 +359,8 @@ export const TooltipContent = React.forwardRef<
       shift = true,
       viewportPadding = 8,
       closeOnClickOutside = true,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -299,6 +368,9 @@ export const TooltipContent = React.forwardRef<
     const ctx = useTooltipContext();
     const motionState = useOptionalUIMotion();
     const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+    const resolvedStyles = styles ?? ctx.styles;
+    const resolvedSlotProps = slotProps ?? ctx.slotProps;
 
     const variants = motionState.getVariants(
       "tooltip",
@@ -356,22 +428,18 @@ export const TooltipContent = React.forwardRef<
           zIndex={getLayerZIndex("tooltip")}
           strategy="fixed"
         >
-          {({ ref: floatingRef, style: floatingStyle, placement: side }) => (
-            <motion.div
-              ref={(node) => {
-                assignRef(floatingRef, node);
-                setRefs(node);
-              }}
-              id={ctx.contentId}
-              role="tooltip"
-              className={className}
-              data-side={side}
-              variants={variants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={transition}
-              style={{
+          {({ ref: floatingRef, style: floatingStyle, placement: side }) => {
+            const contentSlot = resolveSlot<TooltipSlot>({
+              slot: "content",
+              styles: resolvedStyles,
+              slotProps: resolvedSlotProps,
+              className,
+              style,
+              baseProps: {
+                "data-side": side,
+                "data-ui-tooltip-content": "",
+              },
+              baseStyle: {
                 ...floatingStyle,
                 zIndex: getLayerZIndex("tooltip"),
                 maxWidth: "min(280px, calc(100vw - 16px))",
@@ -385,13 +453,29 @@ export const TooltipContent = React.forwardRef<
                 lineHeight: 1.35,
                 pointerEvents: "none",
                 transformOrigin: "center",
-                ...style,
-              }}
-              {...rest}
-            >
-              {children}
-            </motion.div>
-          )}
+              },
+            });
+
+            return (
+              <motion.div
+                {...rest}
+                {...toMotionSlotProps(contentSlot)}
+                ref={(node) => {
+                  assignRef(floatingRef, node);
+                  setRefs(node);
+                }}
+                id={ctx.contentId}
+                role="tooltip"
+                variants={variants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={transition}
+              >
+                {children}
+              </motion.div>
+            );
+          }}
         </FloatingLayer>
       ) : null;
 
