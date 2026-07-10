@@ -1,6 +1,22 @@
 // src/primitives/forms/Radio.tsx
-import React, { forwardRef, useId } from "react";
+import React, { forwardRef, useId, useState } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { useRadioGroupContext } from "./RadioGroup";
+
+export type RadioSlot =
+  | "root"
+  | "input"
+  | "control"
+  | "indicator"
+  | "label";
+
+export type RadioStyles = SlotStyleMap<RadioSlot>;
+
+export type RadioSlotProps = SlotPropsMap<RadioSlot>;
 
 export interface RadioProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
@@ -8,8 +24,8 @@ export interface RadioProps
   color?: string;
   boxSize?: number;
   labelPlacement?: "right" | "left";
-  wrapperStyle?: React.CSSProperties;
-  labelStyle?: React.CSSProperties;
+  styles?: RadioStyles;
+  slotProps?: RadioSlotProps;
 }
 
 export const Radio = forwardRef<HTMLInputElement, RadioProps>(
@@ -27,8 +43,8 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       labelPlacement = "right",
       className = "",
       style,
-      wrapperStyle,
-      labelStyle,
+      styles,
+      slotProps,
       onFocus,
       onBlur,
       name,
@@ -39,6 +55,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const autoId = useId();
     const inputId = id ?? `radio-${autoId}`;
     const group = useRadioGroupContext();
+    const [isFocused, setIsFocused] = useState(false);
 
     const resolvedName = group?.name ?? name;
     const resolvedDisabled = group?.isDisabled ?? disabled ?? false;
@@ -55,23 +72,99 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
 
     const WrapperTag = label ? "label" : "div";
 
+    const rootSlot = resolveSlot({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.55rem",
+        cursor: resolvedDisabled ? "not-allowed" : "pointer",
+        userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
+        flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
+      },
+    });
+
+    const controlSlot = resolveSlot({
+      slot: "control",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "relative",
+        display: "inline-grid",
+        flexShrink: 0,
+      },
+    });
+
+    const inputSlot = resolveSlot({
+      slot: "input",
+      styles,
+      slotProps,
+      baseStyle: {
+        appearance: "none",
+        WebkitAppearance: "none",
+        width: boxSize,
+        height: boxSize,
+        border: `2px solid ${color}`,
+        borderRadius: "50%",
+        background: "transparent",
+        transition:
+          "border-color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-fast) var(--ui-ease-standard)",
+        display: "grid",
+        placeItems: "center",
+        flexShrink: 0,
+        outline: "none",
+        boxShadow: isFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        cursor: resolvedDisabled ? "not-allowed" : "pointer",
+        opacity: resolvedDisabled
+          ? "var(--ui-state-disabled-opacity, 0.65)"
+          : 1,
+      },
+    });
+
+    const indicatorSlot = resolveSlot({
+      slot: "indicator",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "absolute",
+        inset: 0,
+        display: "grid",
+        placeItems: "center",
+        pointerEvents: "none",
+      },
+    });
+
+    const labelSlot = resolveSlot({
+      slot: "label",
+      styles,
+      slotProps,
+      baseStyle: {
+        fontSize: "0.95rem",
+        color: "var(--ui-text)",
+        lineHeight: 1.1,
+        opacity: resolvedDisabled
+          ? "var(--ui-state-disabled-opacity, 0.65)"
+          : 1,
+      },
+    });
+
     return (
       <WrapperTag
-        className={className}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.55rem",
-          cursor: resolvedDisabled ? "not-allowed" : "pointer",
-          userSelect: "none",
-          WebkitTapHighlightColor: "transparent",
-          flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
-          ...wrapperStyle,
-        }}
+        {...rootSlot}
         {...(label ? { htmlFor: inputId } : {})}
+        style={{
+          ...rootSlot.style,
+          ...style,
+        }}
       >
-        <span style={{ position: "relative", display: "inline-grid" }}>
+        <span {...controlSlot}>
           <input
+            {...inputSlot}
+            {...rest}
             ref={ref}
             id={inputId}
             type="radio"
@@ -80,27 +173,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
             checked={resolvedChecked}
             defaultChecked={defaultChecked}
             disabled={resolvedDisabled}
-            style={{
-              appearance: "none",
-              WebkitAppearance: "none",
-              width: boxSize,
-              height: boxSize,
-              border: `2px solid ${color}`,
-              borderRadius: "50%",
-              backgroundColor: "transparent",
-              transition:
-                "border-color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-fast) var(--ui-ease-standard)",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-              outline: "none",
-              boxShadow: "none",
-              cursor: resolvedDisabled ? "not-allowed" : "pointer",
-              opacity: resolvedDisabled
-                ? "var(--ui-state-disabled-opacity, 0.65)"
-                : 1,
-              ...style,
-            }}
+            style={inputSlot.style}
             onChange={(e) => {
               onChange?.(e);
 
@@ -109,26 +182,16 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
               }
             }}
             onFocus={(e) => {
-              e.currentTarget.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
+              setIsFocused(true);
               onFocus?.(e);
             }}
             onBlur={(e) => {
-              e.currentTarget.style.boxShadow = "none";
+              setIsFocused(false);
               onBlur?.(e);
             }}
-            {...rest}
           />
 
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "grid",
-              placeItems: "center",
-              pointerEvents: "none",
-            }}
-          >
+          <span {...indicatorSlot}>
             <span
               style={{
                 width: Math.max(6, boxSize - 8),
@@ -142,21 +205,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
           </span>
         </span>
 
-        {label ? (
-          <span
-            style={{
-              fontSize: "0.95rem",
-              color: "var(--ui-text)",
-              lineHeight: 1.1,
-              opacity: resolvedDisabled
-                ? "var(--ui-state-disabled-opacity, 0.65)"
-                : 1,
-              ...labelStyle,
-            }}
-          >
-            {label}
-          </span>
-        ) : null}
+        {label ? <span {...labelSlot}>{label}</span> : null}
       </WrapperTag>
     );
   }

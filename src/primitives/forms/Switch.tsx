@@ -1,5 +1,21 @@
 // src/primitives/forms/Switch.tsx
 import React, { forwardRef, useId, useState } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type SwitchSlot =
+  | "root"
+  | "input"
+  | "track"
+  | "thumb"
+  | "label";
+
+export type SwitchStyles = SlotStyleMap<SwitchSlot>;
+
+export type SwitchSlotProps = SlotPropsMap<SwitchSlot>;
 
 export interface SwitchProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
@@ -7,8 +23,8 @@ export interface SwitchProps
   labelPlacement?: "right" | "left";
   size?: "sm" | "md" | "lg";
   color?: string;
-  wrapperStyle?: React.CSSProperties;
-  labelStyle?: React.CSSProperties;
+  styles?: SwitchStyles;
+  slotProps?: SwitchSlotProps;
 }
 
 const sizeMap = {
@@ -31,8 +47,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       labelPlacement = "right",
       className = "",
       style,
-      wrapperStyle,
-      labelStyle,
+      styles,
+      slotProps,
       onFocus,
       onBlur,
       ...rest
@@ -42,41 +58,113 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
     const autoId = useId();
     const inputId = id ?? `sw-${autoId}`;
     const s = sizeMap[size];
+    const [isFocused, setIsFocused] = useState(false);
 
     const isControlled = checked !== undefined;
     const [internalChecked, setInternalChecked] = useState(
       Boolean(defaultChecked)
     );
+
     const isOn = isControlled ? Boolean(checked) : internalChecked;
 
     const WrapperTag = label ? "label" : "div";
 
+    const rootSlot = resolveSlot({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.6rem",
+        cursor: disabled ? "not-allowed" : "pointer",
+        userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
+        flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
+      },
+    });
+
+    const trackSlot = resolveSlot({
+      slot: "track",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        width: s.trackW,
+        height: s.trackH,
+        flexShrink: 0,
+        borderRadius: 9999,
+        background: isOn ? color : "var(--ui-surface-3)",
+        border: `1px solid ${isOn ? color : "var(--ui-border)"}`,
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
+        boxShadow: isFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        padding: 0,
+        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+      },
+    });
+
+    const inputSlot = resolveSlot({
+      slot: "input",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "absolute",
+        inset: 0,
+        opacity: 0,
+        margin: 0,
+        cursor: disabled ? "not-allowed" : "pointer",
+        zIndex: 1,
+      },
+    });
+
+    const thumbSlot = resolveSlot({
+      slot: "thumb",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: s.knob,
+        height: s.knob,
+        borderRadius: 9999,
+        background: "#fff",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+        transform: `translateX(${
+          isOn ? s.trackW - s.knob - s.offset : s.offset
+        }px)`,
+        transition:
+          "transform var(--ui-duration-normal) var(--ui-ease-standard)",
+        pointerEvents: "none",
+      },
+    });
+
+    const labelSlot = resolveSlot({
+      slot: "label",
+      styles,
+      slotProps,
+      baseStyle: {
+        fontSize: "0.95rem",
+        color: "var(--ui-text)",
+        lineHeight: 1.15,
+        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+      },
+    });
+
     return (
       <WrapperTag
-        className={className}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.6rem",
-          cursor: disabled ? "not-allowed" : "pointer",
-          userSelect: "none",
-          WebkitTapHighlightColor: "transparent",
-          flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
-          ...wrapperStyle,
-        }}
+        {...rootSlot}
         {...(label ? { htmlFor: inputId } : {})}
+        style={{
+          ...rootSlot.style,
+          ...style,
+        }}
       >
-        <span
-          style={{
-            position: "relative",
-            display: "inline-flex",
-            alignItems: "center",
-            width: s.trackW,
-            height: s.trackH,
-            flexShrink: 0,
-          }}
-        >
+        <span {...trackSlot}>
           <input
+            {...inputSlot}
+            {...rest}
             ref={ref}
             id={inputId}
             type="checkbox"
@@ -84,91 +172,28 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             checked={checked}
             defaultChecked={defaultChecked}
             disabled={disabled}
-            style={{
-              position: "absolute",
-              inset: 0,
-              opacity: 0,
-              margin: 0,
-              cursor: disabled ? "not-allowed" : "pointer",
-              zIndex: 1,
-            }}
+            style={inputSlot.style}
             onChange={(e) => {
               if (!isControlled) {
                 setInternalChecked(e.currentTarget.checked);
               }
+
               onChange?.(e);
             }}
             onFocus={(e) => {
-              const track = e.currentTarget.nextElementSibling as
-                | HTMLSpanElement
-                | null;
-              if (track) {
-                track.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
-              }
+              setIsFocused(true);
               onFocus?.(e);
             }}
             onBlur={(e) => {
-              const track = e.currentTarget.nextElementSibling as
-                | HTMLSpanElement
-                | null;
-              if (track) {
-                track.style.boxShadow = "none";
-              }
+              setIsFocused(false);
               onBlur?.(e);
             }}
-            {...rest}
           />
 
-          <span
-            aria-hidden="true"
-            style={{
-              width: s.trackW,
-              height: s.trackH,
-              borderRadius: 9999,
-              background: isOn ? color : "var(--ui-surface-3)",
-              border: `1px solid ${isOn ? color : "var(--ui-border)"}`,
-              transition:
-                "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-              boxShadow: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              padding: 0,
-              opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
-              pointerEvents: "none",
-              ...style,
-            }}
-          >
-            <span
-              style={{
-                width: s.knob,
-                height: s.knob,
-                borderRadius: 9999,
-                background: "#fff",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                transform: `translateX(${
-                  isOn ? s.trackW - s.knob - s.offset : s.offset
-                }px)`,
-                transition:
-                  "transform var(--ui-duration-normal) var(--ui-ease-standard)",
-                pointerEvents: "none",
-              }}
-            />
-          </span>
+          <span {...thumbSlot} />
         </span>
 
-        {label ? (
-          <span
-            style={{
-              fontSize: "0.95rem",
-              color: "var(--ui-text)",
-              lineHeight: 1.15,
-              opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
-              ...labelStyle,
-            }}
-          >
-            {label}
-          </span>
-        ) : null}
+        {label ? <span {...labelSlot}>{label}</span> : null}
       </WrapperTag>
     );
   }

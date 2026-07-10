@@ -6,6 +6,22 @@ import React, {
   useRef,
   useState,
 } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type CheckboxSlot =
+  | "root"
+  | "input"
+  | "control"
+  | "indicator"
+  | "label";
+
+export type CheckboxStyles = SlotStyleMap<CheckboxSlot>;
+
+export type CheckboxSlotProps = SlotPropsMap<CheckboxSlot>;
 
 export interface CheckboxProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
@@ -15,8 +31,8 @@ export interface CheckboxProps
   boxSize?: number;
   radius?: number;
   labelPlacement?: "right" | "left";
-  wrapperStyle?: React.CSSProperties;
-  labelStyle?: React.CSSProperties;
+  styles?: CheckboxStyles;
+  slotProps?: CheckboxSlotProps;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
@@ -35,8 +51,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       labelPlacement = "right",
       className = "",
       style,
-      wrapperStyle,
-      labelStyle,
+      styles,
+      slotProps,
       onFocus,
       onBlur,
       ...rest
@@ -46,9 +62,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const autoId = useId();
     const inputId = id ?? `cb-${autoId}`;
     const innerRef = useRef<HTMLInputElement | null>(null);
+    const [isFocused, setIsFocused] = useState(false);
 
     const isControlled = checked !== undefined;
-    const [internalChecked, setInternalChecked] = useState(Boolean(defaultChecked));
+    const [internalChecked, setInternalChecked] = useState(
+      Boolean(defaultChecked)
+    );
 
     const visualChecked = isControlled ? Boolean(checked) : internalChecked;
     const showMarked = indeterminate || visualChecked;
@@ -71,55 +90,97 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     const WrapperTag = label ? "label" : "div";
 
-    const wrapperBase: React.CSSProperties = {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "0.55rem",
-      cursor: disabled ? "not-allowed" : "pointer",
-      userSelect: "none",
-      WebkitTapHighlightColor: "transparent",
-      ...wrapperStyle,
-    };
+    const rootSlot = resolveSlot({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.55rem",
+        cursor: disabled ? "not-allowed" : "pointer",
+        userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
+        flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
+      },
+    });
 
-    const inputBase: React.CSSProperties = {
-      appearance: "none",
-      WebkitAppearance: "none",
-      width: boxSize,
-      height: boxSize,
-      border: `2px solid ${color}`,
-      borderRadius: radius,
-      backgroundColor: showMarked ? color : "transparent",
-      transition:
-        "background-color var(--ui-duration-fast) var(--ui-ease-standard), border-color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-fast) var(--ui-ease-standard)",
-      display: "grid",
-      placeItems: "center",
-      flexShrink: 0,
-      outline: "none",
-      boxShadow: "none",
-      cursor: disabled ? "not-allowed" : "pointer",
-      opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
-      ...style,
-    };
+    const controlSlot = resolveSlot({
+      slot: "control",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "relative",
+        display: "inline-grid",
+        flexShrink: 0,
+      },
+    });
 
-    const textStyle: React.CSSProperties = {
-      fontSize: "0.95rem",
-      color: "var(--ui-text)",
-      lineHeight: 1.1,
-      opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
-      ...labelStyle,
-    };
+    const inputSlot = resolveSlot({
+      slot: "input",
+      styles,
+      slotProps,
+      baseStyle: {
+        appearance: "none",
+        WebkitAppearance: "none",
+        width: boxSize,
+        height: boxSize,
+        border: `2px solid ${color}`,
+        borderRadius: radius,
+        background: showMarked ? color : "transparent",
+        transition:
+          "background var(--ui-duration-fast) var(--ui-ease-standard), border-color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-fast) var(--ui-ease-standard)",
+        display: "grid",
+        placeItems: "center",
+        flexShrink: 0,
+        outline: "none",
+        boxShadow: isFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+      },
+    });
+
+    const indicatorSlot = resolveSlot({
+      slot: "indicator",
+      styles,
+      slotProps,
+      baseStyle: {
+        position: "absolute",
+        inset: 3,
+        borderRadius: Math.max(2, radius - 2),
+        pointerEvents: "none",
+        background: showMarked ? "rgba(0,0,0,0.18)" : "transparent",
+        display: "grid",
+        placeItems: "center",
+      },
+    });
+
+    const labelSlot = resolveSlot({
+      slot: "label",
+      styles,
+      slotProps,
+      baseStyle: {
+        fontSize: "0.95rem",
+        color: "var(--ui-text)",
+        lineHeight: 1.1,
+        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+      },
+    });
 
     return (
       <WrapperTag
-        className={className}
-        style={{
-          ...wrapperBase,
-          flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
-        }}
+        {...rootSlot}
         {...(label ? { htmlFor: inputId } : {})}
+        style={{
+          ...rootSlot.style,
+          ...style,
+        }}
       >
-        <span style={{ position: "relative", display: "inline-grid" }}>
+        <span {...controlSlot}>
           <input
+            {...inputSlot}
+            {...rest}
             id={inputId}
             ref={setRefs}
             type="checkbox"
@@ -127,36 +188,25 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             defaultChecked={defaultChecked}
             disabled={disabled}
             aria-checked={indeterminate ? "mixed" : visualChecked}
-            style={inputBase}
+            style={inputSlot.style}
             onChange={(e) => {
               if (!isControlled) {
                 setInternalChecked(e.currentTarget.checked);
               }
+
               onChange?.(e);
             }}
             onFocus={(e) => {
-              e.currentTarget.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
+              setIsFocused(true);
               onFocus?.(e);
             }}
             onBlur={(e) => {
-              e.currentTarget.style.boxShadow = "none";
+              setIsFocused(false);
               onBlur?.(e);
             }}
-            {...rest}
           />
 
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 3,
-              borderRadius: Math.max(2, radius - 2),
-              pointerEvents: "none",
-              backgroundColor: showMarked ? "rgba(0,0,0,0.18)" : "transparent",
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
+          <span {...indicatorSlot}>
             {indeterminate ? (
               <span
                 style={{
@@ -185,7 +235,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           </span>
         </span>
 
-        {label ? <span style={textStyle}>{label}</span> : null}
+        {label ? <span {...labelSlot}>{label}</span> : null}
       </WrapperTag>
     );
   }
