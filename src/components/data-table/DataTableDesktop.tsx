@@ -1,11 +1,16 @@
 // src/components/data-table/DataTableDesktop.tsx
 import React from "react";
 import { Checkbox } from "../../primitives/forms";
-import { Box } from "../../primitives/layout";
+import {
+  resolveSlot,
+} from "../../helpers/css";
 import type {
   DataTableColumn,
   DataTableRowId,
+  DataTableSlot,
+  DataTableSlotProps,
   DataTableSortConfig,
+  DataTableStyles,
 } from "./dataTable.types";
 import {
   createFallbackRowId,
@@ -37,6 +42,9 @@ export interface DataTableDesktopProps<
   rowKeyFallback?: (row: T, index: number) => string;
 
   emptyState?: React.ComponentProps<typeof DataTableEmptyState>["emptyState"];
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export function DataTableDesktop<
@@ -58,45 +66,98 @@ export function DataTableDesktop<
   minTableWidth = 760,
   rowKeyFallback,
   emptyState,
+  styles,
+  slotProps,
 }: DataTableDesktopProps<T, IDType>) {
+  const [hoveredRowKey, setHoveredRowKey] = React.useState<string | null>(null);
+
   const cellPad = dense ? "10px" : "14px";
   const fontSize = dense ? "0.90rem" : "0.98rem";
 
   const colSpan = columns.length + (enableSelection ? 1 : 0);
 
+  const rootSlot = resolveSlot<DataTableSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-data-table-desktop": "",
+    },
+    baseStyle: {
+      border: "1px solid var(--ui-border)",
+      borderRadius: 12,
+      overflow: "hidden",
+      background: "var(--ui-bg)",
+    },
+  });
+
+  const viewportSlot = resolveSlot<DataTableSlot>({
+    slot: "viewport",
+    styles,
+    slotProps,
+    baseStyle: {
+      width: "100%",
+      overflowX: "auto",
+    },
+  });
+
+  const tableSlot = resolveSlot<DataTableSlot>({
+    slot: "table",
+    styles,
+    slotProps,
+    baseStyle: {
+      width: "100%",
+      borderCollapse: "separate",
+      borderSpacing: 0,
+      minWidth: minTableWidth,
+      tableLayout: "fixed",
+      fontSize,
+    },
+  });
+
+  const headSlot = resolveSlot<DataTableSlot>({
+    slot: "head",
+    styles,
+    slotProps,
+  });
+
+  const headerRowSlot = resolveSlot<DataTableSlot>({
+    slot: "headerRow",
+    styles,
+    slotProps,
+  });
+
+  const bodySlot = resolveSlot<DataTableSlot>({
+    slot: "body",
+    styles,
+    slotProps,
+  });
+
   return (
-    <Box
-      style={{
-        border: "1px solid var(--ui-border)",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "var(--ui-bg)",
-      }}
-    >
-      <Box style={{ width: "100%", overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "separate",
-            borderSpacing: 0,
-            minWidth: minTableWidth,
-            tableLayout: "fixed",
-            fontSize,
-          }}
-        >
-          <thead>
-            <tr>
+    <div {...rootSlot}>
+      <div {...viewportSlot}>
+        <table {...tableSlot}>
+          <thead {...headSlot}>
+            <tr {...headerRowSlot}>
               {enableSelection ? (
                 <th
-                  style={{
-                    padding: cellPad,
-                    width: 44,
-                    position: "sticky",
-                    top: 0,
-                    background: "var(--ui-surface)",
-                    zIndex: 2,
-                    borderBottom: "1px solid var(--ui-border)",
-                  }}
+                  {...resolveSlot<DataTableSlot>({
+                    slot: "headerCell",
+                    styles,
+                    slotProps,
+                    baseProps: {
+                      "data-ui-data-table-selection-header": "",
+                    },
+                    baseStyle: {
+                      padding: cellPad,
+                      width: 44,
+                      position: "sticky",
+                      top: 0,
+                      background: "var(--ui-surface)",
+                      zIndex: 2,
+                      borderBottom: "1px solid var(--ui-border)",
+                    },
+                  })}
                 >
                   <Checkbox
                     checked={isAllPageSelected}
@@ -122,24 +183,33 @@ export function DataTableDesktop<
                 return (
                   <th
                     key={`${String(column.header)}-${index}`}
+                    {...resolveSlot<DataTableSlot>({
+                      slot: "headerCell",
+                      styles,
+                      slotProps,
+                      baseProps: {
+                        title: sortable ? "Ordenar" : undefined,
+                        "data-ui-data-table-column-index": String(index),
+                        "data-ui-data-table-sortable": sortable || undefined,
+                      },
+                      baseStyle: {
+                        padding: cellPad,
+                        textAlign: column.align ?? "left",
+                        background: "var(--ui-surface)",
+                        color: "var(--ui-text)",
+                        userSelect: "none",
+                        cursor: sortable ? "pointer" : "default",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 2,
+                        borderBottom: "1px solid var(--ui-border)",
+                        width: column.width ?? "auto",
+                        whiteSpace: column.nowrap ? "nowrap" : undefined,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      },
+                    })}
                     onClick={() => onSort?.(column)}
-                    title={sortable ? "Ordenar" : undefined}
-                    style={{
-                      padding: cellPad,
-                      textAlign: column.align ?? "left",
-                      background: "var(--ui-surface)",
-                      color: "var(--ui-text)",
-                      userSelect: "none",
-                      cursor: sortable ? "pointer" : "default",
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 2,
-                      borderBottom: "1px solid var(--ui-border)",
-                      width: column.width ?? "auto",
-                      whiteSpace: column.nowrap ? "nowrap" : undefined,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
                   >
                     {column.header}
                     {arrow}
@@ -149,7 +219,7 @@ export function DataTableDesktop<
             </tr>
           </thead>
 
-          <tbody>
+          <tbody {...bodySlot}>
             {rows.map((row, rowIndex) => {
               const rowId = getRowId(row);
               const isSelected =
@@ -159,7 +229,7 @@ export function DataTableDesktop<
                 rowId !== undefined
                   ? String(rowId)
                   : rowKeyFallback?.(row, rowIndex) ??
-                  createFallbackRowId(rowIndex);
+                    createFallbackRowId(rowIndex);
 
               const baseRowBg = isSelected
                 ? "var(--ui-surface-2)"
@@ -167,26 +237,48 @@ export function DataTableDesktop<
                   ? "var(--ui-bg)"
                   : "var(--ui-surface)";
 
+              const rowSlot = resolveSlot<DataTableSlot>({
+                slot: "row",
+                styles,
+                slotProps,
+                baseProps: {
+                  "data-ui-data-table-row": "",
+                  "data-ui-data-table-row-index": String(rowIndex),
+                  "data-ui-data-table-row-selected": isSelected || undefined,
+                },
+                baseStyle: {
+                  background:
+                    hoveredRowKey === rowKey
+                      ? "var(--ui-surface-hover)"
+                      : baseRowBg,
+                  transition: "background 120ms ease",
+                },
+              });
+
               return (
                 <tr
                   key={rowKey}
-                  style={{
-                    background: baseRowBg,
-                    transition: "background 120ms ease",
+                  {...rowSlot}
+                  onMouseEnter={() => {
+                    setHoveredRowKey(rowKey);
                   }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.background = "var(--ui-surface-hover)";
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.background = baseRowBg;
+                  onMouseLeave={() => {
+                    setHoveredRowKey((current) =>
+                      current === rowKey ? null : current
+                    );
                   }}
                 >
                   {enableSelection ? (
                     <td
-                      style={{
-                        padding: cellPad,
-                        borderBottom: "1px solid var(--ui-border)",
-                      }}
+                      {...resolveSlot<DataTableSlot>({
+                        slot: "selectionCell",
+                        styles,
+                        slotProps,
+                        baseStyle: {
+                          padding: cellPad,
+                          borderBottom: "1px solid var(--ui-border)",
+                        },
+                      })}
                     >
                       {rowId !== undefined ? (
                         <Checkbox
@@ -216,16 +308,25 @@ export function DataTableDesktop<
                     return (
                       <td
                         key={`${String(column.header)}-${columnIndex}`}
-                        title={titleText || undefined}
-                        style={{
-                          padding: cellPad,
-                          borderBottom: "1px solid var(--ui-border)",
-                          textAlign: column.align ?? "left",
-                          whiteSpace: column.nowrap ? "nowrap" : "normal",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          verticalAlign: "middle",
-                        }}
+                        {...resolveSlot<DataTableSlot>({
+                          slot: "cell",
+                          styles,
+                          slotProps,
+                          baseProps: {
+                            title: titleText || undefined,
+                            "data-ui-data-table-column-index":
+                              String(columnIndex),
+                          },
+                          baseStyle: {
+                            padding: cellPad,
+                            borderBottom: "1px solid var(--ui-border)",
+                            textAlign: column.align ?? "left",
+                            whiteSpace: column.nowrap ? "nowrap" : "normal",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            verticalAlign: "middle",
+                          },
+                        })}
                       >
                         {renderedContent}
                       </td>
@@ -244,7 +345,7 @@ export function DataTableDesktop<
             ) : null}
           </tbody>
         </table>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,9 @@
 // src/components/data-table/dataTable.types.ts
 import type React from "react";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../helpers/css";
 
 export type DataTableAlign = "left" | "center" | "right";
 
@@ -8,6 +12,22 @@ export type DataTableRowId = string | number;
 export type DataTableSortDirection = "asc" | "desc";
 
 export type DataTableMobileMode = "inherit" | "auto" | "always" | "never";
+
+export type DataTableSlot =
+  | "root"
+  | "viewport"
+  | "table"
+  | "head"
+  | "headerRow"
+  | "headerCell"
+  | "body"
+  | "row"
+  | "selectionCell"
+  | "cell";
+
+export type DataTableStyles = SlotStyleMap<DataTableSlot>;
+
+export type DataTableSlotProps = SlotPropsMap<DataTableSlot>;
 
 export type DataTableSortConfig<T> =
   | {
@@ -71,6 +91,9 @@ export interface DataTableProps<T extends object, IDType extends DataTableRowId>
   mobileBreakpoint?: number;
 
   enableSelection?: boolean;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export type EditableColumnType =
@@ -135,4 +158,7 @@ export interface EditableDataTableProps<
   enableAddRow?: boolean;
   enableDeleteRows?: boolean;
   enableSelection?: boolean;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }

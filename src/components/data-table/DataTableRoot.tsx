@@ -1,6 +1,13 @@
 // src/components/data-table/DataTableRoot.tsx
 import React from "react";
-import { Box } from "../../primitives/layout";
+import {
+  resolveSlot,
+} from "../../helpers/css";
+import type {
+  DataTableSlot,
+  DataTableSlotProps,
+  DataTableStyles,
+} from "./dataTable.types";
 
 export interface DataTableRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -8,29 +15,50 @@ export interface DataTableRootProps
   loading?: boolean;
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: DataTableStyles;
+  slotProps?: DataTableSlotProps;
 }
 
 export const DataTableRoot = React.forwardRef<
   HTMLDivElement,
   DataTableRootProps
->(({ children, loading = false, className = "", style, ...rest }, ref) => {
-  return (
-    <Box
-      ref={ref as React.Ref<Element>}
-      className={className}
-      aria-busy={loading || undefined}
-      data-ui="data-table"
-      data-loading={loading || undefined}
-      style={{
+>(
+  (
+    {
+      children,
+      loading = false,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const rootSlot = resolveSlot<DataTableSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "aria-busy": loading || undefined,
+        "data-ui": "data-table",
+        "data-loading": loading || undefined,
+      },
+      baseStyle: {
         width: "100%",
         minWidth: 0,
-        ...style,
-      }}
-      {...rest}
-    >
-      {children}
-    </Box>
-  );
-});
+      },
+    });
+
+    return (
+      <div {...rootSlot} ref={ref} {...rest}>
+        {children}
+      </div>
+    );
+  }
+);
 
 DataTableRoot.displayName = "DataTableRoot";
