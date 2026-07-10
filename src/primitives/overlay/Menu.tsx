@@ -9,6 +9,24 @@ import {
   type FloatingPlacement,
 } from "../../core/overlay";
 import { useOptionalUIMotion } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type MenuSlot =
+  | "trigger"
+  | "dismissableLayer"
+  | "content"
+  | "item"
+  | "separator"
+  | "label";
+
+export type MenuStyles = SlotStyleMap<MenuSlot>;
+
+export type MenuSlotProps = SlotPropsMap<MenuSlot>;
 
 type MenuContextValue = {
   open: boolean;
@@ -25,6 +43,9 @@ type MenuContextValue = {
   focusLast: () => void;
   focusNext: () => void;
   focusPrev: () => void;
+
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 };
 
 const MenuContext = React.createContext<MenuContextValue | null>(null);
@@ -37,6 +58,10 @@ function useMenuContext() {
   }
 
   return ctx;
+}
+
+function useOptionalMenuContext() {
+  return React.useContext(MenuContext);
 }
 
 function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
@@ -58,6 +83,8 @@ type TriggerChildProps = {
   onClick?: React.MouseEventHandler<HTMLElement>;
   onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
   id?: string;
+  className?: string;
+  style?: React.CSSProperties;
   "aria-haspopup"?: React.AriaAttributes["aria-haspopup"];
   "aria-expanded"?: boolean;
   "aria-controls"?: string;
@@ -67,9 +94,18 @@ export interface MenuProps {
   children?: React.ReactNode;
   open: boolean;
   onOpenChange?: (open: boolean) => void;
+
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 }
 
-export const Menu: React.FC<MenuProps> = ({ children, open, onOpenChange }) => {
+export const Menu: React.FC<MenuProps> = ({
+  children,
+  open,
+  onOpenChange,
+  styles,
+  slotProps,
+}) => {
   const reactId = React.useId().replace(/:/g, "");
   const anchorRef = React.useRef<HTMLElement | null>(null);
   const itemsRef = React.useRef<HTMLElement[]>([]);
@@ -159,6 +195,8 @@ export const Menu: React.FC<MenuProps> = ({ children, open, onOpenChange }) => {
       focusLast,
       focusNext,
       focusPrev,
+      styles,
+      slotProps,
     }),
     [
       open,
@@ -171,6 +209,8 @@ export const Menu: React.FC<MenuProps> = ({ children, open, onOpenChange }) => {
       focusLast,
       focusNext,
       focusPrev,
+      styles,
+      slotProps,
     ]
   );
 
@@ -182,11 +222,34 @@ Menu.displayName = "Menu";
 export interface MenuTriggerProps {
   children: React.ReactElement<TriggerChildProps>;
   asChild?: boolean;
+
+  className?: string;
+  style?: React.CSSProperties;
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 }
 
 export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
-  ({ children, asChild = true }, ref) => {
+  (
+    {
+      children,
+      asChild = true,
+      className = "",
+      style,
+      styles,
+      slotProps,
+    },
+    ref
+  ) => {
     const ctx = useMenuContext();
+
+    const triggerSlot = resolveSlot<MenuSlot>({
+      slot: "trigger",
+      styles: styles ?? ctx.styles,
+      slotProps: slotProps ?? ctx.slotProps,
+      className,
+      style,
+    });
 
     const setRefs = React.useCallback(
       (node: HTMLElement | null) => {
@@ -218,6 +281,13 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
       return React.cloneElement(children, {
         ref: setRefs,
         id: ctx.triggerId,
+        className: [children.props.className, triggerSlot.className]
+          .filter(Boolean)
+          .join(" "),
+        style: {
+          ...children.props.style,
+          ...triggerSlot.style,
+        },
         "aria-haspopup": "menu",
         "aria-expanded": ctx.open,
         "aria-controls": ctx.open ? ctx.contentId : undefined,
@@ -256,6 +326,8 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
         aria-haspopup="menu"
         aria-expanded={ctx.open}
         aria-controls={ctx.open ? ctx.contentId : undefined}
+        className={triggerSlot.className}
+        style={triggerSlot.style}
         onClick={() => ctx.onOpenChange?.(!ctx.open)}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -311,6 +383,9 @@ export interface MenuContentProps
   closeOnEscape?: boolean;
   closeOnPointerDownOutside?: boolean;
   matchAnchorWidth?: boolean;
+
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 }
 
 export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
@@ -329,6 +404,8 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
       closeOnEscape = true,
       closeOnPointerDownOutside = true,
       matchAnchorWidth = false,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -336,6 +413,9 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
     const ctx = useMenuContext();
     const motionState = useOptionalUIMotion();
     const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+    const resolvedStyles = styles ?? ctx.styles;
+    const resolvedSlotProps = slotProps ?? ctx.slotProps;
 
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
@@ -427,52 +507,73 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
           strategy="fixed"
           matchAnchorWidth={matchAnchorWidth}
         >
-          {({ ref: floatingRef, style: floatingStyle }) => (
-            <DismissableLayer
-              overlayId={ctx.contentId}
-              layer={getLayerZIndex("dropdown")}
-              enabled={ctx.open}
-              dismissOnEscape={closeOnEscape}
-              dismissOnPointerDownOutside={closeOnPointerDownOutside}
-              onDismiss={handleDismiss}
-              style={{
+          {({ ref: floatingRef, style: floatingStyle, placement: side }) => {
+            const dismissableLayerSlot = resolveSlot<MenuSlot>({
+              slot: "dismissableLayer",
+              styles: resolvedStyles,
+              slotProps: resolvedSlotProps,
+              baseStyle: {
                 ...floatingStyle,
                 zIndex: getLayerZIndex("dropdown"),
-              }}
-            >
-              <motion.div
-                ref={(node) => {
-                  assignRef(floatingRef, node);
-                  setRefs(node);
-                }}
-                id={ctx.contentId}
-                role="menu"
-                aria-labelledby={ctx.triggerId}
-                className={className}
-                variants={variants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={transition}
-                style={{
-                  minWidth: 180,
-                  maxWidth: "min(320px, calc(100vw - 16px))",
-                  padding: "0.4rem",
-                  borderRadius: "var(--ui-radius-lg)",
-                  border: "1px solid var(--ui-border)",
-                  background: "var(--ui-surface)",
-                  color: "var(--ui-text)",
-                  boxShadow: "var(--ui-shadow-lg)",
-                  outline: "none",
-                  transformOrigin: "top left",
-                  ...style,
-                }}
-                {...rest}
+              },
+            });
+
+            const contentSlot = resolveSlot<MenuSlot>({
+              slot: "content",
+              styles: resolvedStyles,
+              slotProps: resolvedSlotProps,
+              className,
+              style,
+              baseProps: {
+                "data-side": side,
+                "data-ui-menu-content": "",
+              },
+              baseStyle: {
+                minWidth: 180,
+                maxWidth: "min(320px, calc(100vw - 16px))",
+                padding: "0.4rem",
+                borderRadius: "var(--ui-radius-lg)",
+                border: "1px solid var(--ui-border)",
+                background: "var(--ui-surface)",
+                color: "var(--ui-text)",
+                boxShadow: "var(--ui-shadow-lg)",
+                outline: "none",
+                transformOrigin: "top left",
+              },
+            });
+
+            return (
+              <DismissableLayer
+                overlayId={ctx.contentId}
+                layer={getLayerZIndex("dropdown")}
+                enabled={ctx.open}
+                dismissOnEscape={closeOnEscape}
+                dismissOnPointerDownOutside={closeOnPointerDownOutside}
+                onDismiss={handleDismiss}
+                className={dismissableLayerSlot.className}
+                style={dismissableLayerSlot.style}
               >
-                {children}
-              </motion.div>
-            </DismissableLayer>
-          )}
+                <motion.div
+                  {...rest}
+                  {...toMotionSlotProps(contentSlot)}
+                  ref={(node) => {
+                    assignRef(floatingRef, node);
+                    setRefs(node);
+                  }}
+                  id={ctx.contentId}
+                  role="menu"
+                  aria-labelledby={ctx.triggerId}
+                  variants={variants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={transition}
+                >
+                  {children}
+                </motion.div>
+              </DismissableLayer>
+            );
+          }}
         </FloatingLayer>
       ) : null;
 
@@ -490,6 +591,9 @@ export interface MenuItemProps
   disabled?: boolean;
   closeOnSelect?: boolean;
   onSelect?: () => void;
+
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 }
 
 export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
@@ -501,12 +605,19 @@ export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
       onSelect,
       style,
       className = "",
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
     const ctx = useMenuContext();
     const itemRef = React.useRef<HTMLDivElement | null>(null);
+    const [hovered, setHovered] = React.useState(false);
+    const [focused, setFocused] = React.useState(false);
+
+    const resolvedStyles = styles ?? ctx.styles;
+    const resolvedSlotProps = slotProps ?? ctx.slotProps;
 
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
@@ -540,27 +651,36 @@ export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
       }
     }, [closeOnSelect, ctx, disabled, onSelect]);
 
+    const itemSlot = resolveSlot<MenuSlot>({
+      slot: "item",
+      styles: resolvedStyles,
+      slotProps: resolvedSlotProps,
+      className,
+      style,
+      baseStyle: {
+        display: "flex",
+        alignItems: "center",
+        minHeight: 36,
+        padding: "0.6rem 0.75rem",
+        borderRadius: "var(--ui-radius-md)",
+        background: hovered && !disabled ? "var(--ui-surface-hover)" : "transparent",
+        cursor: disabled ? "not-allowed" : "pointer",
+        userSelect: "none",
+        outline: "none",
+        opacity: disabled ? 0.55 : 1,
+        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
+
     return (
       <div
+        {...itemSlot}
         ref={setRefs}
         role="menuitem"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled || undefined}
-        className={className}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          minHeight: 36,
-          padding: "0.6rem 0.75rem",
-          borderRadius: "var(--ui-radius-md)",
-          cursor: disabled ? "not-allowed" : "pointer",
-          userSelect: "none",
-          outline: "none",
-          opacity: disabled ? 0.55 : 1,
-          transition:
-            "background-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-          ...style,
-        }}
         onClick={handleSelect}
         onKeyDown={(event) => {
           if (disabled) return;
@@ -572,18 +692,20 @@ export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
         }}
         onMouseEnter={(event) => {
           if (!disabled) {
+            setHovered(true);
             event.currentTarget.focus();
-            event.currentTarget.style.background = "var(--ui-surface-hover)";
           }
         }}
-        onMouseLeave={(event) => {
-          event.currentTarget.style.background = "transparent";
+        onMouseLeave={() => {
+          setHovered(false);
         }}
-        onFocus={(event) => {
-          event.currentTarget.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
+        onFocus={() => {
+          if (!disabled) {
+            setFocused(true);
+          }
         }}
-        onBlur={(event) => {
-          event.currentTarget.style.boxShadow = "none";
+        onBlur={() => {
+          setFocused(false);
         }}
         {...rest}
       >
@@ -595,23 +717,38 @@ export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
 
 MenuItem.displayName = "MenuItem";
 
-export interface MenuSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface MenuSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
+}
 
 export const MenuSeparator = React.forwardRef<HTMLDivElement, MenuSeparatorProps>(
-  ({ style, ...rest }, ref) => {
-    return (
-      <div
-        ref={ref}
-        role="separator"
-        style={{
-          height: 1,
-          margin: "0.35rem 0",
-          background: "var(--ui-border)",
-          ...style,
-        }}
-        {...rest}
-      />
-    );
+  (
+    {
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalMenuContext();
+
+    const separatorSlot = resolveSlot<MenuSlot>({
+      slot: "separator",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        height: 1,
+        margin: "0.35rem 0",
+        background: "var(--ui-border)",
+      },
+    });
+
+    return <div {...separatorSlot} ref={ref} role="separator" {...rest} />;
   }
 );
 
@@ -619,22 +756,40 @@ MenuSeparator.displayName = "MenuSeparator";
 
 export interface MenuLabelProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  styles?: MenuStyles;
+  slotProps?: MenuSlotProps;
 }
 
 export const MenuLabel = React.forwardRef<HTMLDivElement, MenuLabelProps>(
-  ({ children, style, ...rest }, ref) => {
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalMenuContext();
+
+    const labelSlot = resolveSlot<MenuSlot>({
+      slot: "label",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        padding: "0.45rem 0.75rem 0.35rem 0.75rem",
+        fontSize: "var(--ui-font-size-sm)",
+        fontWeight: 700,
+        color: "var(--ui-text-muted)",
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        style={{
-          padding: "0.45rem 0.75rem 0.35rem 0.75rem",
-          fontSize: "var(--ui-font-size-sm)",
-          fontWeight: 700,
-          color: "var(--ui-text-muted)",
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...labelSlot} ref={ref} {...rest}>
         {children}
       </div>
     );
