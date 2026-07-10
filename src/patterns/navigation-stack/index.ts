@@ -2,3 +2,4 @@
 export * from "./navigationStack.types";
 export * from "./NavigationStackScreen";
 export * from "./NavigationStack";
+export { useNavigationStack } from "./NavigationStackContext";

@@ -6,7 +6,7 @@ export * from "./components/display/Badge";
 export * from "./components/display/Card";
 export * from "./components/display/Divider";
 export * from "./components/display/Tag";
-
+export * from "./components/tree";
 export * from "./components/feedback";
 
 export * from "./components/media/AspectRatio";
@@ -28,6 +28,7 @@ export * from "./core/dom";
 export * from "./core/motion";
 export * from "./core/viewport";
 export * from "./provider";
+
 
 export { Portal } from "./core/overlay";
 export type { PortalProps } from "./core/overlay";
