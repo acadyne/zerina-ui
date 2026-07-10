@@ -1,5 +1,10 @@
 // src/components/display/Tag.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 type TagVariant = "solid" | "subtle" | "outline";
 type TagScheme =
@@ -10,6 +15,17 @@ type TagScheme =
   | "danger"
   | "neutral";
 
+export type TagSlot =
+  | "root"
+  | "leftIcon"
+  | "content"
+  | "rightIcon"
+  | "removeButton";
+
+export type TagStyles = SlotStyleMap<TagSlot>;
+
+export type TagSlotProps = SlotPropsMap<TagSlot>;
+
 export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   children?: React.ReactNode;
   variant?: TagVariant;
@@ -19,7 +35,11 @@ export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   rightIcon?: React.ReactNode;
   onRemove?: () => void;
   removable?: boolean;
+  className?: string;
   style?: React.CSSProperties;
+
+  styles?: TagStyles;
+  slotProps?: TagSlotProps;
 }
 
 const schemeMap: Record<
@@ -47,7 +67,8 @@ const schemeMap: Record<
     subtleBg: "color-mix(in srgb, var(--ui-secondary) 18%, transparent)",
     subtleText: "var(--ui-secondary)",
     outlineText: "var(--ui-secondary)",
-    outlineBorder: "color-mix(in srgb, var(--ui-secondary) 40%, var(--ui-border))",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-secondary) 40%, var(--ui-border))",
   },
   success: {
     solidBg: "#15803d",
@@ -94,11 +115,17 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
       rightIcon,
       onRemove,
       removable = false,
+      className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
   ) => {
+    const [removeHovered, setRemoveHovered] = React.useState(false);
+    const [removeFocused, setRemoveFocused] = React.useState(false);
+
     const scheme = schemeMap[colorScheme];
 
     const variantStyle: React.CSSProperties =
@@ -120,105 +147,130 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
               border: "1px solid transparent",
             };
 
-    const showRemove = removable || !!onRemove;
+    const showRemove = removable || Boolean(onRemove);
+
+    const rootSlot = resolveSlot<TagSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-tag": "",
+        "data-ui-tag-variant": variant,
+        "data-ui-tag-color-scheme": colorScheme,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "0.35rem",
+        minHeight: 28,
+        maxWidth: "100%",
+        padding: "0.28rem 0.7rem",
+        fontSize: "0.78rem",
+        fontWeight: 600,
+        lineHeight: 1,
+        whiteSpace: "nowrap",
+        borderRadius: rounded,
+        letterSpacing: "0.01em",
+        ...variantStyle,
+      },
+    });
+
+    const iconBaseStyle: React.CSSProperties = {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    };
+
+    const leftIconSlot = resolveSlot<TagSlot>({
+      slot: "leftIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: iconBaseStyle,
+    });
+
+    const contentSlot = resolveSlot<TagSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseStyle: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      },
+    });
+
+    const rightIconSlot = resolveSlot<TagSlot>({
+      slot: "rightIcon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: iconBaseStyle,
+    });
+
+    const removeButtonSlot = resolveSlot<TagSlot>({
+      slot: "removeButton",
+      styles,
+      slotProps,
+      baseStyle: {
+        marginLeft: "0.1rem",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 18,
+        height: 18,
+        borderRadius: 9999,
+        border: "none",
+        background: removeHovered ? "var(--ui-surface-hover)" : "transparent",
+        color: "inherit",
+        cursor: "pointer",
+        padding: 0,
+        lineHeight: 1,
+        opacity: 0.85,
+        flexShrink: 0,
+        outline: "none",
+        boxShadow: removeFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+    });
 
     return (
-      <span
-        ref={ref}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.35rem",
-          minHeight: 28,
-          maxWidth: "100%",
-          padding: "0.28rem 0.7rem",
-          fontSize: "0.78rem",
-          fontWeight: 600,
-          lineHeight: 1,
-          whiteSpace: "nowrap",
-          borderRadius: rounded,
-          letterSpacing: "0.01em",
-          ...variantStyle,
-          ...style,
-        }}
-        {...rest}
-      >
-        {leftIcon ? (
-          <span
-            aria-hidden="true"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            {leftIcon}
-          </span>
-        ) : null}
+      <span {...rootSlot} ref={ref} {...rest}>
+        {leftIcon ? <span {...leftIconSlot}>{leftIcon}</span> : null}
 
-        <span
-          style={{
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {children}
-        </span>
+        <span {...contentSlot}>{children}</span>
 
-        {rightIcon ? (
-          <span
-            aria-hidden="true"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            {rightIcon}
-          </span>
-        ) : null}
+        {rightIcon ? <span {...rightIconSlot}>{rightIcon}</span> : null}
 
         {showRemove ? (
           <button
+            {...removeButtonSlot}
             type="button"
             aria-label="Quitar"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onRemove?.();
             }}
-            style={{
-              marginLeft: "0.1rem",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 18,
-              height: 18,
-              borderRadius: 9999,
-              border: "none",
-              background: "transparent",
-              color: "inherit",
-              cursor: "pointer",
-              padding: 0,
-              lineHeight: 1,
-              opacity: 0.85,
-              flexShrink: 0,
-              outline: "none",
+            onMouseEnter={() => {
+              setRemoveHovered(true);
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--ui-surface-hover)";
+            onMouseLeave={() => {
+              setRemoveHovered(false);
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
+            onFocus={() => {
+              setRemoveFocused(true);
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.boxShadow = "0 0 0 3px var(--ui-focus-ring)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.boxShadow = "none";
+            onBlur={() => {
+              setRemoveFocused(false);
             }}
           >
             ×

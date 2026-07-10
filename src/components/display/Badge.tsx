@@ -1,5 +1,10 @@
 // src/components/display/Badge.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
 type BadgeVariant = "solid" | "subtle" | "outline";
 type BadgeScheme =
@@ -10,12 +15,22 @@ type BadgeScheme =
   | "danger"
   | "neutral";
 
+export type BadgeSlot = "root" | "content";
+
+export type BadgeStyles = SlotStyleMap<BadgeSlot>;
+
+export type BadgeSlotProps = SlotPropsMap<BadgeSlot>;
+
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children?: React.ReactNode;
   variant?: BadgeVariant;
   colorScheme?: BadgeScheme;
   rounded?: React.CSSProperties["borderRadius"];
+  className?: string;
   style?: React.CSSProperties;
+
+  styles?: BadgeStyles;
+  slotProps?: BadgeSlotProps;
 }
 
 const schemeMap: Record<
@@ -43,7 +58,8 @@ const schemeMap: Record<
     subtleBg: "color-mix(in srgb, var(--ui-secondary) 18%, transparent)",
     subtleText: "var(--ui-secondary)",
     outlineText: "var(--ui-secondary)",
-    outlineBorder: "color-mix(in srgb, var(--ui-secondary) 40%, var(--ui-border))",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-secondary) 40%, var(--ui-border))",
   },
   success: {
     solidBg: "#15803d",
@@ -86,7 +102,10 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       variant = "subtle",
       colorScheme = "neutral",
       rounded = "var(--ui-radius-full)",
+      className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -112,37 +131,49 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
               border: "1px solid transparent",
             };
 
+    const rootSlot = resolveSlot<BadgeSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui-badge": "",
+        "data-ui-badge-variant": variant,
+        "data-ui-badge-color-scheme": colorScheme,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "0.35rem",
+        minHeight: 22,
+        maxWidth: "100%",
+        padding: "0.2rem 0.55rem",
+        fontSize: "0.75rem",
+        fontWeight: 700,
+        lineHeight: 1,
+        whiteSpace: "nowrap",
+        borderRadius: rounded,
+        letterSpacing: "0.02em",
+        ...variantStyle,
+      },
+    });
+
+    const contentSlot = resolveSlot<BadgeSlot>({
+      slot: "content",
+      styles,
+      slotProps,
+      baseStyle: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      },
+    });
+
     return (
-      <span
-        ref={ref}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.35rem",
-          minHeight: 22,
-          maxWidth: "100%",
-          padding: "0.2rem 0.55rem",
-          fontSize: "0.75rem",
-          fontWeight: 700,
-          lineHeight: 1,
-          whiteSpace: "nowrap",
-          borderRadius: rounded,
-          letterSpacing: "0.02em",
-          ...variantStyle,
-          ...style,
-        }}
-        {...rest}
-      >
-        <span
-          style={{
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {children}
-        </span>
+      <span {...rootSlot} ref={ref} {...rest}>
+        <span {...contentSlot}>{children}</span>
       </span>
     );
   }
