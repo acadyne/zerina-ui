@@ -1,5 +1,16 @@
 // src/primitives/forms/FormControl.tsx
 import React, { createContext, useId, useMemo } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
+
+export type FormControlSlot = "root";
+
+export type FormControlStyles = SlotStyleMap<FormControlSlot>;
+
+export type FormControlSlotProps = SlotPropsMap<FormControlSlot>;
 
 export type FormControlContextValue = {
   id: string;
@@ -20,7 +31,11 @@ export interface FormControlProps extends React.HTMLAttributes<HTMLDivElement> {
   isInvalid?: boolean;
   isRequired?: boolean;
   isDisabled?: boolean;
+  className?: string;
   style?: React.CSSProperties;
+
+  styles?: FormControlStyles;
+  slotProps?: FormControlSlotProps;
 }
 
 export const FormControl = React.forwardRef<HTMLDivElement, FormControlProps>(
@@ -33,6 +48,8 @@ export const FormControl = React.forwardRef<HTMLDivElement, FormControlProps>(
       isDisabled = false,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -53,21 +70,30 @@ export const FormControl = React.forwardRef<HTMLDivElement, FormControlProps>(
       [baseId, isInvalid, isRequired, isDisabled]
     );
 
+    const rootSlot = resolveSlot<FormControlSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "data-ui": "form-control",
+        "data-invalid": isInvalid || undefined,
+        "data-required": isRequired || undefined,
+        "data-disabled": isDisabled || undefined,
+      },
+      baseStyle: {
+        width: "100%",
+        display: "block",
+        minWidth: 0,
+        marginBottom: "1rem",
+        opacity: isDisabled ? 0.7 : 1,
+      },
+    });
+
     return (
       <FormControlContext.Provider value={ctx}>
-        <div
-          ref={ref}
-          className={className}
-          style={{
-            width: "100%",
-            display: "block",
-            minWidth: 0,
-            marginBottom: "1rem",
-            opacity: isDisabled ? 0.7 : 1,
-            ...style,
-          }}
-          {...rest}
-        >
+        <div {...rootSlot} ref={ref} {...rest}>
           {children}
         </div>
       </FormControlContext.Provider>
