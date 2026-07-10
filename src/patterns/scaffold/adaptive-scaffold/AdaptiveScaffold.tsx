@@ -425,6 +425,8 @@ export function AdaptiveScaffold({
           minHeight: viewport === "contained" ? 0 : "100dvh",
           minWidth: 0,
           overflow: "hidden",
+          background: "var(--ui-bg)",
+          color: "var(--ui-text)",
           ...getSlotStyle(styles, "root"),
           ...rootSlot.style,
           ...style,
