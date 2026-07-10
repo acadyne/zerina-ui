@@ -1,7 +1,7 @@
 // src/patterns/navigation-stack/NavigationStack.tsx
 import React from "react";
 import { MotionSwitch } from "../../core/motion";
-import { resolveSlot } from "../../helpers/css";
+import { resolveSlot, toMotionSlotProps } from "../../helpers/css";
 import { Box } from "../../primitives/layout";
 import { NavigationStackContext } from "./NavigationStackContext";
 import { NavigationStackScreen } from "./NavigationStackScreen";
@@ -197,8 +197,7 @@ const NavigationStackRoot = function NavigationStackRoot({
             direction={transitionDirection}
             mode="wait"
             initial={false}
-            className={screenSlot.className}
-            style={screenSlot.style}
+            {...toMotionSlotProps(screenSlot)}
           >
             {screenContent}
           </MotionSwitch>

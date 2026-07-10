@@ -16,6 +16,7 @@ import {
 } from "../../core/motion";
 import {
   resolveSlot,
+  toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
@@ -249,29 +250,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     slotProps,
   });
 
-  function pickMotionSlotProps(slot: {
-  className?: string;
-  style?: React.CSSProperties;
-  [key: `data-${string}`]: unknown;
-  [key: `aria-${string}`]: unknown;
-}) {
-  const { className, style, ...rest } = slot;
 
-  return {
-    className,
-    style,
-    ...Object.fromEntries(
-      Object.entries(rest).filter(
-        ([key]) => key.startsWith("data-") || key.startsWith("aria-")
-      )
-    ),
-  };
-}
 
   const content = (
     <MotionOverlayPresence open={open}>
-      <MotionOverlayRoot {...pickMotionSlotProps(rootSlot)}>
-        <MotionOverlayBackdrop {...pickMotionSlotProps(backdropSlot)} />
+      <MotionOverlayRoot {...toMotionSlotProps(rootSlot)}>
+        <MotionOverlayBackdrop {...toMotionSlotProps(backdropSlot)} />
 
         <DismissableLayer
           overlayId={overlayId}
@@ -298,7 +282,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               aria-modal="true"
               aria-labelledby={title ? titleId : undefined}
               aria-describedby={description ? descriptionId : undefined}
-              {...pickMotionSlotProps(panelSlot)}
+              {...toMotionSlotProps(panelSlot)}
             >
               {showHandle ? (
                 <BottomSheetHandle

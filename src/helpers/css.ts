@@ -199,3 +199,27 @@ export function resolveMergedSlot<TSlot extends string>({
     style: mergeStyles(baseStyle, resolvedBaseProps.style, merged.style, style),
   };
 }
+
+export type MotionSlotProps = {
+  className?: string;
+  style?: React.CSSProperties;
+} & SlotDataAttributes &
+  SlotAriaAttributes;
+
+export function toMotionSlotProps(
+  slot: SlotElementProps | undefined
+): MotionSlotProps {
+  const { className, style, ...rest } = slot ?? {};
+
+  const filteredAttributes = Object.fromEntries(
+    Object.entries(rest).filter(
+      ([key]) => key.startsWith("data-") || key.startsWith("aria-")
+    )
+  ) as SlotDataAttributes & SlotAriaAttributes;
+
+  return {
+    className,
+    style,
+    ...filteredAttributes,
+  };
+}
