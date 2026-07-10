@@ -1,8 +1,25 @@
 // src/components/media/Avatar.tsx
 import React, { forwardRef, useMemo, useState } from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { SkeletonCircle } from "../feedback/SkeletonCircle";
 
 type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | number;
+
+export type AvatarSlot =
+  | "root"
+  | "image"
+  | "fallback"
+  | "icon"
+  | "initials"
+  | "skeleton";
+
+export type AvatarStyles = SlotStyleMap<AvatarSlot>;
+
+export type AvatarSlotProps = SlotPropsMap<AvatarSlot>;
 
 export interface AvatarProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
@@ -11,16 +28,18 @@ export interface AvatarProps
   alt?: string;
   size?: AvatarSize;
   rounded?: React.CSSProperties["borderRadius"];
-  bg?: React.CSSProperties["backgroundColor"];
+  bg?: React.CSSProperties["background"];
   color?: React.CSSProperties["color"];
   icon?: React.ReactNode;
   fallback?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  imgStyle?: React.CSSProperties;
 
   loading?: boolean;
   skeletonAnimated?: boolean;
+
+  styles?: AvatarStyles;
+  slotProps?: AvatarSlotProps;
 }
 
 const sizeMap: Record<Exclude<AvatarSize, number>, number> = {
@@ -60,9 +79,10 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       fallback,
       className = "",
       style,
-      imgStyle,
       loading = false,
       skeletonAnimated = true,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -83,36 +103,121 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     const accessibleLabel = alt ?? name ?? "Avatar";
     const showImage = Boolean(src) && !imgError;
 
+    const rootSlot = resolveSlot<AvatarSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+      baseProps: {
+        "aria-label": accessibleLabel,
+        role: "img",
+        "data-ui-avatar": "",
+        "data-ui-avatar-loading": loading || undefined,
+      },
+      baseStyle: {
+        width: px,
+        height: px,
+        minWidth: px,
+        minHeight: px,
+        borderRadius: rounded,
+        background: bg,
+        color,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        userSelect: "none",
+        flexShrink: 0,
+        border: "1px solid var(--ui-border)",
+        boxShadow: "var(--ui-shadow-sm)",
+      },
+    });
+
+    const imageSlot = resolveSlot<AvatarSlot>({
+      slot: "image",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block",
+      },
+    });
+
+    const fallbackSlot = resolveSlot<AvatarSlot>({
+      slot: "fallback",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize,
+        lineHeight: 1,
+      },
+    });
+
+    const iconSlot = resolveSlot<AvatarSlot>({
+      slot: "icon",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize,
+        lineHeight: 1,
+      },
+    });
+
+    const initialsSlot = resolveSlot<AvatarSlot>({
+      slot: "initials",
+      styles,
+      slotProps,
+      baseProps: {
+        "aria-hidden": true,
+      },
+      baseStyle: {
+        fontSize,
+        lineHeight: 1,
+        fontWeight: 700,
+        letterSpacing: "0.02em",
+      },
+    });
+
+    const skeletonSlot = resolveSlot<AvatarSlot>({
+      slot: "skeleton",
+      styles,
+      slotProps,
+      baseStyle: {
+        width: "100%",
+        height: "100%",
+        borderRadius: rounded,
+      },
+    });
+
     if (loading) {
       return (
         <div
+          {...rootSlot}
           ref={ref}
-          className={className}
           aria-busy="true"
           data-ui="avatar-loading"
-          style={{
-            width: px,
-            height: px,
-            minWidth: px,
-            minHeight: px,
-            borderRadius: rounded,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            flexShrink: 0,
-            ...style,
-          }}
           {...rest}
         >
           <SkeletonCircle
             size={px}
             animated={skeletonAnimated}
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: rounded,
-            }}
+            className={skeletonSlot.className}
+            style={skeletonSlot.style}
           />
         </div>
       );
@@ -120,70 +225,23 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
 
     return (
       <div
+        {...rootSlot}
         ref={ref}
-        className={className}
-        aria-label={accessibleLabel}
-        role="img"
-        style={{
-          width: px,
-          height: px,
-          minWidth: px,
-          minHeight: px,
-          borderRadius: rounded,
-          background: bg,
-          color,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          userSelect: "none",
-          flexShrink: 0,
-          border: "1px solid var(--ui-border)",
-          boxShadow: "var(--ui-shadow-sm)",
-          ...style,
-        }}
         {...rest}
       >
         {showImage ? (
           <img
+            {...imageSlot}
             src={src}
             alt={accessibleLabel}
             onError={() => setImgError(true)}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              ...imgStyle,
-            }}
           />
         ) : fallback ? (
-          fallback
+          <span {...fallbackSlot}>{fallback}</span>
         ) : icon ? (
-          <span
-            aria-hidden="true"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize,
-              lineHeight: 1,
-            }}
-          >
-            {icon}
-          </span>
+          <span {...iconSlot}>{icon}</span>
         ) : (
-          <span
-            aria-hidden="true"
-            style={{
-              fontSize,
-              lineHeight: 1,
-              fontWeight: 700,
-              letterSpacing: "0.02em",
-            }}
-          >
-            {initials}
-          </span>
+          <span {...initialsSlot}>{initials}</span>
         )}
       </div>
     );
