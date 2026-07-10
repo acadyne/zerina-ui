@@ -13,9 +13,33 @@ import {
   MotionOverlayPresence,
   MotionOverlayRoot,
 } from "../../core/motion";
+import {
+  resolveSlot,
+  toMotionSlotProps,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 import { Button, type ButtonProps } from "../forms/Button";
 
 type DialogSize = "sm" | "md" | "lg" | "xl";
+
+export type DialogSlot =
+  | "root"
+  | "backdrop"
+  | "dismissableLayer"
+  | "focusScope"
+  | "panel"
+  | "content"
+  | "header"
+  | "body"
+  | "footer"
+  | "title"
+  | "description"
+  | "close";
+
+export type DialogStyles = SlotStyleMap<DialogSlot>;
+
+export type DialogSlotProps = SlotPropsMap<DialogSlot>;
 
 const DIALOG_SIZE_MAP: Record<
   DialogSize,
@@ -40,6 +64,8 @@ type DialogContextValue = {
   hasTitle: boolean;
   hasDescription: boolean;
   onOpenChange?: (open: boolean) => void;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 };
 
 const DialogContext = React.createContext<DialogContextValue | null>(null);
@@ -52,6 +78,10 @@ function useDialogContext() {
   }
 
   return ctx;
+}
+
+function useOptionalDialogContext() {
+  return React.useContext(DialogContext);
 }
 
 export interface DialogProps {
@@ -76,6 +106,9 @@ export interface DialogProps {
 
   size?: DialogSize;
   overlayId?: string;
+
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const Dialog: React.FC<DialogProps> = ({
@@ -94,6 +127,8 @@ export const Dialog: React.FC<DialogProps> = ({
   container,
   size = "md",
   overlayId: overlayIdProp,
+  styles,
+  slotProps,
 }) => {
   const reactId = React.useId().replace(/:/g, "");
   const overlayId = overlayIdProp ?? `dialog-${reactId}`;
@@ -118,6 +153,8 @@ export const Dialog: React.FC<DialogProps> = ({
       hasTitle,
       hasDescription,
       onOpenChange,
+      styles,
+      slotProps,
     }),
     [
       open,
@@ -127,38 +164,109 @@ export const Dialog: React.FC<DialogProps> = ({
       hasTitle,
       hasDescription,
       onOpenChange,
+      styles,
+      slotProps,
     ]
   );
+
+  const rootSlot = resolveSlot<DialogSlot>({
+    slot: "root",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui-dialog-root": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      zIndex: getLayerZIndex("modal"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingTop: "max(16px, env(safe-area-inset-top))",
+      paddingRight: "max(16px, env(safe-area-inset-right))",
+      paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+      paddingLeft: "max(16px, env(safe-area-inset-left))",
+      pointerEvents: "none",
+    },
+  });
+
+  const backdropSlot = resolveSlot<DialogSlot>({
+    slot: "backdrop",
+    styles,
+    slotProps,
+    baseProps: {
+      "aria-hidden": true,
+      "data-ui-dialog-backdrop": "",
+    },
+    baseStyle: {
+      position: "fixed",
+      inset: 0,
+      background: "var(--ui-overlay)",
+      zIndex: getLayerZIndex("modalBackdrop"),
+      pointerEvents: "auto",
+    },
+  });
+
+  const dismissableLayerSlot = resolveSlot<DialogSlot>({
+    slot: "dismissableLayer",
+    styles,
+    slotProps,
+    baseStyle: {
+      position: "relative",
+      zIndex: getLayerZIndex("modal"),
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      pointerEvents: "none",
+    },
+  });
+
+  const focusScopeSlot = resolveSlot<DialogSlot>({
+    slot: "focusScope",
+    styles,
+    slotProps,
+    baseStyle: {
+      position: "relative",
+      zIndex: getLayerZIndex("modal"),
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      pointerEvents: "auto",
+    },
+  });
+
+  const panelSlot = resolveSlot<DialogSlot>({
+    slot: "panel",
+    styles,
+    slotProps,
+    baseProps: {
+      "data-ui": "modal-content",
+      "data-ui-dialog-panel": "",
+    },
+    baseStyle: {
+      width: DIALOG_SIZE_MAP[size].width,
+      maxWidth: DIALOG_SIZE_MAP[size].maxWidth,
+      maxHeight: "min(88vh, 88dvh)",
+      overflow: "auto",
+      overscrollBehavior: "contain",
+      WebkitOverflowScrolling: "touch",
+      borderRadius: "var(--ui-radius-xl)",
+      border: "1px solid var(--ui-border)",
+      background: "var(--ui-surface)",
+      color: "var(--ui-text)",
+      boxShadow: "var(--ui-shadow-lg)",
+      outline: "none",
+      transformOrigin: "center",
+    },
+  });
 
   const content = (
     <DialogContext.Provider value={contextValue}>
       <MotionOverlayPresence open={open}>
-        <MotionOverlayRoot
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: getLayerZIndex("modal"),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingTop: "max(16px, env(safe-area-inset-top))",
-            paddingRight: "max(16px, env(safe-area-inset-right))",
-            paddingBottom: "max(16px, env(safe-area-inset-bottom))",
-            paddingLeft: "max(16px, env(safe-area-inset-left))",
-            pointerEvents: "none",
-          }}
-        >
+        <MotionOverlayRoot {...toMotionSlotProps(rootSlot)}>
           {modal ? (
-            <MotionOverlayBackdrop
-              aria-hidden="true"
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "var(--ui-overlay)",
-                zIndex: getLayerZIndex("modalBackdrop"),
-                pointerEvents: "auto",
-              }}
-            />
+            <MotionOverlayBackdrop {...toMotionSlotProps(backdropSlot)} />
           ) : null}
 
           <DismissableLayer
@@ -168,14 +276,8 @@ export const Dialog: React.FC<DialogProps> = ({
             dismissOnEscape={closeOnEscape}
             dismissOnPointerDownOutside={closeOnPointerDownOutside}
             onDismiss={handleDismiss}
-            style={{
-              position: "relative",
-              zIndex: getLayerZIndex("modal"),
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              pointerEvents: "none",
-            }}
+            className={dismissableLayerSlot.className}
+            style={dismissableLayerSlot.style}
           >
             <FocusScope
               overlayId={overlayId}
@@ -184,38 +286,17 @@ export const Dialog: React.FC<DialogProps> = ({
               autoFocus={autoFocus}
               restoreFocus={restoreFocus}
               initialFocusRef={initialFocusRef}
-              style={{
-                position: "relative",
-                zIndex: getLayerZIndex("modal"),
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                pointerEvents: "auto",
-              }}
+              className={focusScopeSlot.className}
+              style={focusScopeSlot.style}
             >
               <MotionOverlayPanel
+                {...toMotionSlotProps(panelSlot)}
                 as="div"
                 kind="dialog"
                 role="dialog"
                 aria-modal={modal ? true : undefined}
                 aria-labelledby={hasTitle ? titleId : undefined}
                 aria-describedby={hasDescription ? descriptionId : undefined}
-                data-ui="modal-content"
-                style={{
-                  width: DIALOG_SIZE_MAP[size].width,
-                  maxWidth: DIALOG_SIZE_MAP[size].maxWidth,
-                  maxHeight: "min(88vh, 88dvh)",
-                  overflow: "auto",
-                  overscrollBehavior: "contain",
-                  WebkitOverflowScrolling: "touch",
-                  borderRadius: "var(--ui-radius-xl)",
-                  border: "1px solid var(--ui-border)",
-                  background: "var(--ui-surface)",
-                  color: "var(--ui-text)",
-                  boxShadow: "var(--ui-shadow-lg)",
-                  outline: "none",
-                  transformOrigin: "center",
-                }}
               >
                 {children}
               </MotionOverlayPanel>
@@ -237,21 +318,42 @@ Dialog.displayName = "Dialog";
 
 export interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
-export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, style, ...rest }, ref) => {
+export const DialogContent = React.forwardRef<
+  HTMLDivElement,
+  DialogContentProps
+>(
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalDialogContext();
+
+    const contentSlot = resolveSlot<DialogSlot>({
+      slot: "content",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 0,
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...contentSlot} ref={ref} {...rest}>
         {children}
       </div>
     );
@@ -262,23 +364,41 @@ DialogContent.displayName = "DialogContent";
 
 export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
-  ({ children, style, ...rest }, ref) => {
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalDialogContext();
+
+    const headerSlot = resolveSlot<DialogSlot>({
+      slot: "header",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.4rem",
+        padding: "1rem 1rem 0.75rem 1rem",
+        borderBottom: "1px solid var(--ui-border)",
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.4rem",
-          padding: "1rem 1rem 0.75rem 1rem",
-          borderBottom: "1px solid var(--ui-border)",
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...headerSlot} ref={ref} {...rest}>
         {children}
       </div>
     );
@@ -289,20 +409,38 @@ DialogHeader.displayName = "DialogHeader";
 
 export interface DialogBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const DialogBody = React.forwardRef<HTMLDivElement, DialogBodyProps>(
-  ({ children, style, ...rest }, ref) => {
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalDialogContext();
+
+    const bodySlot = resolveSlot<DialogSlot>({
+      slot: "body",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        padding: "1rem",
+        minWidth: 0,
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        style={{
-          padding: "1rem",
-          minWidth: 0,
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...bodySlot} ref={ref} {...rest}>
         {children}
       </div>
     );
@@ -313,25 +451,43 @@ DialogBody.displayName = "DialogBody";
 
 export interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
-  ({ children, style, ...rest }, ref) => {
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useOptionalDialogContext();
+
+    const footerSlot = resolveSlot<DialogSlot>({
+      slot: "footer",
+      styles: styles ?? ctx?.styles,
+      slotProps: slotProps ?? ctx?.slotProps,
+      className,
+      style,
+      baseStyle: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: "0.75rem",
+        flexWrap: "wrap",
+        padding: "0.75rem 1rem 1rem 1rem",
+        borderTop: "1px solid var(--ui-border)",
+      },
+    });
+
     return (
-      <div
-        ref={ref}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          gap: "0.75rem",
-          flexWrap: "wrap",
-          padding: "0.75rem 1rem 1rem 1rem",
-          borderTop: "1px solid var(--ui-border)",
-          ...style,
-        }}
-        {...rest}
-      >
+      <div {...footerSlot} ref={ref} {...rest}>
         {children}
       </div>
     );
@@ -344,32 +500,53 @@ export interface DialogTitleProps
   extends React.HTMLAttributes<HTMLHeadingElement> {
   children?: React.ReactNode;
   as?: React.ElementType;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps>(
-  ({ children, as: Comp = "h2", style, ...rest }, ref) => {
-    const { titleId, setTitleMounted } = useDialogContext();
+  (
+    {
+      children,
+      as: Comp = "h2",
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useDialogContext();
 
     React.useEffect(() => {
-      setTitleMounted(true);
+      ctx.setTitleMounted(true);
 
       return () => {
-        setTitleMounted(false);
+        ctx.setTitleMounted(false);
       };
-    }, [setTitleMounted]);
+    }, [ctx]);
+
+    const titleSlot = resolveSlot<DialogSlot>({
+      slot: "title",
+      styles: styles ?? ctx.styles,
+      slotProps: slotProps ?? ctx.slotProps,
+      className,
+      style,
+      baseStyle: {
+        margin: 0,
+        fontSize: "1.125rem",
+        fontWeight: 800,
+        lineHeight: 1.2,
+        color: "var(--ui-text)",
+      },
+    });
 
     return (
       <Comp
+        {...titleSlot}
         ref={ref as React.Ref<any>}
-        id={titleId}
-        style={{
-          margin: 0,
-          fontSize: "1.125rem",
-          fontWeight: 800,
-          lineHeight: 1.2,
-          color: "var(--ui-text)",
-          ...style,
-        }}
+        id={ctx.titleId}
         {...rest}
       >
         {children}
@@ -383,39 +560,61 @@ DialogTitle.displayName = "DialogTitle";
 export interface DialogDescriptionProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
   children?: React.ReactNode;
+  styles?: DialogStyles;
+  slotProps?: DialogSlotProps;
 }
 
 export const DialogDescription = React.forwardRef<
   HTMLParagraphElement,
   DialogDescriptionProps
->(({ children, style, ...rest }, ref) => {
-  const { descriptionId, setDescriptionMounted } = useDialogContext();
+>(
+  (
+    {
+      children,
+      className = "",
+      style,
+      styles,
+      slotProps,
+      ...rest
+    },
+    ref
+  ) => {
+    const ctx = useDialogContext();
 
-  React.useEffect(() => {
-    setDescriptionMounted(true);
+    React.useEffect(() => {
+      ctx.setDescriptionMounted(true);
 
-    return () => {
-      setDescriptionMounted(false);
-    };
-  }, [setDescriptionMounted]);
+      return () => {
+        ctx.setDescriptionMounted(false);
+      };
+    }, [ctx]);
 
-  return (
-    <p
-      ref={ref}
-      id={descriptionId}
-      style={{
+    const descriptionSlot = resolveSlot<DialogSlot>({
+      slot: "description",
+      styles: styles ?? ctx.styles,
+      slotProps: slotProps ?? ctx.slotProps,
+      className,
+      style,
+      baseStyle: {
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",
         lineHeight: 1.45,
         color: "var(--ui-text-muted)",
-        ...style,
-      }}
-      {...rest}
-    >
-      {children}
-    </p>
-  );
-});
+      },
+    });
+
+    return (
+      <p
+        {...descriptionSlot}
+        ref={ref}
+        id={ctx.descriptionId}
+        {...rest}
+      >
+        {children}
+      </p>
+    );
+  }
+);
 
 DialogDescription.displayName = "DialogDescription";
 
@@ -424,8 +623,25 @@ export interface DialogCloseProps extends Omit<ButtonProps, "type"> {
 }
 
 export const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
-  ({ children, onClick, ...rest }, ref) => {
+  (
+    {
+      children,
+      onClick,
+      className = "",
+      style,
+      ...rest
+    },
+    ref
+  ) => {
     const ctx = useDialogContext();
+
+    const closeSlot = resolveSlot<DialogSlot>({
+      slot: "close",
+      styles: ctx.styles,
+      slotProps: ctx.slotProps,
+      className,
+      style,
+    });
 
     return (
       <Button
@@ -433,6 +649,8 @@ export const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>
         type="button"
         variant="ghost"
         size="sm"
+        className={closeSlot.className}
+        style={closeSlot.style}
         onClick={(event) => {
           ctx.onOpenChange?.(false);
           onClick?.(event);
