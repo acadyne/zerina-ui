@@ -8,7 +8,7 @@ export * from "./components/display/Divider";
 export * from "./components/display/Tag";
 export * from "./components/tree";
 export * from "./components/feedback";
-
+export * from "./components/navigation-menu";
 export * from "./components/media/AspectRatio";
 export * from "./components/media/Avatar";
 export * from "./components/media/Image";
