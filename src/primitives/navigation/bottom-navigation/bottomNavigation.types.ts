@@ -1,27 +1,55 @@
 // src/primitives/navigation/bottom-navigation/bottomNavigation.types.ts
 import React from "react";
-import type { SlotPropsMap, SlotStyleMap } from "../../../helpers/css";
+import type { UIPressEvent } from "../../../core/interaction";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../../helpers/css";
 
-export type BottomNavigationPosition = "fixed" | "sticky" | "static";
+export type BottomNavigationPosition =
+  | "fixed"
+  | "sticky"
+  | "static";
 
-export type BottomNavigationVariant = "plain" | "surface" | "floating";
+export type BottomNavigationVariant =
+  | "plain"
+  | "surface"
+  | "floating";
 
-export type BottomNavigationLabelBehavior = "always" | "active" | "never";
+export type BottomNavigationLabelBehavior =
+  | "always"
+  | "active"
+  | "never";
 
-export type BottomNavigationIndicator = "background" | "pill" | "dot" | "none";
+export type BottomNavigationIndicator =
+  | "background"
+  | "pill"
+  | "dot"
+  | "none";
 
-export type BottomNavigationDensity = "compact" | "comfortable";
+export type BottomNavigationDensity =
+  | "compact"
+  | "comfortable";
 
-export type BottomNavigationBadgeAnchor = "icon" | "content" | "item";
+export type BottomNavigationBadgeAnchor =
+  | "icon"
+  | "content"
+  | "item";
 
 export type BottomNavigationBadgePlacement =
   | "top-end"
   | "top-center"
   | "inline-end";
 
-export type BottomNavigationItemShape = "rounded" | "pill" | "circle" | "none";
+export type BottomNavigationItemShape =
+  | "rounded"
+  | "pill"
+  | "circle"
+  | "none";
 
-export type BottomNavigationIconPosition = "top" | "start";
+export type BottomNavigationIconPosition =
+  | "top"
+  | "start";
 
 export interface BottomNavigationBadgeOffset {
   x?: number | string;
@@ -45,32 +73,11 @@ export type BottomNavigationSlot =
   | "activeBadge"
   | "dot";
 
-export type BottomNavigationStyles = SlotStyleMap<BottomNavigationSlot>;
+export type BottomNavigationStyles =
+  SlotStyleMap<BottomNavigationSlot>;
 
-export type BottomNavigationSlotProps = SlotPropsMap<BottomNavigationSlot>;
-
-export interface BottomNavigationContextValue {
-  value: string | null;
-  setValue: (value: string, event: React.MouseEvent<HTMLElement>) => void;
-
-  labelBehavior: BottomNavigationLabelBehavior;
-  indicator: BottomNavigationIndicator;
-  density: BottomNavigationDensity;
-
-  badgeAnchor: BottomNavigationBadgeAnchor;
-  badgePlacement: BottomNavigationBadgePlacement;
-  badgeOffset?: BottomNavigationBadgeOffset;
-
-  itemShape: BottomNavigationItemShape;
-  itemMinWidth?: number | string;
-
-  iconPosition: BottomNavigationIconPosition;
-  activeIconScale: number;
-  activeLabelWeight: number;
-
-  styles?: BottomNavigationStyles;
-  slotProps?: BottomNavigationSlotProps;
-}
+export type BottomNavigationSlotProps =
+  SlotPropsMap<BottomNavigationSlot>;
 
 export interface BottomNavigationProps
   extends Omit<
@@ -84,7 +91,7 @@ export interface BottomNavigationProps
 
   onValueChange?: (
     value: string,
-    event: React.MouseEvent<HTMLElement>
+    event: UIPressEvent<HTMLElement>
   ) => void;
 
   height?: number | string;
@@ -105,7 +112,6 @@ export interface BottomNavigationProps
   itemMinWidth?: number | string;
 
   iconPosition?: BottomNavigationIconPosition;
-  activeIconScale?: number;
   activeLabelWeight?: number;
 
   className?: string;
@@ -128,13 +134,9 @@ export interface BottomNavigationItemProps
   badge?: React.ReactNode;
 
   disabled?: boolean;
-  selectable?: boolean;
 
-  ariaLabel?: string;
-
-  onSelect?: (
-    value: string,
-    event: React.MouseEvent<HTMLElement>
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
   ) => void;
 
   labelBehavior?: BottomNavigationLabelBehavior;
@@ -148,7 +150,6 @@ export interface BottomNavigationItemProps
   itemMinWidth?: number | string;
 
   iconPosition?: BottomNavigationIconPosition;
-  activeIconScale?: number;
   activeLabelWeight?: number;
 
   styles?: BottomNavigationStyles;

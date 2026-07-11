@@ -176,7 +176,8 @@ export function AdaptiveScaffold({
     mode,
     width: responsiveWidth,
     fallbackKind: viewportInfo?.kind ?? "mobile",
-    breakpoints: viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+    breakpoints:
+      viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
   });
 
   const setActiveItem = React.useCallback(
@@ -214,7 +215,9 @@ export function AdaptiveScaffold({
   );
 
   const resolvedTitle =
-    resolveAdaptiveValue(title, context) ?? activeItem?.label ?? currentActiveId;
+    resolveAdaptiveValue(title, context) ??
+    activeItem?.label ??
+    currentActiveId;
 
   const resolvedSubtitle = resolveAdaptiveValue(subtitle, context);
 
@@ -290,7 +293,7 @@ export function AdaptiveScaffold({
   const contentSlot = getContentSlot(resolvedMode, styles, slotProps);
 
   const appBar = showAppBar ? (
-        <Box
+    <Box
       {...appBarSlot}
       data-ui-adaptive-scaffold-app-bar=""
     >
@@ -335,7 +338,10 @@ export function AdaptiveScaffold({
             value={item.id}
             icon={item.icon}
             badge={item.badge}
-            disabled={item.disabled || !isAdaptiveScaffoldItemSelectable(item)}
+            disabled={
+              item.disabled ||
+              !isAdaptiveScaffoldItemSelectable(item)
+            }
           >
             {item.label}
           </BottomNavigation.Item>
@@ -353,7 +359,6 @@ export function AdaptiveScaffold({
         density="comfortable"
         badgeAnchor="icon"
         badgePlacement="top-end"
-        activeIconScale={1.08}
         {...navigationRailProps}
         value={currentActiveId}
         onValueChange={(next) => {
@@ -366,7 +371,10 @@ export function AdaptiveScaffold({
             value={item.id}
             icon={item.icon}
             badge={item.badge}
-            disabled={item.disabled || !isAdaptiveScaffoldItemSelectable(item)}
+            disabled={
+              item.disabled ||
+              !isAdaptiveScaffoldItemSelectable(item)
+            }
           >
             {item.label}
           </NavigationRail.Item>
@@ -391,7 +399,7 @@ export function AdaptiveScaffold({
 
   if (resolvedMode === "mobile") {
     return (
-            <Box
+      <Box
         {...rootSlot}
         ref={rootRef}
         data-ui-adaptive-scaffold=""
@@ -407,14 +415,16 @@ export function AdaptiveScaffold({
           viewport={viewport}
           appBar={appBar}
           bottomNavigation={
-            mobileNavigation === "bottom" ? bottomNavigation : undefined
+            mobileNavigation === "bottom"
+              ? bottomNavigation
+              : undefined
           }
           floating={resolveAdaptiveValue(floating, context)}
           scrollable={false}
           padded={false}
           {...mobileScaffoldProps}
         >
-                 <Box
+          <Box
             {...contentSlot}
             data-ui-adaptive-scaffold-content=""
             data-ui-adaptive-scaffold-mobile-content=""
@@ -434,17 +444,24 @@ export function AdaptiveScaffold({
     );
   }
 
-  const showTabletRail = resolvedMode === "tablet" && tabletNavigation === "rail";
+  const showTabletRail =
+    resolvedMode === "tablet" &&
+    tabletNavigation === "rail";
+
   const showTabletBottom =
-    resolvedMode === "tablet" && tabletNavigation === "bottom";
+    resolvedMode === "tablet" &&
+    tabletNavigation === "bottom";
 
   const showDesktopSidebar =
-    resolvedMode === "desktop" && desktopNavigation === "sidebar";
+    resolvedMode === "desktop" &&
+    desktopNavigation === "sidebar";
+
   const showDesktopRail =
-    resolvedMode === "desktop" && desktopNavigation === "rail";
+    resolvedMode === "desktop" &&
+    desktopNavigation === "rail";
 
   return (
-       <Box
+    <Box
       {...rootSlot}
       ref={rootRef}
       data-ui-adaptive-scaffold=""
@@ -460,12 +477,12 @@ export function AdaptiveScaffold({
     >
       {appBar}
 
-           <Box
+      <Box
         {...bodySlot}
         data-ui-adaptive-scaffold-body=""
       >
         {showTabletRail || showDesktopRail ? (
-                <Box
+          <Box
             {...railSlot}
             data-ui-adaptive-scaffold-rail=""
           >
@@ -474,7 +491,7 @@ export function AdaptiveScaffold({
         ) : null}
 
         {showDesktopSidebar ? (
-                   <Box
+          <Box
             {...sidebarSlot}
             data-ui-adaptive-scaffold-sidebar=""
           >
@@ -491,7 +508,7 @@ export function AdaptiveScaffold({
           </Box>
         ) : null}
 
-               <Box
+        <Box
           {...contentSlot}
           data-ui-adaptive-scaffold-content=""
           data-ui-adaptive-scaffold-tablet-content={

@@ -108,7 +108,6 @@ createRoot(document.getElementById("root")!).render(
 
 ---
 
-
 # Sistemas principales
 
 ## 1. Styling System
@@ -189,6 +188,9 @@ El sistema cubre:
 ```txt
 foco
 teclado
+press
+long press
+pointer
 dismiss
 clickable non-native
 composite widgets
@@ -200,6 +202,27 @@ menús
 command palette
 superficies transformables
 ```
+
+Las activaciones se normalizan mediante `Pressable`, `usePress` y `UIPressEvent`.
+
+```tsx
+import type { UIPressEvent } from "zerina-ui";
+
+function handlePress(event: UIPressEvent<HTMLElement>) {
+  console.log(event.pointerType);
+}
+```
+
+`UIPressEvent` unifica activación mediante:
+
+```txt
+mouse
+touch
+pen
+keyboard
+```
+
+Los componentes interactivos que usan el contrato central exponen `onPress` y, cuando aplica, `onLongPress`, en lugar de usar `MouseEvent` o `PointerEvent` como contrato público común.
 
 ---
 
@@ -219,7 +242,61 @@ wouter
 
 Los patrones de navegación trabajan con contratos propios y permiten integración externa mediante adapters o callbacks.
 
+`BottomNavigation` y `NavigationRail` representan navegación, no widgets de tabs.
+
+Sus contenedores usan:
+
+```txt
+value
+defaultValue
+onValueChange
+```
+
+Sus items usan:
+
+```txt
+value
+onPress
+aria-current="page"
+```
+
+No usan:
+
+```txt
+role="tablist"
+role="tab"
+aria-selected
+selectable
+onSelect
+```
+
 Ejemplo:
+
+```tsx
+import { BottomNavigation } from "zerina-ui";
+
+export function MainNavigation() {
+  return (
+    <BottomNavigation
+      value="home"
+      onValueChange={(nextValue) => {
+        console.log(nextValue);
+      }}
+    >
+      <BottomNavigation.Item
+        value="home"
+        onPress={(event) => {
+          console.log(event.pointerType);
+        }}
+      >
+        Inicio
+      </BottomNavigation.Item>
+    </BottomNavigation>
+  );
+}
+```
+
+La integración con un router sigue viviendo en la aplicación consumidora.
 
 ```tsx
 import { RoutedAppShell } from "zerina-ui";
@@ -241,7 +318,6 @@ export function AppLayout() {
 ## 5. Motion System
 
 El movimiento está centralizado en `core/motion`.
-
 
 Niveles soportados:
 
@@ -1086,9 +1162,23 @@ Zerina UI incluye patrones para listas de configuración:
 
 ```txt
 SettingsList
-SettingsSection
-SettingsItem
+SettingsList.Section
+SettingsList.Item
+SettingsList.Switch
+SettingsList.Checkbox
+SettingsList.Select
 ```
+
+Las filas activables usan `onPress` y `onLongPress`.
+
+`SettingsList.Switch` y `SettingsList.Checkbox` comunican cambios mediante `SettingsCheckedChangeEvent`.
+
+```ts
+event.source === "row";
+event.source === "control";
+```
+
+Esto permite distinguir si el cambio se originó al presionar la fila o al operar directamente el control.
 
 ---
 
@@ -1098,15 +1188,16 @@ Zerina UI está escrita en TypeScript y publica declaraciones de tipos.
 
 ```ts
 import type {
+  AppShellRoute,
   DataTableColumn,
   EditableDataTableColumn,
-  AppShellRoute,
+  SettingsCheckedChangeEvent,
+  UIPressEvent,
   UIMotionLevel,
 } from "zerina-ui";
 ```
 
 Los tipos públicos forman parte de la API.
-
 
 ---
 

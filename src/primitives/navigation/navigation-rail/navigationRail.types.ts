@@ -1,29 +1,61 @@
 // src/primitives/navigation/navigation-rail/navigationRail.types.ts
 import React from "react";
-import type { SlotPropsMap, SlotStyleMap } from "../../../helpers/css";
+import type { UIPressEvent } from "../../../core/interaction";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../../helpers/css";
 
-export type NavigationRailPosition = "fixed" | "sticky" | "static";
+export type NavigationRailPosition =
+  | "fixed"
+  | "sticky"
+  | "static";
 
-export type NavigationRailPlacement = "left" | "right";
+export type NavigationRailPlacement =
+  | "left"
+  | "right";
 
-export type NavigationRailVariant = "plain" | "surface" | "floating";
+export type NavigationRailVariant =
+  | "plain"
+  | "surface"
+  | "floating";
 
-export type NavigationRailLabelBehavior = "always" | "active" | "never";
+export type NavigationRailLabelBehavior =
+  | "always"
+  | "active"
+  | "never";
 
-export type NavigationRailIndicator = "background" | "pill" | "dot" | "none";
+export type NavigationRailIndicator =
+  | "background"
+  | "pill"
+  | "dot"
+  | "none";
 
-export type NavigationRailDensity = "compact" | "comfortable";
+export type NavigationRailDensity =
+  | "compact"
+  | "comfortable";
 
-export type NavigationRailBadgeAnchor = "icon" | "content" | "item";
+export type NavigationRailBadgeAnchor =
+  | "icon"
+  | "content"
+  | "item";
 
 export type NavigationRailBadgePlacement =
   | "top-end"
   | "top-center"
   | "inline-end";
 
-export type NavigationRailItemShape = "rounded" | "pill" | "circle" | "none";
+export type NavigationRailItemShape =
+  | "rounded"
+  | "pill"
+  | "circle"
+  | "none";
 
-export type NavigationRailAlignment = "start" | "center" | "end" | "stretch";
+export type NavigationRailAlignment =
+  | "start"
+  | "center"
+  | "end"
+  | "stretch";
 
 export interface NavigationRailBadgeOffset {
   x?: number | string;
@@ -50,32 +82,11 @@ export type NavigationRailSlot =
   | "activeBadge"
   | "dot";
 
-export type NavigationRailStyles = SlotStyleMap<NavigationRailSlot>;
+export type NavigationRailStyles =
+  SlotStyleMap<NavigationRailSlot>;
 
-export type NavigationRailSlotProps = SlotPropsMap<NavigationRailSlot>;
-
-export interface NavigationRailContextValue {
-  value: string | null;
-  setValue: (value: string, event: React.MouseEvent<HTMLElement>) => void;
-
-  labelBehavior: NavigationRailLabelBehavior;
-  indicator: NavigationRailIndicator;
-  density: NavigationRailDensity;
-
-  badgeAnchor: NavigationRailBadgeAnchor;
-  badgePlacement: NavigationRailBadgePlacement;
-  badgeOffset?: NavigationRailBadgeOffset;
-
-  itemShape: NavigationRailItemShape;
-  itemMinWidth?: number | string;
-  itemMinHeight?: number | string;
-
-  activeIconScale: number;
-  activeLabelWeight: number;
-
-  styles?: NavigationRailStyles;
-  slotProps?: NavigationRailSlotProps;
-}
+export type NavigationRailSlotProps =
+  SlotPropsMap<NavigationRailSlot>;
 
 export interface NavigationRailProps
   extends Omit<
@@ -89,7 +100,7 @@ export interface NavigationRailProps
 
   onValueChange?: (
     value: string,
-    event: React.MouseEvent<HTMLElement>
+    event: UIPressEvent<HTMLElement>
   ) => void;
 
   width?: number | string;
@@ -115,7 +126,6 @@ export interface NavigationRailProps
   itemMinWidth?: number | string;
   itemMinHeight?: number | string;
 
-  activeIconScale?: number;
   activeLabelWeight?: number;
 
   className?: string;
@@ -138,13 +148,9 @@ export interface NavigationRailItemProps
   badge?: React.ReactNode;
 
   disabled?: boolean;
-  selectable?: boolean;
 
-  ariaLabel?: string;
-
-  onSelect?: (
-    value: string,
-    event: React.MouseEvent<HTMLElement>
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
   ) => void;
 
   labelBehavior?: NavigationRailLabelBehavior;
@@ -158,7 +164,6 @@ export interface NavigationRailItemProps
   itemMinWidth?: number | string;
   itemMinHeight?: number | string;
 
-  activeIconScale?: number;
   activeLabelWeight?: number;
 
   styles?: NavigationRailStyles;

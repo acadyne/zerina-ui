@@ -35,7 +35,9 @@ function renderAnchoredBadge({
   target: NavigationRailBadgeAnchor;
   badgeNode: React.ReactNode;
 }) {
-  if (anchor !== target) return null;
+  if (anchor !== target) {
+    return null;
+  }
 
   return badgeNode;
 }
@@ -61,373 +63,515 @@ function resolveNavigationRailItemSlot({
   baseStyle?: React.CSSProperties;
   baseProps?: SlotElementProps;
 }): SlotElementProps {
-  const contextSlot = resolveMergedSlot({
-    slots,
-    styles: ctxStyles,
-    slotProps: ctxSlotProps,
-    baseStyle,
-    baseProps,
-  });
+  const contextSlot =
+    resolveMergedSlot({
+      slots,
+      styles: ctxStyles,
+      slotProps: ctxSlotProps,
+      baseStyle,
+      baseProps,
+    });
 
-  const localSlot = resolveMergedSlot({
-    slots,
-    styles,
-    slotProps,
-  });
+  const localSlot =
+    resolveMergedSlot({
+      slots,
+      styles,
+      slotProps,
+    });
 
   return {
     ...contextSlot,
     ...localSlot,
-    className: cx(contextSlot.className, className, localSlot.className),
-    style: mergeStyles(contextSlot.style, localSlot.style, style),
+    className: cx(
+      contextSlot.className,
+      className,
+      localSlot.className
+    ),
+    style: mergeStyles(
+      contextSlot.style,
+      localSlot.style,
+      style
+    ),
   };
 }
 
-export const NavigationRailItem = React.forwardRef<
-  HTMLButtonElement,
-  NavigationRailItemProps
->(
-  (
-    {
-      value,
-      children,
-      label,
-      icon,
-      badge,
-      disabled = false,
-      selectable = true,
-      ariaLabel,
-      onSelect,
+export const NavigationRailItem =
+  React.forwardRef<
+    HTMLButtonElement,
+    NavigationRailItemProps
+  >(
+    (
+      {
+        value,
+        children,
+        label,
+        icon,
+        badge,
+        disabled = false,
+        onPress,
 
-      labelBehavior,
-      indicator,
+        labelBehavior,
+        indicator,
 
-      badgeAnchor,
-      badgePlacement,
-      badgeOffset,
+        badgeAnchor,
+        badgePlacement,
+        badgeOffset,
 
-      itemShape,
-      itemMinWidth,
-      itemMinHeight,
+        itemShape,
+        itemMinWidth,
+        itemMinHeight,
 
-      activeIconScale,
-      activeLabelWeight,
+        activeLabelWeight,
 
-      styles,
-      slotProps,
+        styles,
+        slotProps,
 
-      className = "",
-      style,
-      ...rest
-    },
-    ref
-  ) => {
-    const ctx = useNavigationRailContext();
-
-    const active = ctx.value === value;
-    const itemLabel = children ?? label;
-    const densityStyles = NAVIGATION_RAIL_DENSITY_MAP[ctx.density];
-
-    const resolvedLabelBehavior = labelBehavior ?? ctx.labelBehavior;
-    const resolvedIndicator = indicator ?? ctx.indicator;
-
-    const resolvedBadgeAnchor = badgeAnchor ?? ctx.badgeAnchor;
-    const resolvedBadgePlacement = badgePlacement ?? ctx.badgePlacement;
-    const resolvedBadgeOffset = badgeOffset ?? ctx.badgeOffset;
-
-    const resolvedItemShape = itemShape ?? ctx.itemShape;
-    const resolvedItemMinWidth = itemMinWidth ?? ctx.itemMinWidth;
-    const resolvedItemMinHeight = itemMinHeight ?? ctx.itemMinHeight;
-
-    const resolvedActiveIconScale = activeIconScale ?? ctx.activeIconScale;
-    const resolvedActiveLabelWeight = activeLabelWeight ?? ctx.activeLabelWeight;
-
-    const showLabel =
-      Boolean(itemLabel) &&
-      (resolvedLabelBehavior === "always" ||
-        (resolvedLabelBehavior === "active" && active));
-
-    const itemSlots: NavigationRailSlot[] = active
-      ? ["item", "activeItem"]
-      : ["item"];
-
-    const contentSlots: NavigationRailSlot[] = active
-      ? ["content", "activeContent"]
-      : ["content"];
-
-    const iconWrapSlots: NavigationRailSlot[] = active
-      ? ["iconWrap", "activeIconWrap"]
-      : ["iconWrap"];
-
-    const iconSlots: NavigationRailSlot[] = active
-      ? ["icon", "activeIcon"]
-      : ["icon"];
-
-    const labelSlots: NavigationRailSlot[] = active
-      ? ["label", "activeLabel"]
-      : ["label"];
-
-    const badgeSlots: NavigationRailSlot[] = active
-      ? ["badge", "activeBadge"]
-      : ["badge"];
-
-    const itemSlot = resolveNavigationRailItemSlot({
-      slots: itemSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        role: "tab",
-        "aria-selected": active,
-        "aria-label": ariaLabel,
-        "data-active": active || undefined,
-        "data-ui-navigation-rail-item": "",
-        "data-ui-navigation-rail-item-active": active || undefined,
-        "data-ui-navigation-rail-item-badge-anchor": badge
-          ? resolvedBadgeAnchor
-          : undefined,
-        "data-ui-navigation-rail-item-badge-placement": badge
-          ? resolvedBadgePlacement
-          : undefined,
+        className = "",
+        style,
+        ...rest
       },
-      baseStyle: {
-        width: "100%",
-        minWidth:
-          resolvedItemMinWidth !== undefined
-            ? cssSize(resolvedItemMinWidth)
-            : densityStyles.itemMinWidth,
-        minHeight:
-          resolvedItemMinHeight !== undefined
-            ? cssSize(resolvedItemMinHeight)
-            : densityStyles.itemMinHeight,
-        position: "relative",
-        border: "1px solid",
-        borderColor: getItemBorderColor({
-          active,
-          indicator: resolvedIndicator,
-        }),
-        borderRadius: getItemBorderRadius({
-          indicator: resolvedIndicator,
-          shape: resolvedItemShape,
-        }),
-        background: getItemBackground({
-          active,
-          indicator: resolvedIndicator,
-        }),
-        color: active ? "var(--ui-text)" : "var(--ui-text-muted)",
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.62)" : 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingTop: densityStyles.itemPaddingTop,
-        paddingRight: densityStyles.itemPaddingRight,
-        paddingBottom: densityStyles.itemPaddingBottom,
-        paddingLeft: densityStyles.itemPaddingLeft,
-        textAlign: "center",
-        overflow: "visible",
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-    });
+      ref
+    ) => {
+      const ctx =
+        useNavigationRailContext();
 
-    const contentSlot = resolveNavigationRailItemSlot({
-      slots: contentSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "data-ui-navigation-rail-item-content": "",
-      },
-      baseStyle: {
-        width: "100%",
-        minWidth: 0,
-        minHeight: 0,
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: densityStyles.gap,
-        overflow: "visible",
-        borderRadius: "inherit",
-        boxSizing: "border-box",
-      },
-    });
+      const active =
+        ctx.value === value;
 
-    const iconWrapSlot = resolveNavigationRailItemSlot({
-      slots: iconWrapSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "data-ui-navigation-rail-item-icon-wrap": "",
-      },
-      baseStyle: {
-        position: "relative",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width:
-          badge && resolvedBadgeAnchor === "icon"
-            ? "1.65rem"
-            : undefined,
-        height:
-          badge && resolvedBadgeAnchor === "icon"
-            ? "1.35rem"
-            : undefined,
-        minWidth: 0,
-        lineHeight: 1,
-        flexShrink: 0,
-        overflow: "visible",
-        transform: active
-          ? `translateY(-1px) scale(${resolvedActiveIconScale})`
-          : undefined,
-        transformOrigin: "center center",
-        transition:
-          "transform var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-    });
+      const itemLabel =
+        children ?? label;
 
-    const iconSlot = resolveNavigationRailItemSlot({
-      slots: iconSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-        "data-ui-navigation-rail-item-icon": "",
-      },
-      baseStyle: {
-        fontSize: densityStyles.iconSize,
-        lineHeight: 1,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-      },
-    });
+      const densityStyles =
+        NAVIGATION_RAIL_DENSITY_MAP[
+          ctx.density
+        ];
 
-    const labelSlot = resolveNavigationRailItemSlot({
-      slots: labelSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "data-ui-navigation-rail-item-label": "",
-      },
-      baseStyle: {
-        maxWidth: "100%",
-        minWidth: 0,
-        margin: 0,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        color: "inherit",
-        lineHeight: 1.15,
-      },
-    });
+      const resolvedLabelBehavior =
+        labelBehavior ??
+        ctx.labelBehavior;
 
-    const badgeSlot = resolveNavigationRailItemSlot({
-      slots: badgeSlots,
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "data-ui-navigation-rail-item-badge": "",
-      },
-      baseStyle: getBadgePlacementStyles({
-        placement: resolvedBadgePlacement,
-        offset: resolvedBadgeOffset,
-      }),
-    });
+      const resolvedIndicator =
+        indicator ??
+        ctx.indicator;
 
-    const dotSlot = resolveNavigationRailItemSlot({
-      slots: ["dot"],
-      ctxStyles: ctx.styles,
-      ctxSlotProps: ctx.slotProps,
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-        "data-ui-navigation-rail-item-dot": "",
-      },
-      baseStyle: {
-        position: "absolute",
-        right: "0.22rem",
-        top: "50%",
-        width: 4,
-        height: 18,
-        borderRadius: "9999px",
-        transform: "translateY(-50%)",
-        background: "var(--ui-primary)",
-        pointerEvents: "none",
-      },
-    });
+      const resolvedBadgeAnchor =
+        badgeAnchor ??
+        ctx.badgeAnchor;
 
-    const badgeNode = badge ? <Box {...badgeSlot}>{badge}</Box> : null;
+      const resolvedBadgePlacement =
+        badgePlacement ??
+        ctx.badgePlacement;
 
-    return (
-      <Pressable
-        as="button"
-        ref={ref as React.Ref<HTMLElement>}
-        type="button"
-        disabled={disabled}
-        {...itemSlot}
-        {...rest}
-        onPress={(event) => {
-          if (selectable) {
-            ctx.setValue(value, event);
+      const resolvedBadgeOffset =
+        badgeOffset ??
+        ctx.badgeOffset;
+
+      const resolvedItemShape =
+        itemShape ??
+        ctx.itemShape;
+
+      const resolvedItemMinWidth =
+        itemMinWidth ??
+        ctx.itemMinWidth;
+
+      const resolvedItemMinHeight =
+        itemMinHeight ??
+        ctx.itemMinHeight;
+
+      const resolvedActiveLabelWeight =
+        activeLabelWeight ??
+        ctx.activeLabelWeight;
+
+      const showLabel =
+        Boolean(itemLabel) &&
+        (
+          resolvedLabelBehavior ===
+            "always" ||
+          (
+            resolvedLabelBehavior ===
+              "active" &&
+            active
+          )
+        );
+
+      const itemSlots:
+        NavigationRailSlot[] =
+        active
+          ? ["item", "activeItem"]
+          : ["item"];
+
+      const contentSlots:
+        NavigationRailSlot[] =
+        active
+          ? [
+              "content",
+              "activeContent",
+            ]
+          : ["content"];
+
+      const iconWrapSlots:
+        NavigationRailSlot[] =
+        active
+          ? [
+              "iconWrap",
+              "activeIconWrap",
+            ]
+          : ["iconWrap"];
+
+      const iconSlots:
+        NavigationRailSlot[] =
+        active
+          ? ["icon", "activeIcon"]
+          : ["icon"];
+
+      const labelSlots:
+        NavigationRailSlot[] =
+        active
+          ? ["label", "activeLabel"]
+          : ["label"];
+
+      const badgeSlots:
+        NavigationRailSlot[] =
+        active
+          ? ["badge", "activeBadge"]
+          : ["badge"];
+
+      const itemSlot =
+        resolveNavigationRailItemSlot({
+          slots: itemSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          className,
+          style,
+          baseProps: {
+            "aria-current": active
+              ? "page"
+              : undefined,
+            "data-active":
+              active || undefined,
+            "data-ui-navigation-rail-item":
+              "",
+            "data-ui-navigation-rail-item-active":
+              active || undefined,
+            "data-ui-navigation-rail-item-badge-anchor":
+              badge
+                ? resolvedBadgeAnchor
+                : undefined,
+            "data-ui-navigation-rail-item-badge-placement":
+              badge
+                ? resolvedBadgePlacement
+                : undefined,
+          },
+          baseStyle: {
+            width: "100%",
+            minWidth:
+              resolvedItemMinWidth !==
+              undefined
+                ? cssSize(
+                    resolvedItemMinWidth
+                  )
+                : densityStyles.itemMinWidth,
+            minHeight:
+              resolvedItemMinHeight !==
+              undefined
+                ? cssSize(
+                    resolvedItemMinHeight
+                  )
+                : densityStyles.itemMinHeight,
+            position: "relative",
+            border: "1px solid",
+            borderColor:
+              getItemBorderColor({
+                active,
+                indicator:
+                  resolvedIndicator,
+              }),
+            borderRadius:
+              getItemBorderRadius({
+                indicator:
+                  resolvedIndicator,
+                shape:
+                  resolvedItemShape,
+              }),
+            background:
+              getItemBackground({
+                active,
+                indicator:
+                  resolvedIndicator,
+              }),
+            color: active
+              ? "var(--ui-text)"
+              : "var(--ui-text-muted)",
+            opacity: disabled
+              ? "var(--ui-state-disabled-opacity, 0.62)"
+              : 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingTop:
+              densityStyles.itemPaddingTop,
+            paddingRight:
+              densityStyles.itemPaddingRight,
+            paddingBottom:
+              densityStyles.itemPaddingBottom,
+            paddingLeft:
+              densityStyles.itemPaddingLeft,
+            textAlign: "center",
+            overflow: "visible",
+            transition:
+              "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+          },
+        });
+
+      const contentSlot =
+        resolveNavigationRailItemSlot({
+          slots: contentSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-navigation-rail-item-content":
+              "",
+          },
+          baseStyle: {
+            width: "100%",
+            minWidth: 0,
+            minHeight: 0,
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: densityStyles.gap,
+            overflow: "visible",
+            borderRadius: "inherit",
+            boxSizing: "border-box",
+          },
+        });
+
+      const iconWrapSlot =
+        resolveNavigationRailItemSlot({
+          slots: iconWrapSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-navigation-rail-item-icon-wrap":
+              "",
+          },
+          baseStyle: {
+            position: "relative",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width:
+              badge &&
+              resolvedBadgeAnchor ===
+                "icon"
+                ? "1.65rem"
+                : undefined,
+            height:
+              badge &&
+              resolvedBadgeAnchor ===
+                "icon"
+                ? "1.35rem"
+                : undefined,
+            minWidth: 0,
+            lineHeight: 1,
+            flexShrink: 0,
+            overflow: "visible",
+          },
+        });
+
+      const iconSlot =
+        resolveNavigationRailItemSlot({
+          slots: iconSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "aria-hidden": true,
+            "data-ui-navigation-rail-item-icon":
+              "",
+          },
+          baseStyle: {
+            fontSize:
+              densityStyles.iconSize,
+            lineHeight: 1,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        });
+
+      const labelSlot =
+        resolveNavigationRailItemSlot({
+          slots: labelSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-navigation-rail-item-label":
+              "",
+          },
+          baseStyle: {
+            maxWidth: "100%",
+            minWidth: 0,
+            margin: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            color: "inherit",
+            lineHeight: 1.15,
+          },
+        });
+
+      const badgeSlot =
+        resolveNavigationRailItemSlot({
+          slots: badgeSlots,
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-navigation-rail-item-badge":
+              "",
+          },
+          baseStyle:
+            getBadgePlacementStyles({
+              placement:
+                resolvedBadgePlacement,
+              offset:
+                resolvedBadgeOffset,
+            }),
+        });
+
+      const dotSlot =
+        resolveNavigationRailItemSlot({
+          slots: ["dot"],
+          ctxStyles: ctx.styles,
+          ctxSlotProps:
+            ctx.slotProps,
+          styles,
+          slotProps,
+          baseProps: {
+            "aria-hidden": true,
+            "data-ui-navigation-rail-item-dot":
+              "",
+          },
+          baseStyle: {
+            position: "absolute",
+            right: "0.22rem",
+            top: "50%",
+            width: 4,
+            height: 18,
+            borderRadius: "9999px",
+            transform:
+              "translateY(-50%)",
+            background:
+              "var(--ui-primary)",
+            pointerEvents: "none",
+          },
+        });
+
+      const badgeNode = badge ? (
+        <Box {...badgeSlot}>
+          {badge}
+        </Box>
+      ) : null;
+
+      return (
+        <Pressable
+          as="button"
+          ref={
+            ref as React.Ref<HTMLElement>
           }
+          type="button"
+          disabled={disabled}
+          {...itemSlot}
+          {...rest}
+          onPress={(event) => {
+            onPress?.(event);
 
-          onSelect?.(value, event);
-        }}
-      >
-        <Box {...contentSlot}>
-          <Box {...iconWrapSlot}>
-            {icon ? <Box {...iconSlot}>{icon}</Box> : null}
+            if (
+              event.defaultPrevented
+            ) {
+              return;
+            }
+
+            ctx.setValue(
+              value,
+              event
+            );
+          }}
+        >
+          <Box {...contentSlot}>
+            <Box {...iconWrapSlot}>
+              {icon ? (
+                <Box {...iconSlot}>
+                  {icon}
+                </Box>
+              ) : null}
+
+              {renderAnchoredBadge({
+                anchor:
+                  resolvedBadgeAnchor,
+                target: "icon",
+                badgeNode,
+              })}
+            </Box>
+
+            {showLabel ? (
+              <Typography
+                as="span"
+                size="xs"
+                weight={
+                  active
+                    ? resolvedActiveLabelWeight
+                    : 700
+                }
+                {...labelSlot}
+              >
+                {itemLabel}
+              </Typography>
+            ) : null}
 
             {renderAnchoredBadge({
-              anchor: resolvedBadgeAnchor,
-              target: "icon",
+              anchor:
+                resolvedBadgeAnchor,
+              target: "content",
               badgeNode,
             })}
           </Box>
 
-          {showLabel ? (
-            <Typography
-              as="span"
-              size="xs"
-              weight={active ? resolvedActiveLabelWeight : 700}
-              {...labelSlot}
-            >
-              {itemLabel}
-            </Typography>
-          ) : null}
-
           {renderAnchoredBadge({
-            anchor: resolvedBadgeAnchor,
-            target: "content",
+            anchor:
+              resolvedBadgeAnchor,
+            target: "item",
             badgeNode,
           })}
-        </Box>
 
-        {renderAnchoredBadge({
-          anchor: resolvedBadgeAnchor,
-          target: "item",
-          badgeNode,
-        })}
+          {resolvedIndicator ===
+            "dot" &&
+          active ? (
+            <Box {...dotSlot} />
+          ) : null}
+        </Pressable>
+      );
+    }
+  );
 
-        {resolvedIndicator === "dot" && active ? <Box {...dotSlot} /> : null}
-      </Pressable>
-    );
-  }
-);
-
-NavigationRailItem.displayName = "NavigationRail.Item";
+NavigationRailItem.displayName =
+  "NavigationRail.Item";
