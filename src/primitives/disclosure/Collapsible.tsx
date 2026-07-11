@@ -154,6 +154,7 @@ export const CollapsibleTrigger = React.forwardRef<
     ref
   ) => {
     const ctx = useCollapsibleContext();
+    const motionState = useOptionalUIMotion();
     const [focused, setFocused] = React.useState(false);
 
     const handleToggle = React.useCallback(() => {
@@ -266,7 +267,10 @@ export const CollapsibleTrigger = React.forwardRef<
             <motion.span
               {...toMotionSlotProps(triggerIconSlot)}
               animate={{ rotate: ctx.open ? 180 : 0 }}
-              transition={{ duration: 0.16 }}
+              transition={motionState.getTransition(
+                motionState.effectiveLevel,
+                ctx.open ? "expand" : "collapse"
+              )}
             >
               <ChevronDown size={18} />
             </motion.span>
