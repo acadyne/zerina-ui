@@ -33,6 +33,8 @@ export function getMotionDuration(
     switch (intent) {
       case "press":
         return UI_MOTION_DURATIONS.fast;
+      case "progress":
+        return 1.1;
       case "feedback":
       case "layout":
         return UI_MOTION_DURATIONS.slower;
@@ -48,6 +50,8 @@ export function getMotionDuration(
   switch (intent) {
     case "press":
       return UI_MOTION_DURATIONS.fast;
+    case "progress":
+      return 1.35;
     case "feedback":
     case "layout":
       return UI_MOTION_DURATIONS.slow;

@@ -11,6 +11,8 @@ import {
   getMotionPresetVariants,
   getMotionTransition,
   getPressMotion,
+  getProgressIndeterminateTransition,
+  shouldAnimateProgressIndeterminate,
 } from "./motion.presets";
 
 export interface UIMotionContextValue extends UIMotionState {
@@ -18,6 +20,8 @@ export interface UIMotionContextValue extends UIMotionState {
   getTransition: typeof getMotionTransition;
   getVariants: typeof getMotionPresetVariants;
   getPressMotion: typeof getPressMotion;
+  getProgressIndeterminateTransition: typeof getProgressIndeterminateTransition;
+  shouldAnimateProgressIndeterminate: typeof shouldAnimateProgressIndeterminate;
 }
 
 export const UIMotionContext =
@@ -123,6 +127,18 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
     []
   );
 
+  const getProgressTransition = React.useCallback(
+    (motionLevel: UIMotionLevel) =>
+      getProgressIndeterminateTransition(motionLevel),
+    []
+  );
+
+  const getShouldAnimateProgress = React.useCallback(
+    (motionLevel: UIMotionLevel) =>
+      shouldAnimateProgressIndeterminate(motionLevel),
+    []
+  );
+
   React.useEffect(() => {
     const root = document.documentElement;
 
@@ -145,6 +161,8 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
       getTransition,
       getVariants,
       getPressMotion: getPress,
+      getProgressIndeterminateTransition: getProgressTransition,
+      shouldAnimateProgressIndeterminate: getShouldAnimateProgress,
     }),
     [
       currentLevel,
@@ -156,6 +174,8 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
       getTransition,
       getVariants,
       getPress,
+      getProgressTransition,
+      getShouldAnimateProgress,
     ]
   );
 

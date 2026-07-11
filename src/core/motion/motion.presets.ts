@@ -211,6 +211,29 @@ export function getMotionPresetVariants(
   }
 }
 
+export function getProgressIndeterminateTransition(
+  level: UIMotionLevel
+): Transition {
+  if (level === "none" || level === "reduced") {
+    return {
+      duration: 0,
+    };
+  }
+
+  return {
+    duration: getMotionDuration(level, "progress"),
+    ease: "linear",
+    repeat: Infinity,
+  };
+}
+
+export function shouldAnimateProgressIndeterminate(
+  level: UIMotionLevel
+): boolean {
+  return level !== "none" && level !== "reduced";
+}
+
+
 export function getPressMotion(
   level: UIMotionLevel
 ): { scale: number; y: number } | undefined {

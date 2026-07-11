@@ -95,6 +95,16 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
     const height = heightMap[size];
     const resolvedBarColor = barColor ?? variantColorMap[variant];
 
+    const shouldAnimateIndeterminate =
+      motionState.shouldAnimateProgressIndeterminate(
+        motionState.effectiveLevel
+      );
+
+    const indeterminateTransition =
+      motionState.getProgressIndeterminateTransition(
+        motionState.effectiveLevel
+      );
+
     const rootSlot = resolveSlot<ProgressSlot>({
       slot: "root",
       styles,
@@ -211,14 +221,11 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
           {indeterminate ? (
             <motion.div
               {...toMotionSlotProps(barSlot)}
-              initial={{ x: "-45%" }}
-              animate={{ x: "145%" }}
-              transition={{
-                duration:
-                  motionState.effectiveLevel === "expressive" ? 1.1 : 1.35,
-                ease: "linear",
-                repeat: Infinity,
+              initial={shouldAnimateIndeterminate ? { x: "-45%" } : false}
+              animate={{
+                x: shouldAnimateIndeterminate ? "145%" : "0%",
               }}
+              transition={indeterminateTransition}
             />
           ) : (
             <motion.div

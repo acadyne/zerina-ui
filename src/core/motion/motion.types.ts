@@ -14,7 +14,8 @@ export type UIMotionIntent =
   | "expand"
   | "press"
   | "feedback"
-  | "layout";
+  | "layout"
+  | "progress";
 
 export type UIMotionPreset =
   | "none"

@@ -5,6 +5,8 @@ import {
   getMotionPresetVariants,
   getMotionTransition,
   getPressMotion,
+  getProgressIndeterminateTransition,
+  shouldAnimateProgressIndeterminate,
 } from "./motion.presets";
 
 const fallbackMotion: UIMotionContextValue = {
@@ -19,6 +21,8 @@ const fallbackMotion: UIMotionContextValue = {
   getTransition: getMotionTransition,
   getVariants: getMotionPresetVariants,
   getPressMotion,
+  getProgressIndeterminateTransition,
+  shouldAnimateProgressIndeterminate,
 };
 
 export function useUIMotion(): UIMotionContextValue {
