@@ -283,6 +283,9 @@ export const PopoverContent = React.forwardRef<
       restoreFocus = true,
       initialFocusRef,
       matchAnchorWidth = false,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
       styles,
       slotProps,
       ...rest
@@ -315,6 +318,11 @@ export const PopoverContent = React.forwardRef<
     const handleDismiss = React.useCallback(() => {
       ctx.onOpenChange?.(false);
     }, [ctx]);
+
+    const resolvedAriaLabelledBy =
+      ariaLabel !== undefined || ariaLabelledBy !== undefined
+        ? ariaLabelledBy
+        : ctx.triggerId;
 
     const focusScopeSlot = resolveSlot<PopoverSlot>({
       slot: "focusScope",
@@ -394,6 +402,9 @@ export const PopoverContent = React.forwardRef<
                   }}
                   id={ctx.contentId}
                   role="dialog"
+                  aria-label={ariaLabel}
+                  aria-labelledby={resolvedAriaLabelledBy}
+                  aria-describedby={ariaDescribedBy}
                   variants={variants}
                   initial="initial"
                   animate="animate"
