@@ -1,6 +1,6 @@
 {
   "name": "zerina-ui",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Primitives, components, patterns and styles for React apps.",
   "license": "MIT",
   "type": "module",

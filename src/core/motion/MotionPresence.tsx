@@ -64,10 +64,11 @@ export function MotionPresence({
   );
 
   return (
-    <AnimatePresence mode={mode} initial={initial}>
+    <AnimatePresence mode={mode} initial={initial} custom={direction}>
       {present ? (
         <motion.div
           key={motionKey}
+          custom={direction}
           className={className}
           initial="initial"
           animate="animate"

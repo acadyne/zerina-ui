@@ -12,6 +12,23 @@ import {
 } from "./motion.tokens";
 import { createStaticMotionVariants } from "./motion.utils";
 
+function resolveTransitionDirection(
+  customDirection: unknown,
+  fallbackDirection: UIMotionTransitionDirection
+): UIMotionTransitionDirection {
+  if (
+    customDirection === "enter" ||
+    customDirection === "exit" ||
+    customDirection === "forward" ||
+    customDirection === "back" ||
+    customDirection === "replace"
+  ) {
+    return customDirection;
+  }
+
+  return fallbackDirection;
+}
+
 export function getAppTransitionIntent(
   transition: UIMotionAppTransition
 ): UIMotionIntent {
@@ -99,105 +116,123 @@ export function getAppTransitionVariants({
   }
 
   if (transition === "shared-axis") {
-    if (direction === "back") {
-      return {
-        initial: {
-          opacity: 0,
-          x: -axisDistance,
-        },
-        animate: {
-          opacity: 1,
-          x: 0,
-        },
-        exit: {
+    return {
+      initial: (customDirection) => {
+        const resolvedDirection = resolveTransitionDirection(
+          customDirection,
+          direction
+        );
+
+        if (resolvedDirection === "back") {
+          return {
+            opacity: 0,
+            x: -axisDistance,
+          };
+        }
+
+        if (resolvedDirection === "replace") {
+          return {
+            opacity: 0,
+            y: axisDistance * 0.5,
+            scale,
+          };
+        }
+
+        return {
           opacity: 0,
           x: axisDistance,
-        },
-      };
-    }
-
-    if (direction === "replace") {
-      return {
-        initial: {
-          opacity: 0,
-          y: axisDistance * 0.5,
-          scale,
-        },
-        animate: {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-        },
-        exit: {
-          opacity: 0,
-          y: -axisDistance * 0.5,
-          scale,
-        },
-      };
-    }
-
-    return {
-      initial: {
-        opacity: 0,
-        x: axisDistance,
+        };
       },
       animate: {
         opacity: 1,
         x: 0,
-      },
-      exit: {
-        opacity: 0,
-        x: -axisDistance,
-      },
-    };
-  }
-
-  if (direction === "back") {
-    return {
-      initial: {
-        x: "-18%",
-        opacity: 0.96,
-      },
-      animate: {
-        x: 0,
-        opacity: 1,
-      },
-      exit: {
-        x: "100%",
-        opacity: 1,
-      },
-    };
-  }
-
-  if (direction === "replace") {
-    return {
-      initial: {
-        opacity: 0.92,
-        scale: 0.995,
-      },
-      animate: {
-        opacity: 1,
+        y: 0,
         scale: 1,
       },
-      exit: {
-        opacity: 0,
-        scale: 0.995,
+      exit: (customDirection) => {
+        const resolvedDirection = resolveTransitionDirection(
+          customDirection,
+          direction
+        );
+
+        if (resolvedDirection === "back") {
+          return {
+            opacity: 0,
+            x: axisDistance,
+          };
+        }
+
+        if (resolvedDirection === "replace") {
+          return {
+            opacity: 0,
+            y: -axisDistance * 0.5,
+            scale,
+          };
+        }
+
+        return {
+          opacity: 0,
+          x: -axisDistance,
+        };
       },
     };
   }
 
   return {
-    initial: {
-      x: "100%",
-      opacity: 1,
+    initial: (customDirection) => {
+      const resolvedDirection = resolveTransitionDirection(
+        customDirection,
+        direction
+      );
+
+      if (resolvedDirection === "back") {
+        return {
+          x: "-18%",
+          opacity: 0.96,
+        };
+      }
+
+      if (resolvedDirection === "replace") {
+        return {
+          opacity: 0.92,
+          scale: 0.995,
+        };
+      }
+
+      return {
+        x: "100%",
+        opacity: 1,
+      };
     },
     animate: {
       x: 0,
       opacity: 1,
+      scale: 1,
     },
-    exit: {
-      x: "-18%",
-      opacity: 0.92,
+    exit: (customDirection) => {
+      const resolvedDirection = resolveTransitionDirection(
+        customDirection,
+        direction
+      );
+
+      if (resolvedDirection === "back") {
+        return {
+          x: "100%",
+          opacity: 1,
+        };
+      }
+
+      if (resolvedDirection === "replace") {
+        return {
+          opacity: 0,
+          scale: 0.995,
+        };
+      }
+
+      return {
+        x: "-18%",
+        opacity: 0.92,
+      };
     },
   };
 }

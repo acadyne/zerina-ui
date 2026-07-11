@@ -61,9 +61,10 @@ export function MotionSwitch({
   );
 
   return (
-    <AnimatePresence mode={mode} initial={initial}>
+    <AnimatePresence mode={mode} initial={initial} custom={direction}>
       <motion.div
         key={motionKey}
+        custom={direction}
         className={className}
         initial="initial"
         animate="animate"
