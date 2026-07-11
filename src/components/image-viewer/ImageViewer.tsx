@@ -616,7 +616,7 @@ export const ImageViewer = forwardRef<
 
     const {
       onClick:
-        controlButtonOnClick,
+      controlButtonOnClick,
       ...controlButtonRest
     } = controlButtonSlot;
 
@@ -654,11 +654,11 @@ export const ImageViewer = forwardRef<
             opacity: disabled
               ? 0.5
               : controlButtonRest.style
-                  ?.opacity,
+                ?.opacity,
             cursor: disabled
               ? "not-allowed"
               : controlButtonRest.style
-                  ?.cursor,
+                ?.cursor,
           }}
         >
           {content}
@@ -668,10 +668,10 @@ export const ImageViewer = forwardRef<
 
     const errorContext:
       ImageViewerErrorContext = {
-        src: src ?? "",
-        error,
-        retry,
-      };
+      src: src ?? "",
+      error,
+      retry,
+    };
 
     const resolvedResetKey =
       resetOnSourceChange
@@ -713,6 +713,8 @@ export const ImageViewer = forwardRef<
             pinchEnabled={
               pinchEnabled
             }
+            keyboardControls
+            viewportAriaLabel="Visor de imagen"
             wheelZoomEnabled={
               wheelZoomEnabled
             }
@@ -832,44 +834,44 @@ export const ImageViewer = forwardRef<
             {renderError?.(
               errorContext
             ) ?? (
-              <div
-                style={{
-                  display: "grid",
-                  justifyItems: "center",
-                  gap: "0.65rem",
-                }}
-              >
-                <span>
-                  No se pudo cargar la
-                  imagen.
-                </span>
-
-                <button
-                  type="button"
-                  onClick={retry}
+                <div
                   style={{
-                    padding:
-                      "0.4rem 0.7rem",
-                    border:
-                      "1px solid currentColor",
-                    borderRadius:
-                      "var(--ui-radius-md)",
-                    background:
-                      "transparent",
-                    color: "inherit",
-                    cursor: "pointer",
+                    display: "grid",
+                    justifyItems: "center",
+                    gap: "0.65rem",
                   }}
                 >
-                  Reintentar
-                </button>
-              </div>
-            )}
+                  <span>
+                    No se pudo cargar la
+                    imagen.
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={retry}
+                    style={{
+                      padding:
+                        "0.4rem 0.7rem",
+                      border:
+                        "1px solid currentColor",
+                      borderRadius:
+                        "var(--ui-radius-md)",
+                      background:
+                        "transparent",
+                      color: "inherit",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              )}
           </div>
         ) : null}
 
         {src &&
-        loaded &&
-        showControls ? (
+          loaded &&
+          showControls ? (
           <div {...controlsSlot}>
             {renderControl(
               "zoom-in",
@@ -877,7 +879,7 @@ export const ImageViewer = forwardRef<
               zoomInContent,
               zoomIn,
               transform.scale >=
-                maxScale - 0.0001
+              maxScale - 0.0001
             )}
 
             {renderControl(
@@ -886,7 +888,7 @@ export const ImageViewer = forwardRef<
               zoomOutContent,
               zoomOut,
               transform.scale <=
-                minScale + 0.0001
+              minScale + 0.0001
             )}
 
             {renderControl(
@@ -896,23 +898,23 @@ export const ImageViewer = forwardRef<
               reset,
               Math.abs(
                 transform.scale -
-                  defaultScale
+                defaultScale
               ) <= 0.0001 &&
-                Math.abs(
-                  transform.position.x -
-                    defaultPosition.x
-                ) <= 0.0001 &&
-                Math.abs(
-                  transform.position.y -
-                    defaultPosition.y
-                ) <= 0.0001
+              Math.abs(
+                transform.position.x -
+                defaultPosition.x
+              ) <= 0.0001 &&
+              Math.abs(
+                transform.position.y -
+                defaultPosition.y
+              ) <= 0.0001
             )}
           </div>
         ) : null}
 
         {src &&
-        loaded &&
-        showStatus ? (
+          loaded &&
+          showStatus ? (
           <div {...statusSlot}>
             {Math.round(
               transform.scale * 100
