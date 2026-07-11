@@ -1,10 +1,11 @@
 // src/patterns/scaffold/tab-scaffold/tabScaffold.types.ts
+
 import React from "react";
 import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
-import type { BottomNavigationProps } from "../../../primitives/navigation/BottomNavigation";
+import type { BottomNavigationProps } from "../../../primitives/navigation/bottom-navigation";
 import type {
   NavigationStackAnimation,
   NavigationStackEntry,
@@ -20,7 +21,9 @@ import type { TopAppBarProps } from "../TopAppBar";
 
 export type TabScaffoldHeaderValue =
   | React.ReactNode
-  | ((context: TabScaffoldRenderContext) => React.ReactNode);
+  | ((
+      context: TabScaffoldRenderContext
+    ) => React.ReactNode);
 
 export type TabScaffoldSlot =
   | "root"
@@ -30,9 +33,11 @@ export type TabScaffoldSlot =
   | "bottomNavigation"
   | "floating";
 
-export type TabScaffoldStyles = SlotStyleMap<TabScaffoldSlot>;
+export type TabScaffoldStyles =
+  SlotStyleMap<TabScaffoldSlot>;
 
-export type TabScaffoldSlotProps = SlotPropsMap<TabScaffoldSlot>;
+export type TabScaffoldSlotProps =
+  SlotPropsMap<TabScaffoldSlot>;
 
 export interface TabScaffoldScreen {
   name: string;
@@ -40,7 +45,9 @@ export interface TabScaffoldScreen {
   title?: TabScaffoldHeaderValue;
   subtitle?: TabScaffoldHeaderValue;
 
-  component?: React.ComponentType<NavigationStackScreenRenderProps<any>>;
+  component?: React.ComponentType<
+    NavigationStackScreenRenderProps<any>
+  >;
 
   render?: (
     props: NavigationStackScreenRenderProps<any>
@@ -49,7 +56,8 @@ export interface TabScaffoldScreen {
   element?: React.ReactNode;
 }
 
-export interface TabScaffoldTab extends Omit<TabScaffoldScreen, "name"> {
+export interface TabScaffoldTab
+  extends Omit<TabScaffoldScreen, "name"> {
   value: string;
 
   label?: React.ReactNode;
@@ -65,17 +73,33 @@ export interface TabScaffoldContextValue {
   activeTab: string;
   canGoBack: boolean;
 
-  setEntries: (entries: NavigationStackEntry[]) => void;
+  setEntries: (
+    entries: NavigationStackEntry[]
+  ) => void;
 
-  push: (name: string, params?: NavigationStackParams) => void;
-  replace: (name: string, params?: NavigationStackParams) => void;
+  push: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
+
+  replace: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
+
   pop: () => void;
   popToRoot: () => void;
-  reset: (name: string, params?: NavigationStackParams) => void;
+
+  reset: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
+
   resetToTab: (tab: string) => void;
 }
 
-export interface TabScaffoldRenderContext extends TabScaffoldContextValue {
+export interface TabScaffoldRenderContext
+  extends TabScaffoldContextValue {
   tabs: TabScaffoldTab[];
 }
 
@@ -99,7 +123,10 @@ export interface TabScaffoldProps
   initialParams?: NavigationStackParams;
 
   entries?: NavigationStackEntry[];
-  onEntriesChange?: (entries: NavigationStackEntry[]) => void;
+
+  onEntriesChange?: (
+    entries: NavigationStackEntry[]
+  ) => void;
 
   animation?: NavigationStackAnimation;
 
@@ -110,22 +137,35 @@ export interface TabScaffoldProps
   subtitle?: TabScaffoldHeaderValue;
 
   rootLeading?:
-  | React.ReactNode
-  | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | React.ReactNode
+    | ((
+        context: TabScaffoldRenderContext
+      ) => React.ReactNode);
 
   actions?:
-  | React.ReactNode
-  | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | React.ReactNode
+    | ((
+        context: TabScaffoldRenderContext
+      ) => React.ReactNode);
 
   floating?:
-  | React.ReactNode
-  | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | React.ReactNode
+    | ((
+        context: TabScaffoldRenderContext
+      ) => React.ReactNode);
 
   backIcon?: React.ReactNode;
   backAriaLabel?: string;
-  backButtonProps?: Omit<BackButtonProps, "onBack">;
 
-  renderAppBar?: (context: TabScaffoldRenderContext) => React.ReactNode;
+  backButtonProps?: Omit<
+    BackButtonProps,
+    "onBack"
+  >;
+
+  renderAppBar?: (
+    context: TabScaffoldRenderContext
+  ) => React.ReactNode;
+
   renderBottomNavigation?: (
     context: TabScaffoldRenderContext
   ) => React.ReactNode;
@@ -143,6 +183,7 @@ export interface TabScaffoldProps
   onTabChange?: (tab: string) => void;
 
   fallback?: React.ReactNode;
+
   styles?: TabScaffoldStyles;
   slotProps?: TabScaffoldSlotProps;
 }

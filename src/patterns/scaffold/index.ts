@@ -1,9 +1,10 @@
 // src/patterns/scaffold/index.ts
+
 export * from "./TopAppBar";
 export * from "./MobileScaffold";
-export * from "./TabScaffold";
-export * from "./AdaptiveScaffold";
+export * from "./tab-scaffold";
+export * from "./adaptive-scaffold";
 export * from "./BackButton";
 export * from "./FloatingActionButton";
 export * from "./ScreenContent";
-export * from "./ScreenState";
+export * from "./screen-state";

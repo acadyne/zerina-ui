@@ -4,7 +4,7 @@ import {
   resolveSlot,
 } from "../../../helpers/css";
 import { Box } from "../../../primitives/layout";
-import { BottomNavigation } from "../../../primitives/navigation/BottomNavigation";
+import { BottomNavigation } from "../../../primitives/navigation/bottom-navigation";
 import {
   NavigationStack,
   type NavigationStackEntry,

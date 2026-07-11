@@ -1,4 +1,5 @@
 // src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.types.ts
+
 import React from "react";
 import type {
   SlotPropsMap,
@@ -8,13 +9,16 @@ import type {
   UIViewportKind,
   UIViewportMode,
 } from "../../../core/viewport";
-import type { BottomNavigationProps } from "../../../primitives/navigation/BottomNavigation";
+import type { BottomNavigationProps } from "../../../primitives/navigation/bottom-navigation";
 import type {
   NavigationItemDef,
   NavigationListProps,
 } from "../../../primitives/navigation/NavigationList";
-import type { NavigationRailProps } from "../../../primitives/navigation/NavigationRail";
-import type { MobileScaffoldProps, ScaffoldViewport } from "../MobileScaffold";
+import type { NavigationRailProps } from "../../../primitives/navigation/navigation-rail";
+import type {
+  MobileScaffoldProps,
+  ScaffoldViewport,
+} from "../MobileScaffold";
 import type { TopAppBarProps } from "../TopAppBar";
 
 export type AdaptiveScaffoldMode = UIViewportMode;
@@ -23,9 +27,15 @@ export type AdaptiveScaffoldResolvedMode = UIViewportKind;
 
 export type AdaptiveScaffoldMobileNavigation = "bottom" | "none";
 
-export type AdaptiveScaffoldTabletNavigation = "rail" | "bottom" | "none";
+export type AdaptiveScaffoldTabletNavigation =
+  | "rail"
+  | "bottom"
+  | "none";
 
-export type AdaptiveScaffoldDesktopNavigation = "sidebar" | "rail" | "none";
+export type AdaptiveScaffoldDesktopNavigation =
+  | "sidebar"
+  | "rail"
+  | "none";
 
 export type AdaptiveScaffoldSlot =
   | "root"
@@ -38,9 +48,11 @@ export type AdaptiveScaffoldSlot =
   | "tabletContent"
   | "desktopContent";
 
-export type AdaptiveScaffoldStyles = SlotStyleMap<AdaptiveScaffoldSlot>;
+export type AdaptiveScaffoldStyles =
+  SlotStyleMap<AdaptiveScaffoldSlot>;
 
-export type AdaptiveScaffoldSlotProps = SlotPropsMap<AdaptiveScaffoldSlot>;
+export type AdaptiveScaffoldSlotProps =
+  SlotPropsMap<AdaptiveScaffoldSlot>;
 
 export interface AdaptiveScaffoldItem {
   id: string;
@@ -60,7 +72,9 @@ export interface AdaptiveScaffoldItem {
 
   content?: React.ReactNode;
 
-  render?: (context: AdaptiveScaffoldRenderContext) => React.ReactNode;
+  render?: (
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode;
 
   meta?: Record<string, unknown>;
 }
@@ -80,7 +94,9 @@ export interface AdaptiveScaffoldProps
   > {
   children?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   viewport?: ScaffoldViewport;
 
@@ -97,7 +113,11 @@ export interface AdaptiveScaffoldProps
 
   activeId?: string | null;
   defaultActiveId?: string | null;
-  onActiveIdChange?: (id: string, item: AdaptiveScaffoldItem) => void;
+
+  onActiveIdChange?: (
+    id: string,
+    item: AdaptiveScaffoldItem
+  ) => void;
 
   mobileNavigation?: AdaptiveScaffoldMobileNavigation;
   tabletNavigation?: AdaptiveScaffoldTabletNavigation;
@@ -105,23 +125,33 @@ export interface AdaptiveScaffoldProps
 
   title?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   subtitle?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   leading?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   actions?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   floating?:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context: AdaptiveScaffoldRenderContext
+      ) => React.ReactNode);
 
   showAppBar?: boolean;
 
