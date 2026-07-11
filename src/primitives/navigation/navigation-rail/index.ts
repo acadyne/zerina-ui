@@ -2,3 +2,4 @@
 export * from "./navigationRail.types";
 export * from "./NavigationRail";
 export * from "./NavigationRailItem";
+export { useNavigationRailContext } from "./NavigationRailContext";
