@@ -9,12 +9,6 @@ import {
   getLayerZIndex,
 } from "../../core/overlay";
 import {
-  MotionOverlayBackdrop,
-  MotionOverlayPanel,
-  MotionOverlayPresence,
-  MotionOverlayRoot,
-} from "../../core/motion";
-import {
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -23,6 +17,10 @@ import {
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
+import {  MotionOverlayBackdrop,
+  MotionOverlayPanel,
+  MotionOverlayPresence,
+  MotionOverlayRoot, } from "../../core/motion/MotionOverlay";
 
 export type BottomSheetSlot =
   | "root"

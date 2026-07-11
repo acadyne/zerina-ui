@@ -1,4 +1,5 @@
 // src/components/feedback/index.ts
+
 export * from "./Alert";
 export * from "./EmptyState";
 export * from "./LoadingState";
@@ -12,4 +13,3 @@ export * from "./SkeletonText";
 export * from "./Spinner";
 export * from "./Toast";
 export * from "./ToastProvider";
-export * from "./registry";
