@@ -8,6 +8,7 @@ import {
 import { Pressable } from "../../primitives/forms";
 import { Box } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
+import type { UIPressEvent } from "../../core/interaction";
 
 export type FloatingActionButtonSize = "sm" | "md" | "lg";
 
@@ -58,9 +59,9 @@ export interface FloatingActionButtonProps
    */
   placement?: FloatingActionButtonPlacement;
 
-  ariaLabel?: string;
-
-  onClick?: React.MouseEventHandler<HTMLElement>;
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -183,9 +184,8 @@ export const FloatingActionButton = React.forwardRef<
       size = "md",
       variant = "solid",
       placement = "inline",
-      ariaLabel,
       disabled = false,
-      onClick,
+      onPress,
       className = "",
       style,
 
@@ -198,9 +198,6 @@ export const FloatingActionButton = React.forwardRef<
   ) => {
     const sizeStyles = FLOATING_ACTION_BUTTON_SIZE_MAP[size];
     const resolvedLabel = label ?? children;
-    const resolvedAriaLabel =
-      ariaLabel ??
-      (typeof resolvedLabel === "string" ? resolvedLabel : undefined);
 
     const rootSlot = resolveSlot<FloatingActionButtonSlot>({
       slot: "root",
@@ -209,7 +206,6 @@ export const FloatingActionButton = React.forwardRef<
       className,
       style,
       baseProps: {
-        "aria-label": resolvedAriaLabel,
         "data-ui-floating-action-button": "",
         "data-ui-floating-action-button-extended": extended || undefined,
         "data-ui-floating-action-button-size": size,
@@ -275,9 +271,9 @@ export const FloatingActionButton = React.forwardRef<
         ref={ref as React.Ref<HTMLElement>}
         type="button"
         disabled={disabled}
-        onPress={onClick}
         {...rest}
         {...rootSlot}
+        onPress={onPress}
       >
         {icon ? <Box {...iconSlot}>{icon}</Box> : null}
 
