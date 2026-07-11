@@ -2,11 +2,11 @@
 
 import React from "react";
 import {
-  composeEventHandlers,
   usePress,
   type UIPressEvent,
   type UIPressState,
 } from "../../core/interaction";
+import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   resolveSlot,

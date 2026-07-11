@@ -1,7 +1,7 @@
 // src/core/interaction/press/usePress.ts
 
 import React from "react";
-import { composeEventHandlers } from "../events";
+import { composeEventHandlers } from "../events/composeEventHandlers";
 import { useFocusVisible } from "../focus";
 import type {
   UIPressEvent,
