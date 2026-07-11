@@ -714,6 +714,31 @@ export function useTransformableSurface({
     );
   }, [commitTransform]);
 
+  const resetRef = useRef(reset);
+
+  useEffect(() => {
+    resetRef.current = reset;
+  }, [reset]);
+
+  const previousResetKeyRef =
+    useRef(resetKey);
+
+  useEffect(() => {
+    if (
+      Object.is(
+        previousResetKeyRef.current,
+        resetKey
+      )
+    ) {
+      return;
+    }
+
+    previousResetKeyRef.current =
+      resetKey;
+
+    resetRef.current();
+  }, [resetKey]);
+
   const toggleInteractionZoom =
     useCallback(
       (
@@ -1447,13 +1472,6 @@ export function useTransformableSurface({
     constrainOnResize,
     contentSize,
     viewportSize,
-  ]);
-
-  useEffect(() => {
-    reset();
-  }, [
-    reset,
-    resetKey,
   ]);
 
   useEffect(() => {
