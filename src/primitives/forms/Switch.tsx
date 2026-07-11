@@ -1,10 +1,11 @@
 // src/primitives/forms/Switch.tsx
-import React, { forwardRef, useId, useState } from "react";
+import React, { forwardRef, useContext, useId, useState } from "react";
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { FormControlContext } from "./FormControl";
 
 export type SwitchSlot =
   | "root"
@@ -42,6 +43,9 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       defaultChecked,
       onChange,
       disabled,
+      required,
+      "aria-describedby": ariaDescribedBy,
+      "aria-invalid": ariaInvalid,
       size = "md",
       color = "var(--ui-primary)",
       labelPlacement = "right",
@@ -56,7 +60,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
     ref
   ) => {
     const autoId = useId();
-    const inputId = id ?? `sw-${autoId}`;
+    const ctx = useContext(FormControlContext);
+    const inputId = id ?? ctx?.id ?? `sw-${autoId}`;
     const s = sizeMap[size];
     const [isFocused, setIsFocused] = useState(false);
 
@@ -66,7 +71,17 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
     );
 
     const isOn = isControlled ? Boolean(checked) : internalChecked;
+    const finalDisabled = ctx?.isDisabled ?? disabled ?? false;
+    const finalInvalid = ariaInvalid ?? ctx?.isInvalid ?? false;
+    const finalRequired = required ?? ctx?.isRequired ?? false;
 
+    const describedBy = [
+      ariaDescribedBy,
+      ctx?.helpTextId,
+      finalInvalid ? ctx?.errorId : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
     const WrapperTag = label ? "label" : "div";
 
     const rootSlot = resolveSlot({
@@ -78,7 +93,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
         display: "inline-flex",
         alignItems: "center",
         gap: "0.6rem",
-        cursor: disabled ? "not-allowed" : "pointer",
+        cursor: finalDisabled ? "not-allowed" : "pointer",
         userSelect: "none",
         WebkitTapHighlightColor: "transparent",
         flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
@@ -103,7 +118,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
           "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
         boxShadow: isFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
         padding: 0,
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+        opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
       },
     });
 
@@ -116,7 +131,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
         inset: 0,
         opacity: 0,
         margin: 0,
-        cursor: disabled ? "not-allowed" : "pointer",
+        cursor: finalDisabled ? "not-allowed" : "pointer",
         zIndex: 1,
       },
     });
@@ -148,7 +163,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
         fontSize: "0.95rem",
         color: "var(--ui-text)",
         lineHeight: 1.15,
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+        opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
       },
     });
 
@@ -171,7 +186,11 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             role="switch"
             checked={checked}
             defaultChecked={defaultChecked}
-            disabled={disabled}
+            disabled={finalDisabled}
+            required={finalRequired}
+            aria-invalid={finalInvalid || undefined}
+            aria-describedby={describedBy}
+            aria-labelledby={label ? undefined : ctx?.labelId}
             style={inputSlot.style}
             onChange={(e) => {
               if (!isControlled) {

@@ -1,11 +1,12 @@
 // src/primitives/forms/Radio.tsx
-import React, { forwardRef, useId, useState } from "react";
+import React, { forwardRef, useContext, useId, useState } from "react";
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 import { useRadioGroupContext } from "./RadioGroup";
+import { FormControlContext } from "./FormControl";
 
 export type RadioSlot =
   | "root"
@@ -39,6 +40,9 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       defaultChecked,
       onChange,
       disabled,
+      required,
+      "aria-describedby": ariaDescribedBy,
+      "aria-invalid": ariaInvalid,
       color = "var(--ui-primary)",
       boxSize = 16,
       labelPlacement = "right",
@@ -54,12 +58,23 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     ref
   ) => {
     const autoId = useId();
-    const inputId = id ?? `radio-${autoId}`;
     const group = useRadioGroupContext();
+    const ctx = useContext(FormControlContext);
+    const inputId = id ?? ctx?.id ?? `radio-${autoId}`;
     const [isFocused, setIsFocused] = useState(false);
 
     const resolvedName = group?.name ?? name;
-    const resolvedDisabled = group?.isDisabled ?? disabled ?? false;
+    const resolvedDisabled = group?.isDisabled ?? ctx?.isDisabled ?? disabled ?? false;
+    const finalInvalid = ariaInvalid ?? ctx?.isInvalid ?? false;
+    const finalRequired = required ?? ctx?.isRequired ?? false;
+
+    const describedBy = [
+      ariaDescribedBy,
+      ctx?.helpTextId,
+      finalInvalid ? ctx?.errorId : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
     const resolvedChecked =
       checked !== undefined
@@ -185,6 +200,10 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
             checked={resolvedChecked}
             defaultChecked={defaultChecked}
             disabled={resolvedDisabled}
+            required={finalRequired}
+            aria-invalid={finalInvalid || undefined}
+            aria-describedby={describedBy}
+            aria-labelledby={label ? undefined : ctx?.labelId}
             onChange={(e) => {
               onChange?.(e);
 

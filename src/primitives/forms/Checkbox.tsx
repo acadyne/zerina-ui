@@ -1,6 +1,7 @@
 // src/primitives/forms/Checkbox.tsx
 import React, {
   forwardRef,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -11,6 +12,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { FormControlContext } from "./FormControl";
 
 export type CheckboxSlot =
   | "root"
@@ -44,6 +46,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       defaultChecked,
       onChange,
       disabled,
+      required,
+      "aria-describedby": ariaDescribedBy,
+      "aria-invalid": ariaInvalid,
       indeterminate = false,
       color = "var(--ui-primary)",
       boxSize = 16,
@@ -60,7 +65,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     ref
   ) => {
     const autoId = useId();
-    const inputId = id ?? `cb-${autoId}`;
+    const ctx = useContext(FormControlContext);
+    const inputId = id ?? ctx?.id ?? `cb-${autoId}`;
     const innerRef = useRef<HTMLInputElement | null>(null);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -71,7 +77,17 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     const visualChecked = isControlled ? Boolean(checked) : internalChecked;
     const showMarked = indeterminate || visualChecked;
+    const finalDisabled = ctx?.isDisabled ?? disabled ?? false;
+    const finalInvalid = ariaInvalid ?? ctx?.isInvalid ?? false;
+    const finalRequired = required ?? ctx?.isRequired ?? false;
 
+    const describedBy = [
+      ariaDescribedBy,
+      ctx?.helpTextId,
+      finalInvalid ? ctx?.errorId : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
     useEffect(() => {
       if (innerRef.current) {
         innerRef.current.indeterminate = Boolean(indeterminate);
@@ -99,7 +115,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         display: "inline-flex",
         alignItems: "center",
         gap: "0.55rem",
-        cursor: disabled ? "not-allowed" : "pointer",
+        cursor: finalDisabled ? "not-allowed" : "pointer",
         userSelect: "none",
         WebkitTapHighlightColor: "transparent",
         flexDirection: labelPlacement === "left" ? "row-reverse" : "row",
@@ -136,8 +152,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         flexShrink: 0,
         outline: "none",
         boxShadow: isFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+        cursor: finalDisabled ? "not-allowed" : "pointer",
+        opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
       },
     });
 
@@ -164,7 +180,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         fontSize: "0.95rem",
         color: "var(--ui-text)",
         lineHeight: 1.1,
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
+        opacity: finalDisabled ? "var(--ui-state-disabled-opacity, 0.65)" : 1,
       },
     });
 
@@ -186,8 +202,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             type="checkbox"
             checked={checked}
             defaultChecked={defaultChecked}
-            disabled={disabled}
+            disabled={finalDisabled}
+            required={finalRequired}
             aria-checked={indeterminate ? "mixed" : visualChecked}
+            aria-invalid={finalInvalid || undefined}
+            aria-describedby={describedBy}
+            aria-labelledby={label ? undefined : ctx?.labelId}
             style={inputSlot.style}
             onChange={(e) => {
               if (!isControlled) {
