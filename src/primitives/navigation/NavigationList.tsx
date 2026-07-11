@@ -19,6 +19,7 @@ import {
   type MenuContentProps,
 } from "../overlay";
 import { Typography } from "../typography";
+import type { UIPressEvent } from "../../core/interaction";
 
 export interface NavigationItemDef {
   id: string;
@@ -73,10 +74,7 @@ export interface NavigationListProps {
   defaultOpenIds?: string[];
   onOpenIdsChange?: (ids: string[]) => void;
 
-  onSelect?: (
-    item: NavigationItemDef,
-    event: React.MouseEvent<HTMLElement>
-  ) => void;
+  onSelect?: (item: NavigationItemDef, event: UIPressEvent<HTMLElement>) => void;
 
   variant?: NavigationListVariant;
 
@@ -141,7 +139,7 @@ export interface NavigationListItemProps {
   onToggle?: (id: string) => void;
   onSelect?: (
     item: NavigationItemDef,
-    event: React.MouseEvent<HTMLElement>
+    event: UIPressEvent<HTMLElement>
   ) => void;
 }
 
@@ -279,14 +277,20 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
   const selectable = isSelectable(item);
 
   const handlePress = React.useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      if (item.disabled) return;
+    (event: UIPressEvent<HTMLElement>) => {
+      if (item.disabled) {
+        return;
+      }
 
       if (childrenExist && !collapsed) {
         onToggle?.(item.id);
       }
 
-      if (childrenExist && collapsed && collapsedBehavior === "icons-only") {
+      if (
+        childrenExist &&
+        collapsed &&
+        collapsedBehavior === "icons-only"
+      ) {
         return;
       }
 
@@ -559,13 +563,13 @@ const NavigationListItem: React.FC<NavigationListItemProps> = ({
       <Menu open={flyoutOpen} onOpenChange={setFlyoutOpen}>
         <MenuTrigger asChild>{button}</MenuTrigger>
 
-<MenuContent
-  {...toMotionSlotProps(flyoutContentSlot)}
-  placement={flyoutPlacement}
-  offset={flyoutOffset}
->
-  {flyoutContent}
-</MenuContent>
+        <MenuContent
+          {...toMotionSlotProps(flyoutContentSlot)}
+          placement={flyoutPlacement}
+          offset={flyoutOffset}
+        >
+          {flyoutContent}
+        </MenuContent>
       </Menu>
     ) : (
       <Tooltip>

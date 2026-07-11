@@ -1,12 +1,7 @@
 // src/patterns/settings/SettingsList.tsx
+
 import React from "react";
-import {
-  Box,
-  List,
-  type ListDensity,
-  type ListProps,
-  type ListVariant,
-} from "../../primitives/layout";
+import type { UIPressEvent } from "../../core/interaction";
 import {
   Checkbox,
   type CheckboxProps,
@@ -16,20 +11,48 @@ import {
   Switch,
   type SwitchProps,
 } from "../../primitives/forms";
+import {
+  Box,
+  List,
+  type ListDensity,
+  type ListProps,
+  type ListVariant,
+} from "../../primitives/layout";
 
-type SettingsCheckedChangeEvent =
-  | React.ChangeEvent<HTMLInputElement>
-  | React.MouseEvent<HTMLElement>;
+export type SettingsCheckedChangeSource =
+  | "row"
+  | "control";
+
+export type SettingsCheckedChangeNativeEvent =
+  | UIPressEvent<HTMLElement>
+  | React.ChangeEvent<HTMLInputElement>;
+
+export interface SettingsCheckedChangeEvent {
+  source: SettingsCheckedChangeSource;
+
+  nativeEvent:
+    SettingsCheckedChangeNativeEvent;
+
+  readonly defaultPrevented: boolean;
+
+  preventDefault: () => void;
+  stopPropagation: () => void;
+}
 
 export interface SettingsListProps
-  extends Omit<ListProps, "density" | "variant"> {
+  extends Omit<
+    ListProps,
+    "density" | "variant"
+  > {
   children?: React.ReactNode;
+
   density?: ListDensity;
   variant?: ListVariant;
 }
 
 export interface SettingsListSectionProps {
   children?: React.ReactNode;
+
   label?: React.ReactNode;
   description?: React.ReactNode;
 }
@@ -38,6 +61,7 @@ export interface SettingsListItemProps {
   label: React.ReactNode;
   description?: React.ReactNode;
   value?: React.ReactNode;
+
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
 
@@ -45,8 +69,13 @@ export interface SettingsListItemProps {
   selected?: boolean;
   showChevron?: boolean;
 
-  onPress?: (event: React.MouseEvent<HTMLElement>) => void;
-  onLongPress?: (event: React.PointerEvent<HTMLElement>) => void;
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
+
+  onLongPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
 }
 
 export interface SettingsListSwitchProps
@@ -64,6 +93,7 @@ export interface SettingsListSwitchProps
 
   checked?: boolean;
   defaultChecked?: boolean;
+
   onCheckedChange?: (
     checked: boolean,
     event: SettingsCheckedChangeEvent
@@ -87,6 +117,7 @@ export interface SettingsListCheckboxProps
 
   checked?: boolean;
   defaultChecked?: boolean;
+
   onCheckedChange?: (
     checked: boolean,
     event: SettingsCheckedChangeEvent
@@ -96,11 +127,15 @@ export interface SettingsListCheckboxProps
 }
 
 export interface SettingsListSelectProps
-  extends Omit<SelectProps, "value" | "onChange" | "options" | "children"> {
+  extends Omit<
+    SelectProps,
+    "value" | "onChange" | "options" | "children"
+  > {
   label: React.ReactNode;
   description?: React.ReactNode;
 
   value: string;
+
   onValueChange: (
     value: string,
     event: React.ChangeEvent<HTMLSelectElement>
@@ -108,23 +143,82 @@ export interface SettingsListSelectProps
 
   options?: Option[];
   children?: React.ReactNode;
-  selectWidth?: React.CSSProperties["width"];
+
+  selectWidth?:
+    React.CSSProperties["width"];
 }
 
-type SettingsListComponent = React.FC<SettingsListProps> & {
-  Section: React.FC<SettingsListSectionProps>;
-  Item: React.FC<SettingsListItemProps>;
-  Switch: React.FC<SettingsListSwitchProps>;
-  Checkbox: React.FC<SettingsListCheckboxProps>;
-  Select: React.FC<SettingsListSelectProps>;
-};
+type SettingsListComponent =
+  React.FC<SettingsListProps> & {
+    Section:
+      React.FC<SettingsListSectionProps>;
 
-function stopPropagation(event: React.SyntheticEvent) {
+    Item:
+      React.FC<SettingsListItemProps>;
+
+    Switch:
+      React.FC<SettingsListSwitchProps>;
+
+    Checkbox:
+      React.FC<SettingsListCheckboxProps>;
+
+    Select:
+      React.FC<SettingsListSelectProps>;
+  };
+
+function stopPropagation(
+  event: React.SyntheticEvent
+): void {
   event.stopPropagation();
 }
 
-function hasControlledChecked(value: boolean | undefined): value is boolean {
+function hasControlledChecked(
+  value: boolean | undefined
+): value is boolean {
   return value !== undefined;
+}
+
+function createRowCheckedChangeEvent(
+  nativeEvent: UIPressEvent<HTMLElement>
+): SettingsCheckedChangeEvent {
+  return {
+    source: "row",
+    nativeEvent,
+
+    get defaultPrevented() {
+      return nativeEvent.defaultPrevented;
+    },
+
+    preventDefault() {
+      nativeEvent.preventDefault();
+    },
+
+    stopPropagation() {
+      nativeEvent.stopPropagation();
+    },
+  };
+}
+
+function createControlCheckedChangeEvent(
+  nativeEvent:
+    React.ChangeEvent<HTMLInputElement>
+): SettingsCheckedChangeEvent {
+  return {
+    source: "control",
+    nativeEvent,
+
+    get defaultPrevented() {
+      return nativeEvent.defaultPrevented;
+    },
+
+    preventDefault() {
+      nativeEvent.preventDefault();
+    },
+
+    stopPropagation() {
+      nativeEvent.stopPropagation();
+    },
+  };
 }
 
 export const SettingsList = (({
@@ -134,187 +228,265 @@ export const SettingsList = (({
   ...rest
 }: SettingsListProps) => {
   return (
-    <List density={density} variant={variant} {...rest}>
+    <List
+      density={density}
+      variant={variant}
+      {...rest}
+    >
       {children}
     </List>
   );
 }) as SettingsListComponent;
 
-SettingsList.Section = function SettingsListSection({
-  children,
-  label,
-  description,
-}: SettingsListSectionProps) {
-  return (
-    <List.Section label={label} description={description}>
-      {children}
-    </List.Section>
-  );
-};
+SettingsList.Section =
+  function SettingsListSection({
+    children,
+    label,
+    description,
+  }: SettingsListSectionProps) {
+    return (
+      <List.Section
+        label={label}
+        description={description}
+      >
+        {children}
+      </List.Section>
+    );
+  };
 
-SettingsList.Item = function SettingsListItem({
-  label,
-  description,
-  value,
-  leading,
-  trailing,
-  disabled = false,
-  selected = false,
-  showChevron = false,
-  onPress,
-  onLongPress,
-}: SettingsListItemProps) {
-  return (
-    <List.Item
-      title={label}
-      description={description}
-      value={value}
-      leading={leading}
-      trailing={trailing}
-      disabled={disabled}
-      selected={selected}
-      showChevron={showChevron}
-      onPress={onPress}
-      onLongPress={onLongPress}
-    />
-  );
-};
+SettingsList.Item =
+  function SettingsListItem({
+    label,
+    description,
+    value,
+    leading,
+    trailing,
+    disabled = false,
+    selected = false,
+    showChevron = false,
+    onPress,
+    onLongPress,
+  }: SettingsListItemProps) {
+    return (
+      <List.Item
+        title={label}
+        description={description}
+        value={value}
+        leading={leading}
+        trailing={trailing}
+        disabled={disabled}
+        selected={selected}
+        showChevron={showChevron}
+        onPress={onPress}
+        onLongPress={onLongPress}
+      />
+    );
+  };
 
-SettingsList.Switch = function SettingsListSwitch({
-  label,
-  description,
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-  size = "sm",
-  value,
-  ...rest
-}: SettingsListSwitchProps) {
-  const canToggleFromRow =
-    !disabled && hasControlledChecked(checked) && Boolean(onCheckedChange);
+SettingsList.Switch =
+  function SettingsListSwitch({
+    label,
+    description,
+    checked,
+    defaultChecked,
+    onCheckedChange,
+    disabled,
+    size = "sm",
+    value,
+    ...rest
+  }: SettingsListSwitchProps) {
+    const canToggleFromRow =
+      !disabled &&
+      hasControlledChecked(checked) &&
+      onCheckedChange !== undefined;
 
-  return (
-    <List.Item
-      title={label}
-      description={description}
-      value={value}
-      disabled={disabled}
-      onPress={
-        canToggleFromRow
-          ? (event) => {
-              onCheckedChange?.(!checked, event);
+    const handleRowPress =
+      canToggleFromRow
+        ? (
+            event:
+              UIPressEvent<HTMLElement>
+          ): void => {
+            const changeEvent =
+              createRowCheckedChangeEvent(
+                event
+              );
+
+            onCheckedChange(
+              !checked,
+              changeEvent
+            );
+          }
+        : undefined;
+
+    return (
+      <List.Item
+        title={label}
+        description={description}
+        value={value}
+        disabled={disabled}
+        onPress={handleRowPress}
+        trailing={
+          <Box
+            onClick={stopPropagation}
+            onPointerDown={
+              stopPropagation
             }
-          : undefined
-      }
-      trailing={
-        <Box onClick={stopPropagation} onPointerDown={stopPropagation}>
-          <Switch
-            {...rest}
-            size={size}
-            checked={checked}
-            defaultChecked={defaultChecked}
-            disabled={disabled}
-            onChange={(event) => {
-              onCheckedChange?.(event.currentTarget.checked, event);
-            }}
-          />
-        </Box>
-      }
-    />
-  );
-};
+          >
+            <Switch
+              {...rest}
+              size={size}
+              checked={checked}
+              defaultChecked={
+                defaultChecked
+              }
+              disabled={disabled}
+              onChange={(event) => {
+                onCheckedChange?.(
+                  event.currentTarget
+                    .checked,
 
-SettingsList.Checkbox = function SettingsListCheckbox({
-  label,
-  description,
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-  value,
-  ...rest
-}: SettingsListCheckboxProps) {
-  const canToggleFromRow =
-    !disabled && hasControlledChecked(checked) && Boolean(onCheckedChange);
+                  createControlCheckedChangeEvent(
+                    event
+                  )
+                );
+              }}
+            />
+          </Box>
+        }
+      />
+    );
+  };
 
-  return (
-    <List.Item
-      title={label}
-      description={description}
-      value={value}
-      disabled={disabled}
-      onPress={
-        canToggleFromRow
-          ? (event) => {
-              onCheckedChange?.(!checked, event);
+SettingsList.Checkbox =
+  function SettingsListCheckbox({
+    label,
+    description,
+    checked,
+    defaultChecked,
+    onCheckedChange,
+    disabled,
+    value,
+    ...rest
+  }: SettingsListCheckboxProps) {
+    const canToggleFromRow =
+      !disabled &&
+      hasControlledChecked(checked) &&
+      onCheckedChange !== undefined;
+
+    const handleRowPress =
+      canToggleFromRow
+        ? (
+            event:
+              UIPressEvent<HTMLElement>
+          ): void => {
+            const changeEvent =
+              createRowCheckedChangeEvent(
+                event
+              );
+
+            onCheckedChange(
+              !checked,
+              changeEvent
+            );
+          }
+        : undefined;
+
+    return (
+      <List.Item
+        title={label}
+        description={description}
+        value={value}
+        disabled={disabled}
+        onPress={handleRowPress}
+        trailing={
+          <Box
+            onClick={stopPropagation}
+            onPointerDown={
+              stopPropagation
             }
-          : undefined
-      }
-      trailing={
-        <Box onClick={stopPropagation} onPointerDown={stopPropagation}>
-          <Checkbox
-            {...rest}
-            checked={checked}
-            defaultChecked={defaultChecked}
-            disabled={disabled}
-            onChange={(event) => {
-              onCheckedChange?.(event.currentTarget.checked, event);
-            }}
-          />
-        </Box>
-      }
-    />
-  );
-};
+          >
+            <Checkbox
+              {...rest}
+              checked={checked}
+              defaultChecked={
+                defaultChecked
+              }
+              disabled={disabled}
+              onChange={(event) => {
+                onCheckedChange?.(
+                  event.currentTarget
+                    .checked,
 
-SettingsList.Select = function SettingsListSelect({
-  label,
-  description,
-  value,
-  onValueChange,
-  options,
-  children,
-  disabled,
-  isDisabled,
-  selectWidth = 150,
-  size = "sm",
-  ...rest
-}: SettingsListSelectProps) {
-  const finalDisabled = isDisabled ?? disabled ?? false;
+                  createControlCheckedChangeEvent(
+                    event
+                  )
+                );
+              }}
+            />
+          </Box>
+        }
+      />
+    );
+  };
 
-  return (
-    <List.Item
-      title={label}
-      description={description}
-      disabled={finalDisabled}
-      trailing={
-        <Box
-          onClick={stopPropagation}
-          onPointerDown={stopPropagation}
-          style={{
-            width: selectWidth,
-            minWidth: 0,
-          }}
-        >
-          <Select
-            {...rest}
-            size={size}
-            value={value}
-            options={options}
-            disabled={disabled}
-            isDisabled={isDisabled}
-            fullWidth
-            onChange={(event) => {
-              onValueChange(event.currentTarget.value, event);
+SettingsList.Select =
+  function SettingsListSelect({
+    label,
+    description,
+    value,
+    onValueChange,
+    options,
+    children,
+    disabled,
+    isDisabled,
+    selectWidth = 150,
+    size = "sm",
+    ...rest
+  }: SettingsListSelectProps) {
+    const finalDisabled =
+      isDisabled ??
+      disabled ??
+      false;
+
+    return (
+      <List.Item
+        title={label}
+        description={description}
+        disabled={finalDisabled}
+        trailing={
+          <Box
+            onClick={stopPropagation}
+            onPointerDown={
+              stopPropagation
+            }
+            style={{
+              width: selectWidth,
+              minWidth: 0,
             }}
           >
-            {children}
-          </Select>
-        </Box>
-      }
-    />
-  );
-};
+            <Select
+              {...rest}
+              size={size}
+              value={value}
+              options={options}
+              disabled={disabled}
+              isDisabled={isDisabled}
+              fullWidth
+              onChange={(event) => {
+                onValueChange(
+                  event.currentTarget
+                    .value,
+                  event
+                );
+              }}
+            >
+              {children}
+            </Select>
+          </Box>
+        }
+      />
+    );
+  };
 
-SettingsList.displayName = "SettingsList";
+SettingsList.displayName =
+  "SettingsList";
