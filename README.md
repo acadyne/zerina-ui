@@ -1,6 +1,7 @@
 # Zerina UI
 
 ![NPM Version](https://img.shields.io/npm/v/zerina-ui) ![License](https://img.shields.io/npm/l/zerina-ui) ![Build](https://img.shields.io/badge/build-passing-brightgreen) ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue) ![React](https://img.shields.io/badge/ui-React-61dafb)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acadyne/zerina-ui)
 
 **Zerina UI** es una librería UI tipada para React, diseñada para construir interfaces coherentes, accesibles, responsivas, animadas con intención y altamente componibles.
 
