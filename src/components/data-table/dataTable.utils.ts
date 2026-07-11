@@ -2,12 +2,11 @@
 
 import type {
   DataTableColumn,
-  DataTableRowId,
   DataTableSortConfig,
   EditableColumnType,
 } from "./dataTable.types";
 
-export function toComparable(value: unknown): string | number {
+function toComparable(value: unknown): string | number {
   if (value == null) return "";
   if (typeof value === "number") return value;
   if (typeof value === "boolean") return value ? 1 : 0;
@@ -61,21 +60,6 @@ export function toRenderableValue(value: unknown): React.ReactNode {
   if (value instanceof Date) return value.toISOString();
 
   return getCellText(value);
-}
-
-export function getRowIdFromRow<IDType extends DataTableRowId>(
-  row: object,
-  getRowId?: (row: object) => IDType
-): IDType | undefined {
-  if (getRowId) return getRowId(row);
-
-  const rawId = (row as Record<string, unknown>).id;
-
-  if (typeof rawId === "string" || typeof rawId === "number") {
-    return rawId as IDType;
-  }
-
-  return undefined;
 }
 
 export function filterRows<T extends object>(
@@ -177,7 +161,7 @@ function escapeCsvValue(value: unknown): string {
   return safeRaw;
 }
 
-export function rowsToCsv(rows: Record<string, unknown>[]): string {
+function rowsToCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "";
 
   const headers = Object.keys(rows[0]);
