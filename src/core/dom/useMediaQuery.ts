@@ -1,4 +1,5 @@
 // src/core/dom/useMediaQuery.ts
+
 import React from "react";
 
 export interface UseMediaQueryOptions {
@@ -13,7 +14,10 @@ export interface UseMediaQueryOptions {
   initializeWithValue?: boolean;
 }
 
-function getMatches(query: string, defaultMatches: boolean): boolean {
+function getMatches(
+  query: string,
+  defaultMatches: boolean
+): boolean {
   if (typeof window === "undefined") {
     return defaultMatches;
   }
@@ -65,14 +69,7 @@ export function useMediaQuery(
     return () => {
       mediaQueryList.removeListener(update);
     };
-  }, [query]);
+  }, [defaultMatches, initializeWithValue, query]);
 
   return matches;
-}
-
-export function getMediaQueryMatchesForClientOnly(
-  query: string,
-  defaultMatches = false
-): boolean {
-  return getMatches(query, defaultMatches);
 }

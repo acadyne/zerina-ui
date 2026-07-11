@@ -1,4 +1,5 @@
 // src/core/dom/useViewportSize.ts
+
 import React from "react";
 
 export interface ViewportSize {
@@ -6,7 +7,7 @@ export interface ViewportSize {
   height: number;
 }
 
-export function getViewportSize(): ViewportSize {
+function getViewportSize(): ViewportSize {
   if (typeof window === "undefined") {
     return {
       width: 0,
@@ -20,19 +21,26 @@ export function getViewportSize(): ViewportSize {
   };
 }
 
-export function useViewportSize(options: { ssrSafe?: boolean } = {}): ViewportSize {
+export interface UseViewportSizeOptions {
+  ssrSafe?: boolean;
+}
+
+export function useViewportSize(
+  options: UseViewportSizeOptions = {}
+): ViewportSize {
   const { ssrSafe = false } = options;
 
-  const [viewportSize, setViewportSize] = React.useState<ViewportSize>(() => {
-    if (ssrSafe) {
-      return {
-        width: 0,
-        height: 0,
-      };
-    }
+  const [viewportSize, setViewportSize] =
+    React.useState<ViewportSize>(() => {
+      if (ssrSafe) {
+        return {
+          width: 0,
+          height: 0,
+        };
+      }
 
-    return getViewportSize();
-  });
+      return getViewportSize();
+    });
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -45,16 +53,13 @@ export function useViewportSize(options: { ssrSafe?: boolean } = {}): ViewportSi
 
     window.addEventListener("resize", update);
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", update);
-    }
+    const visualViewport = window.visualViewport;
+
+    visualViewport?.addEventListener("resize", update);
 
     return () => {
       window.removeEventListener("resize", update);
-
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", update);
-      }
+      visualViewport?.removeEventListener("resize", update);
     };
   }, []);
 

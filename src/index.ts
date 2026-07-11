@@ -25,7 +25,6 @@ export * from "./primitives/disclosure";
 export * from "./patterns";
 export * from "./theme/theme";
 
-export * from "./core/dom";
 export * from "./core/motion";
 export * from "./core/viewport";
 export * from "./core/interaction";
