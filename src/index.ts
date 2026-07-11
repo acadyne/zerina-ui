@@ -12,6 +12,7 @@ export * from "./components/navigation-menu";
 export * from "./components/media/AspectRatio";
 export * from "./components/media/Avatar";
 export * from "./components/media/Image";
+export * from "./components/transformable-surface";
 
 export * from "./primitives/forms";
 export * from "./primitives/layout";
