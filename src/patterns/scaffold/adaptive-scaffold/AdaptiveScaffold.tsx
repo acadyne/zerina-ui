@@ -4,7 +4,10 @@ import {
   resolveMergedSlot,
   resolveSlot,
 } from "../../../helpers/css";
-import { useOptionalUIViewport } from "../../../core/viewport";
+import {
+  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+  useOptionalUIViewport,
+} from "../../../core/viewport";
 import { useElementSize } from "../../../core/dom";
 import { Box } from "../../../primitives/layout";
 import {
@@ -32,14 +35,6 @@ import {
   resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
-
-
-
-const FALLBACK_VIEWPORT_BREAKPOINTS = {
-  tablet: 768,
-  desktop: 1024,
-};
-
 
 function renderContent({
   children,
@@ -181,7 +176,7 @@ export function AdaptiveScaffold({
     mode,
     width: responsiveWidth,
     fallbackKind: viewportInfo?.kind ?? "mobile",
-    breakpoints: viewportInfo?.breakpoints ?? FALLBACK_VIEWPORT_BREAKPOINTS,
+    breakpoints: viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
   });
 
   const setActiveItem = React.useCallback(

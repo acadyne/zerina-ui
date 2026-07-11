@@ -1,7 +1,10 @@
 // src/components/data-table/hooks/useDataTableResponsiveMode.ts
 import { useMemo } from "react";
 import { useMediaQuery } from "../../../core/dom";
-import { useOptionalUIViewport } from "../../../core/viewport";
+import {
+  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+  useOptionalUIViewport,
+} from "../../../core/viewport";
 import type { DataTableMobileMode } from "../dataTable.types";
 
 export interface UseDataTableResponsiveModeOptions {
@@ -22,7 +25,9 @@ export function useDataTableResponsiveMode({
   const viewport = useOptionalUIViewport();
 
   const resolvedBreakpoint =
-    mobileBreakpoint ?? viewport?.breakpoints.tablet ?? 768;
+    mobileBreakpoint ??
+    viewport?.breakpoints.tablet ??
+    DEFAULT_UI_VIEWPORT_BREAKPOINTS.tablet;
 
   const query = useMemo(() => {
     return `(max-width: ${Math.max(0, resolvedBreakpoint - 0.02)}px)`;

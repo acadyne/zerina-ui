@@ -12,6 +12,11 @@ import {
   type UIViewportMode,
 } from "./viewport.types";
 
+import {
+  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+  resolveUIViewportKind,
+} from "./viewport.utils";
+
 type SetViewportModeAction =
   | UIViewportMode
   | ((prevMode: UIViewportMode) => UIViewportMode);
@@ -99,11 +104,6 @@ export interface UIViewportProviderProps {
   ssrSafe?: boolean;
 }
 
-const DEFAULT_VIEWPORT_BREAKPOINTS: UIViewportBreakpoints = {
-  tablet: 768,
-  desktop: 1024,
-};
-
 const DEFAULT_NARROW_BREAKPOINT = 480;
 const DEFAULT_WIDE_BREAKPOINT = 1024;
 const DEFAULT_SHORT_BREAKPOINT = 500;
@@ -118,30 +118,6 @@ function resolveOrientation(width: number, height: number): UIOrientation {
   }
 
   return height > width ? "portrait" : "landscape";
-}
-
-function resolveViewportKind({
-  mode,
-  width,
-  breakpoints,
-}: {
-  mode: UIViewportMode;
-  width: number;
-  breakpoints: UIViewportBreakpoints;
-}): UIViewportKind {
-  if (mode !== "auto") {
-    return mode;
-  }
-
-  if (width >= breakpoints.desktop) {
-    return "desktop";
-  }
-
-  if (width >= breakpoints.tablet) {
-    return "tablet";
-  }
-
-  return "mobile";
 }
 
 function resolveInputKind(options: {
@@ -240,7 +216,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
   const resolvedBreakpoints = React.useMemo<UIViewportBreakpoints>(
     () => ({
-      ...DEFAULT_VIEWPORT_BREAKPOINTS,
+      ...DEFAULT_UI_VIEWPORT_BREAKPOINTS,
       ...breakpoints,
     }),
     [breakpoints]
@@ -311,7 +287,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     const isPortrait = orientation === "portrait";
     const isLandscape = orientation === "landscape";
 
-    const kind = resolveViewportKind({
+    const kind = resolveUIViewportKind({
       mode: currentMode,
       width,
       breakpoints: resolvedBreakpoints,
