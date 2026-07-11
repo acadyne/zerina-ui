@@ -225,6 +225,9 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       loadingLines = 3,
       loadingAnimated = true,
       tabIndex,
+      role,
+      onClick,
+      onKeyDown,
       onMouseEnter,
       onMouseLeave,
       onFocus,
@@ -288,13 +291,29 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       [styles, slotProps]
     );
 
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(event);
+
+      if (
+        event.defaultPrevented ||
+        !isInteractive ||
+        (event.key !== "Enter" && event.key !== " ")
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.currentTarget.click();
+    };
+
     return (
       <CardContext.Provider value={contextValue}>
         <motion.div
           {...rest}
           {...toMotionSlotProps(rootSlot)}
           ref={ref}
-          tabIndex={interactive ? tabIndex ?? 0 : tabIndex}
+          role={isInteractive ? role ?? "button" : role}
+          tabIndex={isInteractive ? tabIndex ?? 0 : tabIndex}
           aria-busy={loading || undefined}
           whileTap={isInteractive && pressMotion ? pressMotion : undefined}
           transition={motionState.getTransition(
@@ -323,6 +342,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             setFocused(false);
             onBlur?.(event);
           }}
+          onClick={onClick}
+          onKeyDown={handleKeyDown}
         >
           {loading ? (
             loadingFallback ?? (
