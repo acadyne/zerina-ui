@@ -30,7 +30,7 @@ export * from "./core/dom";
 export * from "./core/motion";
 export * from "./core/viewport";
 export * from "./provider";
-
+export * from "./core/interaction";
 
 export { Portal } from "./core/overlay";
 export type { PortalProps } from "./core/overlay";

@@ -151,16 +151,16 @@ function getPlacementStyles(
   const horizontal =
     placement === "bottom-center"
       ? {
-          left: "50%",
-          transform: "translateX(-50%)",
-        }
+        left: "50%",
+        transform: "translateX(-50%)",
+      }
       : placement === "bottom-start"
         ? {
-            left: "max(1rem, env(safe-area-inset-left, 0px))",
-          }
+          left: "max(1rem, env(safe-area-inset-left, 0px))",
+        }
         : {
-            right: "max(1rem, env(safe-area-inset-right, 0px))",
-          };
+          right: "max(1rem, env(safe-area-inset-right, 0px))",
+        };
 
   return {
     position: "absolute",
@@ -276,7 +276,6 @@ export const FloatingActionButton = React.forwardRef<
         type="button"
         disabled={disabled}
         onPress={onClick}
-        pressedScale={0.96}
         {...rest}
         {...rootSlot}
       >

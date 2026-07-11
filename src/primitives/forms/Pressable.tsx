@@ -1,17 +1,20 @@
 // src/primitives/forms/Pressable.tsx
+
 import React from "react";
 import {
+  composeEventHandlers,
+  usePress,
+  type UIPressState,
+} from "../../core/interaction";
+import { useOptionalUIMotion } from "../../core/motion";
+import {
   resolveSlot,
+  type SlotElementProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-export type PressableRenderState = {
-  pressed: boolean;
-  hovered: boolean;
-  focused: boolean;
-  disabled: boolean;
-};
+export type PressableRenderState = UIPressState;
 
 export type PressableChildren =
   | React.ReactNode
@@ -27,26 +30,33 @@ export type PressableTouchAction =
 
 export type PressableSlot = "root";
 
-export type PressableStyles = SlotStyleMap<PressableSlot>;
+export type PressableStyles =
+  SlotStyleMap<PressableSlot>;
 
-export type PressableSlotProps = SlotPropsMap<PressableSlot>;
+export type PressableSlotProps =
+  SlotPropsMap<PressableSlot>;
 
 export interface PressableProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, "children" | "onClick"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLElement>,
+    "children" | "onClick"
+  > {
   as?: "button" | "div" | "span" | "a";
 
   children?: PressableChildren;
 
   disabled?: boolean;
 
-  onPress?: (event: React.MouseEvent<HTMLElement>) => void;
+  onPress?: React.MouseEventHandler<HTMLElement>;
 
-  onLongPress?: (event: React.PointerEvent<HTMLElement>) => void;
+  onLongPress?: React.PointerEventHandler<HTMLElement>;
 
   longPressDelay?: number;
 
-  pressedScale?: number;
-
+  /**
+   * Permite desactivar únicamente el feedback visual de press.
+   * La intensidad viene del Motion System.
+   */
   pressEffect?: boolean;
 
   touchAction?: PressableTouchAction;
@@ -62,34 +72,39 @@ export interface PressableProps
   slotProps?: PressableSlotProps;
 }
 
-const LONG_PRESS_DELAY = 450;
-
-function isNativeInteractiveElement(as: PressableProps["as"]) {
+function isNativeInteractiveElement(
+  as: PressableProps["as"]
+): boolean {
   return as === "button" || as === "a";
 }
 
-function getPressTransform(options: {
+function composeTransform({
+  transform,
+  pressed,
+  scale,
+  y,
+}: {
+  transform?: React.CSSProperties["transform"];
   pressed: boolean;
-  pressEffect: boolean;
-  pressedScale: number;
-  userTransform?: React.CSSProperties["transform"];
+  scale?: number;
+  y?: number;
 }): React.CSSProperties["transform"] {
-  const { pressed, pressEffect, pressedScale, userTransform } = options;
-
-  if (!pressed || !pressEffect) {
-    return userTransform;
+  if (!pressed || scale === undefined || y === undefined) {
+    return transform;
   }
 
-  const pressTransform = `scale(${pressedScale})`;
+  const pressTransform =
+    `translateY(${y}px) scale(${scale})`;
 
-  if (!userTransform) {
-    return pressTransform;
-  }
-
-  return `${userTransform} ${pressTransform}`;
+  return transform
+    ? `${transform} ${pressTransform}`
+    : pressTransform;
 }
 
-export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
+export const Pressable = React.forwardRef<
+  HTMLElement,
+  PressableProps
+>(
   (
     {
       as = "button",
@@ -98,9 +113,8 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
 
       onPress,
       onLongPress,
-      longPressDelay = LONG_PRESS_DELAY,
+      longPressDelay,
 
-      pressedScale = 0.985,
       pressEffect = true,
       touchAction = "manipulation",
       disableButtonRole = false,
@@ -120,63 +134,39 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
       onPointerUp,
       onPointerCancel,
       onLostPointerCapture,
+
       onFocus,
       onBlur,
+
       onKeyDown,
       onKeyUp,
 
       ...rest
     },
-    ref
+    forwardedRef
   ) => {
     const Component = as;
 
-    const [pressed, setPressed] = React.useState(false);
-    const [hovered, setHovered] = React.useState(false);
-    const [focused, setFocused] = React.useState(false);
+    const motion = useOptionalUIMotion();
 
-    const longPressTimerRef = React.useRef<number | null>(null);
-    const longPressTriggeredRef = React.useRef(false);
-
-    const clearLongPressTimer = React.useCallback(() => {
-      if (longPressTimerRef.current !== null) {
-        window.clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-    }, []);
-
-    const resetPressState = React.useCallback(() => {
-      setPressed(false);
-      clearLongPressTimer();
-    }, [clearLongPressTimer]);
-
-    React.useEffect(() => {
-      return () => {
-        clearLongPressTimer();
-      };
-    }, [clearLongPressTimer]);
-
-    const state = React.useMemo<PressableRenderState>(
-      () => ({
-        pressed,
-        hovered,
-        focused,
-        disabled,
-      }),
-      [pressed, hovered, focused, disabled]
-    );
-
-    const isNativeInteractive = isNativeInteractiveElement(as);
+    const nativeInteractive =
+      isNativeInteractiveElement(as);
 
     const resolvedRole =
       role ??
-      (!disableButtonRole && !isNativeInteractive ? "button" : undefined);
+      (
+        !disableButtonRole && !nativeInteractive
+          ? "button"
+          : undefined
+      );
 
     const resolvedTabIndex =
-      tabIndex ?? (!disabled && !isNativeInteractive ? 0 : undefined);
-
-    const renderedChildren =
-      typeof children === "function" ? children(state) : children;
+      tabIndex ??
+      (
+        !disabled && !nativeInteractive
+          ? 0
+          : undefined
+      );
 
     const rootSlot = resolveSlot<PressableSlot>({
       slot: "root",
@@ -189,10 +179,6 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
         tabIndex: resolvedTabIndex,
         "aria-disabled": disabled || undefined,
         "data-ui-pressable": "",
-        "data-ui-pressable-pressed": pressed || undefined,
-        "data-ui-pressable-hovered": hovered || undefined,
-        "data-ui-pressable-focused": focused || undefined,
-        "data-ui-pressable-disabled": disabled || undefined,
       },
       baseStyle: {
         display: "inline-flex",
@@ -201,153 +187,166 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
         minWidth: 0,
         minHeight: 0,
         cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.62 : undefined,
+        opacity: disabled
+          ? "var(--ui-state-disabled-opacity, 0.62)"
+          : undefined,
         userSelect: "none",
         WebkitTapHighlightColor: "transparent",
         touchAction,
         outline: "none",
-        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : undefined,
         transition:
           "transform var(--ui-duration-fast) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-        transform: getPressTransform({
-          pressed,
-          pressEffect,
-          pressedScale,
-          userTransform: style?.transform,
-        }),
       },
     });
 
-    const elementProps: React.HTMLAttributes<HTMLElement> & {
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+
+      onClick: slotOnClick,
+
+      ...rootSlotRest
+    } = rootSlot as SlotElementProps;
+
+    const press = usePress<HTMLElement>({
+      disabled,
+      nativeInteractive,
+
+      onPress,
+      onLongPress,
+      longPressDelay,
+
+      onPointerEnter: composeEventHandlers(
+        onPointerEnter,
+        slotOnPointerEnter
+      ),
+
+      onPointerLeave: composeEventHandlers(
+        onPointerLeave,
+        slotOnPointerLeave,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerDown: composeEventHandlers(
+        onPointerDown,
+        slotOnPointerDown
+      ),
+
+      onPointerUp: composeEventHandlers(
+        onPointerUp,
+        slotOnPointerUp,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerCancel: composeEventHandlers(
+        onPointerCancel,
+        slotOnPointerCancel,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        slotOnLostPointerCapture,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onFocus: composeEventHandlers(
+        onFocus,
+        slotOnFocus
+      ),
+
+      onBlur: composeEventHandlers(
+        onBlur,
+        slotOnBlur,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onKeyDown: composeEventHandlers(
+        onKeyDown,
+        slotOnKeyDown
+      ),
+
+      onKeyUp: composeEventHandlers(
+        onKeyUp,
+        slotOnKeyUp
+      ),
+
+      onClick: slotOnClick,
+    });
+
+    const pressMotion =
+      pressEffect
+        ? motion.getPressMotion(motion.effectiveLevel)
+        : undefined;
+
+    const resolvedStyle: React.CSSProperties = {
+      ...rootSlotRest.style,
+
+      boxShadow: press.state.focusVisible
+        ? "0 0 0 3px var(--ui-focus-ring)"
+        : rootSlotRest.style?.boxShadow,
+
+      transform: composeTransform({
+        transform: rootSlotRest.style?.transform,
+        pressed: press.state.pressed,
+        scale: pressMotion?.scale,
+        y: pressMotion?.y,
+      }),
+    };
+
+    const renderedChildren =
+      typeof children === "function"
+        ? children(press.state)
+        : children;
+
+    const elementProps: SlotElementProps & {
       disabled?: boolean;
       type?: "button" | "submit" | "reset";
     } = {
       ...rest,
-      ...rootSlot,
+      ...rootSlotRest,
 
-      onPointerEnter: (event) => {
-        if (!disabled) {
-          setHovered(true);
-        }
+      style: resolvedStyle,
 
-        onPointerEnter?.(event);
-      },
+      "data-ui-pressable-pressed":
+        press.state.pressed || undefined,
 
-      onPointerLeave: (event) => {
-        setHovered(false);
-        resetPressState();
+      "data-ui-pressable-hovered":
+        press.state.hovered || undefined,
 
-        onPointerLeave?.(event);
-      },
+      "data-ui-pressable-focused":
+        press.state.focused || undefined,
 
-      onPointerDown: (event) => {
-        if (!disabled) {
-          setPressed(true);
-          longPressTriggeredRef.current = false;
+      "data-ui-pressable-focus-visible":
+        press.state.focusVisible || undefined,
 
-          if (onLongPress) {
-            clearLongPressTimer();
+      "data-ui-pressable-disabled":
+        disabled || undefined,
 
-            event.persist?.();
+      "data-ui-pressable-pointer":
+        press.state.pointerType ?? undefined,
 
-            longPressTimerRef.current = window.setTimeout(() => {
-              longPressTriggeredRef.current = true;
-              onLongPress(event);
-            }, longPressDelay);
-          }
-
-          try {
-            event.currentTarget.setPointerCapture(event.pointerId);
-          } catch {
-            // Algunos browsers/elementos pueden no permitir pointer capture.
-          }
-        }
-
-        onPointerDown?.(event);
-      },
-
-      onPointerUp: (event) => {
-        resetPressState();
-
-        try {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        } catch {
-          // Puede fallar si el elemento no tenía capture activo.
-        }
-
-        onPointerUp?.(event);
-      },
-
-      onPointerCancel: (event) => {
-        resetPressState();
-
-        try {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        } catch {
-          // Puede fallar si el elemento no tenía capture activo.
-        }
-
-        onPointerCancel?.(event);
-      },
-
-      onLostPointerCapture: (event) => {
-        resetPressState();
-        onLostPointerCapture?.(event);
-      },
-
-      onFocus: (event) => {
-        if (!disabled) {
-          setFocused(true);
-        }
-
-        onFocus?.(event);
-      },
-
-      onBlur: (event) => {
-        setFocused(false);
-        resetPressState();
-
-        onBlur?.(event);
-      },
-
-      onClick: (event) => {
-        if (disabled) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
-
-        if (longPressTriggeredRef.current) {
-          longPressTriggeredRef.current = false;
-          return;
-        }
-
-        onPress?.(event);
-      },
-
-      onKeyDown: (event) => {
-        if (!disabled && !isNativeInteractive) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setPressed(true);
-          }
-        }
-
-        onKeyDown?.(event);
-      },
-
-      onKeyUp: (event) => {
-        if (!disabled && !isNativeInteractive) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setPressed(false);
-
-            onPress?.(event as unknown as React.MouseEvent<HTMLElement>);
-          }
-        }
-
-        onKeyUp?.(event);
-      },
+      ...press.pressProps,
     };
 
     if (as === "button") {
@@ -355,10 +354,13 @@ export const Pressable = React.forwardRef<HTMLElement, PressableProps>(
       elementProps.type = type;
     }
 
-    return (
-      <Component ref={ref as any} {...(elementProps as any)}>
-        {renderedChildren}
-      </Component>
+    return React.createElement(
+      Component,
+      {
+        ...elementProps,
+        ref: forwardedRef,
+      },
+      renderedChildren
     );
   }
 );
