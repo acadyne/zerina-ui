@@ -32,6 +32,8 @@ export interface TreeItemProps<TNode> {
   node: TNode;
   nodeId: TreeNodeId;
   depth: number;
+  positionInSet: number;
+  setSize: number;
 
   tree: UseTreeStateResult<TNode>;
 
@@ -110,6 +112,8 @@ export function TreeItem<TNode>({
   node,
   nodeId,
   depth,
+  positionInSet,
+  setSize,
 
   tree,
 
@@ -663,6 +667,8 @@ export function TreeItem<TNode>({
       role="treeitem"
       tabIndex={focused ? 0 : -1}
       aria-level={getTreeNodeLevel(depth)}
+      aria-posinset={positionInSet}
+      aria-setsize={setSize}
       aria-expanded={branch ? expanded : undefined}
       aria-selected={
         selectionMode !== "none"
@@ -741,7 +747,7 @@ export function TreeItem<TNode>({
               </div>
             ) : null}
 
-            {children.map((child) => {
+            {children.map((child, index) => {
               const childId = getNodeId(child);
 
               return (
@@ -750,6 +756,8 @@ export function TreeItem<TNode>({
                   node={child}
                   nodeId={childId}
                   depth={depth + 1}
+                  positionInSet={index + 1}
+                  setSize={children.length}
                   tree={tree}
                   getNodeId={getNodeId}
                   getNodeLabel={getNodeLabel}
