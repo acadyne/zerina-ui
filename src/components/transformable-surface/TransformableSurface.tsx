@@ -358,8 +358,6 @@ export const TransformableSurface = forwardRef<
     const handleWheel = (
       event: WheelEvent<HTMLDivElement>
     ): void => {
-      surface.handleWheel(event);
-
       viewportOnWheel?.(event);
       onSurfaceWheel?.(event);
     };

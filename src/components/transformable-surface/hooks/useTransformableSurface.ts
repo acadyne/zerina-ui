@@ -6,7 +6,6 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from "react";
 import type {
   TransformableSurfaceApi,
@@ -163,7 +162,7 @@ export interface UseTransformableSurfaceResult {
   ) => void;
 
   handleWheel: (
-    event: ReactWheelEvent<HTMLDivElement>
+    event: WheelEvent
   ) => void;
 
   handleDoubleClick: (
@@ -1298,7 +1297,7 @@ export function useTransformableSurface({
 
   const handleWheel = useCallback(
     (
-      event: ReactWheelEvent<HTMLDivElement>
+      event: WheelEvent
     ): void => {
       if (
         disabled ||
@@ -1383,6 +1382,36 @@ export function useTransformableSurface({
       wheelZoomSensitivity,
     ]
   );
+
+  useEffect(() => {
+    const viewport =
+      viewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    const listener = (
+      event: WheelEvent
+    ): void => {
+      handleWheel(event);
+    };
+
+    viewport.addEventListener(
+      "wheel",
+      listener,
+      {
+        passive: false,
+      }
+    );
+
+    return () => {
+      viewport.removeEventListener(
+        "wheel",
+        listener
+      );
+    };
+  }, [handleWheel]);
 
   const handleDoubleClick = useCallback(
     (
