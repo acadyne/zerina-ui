@@ -3,6 +3,7 @@ import React from "react";
 import { Box, type BoxProps } from "./Box";
 import { Stack } from "./Stack";
 import { Pressable } from "../forms/Pressable";
+import type { UIPressEvent } from "../../core/interaction";
 
 export type ListDensity = "compact" | "comfortable" | "spacious";
 
@@ -76,8 +77,13 @@ export interface ListItemProps
 
   showChevron?: boolean;
 
-  onPress?: (event: React.MouseEvent<HTMLElement>) => void;
-  onLongPress?: (event: React.PointerEvent<HTMLElement>) => void;
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
+
+  onLongPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -280,7 +286,9 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>(
     ref
   ) => {
     const { density, divided } = React.useContext(ListContext);
-    const interactive = Boolean(onPress || onLongPress);
+    const interactive =
+      onPress !== undefined ||
+      onLongPress !== undefined;
 
     const content = (
       <>
@@ -411,7 +419,7 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>(
 
     return (
       <Box
-        ref={ref as any}
+        ref={ref}
         role="listitem"
         className={className}
         data-selected={selected || undefined}
@@ -429,12 +437,17 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>(
             onLongPress={onLongPress}
             style={{
               ...baseStyle,
-              cursor: disabled ? "not-allowed" : "pointer",
+              cursor: disabled
+                ? "not-allowed"
+                : "pointer",
               color: "var(--ui-text)",
-              background: getItemBackground({ selected }),
             }}
           >
-            {({ pressed, hovered }) => (
+            {({
+              pressed,
+              hovered,
+              focusVisible,
+            }) => (
               <Box
                 style={{
                   width: "100%",
@@ -446,7 +459,7 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>(
                   background: getItemBackground({
                     selected,
                     pressed,
-                    hovered,
+                    hovered: hovered || focusVisible,
                   }),
                 }}
               >
