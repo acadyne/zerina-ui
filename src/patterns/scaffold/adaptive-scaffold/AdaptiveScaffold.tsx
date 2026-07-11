@@ -5,6 +5,7 @@ import {
   resolveSlot,
 } from "../../../helpers/css";
 import { useOptionalUIViewport } from "../../../core/viewport";
+import { useElementSize } from "../../../core/dom";
 import { Box } from "../../../primitives/layout";
 import {
   BottomNavigation,
@@ -39,39 +40,6 @@ const FALLBACK_VIEWPORT_BREAKPOINTS = {
   desktop: 1024,
 };
 
-
-function useElementWidth<TElement extends HTMLElement>() {
-  const ref = React.useRef<TElement | null>(null);
-  const [width, setWidth] = React.useState(0);
-
-  React.useLayoutEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    const update = () => {
-      setWidth(node.getBoundingClientRect().width);
-    };
-
-    update();
-
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", update);
-
-      return () => {
-        window.removeEventListener("resize", update);
-      };
-    }
-
-    const observer = new ResizeObserver(update);
-    observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  return [ref, width] as const;
-}
 
 function renderContent({
   children,
@@ -178,7 +146,7 @@ export function AdaptiveScaffold({
   ...rest
 }: AdaptiveScaffoldProps) {
   const viewportInfo = useOptionalUIViewport();
-  const [rootRef, measuredWidth] = useElementWidth<HTMLDivElement>();
+  const [rootRef, rootSize] = useElementSize<HTMLDivElement>();
 
   const fallbackItem = React.useMemo(
     () => getFirstSelectableAdaptiveScaffoldItem(items),
@@ -206,8 +174,8 @@ export function AdaptiveScaffold({
 
   const responsiveWidth =
     viewport === "contained"
-      ? measuredWidth
-      : viewportInfo?.width ?? measuredWidth;
+      ? rootSize.width
+      : viewportInfo?.width ?? rootSize.width;
 
   const resolvedMode = resolveAdaptiveScaffoldMode({
     mode,
