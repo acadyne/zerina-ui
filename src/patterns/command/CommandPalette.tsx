@@ -152,6 +152,10 @@ function itemMatchesSearch(item: CommandPaletteItem, search: string): boolean {
   return getItemSearchText(item).includes(normalizedSearch);
 }
 
+function getCommandPaletteDomId(prefix: string, id: string): string {
+  return `${prefix}-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
 function groupItems(items: CommandPaletteItem[]): Array<{
   group: string | null;
   items: CommandPaletteItem[];
@@ -194,6 +198,14 @@ export function CommandPalette({
   slotProps,
 }: CommandPaletteProps) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const reactId = React.useId();
+  const idPrefix = React.useMemo(
+    () => `ui-command-palette-${reactId.replace(/:/g, "")}`,
+    [reactId]
+  );
+  const inputId = `${idPrefix}-input`;
+  const listId = `${idPrefix}-list`;
 
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const searchValue = value ?? internalValue;
@@ -269,7 +281,7 @@ export function CommandPalette({
             ? 0
             : selectableItems.length - 1
           : (currentIndex + direction + selectableItems.length) %
-            selectableItems.length;
+          selectableItems.length;
 
       setActiveId(selectableItems[nextIndex]?.id ?? null);
     },
@@ -280,6 +292,10 @@ export function CommandPalette({
     () => selectableItems.find((item) => item.id === activeId) ?? null,
     [activeId, selectableItems]
   );
+
+  const activeOptionId = activeItem
+    ? getCommandPaletteDomId(`${idPrefix}-option`, activeItem.id)
+    : undefined;
 
   const dialogSlot = resolveSlot<CommandPaletteSlot>({
     slot: "dialog",
@@ -358,6 +374,11 @@ export function CommandPalette({
     styles,
     slotProps,
     baseProps: {
+      id: inputId,
+      role: "searchbox",
+      "aria-controls": listId,
+      "aria-activedescendant": activeOptionId,
+      "aria-autocomplete": "list",
       "data-ui-command-palette-input": "",
     },
     baseStyle: {
@@ -382,6 +403,7 @@ export function CommandPalette({
     styles,
     slotProps,
     baseProps: {
+      id: listId,
       role: "listbox",
       "aria-label": "Resultados de comandos",
       "data-ui-command-palette-list": "",
@@ -517,12 +539,16 @@ export function CommandPalette({
                     <Box {...groupItemsSlot}>
                       {group.items.map((item) => {
                         const active = item.id === activeId;
-
+                        const itemDomId = getCommandPaletteDomId(
+                          `${idPrefix}-option`,
+                          item.id
+                        );
                         const itemSlot = resolveMergedSlot<CommandPaletteSlot>({
                           slots: active ? ["item", "activeItem"] : ["item"],
                           styles,
                           slotProps,
                           baseProps: {
+                            id: itemDomId,
                             role: "option",
                             "aria-selected": active,
                             "data-ui-command-palette-item": "",
