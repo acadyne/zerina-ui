@@ -10,29 +10,7 @@ import {
   getMotionDistance,
   getMotionScale,
 } from "./motion.tokens";
-
-function createStaticVariants(): Variants {
-  return {
-    initial: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    animate: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    exit: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-  };
-}
+import { createStaticMotionVariants } from "./motion.utils";
 
 export function getAppTransitionIntent(
   transition: UIMotionAppTransition
@@ -65,7 +43,7 @@ export function getAppTransitionVariants({
   level: UIMotionLevel;
 }): Variants {
   if (transition === "none" || level === "none") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   const distance = getMotionDistance(level);

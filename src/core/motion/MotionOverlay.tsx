@@ -21,6 +21,7 @@ import {
   getOverlayMotionIntent,
 } from "./motion.overlay";
 import { useOptionalUIMotion } from "./useUIMotion";
+import { createStaticMotionVariants } from "./motion.utils";
 
 export interface MotionOverlayPresenceProps {
   children?: React.ReactNode;
@@ -44,6 +45,8 @@ export function MotionOverlayPresence({
 
 MotionOverlayPresence.displayName = "MotionOverlayPresence";
 
+const STATIC_MOTION_VARIANTS = createStaticMotionVariants();
+
 export interface MotionOverlayRootProps
   extends Omit<
     HTMLMotionProps<"div">,
@@ -59,15 +62,10 @@ export function MotionOverlayRoot({
 }: MotionOverlayRootProps) {
   return (
     <motion.div
-      initial={{
-        opacity: 1,
-      }}
-      animate={{
-        opacity: 1,
-      }}
-      exit={{
-        opacity: 1,
-      }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={STATIC_MOTION_VARIANTS}
       style={style}
       {...rest}
     >

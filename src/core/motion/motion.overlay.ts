@@ -2,7 +2,7 @@
 import type { Variants } from "framer-motion";
 import type { UIMotionIntent, UIMotionLevel } from "./motion.types";
 import { getMotionScale } from "./motion.tokens";
-
+import { createStaticMotionVariants } from "./motion.utils";
 export type UIOverlayMotionKind =
   | "backdrop"
   | "dialog"
@@ -10,29 +10,6 @@ export type UIOverlayMotionKind =
   | "bottom-sheet";
 
 export type UIOverlayPlacement = "left" | "right";
-
-function createStaticVariants(): Variants {
-  return {
-    initial: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    animate: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    exit: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-  };
-}
 
 export function getOverlayMotionIntent(
   kind: UIOverlayMotionKind
@@ -53,7 +30,7 @@ export function getOverlayMotionIntent(
 
 export function getOverlayBackdropVariants(level: UIMotionLevel): Variants {
   if (level === "none") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   return {
@@ -71,7 +48,7 @@ export function getOverlayBackdropVariants(level: UIMotionLevel): Variants {
 
 export function getOverlayDialogVariants(level: UIMotionLevel): Variants {
   if (level === "none" || level === "reduced") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   const scale = getMotionScale(level);
@@ -104,7 +81,7 @@ export function getOverlayDrawerVariants({
   level: UIMotionLevel;
 }): Variants {
   if (level === "none" || level === "reduced") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   const x = placement === "left" ? "-100%" : "100%";
@@ -127,7 +104,7 @@ export function getOverlayDrawerVariants({
 
 export function getOverlayBottomSheetVariants(level: UIMotionLevel): Variants {
   if (level === "none" || level === "reduced") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   return {

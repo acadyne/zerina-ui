@@ -11,6 +11,7 @@ import {
   getMotionDuration,
   getMotionScale,
 } from "./motion.tokens";
+import { createStaticMotionVariants } from "./motion.utils";
 
 export function getMotionTransition(
   level: UIMotionLevel,
@@ -45,35 +46,12 @@ export function getMotionTransition(
   };
 }
 
-function createStaticVariants(): Variants {
-  return {
-    initial: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    animate: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-    exit: {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-    },
-  };
-}
-
 export function getMotionPresetVariants(
   preset: UIMotionPreset,
   level: UIMotionLevel
 ): Variants {
   if (level === "none" || preset === "none") {
-    return createStaticVariants();
+    return createStaticMotionVariants();
   }
 
   const distance = getMotionDistance(level);
@@ -229,7 +207,7 @@ export function getMotionPresetVariants(
       };
 
     default:
-      return createStaticVariants();
+      return createStaticMotionVariants();
   }
 }
 

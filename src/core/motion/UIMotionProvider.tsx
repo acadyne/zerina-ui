@@ -1,6 +1,6 @@
 // src/core/motion/UIMotionProvider.tsx
 import React from "react";
-import { useMediaQuery, useViewportSize } from "../dom";
+import { useMediaQuery } from "../dom";
 import type {
   UIMotionIntent,
   UIMotionLevel,
