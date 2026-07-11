@@ -9,6 +9,7 @@ import {
 import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { InputRightElement } from "./InputRightElement";
+import { FormControlContext } from "./FormControl";
 
 export type SearchInputSlot =
   | "group"
@@ -46,6 +47,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       placeholder = "Buscar…",
       disabled,
       isDisabled,
+      isInvalid,
       className = "",
       style,
       styles,
@@ -54,6 +56,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     },
     ref
   ) => {
+    const ctx = React.useContext(FormControlContext);
     const [clearHovered, setClearHovered] = React.useState(false);
 
     const isControlled = value !== undefined;
@@ -62,7 +65,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     );
 
     const currentValue = isControlled ? String(value ?? "") : internalValue;
-    const finalDisabled = isDisabled ?? disabled ?? false;
+    const finalDisabled = isDisabled ?? ctx?.isDisabled ?? disabled ?? false;
+    const finalInvalid = isInvalid ?? ctx?.isInvalid ?? false;
     const showClear = clearable && currentValue.length > 0 && !finalDisabled;
 
     const groupSlot = resolveSlot<SearchInputSlot>({
@@ -134,6 +138,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
 
     return (
       <InputGroup
+        isInvalid={finalInvalid}
         isDisabled={finalDisabled}
         className={groupSlot.className}
         style={groupSlot.style}
@@ -158,8 +163,9 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             onChange?.(event);
           }}
           placeholder={placeholder}
-          disabled={disabled}
-          isDisabled={isDisabled}
+          disabled={finalDisabled}
+          isDisabled={finalDisabled}
+          isInvalid={finalInvalid}
           leftPadding="2.35rem"
           rightPadding={showClear ? "2.5rem" : undefined}
           className={inputSlot.className}

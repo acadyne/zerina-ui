@@ -9,6 +9,7 @@ import {
 import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { InputRightElement } from "./InputRightElement";
+import { FormControlContext } from "./FormControl";
 
 export type PasswordInputSlot =
   | "group"
@@ -39,6 +40,7 @@ export const PasswordInput = React.forwardRef<
       hideLabel = "Ocultar contraseña",
       disabled,
       isDisabled,
+      isInvalid,
       className = "",
       style,
       styles,
@@ -47,10 +49,12 @@ export const PasswordInput = React.forwardRef<
     },
     ref
   ) => {
+    const ctx = React.useContext(FormControlContext);
     const [visible, setVisible] = React.useState(false);
     const [toggleHovered, setToggleHovered] = React.useState(false);
 
-    const finalDisabled = isDisabled ?? disabled ?? false;
+    const finalDisabled = isDisabled ?? ctx?.isDisabled ?? disabled ?? false;
+    const finalInvalid = isInvalid ?? ctx?.isInvalid ?? false;
 
     const groupSlot = resolveSlot<PasswordInputSlot>({
       slot: "group",
@@ -100,6 +104,7 @@ export const PasswordInput = React.forwardRef<
 
     return (
       <InputGroup
+        isInvalid={finalInvalid}
         isDisabled={finalDisabled}
         className={groupSlot.className}
         style={groupSlot.style}
@@ -107,8 +112,9 @@ export const PasswordInput = React.forwardRef<
         <Input
           ref={ref}
           type={visible ? "text" : "password"}
-          disabled={disabled}
-          isDisabled={isDisabled}
+          disabled={finalDisabled}
+          isDisabled={finalDisabled}
+          isInvalid={finalInvalid}
           rightPadding="2.75rem"
           className={inputSlot.className}
           style={inputSlot.style}
