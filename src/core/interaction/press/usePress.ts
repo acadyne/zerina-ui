@@ -4,16 +4,69 @@ import React from "react";
 import { composeEventHandlers } from "../events";
 import { useFocusVisible } from "../focus";
 import type {
-  UIPointerType,
+  UIPressEvent,
+  UIPressNativeEvent,
+  UIPressPointerType,
   UsePressOptions,
   UsePressResult,
 } from "./press.types";
 
 const DEFAULT_LONG_PRESS_DELAY = 450;
 
-export function usePress<
-  TElement extends HTMLElement,
->({
+function normalizePointerType(
+  pointerType: string
+): Exclude<UIPressPointerType, "keyboard"> {
+  if (pointerType === "touch") {
+    return "touch";
+  }
+
+  if (pointerType === "pen") {
+    return "pen";
+  }
+
+  return "mouse";
+}
+
+function createPressEvent<TElement extends HTMLElement>(
+  nativeEvent: UIPressNativeEvent<TElement>,
+  pointerType: UIPressPointerType
+): UIPressEvent<TElement> {
+  const target = nativeEvent.target;
+  const currentTarget = nativeEvent.currentTarget;
+
+  return {
+    pointerType,
+    target,
+    currentTarget,
+    nativeEvent,
+
+    get defaultPrevented() {
+      return nativeEvent.defaultPrevented;
+    },
+
+    preventDefault() {
+      nativeEvent.preventDefault();
+    },
+
+    stopPropagation() {
+      nativeEvent.stopPropagation();
+    },
+  };
+}
+
+function releasePointerCapture<TElement extends HTMLElement>(
+  event: React.PointerEvent<TElement>
+): void {
+  try {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  } catch {
+    // El pointer puede haberse liberado previamente.
+  }
+}
+
+export function usePress<TElement extends HTMLElement>({
   disabled = false,
   nativeInteractive = false,
 
@@ -38,15 +91,20 @@ export function usePress<
 }: UsePressOptions<TElement>): UsePressResult<TElement> {
   const [pressed, setPressed] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
+
   const [pointerType, setPointerType] =
-    React.useState<UIPointerType>(null);
+    React.useState<UIPressPointerType | null>(null);
+
+  const lastPointerTypeRef =
+    React.useRef<Exclude<UIPressPointerType, "keyboard"> | null>(null);
+
+  const keyboardActivationRef = React.useRef(false);
+  const longPressTriggeredRef = React.useRef(false);
 
   const longPressTimerRef =
     React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const longPressTriggeredRef = React.useRef(false);
-
-  const clearLongPressTimer = React.useCallback(() => {
+  const clearLongPressTimer = React.useCallback((): void => {
     if (longPressTimerRef.current === null) {
       return;
     }
@@ -55,7 +113,7 @@ export function usePress<
     longPressTimerRef.current = null;
   }, []);
 
-  const resetPress = React.useCallback(() => {
+  const resetPress = React.useCallback((): void => {
     setPressed(false);
     clearLongPressTimer();
   }, [clearLongPressTimer]);
@@ -73,70 +131,84 @@ export function usePress<
 
     setPressed(false);
     setHovered(false);
+    setPointerType(null);
+
+    keyboardActivationRef.current = false;
+    longPressTriggeredRef.current = false;
+
     clearLongPressTimer();
   }, [clearLongPressTimer, disabled]);
 
   const focus = useFocusVisible<TElement>({
     disabled,
     onFocus,
+
     onBlur: (event) => {
       resetPress();
+      keyboardActivationRef.current = false;
       onBlur?.(event);
     },
   });
 
   const internalPointerEnter = React.useCallback(
-    (event: React.PointerEvent<TElement>) => {
+    (event: React.PointerEvent<TElement>): void => {
       if (disabled) {
         return;
       }
 
-      setPointerType(event.pointerType as UIPointerType);
+      const nextPointerType = normalizePointerType(event.pointerType);
 
-      if (event.pointerType === "mouse") {
+      lastPointerTypeRef.current = nextPointerType;
+      setPointerType(nextPointerType);
+
+      if (nextPointerType === "mouse") {
         setHovered(true);
       }
     },
     [disabled]
   );
 
-  const internalPointerLeave = React.useCallback(() => {
+  const internalPointerLeave = React.useCallback((): void => {
     setHovered(false);
     resetPress();
   }, [resetPress]);
 
   const internalPointerDown = React.useCallback(
-    (event: React.PointerEvent<TElement>) => {
+    (event: React.PointerEvent<TElement>): void => {
       if (disabled) {
         return;
       }
 
-      if (
-        event.pointerType === "mouse" &&
-        event.button !== 0
-      ) {
+      const nextPointerType = normalizePointerType(event.pointerType);
+
+      if (nextPointerType === "mouse" && event.button !== 0) {
         return;
       }
 
-      setPointerType(event.pointerType as UIPointerType);
-      setPressed(true);
-
+      lastPointerTypeRef.current = nextPointerType;
+      keyboardActivationRef.current = false;
       longPressTriggeredRef.current = false;
+
+      setPointerType(nextPointerType);
+      setPressed(true);
 
       if (onLongPress) {
         clearLongPressTimer();
 
+        const pressEvent = createPressEvent(event, nextPointerType);
+
         longPressTimerRef.current = setTimeout(() => {
           longPressTimerRef.current = null;
           longPressTriggeredRef.current = true;
-          onLongPress(event);
+
+          onLongPress(pressEvent);
         }, Math.max(0, longPressDelay));
       }
 
       try {
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch {
-        // Pointer capture no está disponible en todos los elementos.
+        // No todos los elementos permiten pointer capture.
       }
     },
     [
@@ -148,50 +220,28 @@ export function usePress<
   );
 
   const internalPointerUp = React.useCallback(
-    (event: React.PointerEvent<TElement>) => {
+    (event: React.PointerEvent<TElement>): void => {
       resetPress();
-
-      try {
-        if (
-          event.currentTarget.hasPointerCapture(event.pointerId)
-        ) {
-          event.currentTarget.releasePointerCapture(
-            event.pointerId
-          );
-        }
-      } catch {
-        // El pointer pudo haberse liberado previamente.
-      }
+      releasePointerCapture(event);
     },
     [resetPress]
   );
 
   const internalPointerCancel = React.useCallback(
-    (event: React.PointerEvent<TElement>) => {
+    (event: React.PointerEvent<TElement>): void => {
       resetPress();
-
-      try {
-        if (
-          event.currentTarget.hasPointerCapture(event.pointerId)
-        ) {
-          event.currentTarget.releasePointerCapture(
-            event.pointerId
-          );
-        }
-      } catch {
-        // El pointer pudo haberse liberado previamente.
-      }
+      longPressTriggeredRef.current = false;
+      releasePointerCapture(event);
     },
     [resetPress]
   );
 
-  const internalLostPointerCapture =
-    React.useCallback(() => {
-      resetPress();
-    }, [resetPress]);
+  const internalLostPointerCapture = React.useCallback((): void => {
+    resetPress();
+  }, [resetPress]);
 
   const internalClick = React.useCallback(
-    (event: React.MouseEvent<TElement>) => {
+    (event: React.MouseEvent<TElement>): void => {
       if (disabled) {
         event.preventDefault();
         event.stopPropagation();
@@ -204,65 +254,75 @@ export function usePress<
         return;
       }
 
-      /*
-       * Los clicks generados por teclado suelen tener detail === 0.
-       * Esto evita convertir KeyboardEvent artificialmente a MouseEvent.
-       */
-      if (event.detail === 0) {
-        setPointerType("keyboard");
-      }
+      const nextPointerType: UIPressPointerType =
+        keyboardActivationRef.current || event.detail === 0
+          ? "keyboard"
+          : lastPointerTypeRef.current ?? "mouse";
 
-      onPress?.(event);
+      keyboardActivationRef.current = false;
+
+      setPointerType(nextPointerType);
+      setPressed(false);
+
+      onPress?.(createPressEvent(event, nextPointerType));
     },
     [disabled, onPress]
   );
 
   const internalKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<TElement>) => {
-      if (disabled || nativeInteractive) {
+    (event: React.KeyboardEvent<TElement>): void => {
+      if (
+        disabled ||
+        event.repeat ||
+        (event.key !== "Enter" && event.key !== " ")
+      ) {
         return;
       }
 
-      if (event.key === "Enter") {
-        event.preventDefault();
+      keyboardActivationRef.current = true;
 
-        setPointerType("keyboard");
-        setPressed(true);
+      setPointerType("keyboard");
+      setPressed(true);
 
-        /*
-         * Dispatch real de click.
-         * React entregará un MouseEvent válido a onClick/onPress.
-         */
-        event.currentTarget.click();
-
-        setPressed(false);
-        return;
-      }
-
-      if (event.key === " ") {
-        event.preventDefault();
-        setPointerType("keyboard");
-        setPressed(true);
-      }
-    },
-    [disabled, nativeInteractive]
-  );
-
-  const internalKeyUp = React.useCallback(
-    (event: React.KeyboardEvent<TElement>) => {
-      if (disabled || nativeInteractive) {
-        return;
-      }
-
-      if (event.key !== " ") {
+      if (nativeInteractive) {
         return;
       }
 
       event.preventDefault();
-      setPressed(false);
-      event.currentTarget.click();
+
+      if (event.key === "Enter") {
+        onPress?.(createPressEvent(event, "keyboard"));
+        setPressed(false);
+        keyboardActivationRef.current = false;
+      }
     },
-    [disabled, nativeInteractive]
+    [disabled, nativeInteractive, onPress]
+  );
+
+  const internalKeyUp = React.useCallback(
+    (event: React.KeyboardEvent<TElement>): void => {
+      if (
+        disabled ||
+        (event.key !== "Enter" && event.key !== " ")
+      ) {
+        return;
+      }
+
+      setPressed(false);
+
+      if (nativeInteractive) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (event.key === " ") {
+        onPress?.(createPressEvent(event, "keyboard"));
+      }
+
+      keyboardActivationRef.current = false;
+    },
+    [disabled, nativeInteractive, onPress]
   );
 
   return {

@@ -2,12 +2,34 @@
 
 import type React from "react";
 
-export type UIPointerType =
+export type UIPressPointerType =
   | "mouse"
   | "touch"
   | "pen"
-  | "keyboard"
-  | null;
+  | "keyboard";
+
+export type UIPressNativeEvent<
+  TElement extends HTMLElement,
+> =
+  | React.PointerEvent<TElement>
+  | React.KeyboardEvent<TElement>
+  | React.MouseEvent<TElement>;
+
+export interface UIPressEvent<
+  TElement extends HTMLElement = HTMLElement,
+> {
+  pointerType: UIPressPointerType;
+
+  target: EventTarget;
+  currentTarget: TElement;
+
+  nativeEvent: UIPressNativeEvent<TElement>;
+
+  readonly defaultPrevented: boolean;
+
+  preventDefault: () => void;
+  stopPropagation: () => void;
+}
 
 export interface UIPressState {
   pressed: boolean;
@@ -15,7 +37,8 @@ export interface UIPressState {
   focused: boolean;
   focusVisible: boolean;
   disabled: boolean;
-  pointerType: UIPointerType;
+
+  pointerType: UIPressPointerType | null;
 }
 
 export interface UsePressOptions<
@@ -24,13 +47,18 @@ export interface UsePressOptions<
   disabled?: boolean;
 
   /**
-   * true para button y anchor interactivo.
-   * false para div/span con role="button".
+   * Elementos con activación nativa por teclado:
+   * button y links con href.
    */
   nativeInteractive?: boolean;
 
-  onPress?: React.MouseEventHandler<TElement>;
-  onLongPress?: React.PointerEventHandler<TElement>;
+  onPress?: (
+    event: UIPressEvent<TElement>
+  ) => void;
+
+  onLongPress?: (
+    event: UIPressEvent<TElement>
+  ) => void;
 
   longPressDelay?: number;
 
