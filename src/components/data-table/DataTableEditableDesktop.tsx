@@ -18,6 +18,33 @@ import {
   toRenderableValue,
 } from "./dataTable.utils";
 import { DataTableEmptyState } from "./DataTableEmptyState";
+function getHeaderAriaSort<T extends Record<string, unknown>>({
+  sortable,
+  isSorted,
+  sortConfig,
+}: {
+  sortable: boolean;
+  isSorted: boolean;
+  sortConfig: DataTableSortConfig<T>;
+}): React.AriaAttributes["aria-sort"] {
+  if (!sortable) return undefined;
+  if (!isSorted) return "none";
+
+  return sortConfig?.direction === "asc" ? "ascending" : "descending";
+}
+
+function handleSortableHeaderKeyDown(
+  event: React.KeyboardEvent<HTMLTableCellElement>,
+  sortable: boolean,
+  onSort: (() => void) | undefined
+) {
+  if (!sortable) return;
+
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  event.preventDefault();
+  onSort?.();
+}
 
 export interface DataTableEditableDesktopProps<
   T extends Record<string, unknown>,
@@ -224,6 +251,8 @@ export function DataTableEditableDesktop<
             <tr {...headerRowSlot}>
               {enableSelection ? (
                 <th
+                  scope="col"
+                  aria-label="Selección de filas"
                   {...resolveSlot<DataTableSlot>({
                     slot: "headerCell",
                     styles,
@@ -245,6 +274,7 @@ export function DataTableEditableDesktop<
                   <Checkbox
                     checked={isAllPageSelected}
                     indeterminate={isSomePageSelected}
+                    aria-label="Seleccionar todas las filas de la página"
                     onChange={onToggleAll}
                   />
                 </th>
@@ -253,7 +283,16 @@ export function DataTableEditableDesktop<
               {columns.map((column, index) => {
                 const sortable = column.sortable !== false;
                 const isSorted = sortConfig?.key === column.accessor;
+                const ariaSort = getHeaderAriaSort({
+                  sortable,
+                  isSorted,
+                  sortConfig,
+                });
 
+                const handleSort = () => {
+                  if (!sortable) return;
+                  onSort?.(column);
+                };
                 const arrow = sortable
                   ? isSorted
                     ? sortConfig?.direction === "asc"
@@ -265,6 +304,9 @@ export function DataTableEditableDesktop<
                 return (
                   <th
                     key={`${String(column.header)}-${index}`}
+                    scope="col"
+                    aria-sort={ariaSort}
+                    tabIndex={sortable ? 0 : undefined}
                     {...resolveSlot<DataTableSlot>({
                       slot: "headerCell",
                       styles,
@@ -290,7 +332,10 @@ export function DataTableEditableDesktop<
                         textOverflow: "ellipsis",
                       },
                     })}
-                    onClick={() => onSort?.(column)}
+                    onClick={handleSort}
+                    onKeyDown={(event) => {
+                      handleSortableHeaderKeyDown(event, sortable, handleSort);
+                    }}
                   >
                     {column.header}
                     {arrow}
@@ -364,6 +409,7 @@ export function DataTableEditableDesktop<
                       {rowId !== undefined ? (
                         <Checkbox
                           checked={isSelected}
+                          aria-label={`Seleccionar fila ${rowIndex + 1}`}
                           onChange={() => onToggleRow?.(rowId)}
                         />
                       ) : null}
