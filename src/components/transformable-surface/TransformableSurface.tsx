@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useImperativeHandle,
+  type KeyboardEvent,
   type MutableRefObject,
   type PointerEvent,
   type Ref,
@@ -67,6 +68,9 @@ export const TransformableSurface = forwardRef<
       doubleClickZoomEnabled = true,
       doubleTapZoomEnabled = true,
       doubleInteractionScale = 2,
+      keyboardControls = false,
+      keyboardPanStep = 40,
+      viewportAriaLabel = "Superficie transformable",
       doubleTapDelay = 280,
       doubleTapDistance = 24,
 
@@ -90,6 +94,7 @@ export const TransformableSurface = forwardRef<
       onSurfacePointerUp,
       onSurfacePointerCancel,
       onSurfaceWheel,
+      onSurfaceKeyDown,
 
       className = "",
       style,
@@ -184,6 +189,10 @@ export const TransformableSurface = forwardRef<
         styles,
         slotProps,
         baseProps: {
+          role: keyboardControls ? "group" : undefined,
+          tabIndex: keyboardControls && !disabled ? 0 : undefined,
+          "aria-label": keyboardControls ? viewportAriaLabel : undefined,
+          "aria-disabled": disabled || undefined,
           "data-ui-transformable-surface-viewport":
             "",
           "data-gesture": surface.gesture,
@@ -294,6 +303,7 @@ export const TransformableSurface = forwardRef<
       onWheel: viewportOnWheel,
       onDoubleClick:
         viewportOnDoubleClick,
+      onKeyDown: viewportOnKeyDown,
       ...viewportSlotRest
     } = viewportSlot;
 
@@ -352,6 +362,56 @@ export const TransformableSurface = forwardRef<
 
       viewportOnWheel?.(event);
       onSurfaceWheel?.(event);
+    };
+
+    const handleKeyDown = (
+      event: KeyboardEvent<HTMLDivElement>
+    ): void => {
+      if (!keyboardControls || disabled) {
+        viewportOnKeyDown?.(event);
+        onSurfaceKeyDown?.(event);
+        return;
+      }
+
+      const position = surface.position;
+
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        surface.zoomIn();
+      } else if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        surface.zoomOut();
+      } else if (event.key === "0") {
+        event.preventDefault();
+        surface.reset();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        surface.setPosition({
+          x: position.x + keyboardPanStep,
+          y: position.y,
+        });
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        surface.setPosition({
+          x: position.x - keyboardPanStep,
+          y: position.y,
+        });
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        surface.setPosition({
+          x: position.x,
+          y: position.y + keyboardPanStep,
+        });
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        surface.setPosition({
+          x: position.x,
+          y: position.y - keyboardPanStep,
+        });
+      }
+
+      viewportOnKeyDown?.(event);
+      onSurfaceKeyDown?.(event);
     };
 
     const renderContext: TransformableSurfaceRenderContext =
@@ -424,6 +484,7 @@ export const TransformableSurface = forwardRef<
             handleLostPointerCapture
           }
           onWheel={handleWheel}
+          onKeyDown={handleKeyDown}
           onDoubleClick={(event) => {
             surface.handleDoubleClick(
               event

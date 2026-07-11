@@ -1,6 +1,7 @@
 import type {
   CSSProperties,
   HTMLAttributes,
+  KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
   ReactNode,
   Ref,
@@ -278,6 +279,42 @@ export interface TransformableSurfaceProps
    * @default 2
    */
   doubleInteractionScale?: number;
+
+  /**
+   * Activa controles de teclado sobre el viewport.
+   *
+   * Teclas:
+   * - + / =: acercar
+   * - - / _: alejar
+   * - 0: restablecer
+   * - flechas: desplazar
+   *
+   * @default false
+   */
+  keyboardControls?: boolean;
+
+  /**
+   * Distancia de desplazamiento por flecha cuando keyboardControls está activo.
+   *
+   * @default 40
+   */
+  keyboardPanStep?: number;
+
+  /**
+   * Nombre accesible del viewport cuando keyboardControls está activo.
+   *
+   * También puede sobreescribirse con slotProps.viewport["aria-label"].
+   *
+   * @default "Superficie transformable"
+   */
+  viewportAriaLabel?: string;
+
+  /**
+   * Observador opcional ejecutado después de la lógica interna de teclado.
+   */
+  onSurfaceKeyDown?: (
+    event: ReactKeyboardEvent<HTMLDivElement>
+  ) => void;
 
   /**
    * Tiempo máximo entre dos toques.
