@@ -186,6 +186,7 @@ export function DataTableMobileCards<
     styles,
     slotProps,
     baseProps: {
+      role: "list",
       "data-ui-data-table-mobile-list": "",
     },
     baseStyle: {
@@ -209,6 +210,8 @@ export function DataTableMobileCards<
           styles,
           slotProps,
           baseProps: {
+            role: "listitem",
+            "aria-selected": selected || undefined,
             "data-ui-data-table-mobile-card": "",
             "data-ui-data-table-row-index": String(rowIndex),
             "data-ui-data-table-row-selected": selected || undefined,
@@ -284,6 +287,7 @@ export function DataTableMobileCards<
               {enableSelection && rowId !== undefined ? (
                 <Checkbox
                   checked={selected}
+                  aria-label={`Seleccionar fila ${rowIndex + 1}`}
                   onChange={() => onToggleRow?.(rowId)}
                 />
               ) : null}
