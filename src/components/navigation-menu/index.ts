@@ -17,6 +17,7 @@ export type {
   NavigationMenuLoadingRenderContext,
   NavigationMenuOpenReason,
   NavigationMenuOrientation,
+  NavigationMenuSemantics,
   NavigationMenuProps,
   NavigationMenuRootPlacement,
   NavigationMenuSlot,

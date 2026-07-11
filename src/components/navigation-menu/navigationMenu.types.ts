@@ -20,6 +20,10 @@ export type NavigationMenuOrientation =
   | "horizontal"
   | "vertical";
 
+export type NavigationMenuSemantics =
+  | "navigation"
+  | "menubar";
+
 export type NavigationMenuRootPlacement =
   | "bottom-start"
   | "bottom"
@@ -277,6 +281,21 @@ export interface NavigationMenuProps<TItem>
    * @default "horizontal"
    */
   orientation?: NavigationMenuOrientation;
+
+  /**
+   * Semántica ARIA del componente.
+   *
+   * navigation:
+   *   Usa semántica de navegación general. Es el modo recomendado
+   *   para navegación de app/sitio con aria-current.
+   *
+   * menubar:
+   *   Usa roles menubar/menu/menuitem. Úsalo solo cuando quieras
+   *   comportamiento de menú de aplicación.
+   *
+   * @default "navigation"
+   */
+  semantics?: NavigationMenuSemantics;
 
   /**
    * Ruta abierta controlada.

@@ -17,6 +17,7 @@ import {
   toMotionSlotProps,
 } from "../../helpers/css";
 import type {
+  NavigationMenuSemantics,
   NavigationMenuSlot,
   NavigationMenuSlotProps,
   NavigationMenuStyles,
@@ -103,7 +104,7 @@ export interface NavigationMenuPanelProps
     | "transition"
   > {
   open: boolean;
-
+  semantics?: NavigationMenuSemantics;
   /**
    * Profundidad del panel.
    *
@@ -215,6 +216,7 @@ export const NavigationMenuPanel =
     (
       {
         open,
+        semantics = "navigation",
         depth,
         anchorRef,
         placement,
@@ -388,8 +390,9 @@ export const NavigationMenuPanel =
                       );
                     }}
                     id={resolvedPanelId}
-                    role="menu"
-                    aria-labelledby={labelledBy}
+                    aria-labelledby={
+                      semantics === "menubar" ? labelledBy : undefined
+                    }
                     variants={variants}
                     initial="initial"
                     animate="animate"

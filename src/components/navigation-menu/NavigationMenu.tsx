@@ -17,6 +17,7 @@ import type {
   NavigationMenuItemId,
   NavigationMenuItemKeyDownContext,
   NavigationMenuProps,
+  NavigationMenuSemantics,
   NavigationMenuSlot,
 } from "./navigationMenu.types";
 
@@ -158,6 +159,7 @@ function NavigationMenuInner<TItem>(
     isItemDisabled,
 
     orientation = "horizontal",
+    semantics = "navigation",
 
     openPath,
     defaultOpenPath,
@@ -210,6 +212,8 @@ function NavigationMenuInner<TItem>(
   }: NavigationMenuProps<TItem>,
   forwardedRef: ForwardedRef<HTMLDivElement>
 ) {
+
+  const usesMenuSemantics = semantics === "menubar";
   const menu = useNavigationMenuState<TItem>({
     items,
 
@@ -858,6 +862,7 @@ function NavigationMenuInner<TItem>(
       className,
       style,
       baseProps: {
+        role: usesMenuSemantics ? undefined : "navigation",
         "data-ui-navigation-menu": "",
         "data-ui-navigation-menu-orientation":
           orientation,
@@ -934,8 +939,8 @@ function NavigationMenuInner<TItem>(
       ) : (
         <ul
           {...listSlot}
-          role="menubar"
-          aria-orientation={orientation}
+          role={usesMenuSemantics ? "menubar" : undefined}
+          aria-orientation={usesMenuSemantics ? orientation : undefined}
           onMouseEnter={() => {
             menu.cancelHoverClose();
           }}
@@ -963,6 +968,9 @@ function NavigationMenuInner<TItem>(
                 }
                 orientation={
                   orientation
+                }
+                semantics={
+                  semantics
                 }
                 rootPlacement={
                   rootPlacement

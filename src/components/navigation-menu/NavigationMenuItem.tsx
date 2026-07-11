@@ -7,6 +7,7 @@ import type {
   NavigationMenuItemKeyDownContext,
   NavigationMenuItemRenderContext,
   NavigationMenuOrientation,
+  NavigationMenuSemantics,
   NavigationMenuSlot,
   NavigationMenuSlotProps,
   NavigationMenuStyles,
@@ -26,7 +27,7 @@ export interface NavigationMenuItemProps<TItem> {
   isItemBranch: (item: TItem) => boolean;
 
   orientation: NavigationMenuOrientation;
-
+  semantics: NavigationMenuSemantics;
   rootPlacement: FloatingPlacement;
   submenuPlacement: FloatingPlacement;
   panelOffset: number;
@@ -94,7 +95,7 @@ export function NavigationMenuItem<TItem>({
   isItemBranch,
 
   orientation,
-
+  semantics,
   rootPlacement,
   submenuPlacement,
   panelOffset,
@@ -123,7 +124,7 @@ export function NavigationMenuItem<TItem>({
   const active = menu.isActive(itemId);
   const focused = menu.isFocused(itemId);
   const disabled = menu.isDisabled(itemId);
-
+  const usesMenuSemantics = semantics === "menubar";
   const loadState = menu.tree.getLoadState(itemId);
 
   const children = branch
@@ -629,7 +630,7 @@ export function NavigationMenuItem<TItem>({
   return (
     <li
       {...itemSlotRest}
-      role="none"
+      role={usesMenuSemantics ? "none" : undefined}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -643,9 +644,15 @@ export function NavigationMenuItem<TItem>({
         }}
         id={triggerId}
         type="button"
-        role="menuitem"
+        role={usesMenuSemantics ? "menuitem" : undefined}
         tabIndex={focused ? 0 : -1}
-        aria-haspopup={branch ? "menu" : undefined}
+        aria-haspopup={
+          branch
+            ? usesMenuSemantics
+              ? "menu"
+              : true
+            : undefined
+        }
         aria-expanded={branch ? open : undefined}
         aria-controls={
           branch && open ? panelId : undefined
@@ -677,6 +684,7 @@ export function NavigationMenuItem<TItem>({
       {branch ? (
         <NavigationMenuPanel
           open={open}
+          semantics={semantics}
           depth={depth}
           anchorRef={triggerRef}
           placement={panelPlacement}
@@ -698,7 +706,7 @@ export function NavigationMenuItem<TItem>({
         >
           <ul
             {...panelListSlot}
-            role="menu"
+            role={usesMenuSemantics ? "menu" : undefined}
             aria-labelledby={triggerId}
             onMouseEnter={() => {
               menu.cancelHoverClose();
@@ -729,6 +737,7 @@ export function NavigationMenuItem<TItem>({
                   getItemLabel={getItemLabel}
                   isItemBranch={isItemBranch}
                   orientation={orientation}
+                  semantics={semantics}
                   rootPlacement={rootPlacement}
                   submenuPlacement={submenuPlacement}
                   panelOffset={panelOffset}
