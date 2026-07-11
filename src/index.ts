@@ -24,15 +24,16 @@ export * from "./primitives/disclosure";
 
 export * from "./patterns";
 export * from "./theme/theme";
-export * from "./helpers";
 
 export * from "./core/dom";
 export * from "./core/motion";
 export * from "./core/viewport";
-export * from "./provider";
 export * from "./core/interaction";
+
+export * from "./provider";
 
 export { Portal } from "./core/overlay";
 export type { PortalProps } from "./core/overlay";
+
 export { OverlayProvider } from "./core/overlay";
 export type { OverlayProviderProps } from "./core/overlay";
