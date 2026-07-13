@@ -8,10 +8,17 @@ import {
   getLayerZIndex,
   type FloatingPlacement,
 } from "../../core/overlay";
+import {
+  usePress,
+  type UIPressEvent,
+} from "../../core/interaction";
+import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
+  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
+  type SlotElementProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
@@ -27,6 +34,101 @@ export type MenuSlot =
 export type MenuStyles = SlotStyleMap<MenuSlot>;
 
 export type MenuSlotProps = SlotPropsMap<MenuSlot>;
+
+
+type MenuRecipeVariants =
+  Record<never, never>;
+
+type MenuRecipeState = {
+  transformOrigin?: React.CSSProperties["transformOrigin"];
+  hovered?: boolean;
+  pressed?: boolean;
+  focusVisible?: boolean;
+  disabled?: boolean;
+};
+
+/**
+ * La recipe contiene únicamente política visual.
+ *
+ * FloatingLayer decide placement y medición; Motion decide presencia y
+ * transición; usePress produce los estados de interacción del item.
+ */
+const menuRecipe = defineSlotRecipe<
+  MenuSlot,
+  MenuRecipeVariants,
+  MenuRecipeState
+>({
+  base: {
+    content: {
+      minWidth: 180,
+      maxWidth: "min(320px, calc(100vw - 16px))",
+      padding: "0.4rem",
+      borderRadius: "var(--ui-radius-lg)",
+      border: "1px solid var(--ui-border)",
+      background: "var(--ui-surface)",
+      color: "var(--ui-text)",
+      boxShadow: "var(--ui-shadow-lg)",
+      outline: "none",
+    },
+
+    item: {
+      display: "flex",
+      alignItems: "center",
+      minHeight: 36,
+      padding: "0.6rem 0.75rem",
+      borderRadius: "var(--ui-radius-md)",
+      userSelect: "none",
+      outline: "none",
+    },
+
+    separator: {
+      height: 1,
+      margin: "0.35rem 0",
+      background: "var(--ui-border)",
+    },
+
+    label: {
+      padding: "0.45rem 0.75rem 0.35rem 0.75rem",
+      fontSize: "var(--ui-font-size-sm)",
+      fontWeight: 700,
+      color: "var(--ui-text-muted)",
+    },
+  },
+
+  resolve: ({
+    transformOrigin,
+    hovered = false,
+    pressed = false,
+    focusVisible = false,
+    disabled = false,
+  }) => ({
+    content: {
+      transformOrigin,
+    },
+
+    item: {
+      background:
+        !disabled && (pressed || hovered)
+          ? "var(--ui-surface-hover)"
+          : "transparent",
+
+      cursor: disabled
+        ? "not-allowed"
+        : "pointer",
+
+      opacity: disabled
+        ? 0.55
+        : 1,
+
+      boxShadow: focusVisible
+        ? "0 0 0 3px var(--ui-focus-ring)"
+        : "none",
+    },
+  }),
+});
+
+const DEFAULT_MENU_RECIPE_STYLES =
+  menuRecipe({});
 
 type MenuContextValue = {
   open: boolean;
@@ -601,26 +703,12 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
                   "data-placement":
                     resolvedPlacement,
                 },
-                baseStyle: {
-                  minWidth: 180,
-                  maxWidth:
-                    "min(320px, calc(100vw - 16px))",
-                  padding: "0.4rem",
-                  borderRadius:
-                    "var(--ui-radius-lg)",
-                  border:
-                    "1px solid var(--ui-border)",
-                  background:
-                    "var(--ui-surface)",
-                  color: "var(--ui-text)",
-                  boxShadow:
-                    "var(--ui-shadow-lg)",
-                  outline: "none",
+                baseStyle: menuRecipe({
                   transformOrigin:
                     getMenuTransformOrigin(
                       resolvedPlacement
                     ),
-                },
+                }).content,
               });
 
             return (
@@ -684,7 +772,10 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
 MenuContent.displayName = "MenuContent";
 
 export interface MenuItemProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "onClick"
+  > {
   children?: React.ReactNode;
   disabled?: boolean;
   closeOnSelect?: boolean;
@@ -694,126 +785,374 @@ export interface MenuItemProps
   slotProps?: MenuSlotProps;
 }
 
-export const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
-  (
-    {
-      children,
-      disabled = false,
-      closeOnSelect = true,
-      onSelect,
-      style,
-      className = "",
-      styles,
-      slotProps,
-      ...rest
-    },
-    ref
-  ) => {
-    const ctx = useMenuContext();
-    const itemRef = React.useRef<HTMLDivElement | null>(null);
-    const [hovered, setHovered] = React.useState(false);
-    const [focused, setFocused] = React.useState(false);
+export const MenuItem =
+  React.forwardRef<
+    HTMLDivElement,
+    MenuItemProps
+  >(
+    (
+      {
+        children,
+        disabled = false,
+        closeOnSelect = true,
+        onSelect,
 
-    const resolvedStyles = styles ?? ctx.styles;
-    const resolvedSlotProps = slotProps ?? ctx.slotProps;
+        className = "",
+        style,
 
-    const setRefs = React.useCallback(
-      (node: HTMLDivElement | null) => {
-        itemRef.current = node;
-        assignRef(ref, node);
+        styles,
+        slotProps,
+
+        onPointerEnter,
+        onPointerLeave,
+        onPointerDown,
+        onPointerUp,
+        onPointerCancel,
+        onLostPointerCapture,
+
+        onFocus,
+        onBlur,
+
+        onKeyDown,
+        onKeyUp,
+
+        ...rest
       },
-      [ref]
-    );
+      ref
+    ) => {
+      const ctx =
+        useMenuContext();
 
-    React.useEffect(() => {
-      const node = itemRef.current;
-      if (!node) return;
+      const itemRef =
+        React.useRef<
+          HTMLDivElement | null
+        >(null);
 
-      ctx.registerItem(node);
+      const resolvedStyles =
+        styles ?? ctx.styles;
 
-      return () => {
-        ctx.unregisterItem(node);
-      };
-    }, [ctx]);
+      const resolvedSlotProps =
+        slotProps ?? ctx.slotProps;
 
-    const handleSelect = React.useCallback(() => {
-      if (disabled) return;
+      const setRefs =
+        React.useCallback(
+          (
+            node:
+              | HTMLDivElement
+              | null
+          ) => {
+            itemRef.current = node;
+            assignRef(ref, node);
+          },
+          [ref]
+        );
 
-      onSelect?.();
+      React.useEffect(() => {
+        const node =
+          itemRef.current;
 
-      if (closeOnSelect) {
-        ctx.onOpenChange?.(false);
-        window.setTimeout(() => {
-          ctx.anchorRef.current?.focus?.();
-        }, 0);
-      }
-    }, [closeOnSelect, ctx, disabled, onSelect]);
+        if (!node) return;
 
-    const itemSlot = resolveSlot<MenuSlot>({
-      slot: "item",
-      styles: resolvedStyles,
-      slotProps: resolvedSlotProps,
-      className,
-      style,
-      baseStyle: {
-        display: "flex",
-        alignItems: "center",
-        minHeight: 36,
-        padding: "0.6rem 0.75rem",
-        borderRadius: "var(--ui-radius-md)",
-        background: hovered && !disabled ? "var(--ui-surface-hover)" : "transparent",
-        cursor: disabled ? "not-allowed" : "pointer",
-        userSelect: "none",
-        outline: "none",
-        opacity: disabled ? 0.55 : 1,
-        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-    });
+        ctx.registerItem(node);
 
-    return (
-      <div
-        {...itemSlot}
-        ref={setRefs}
-        role="menuitem"
-        tabIndex={disabled ? -1 : 0}
-        aria-disabled={disabled || undefined}
-        onClick={handleSelect}
-        onKeyDown={(event) => {
-          if (disabled) return;
+        return () => {
+          ctx.unregisterItem(
+            node
+          );
+        };
+      }, [ctx]);
 
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleSelect();
-          }
-        }}
-        onMouseEnter={(event) => {
-          if (!disabled) {
-            setHovered(true);
-            event.currentTarget.focus();
-          }
-        }}
-        onMouseLeave={() => {
-          setHovered(false);
-        }}
-        onFocus={() => {
-          if (!disabled) {
-            setFocused(true);
-          }
-        }}
-        onBlur={() => {
-          setFocused(false);
-        }}
-        {...rest}
-      >
-        {children}
-      </div>
-    );
-  }
-);
+      const handleSelect =
+        React.useCallback(
+          (
+            _event:
+              UIPressEvent<HTMLElement>
+          ) => {
+            if (disabled) return;
 
-MenuItem.displayName = "MenuItem";
+            onSelect?.();
+
+            if (closeOnSelect) {
+              ctx.onOpenChange?.(
+                false
+              );
+
+              window.setTimeout(
+                () => {
+                  ctx.anchorRef.current?.focus?.();
+                },
+                0
+              );
+            }
+          },
+          [
+            closeOnSelect,
+            ctx,
+            disabled,
+            onSelect,
+          ]
+        );
+
+      /*
+       * El foco por puntero conserva el comportamiento histórico del menú,
+       * mientras usePress sigue siendo la única fuente del estado hovered.
+       */
+      const focusOnPointerEnter =
+        React.useCallback(
+          (
+            event:
+              React.PointerEvent<HTMLDivElement>
+          ) => {
+            if (!disabled) {
+              event.currentTarget.focus();
+            }
+          },
+          [disabled]
+        );
+
+      const preliminarySlot =
+        resolveSlot<MenuSlot>({
+          slot: "item",
+
+          styles:
+            resolvedStyles,
+
+          slotProps:
+            resolvedSlotProps,
+
+          className,
+          style,
+
+          baseProps: {
+            role: "menuitem",
+
+            tabIndex: disabled
+              ? -1
+              : 0,
+
+            "aria-disabled":
+              disabled ||
+              undefined,
+
+            "data-ui-menu-item":
+              "",
+          },
+
+          baseStyle:
+            DEFAULT_MENU_RECIPE_STYLES
+              .item,
+        });
+
+      const {
+        onPointerEnter:
+          slotOnPointerEnter,
+
+        onPointerLeave:
+          slotOnPointerLeave,
+
+        onPointerDown:
+          slotOnPointerDown,
+
+        onPointerUp:
+          slotOnPointerUp,
+
+        onPointerCancel:
+          slotOnPointerCancel,
+
+        onLostPointerCapture:
+          slotOnLostPointerCapture,
+
+        onFocus:
+          slotOnFocus,
+
+        onBlur:
+          slotOnBlur,
+
+        onKeyDown:
+          slotOnKeyDown,
+
+        onKeyUp:
+          slotOnKeyUp,
+
+        onClick:
+          slotOnClick,
+
+        ...preliminarySlotRest
+      } = preliminarySlot as SlotElementProps;
+
+      const press =
+        usePress<HTMLDivElement>({
+          disabled,
+          nativeInteractive: false,
+          onPress: handleSelect,
+
+          onPointerEnter:
+            composeEventHandlers(
+              composeEventHandlers(
+                onPointerEnter,
+                slotOnPointerEnter
+              ),
+              focusOnPointerEnter,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerLeave:
+            composeEventHandlers(
+              onPointerLeave,
+              slotOnPointerLeave,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerDown:
+            composeEventHandlers(
+              onPointerDown,
+              slotOnPointerDown
+            ),
+
+          onPointerUp:
+            composeEventHandlers(
+              onPointerUp,
+              slotOnPointerUp,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerCancel:
+            composeEventHandlers(
+              onPointerCancel,
+              slotOnPointerCancel,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onLostPointerCapture:
+            composeEventHandlers(
+              onLostPointerCapture,
+              slotOnLostPointerCapture,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onFocus:
+            composeEventHandlers(
+              onFocus,
+              slotOnFocus
+            ),
+
+          onBlur:
+            composeEventHandlers(
+              onBlur,
+              slotOnBlur,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onKeyDown:
+            composeEventHandlers(
+              onKeyDown,
+              slotOnKeyDown
+            ),
+
+          onKeyUp:
+            composeEventHandlers(
+              onKeyUp,
+              slotOnKeyUp
+            ),
+
+          onClick:
+            slotOnClick,
+        });
+
+      const itemSlot =
+        resolveSlot<MenuSlot>({
+          slot: "item",
+
+          className:
+            preliminarySlotRest.className,
+
+          style:
+            preliminarySlotRest.style,
+
+          baseProps: {
+            role:
+              preliminarySlotRest.role,
+
+            tabIndex:
+              preliminarySlotRest.tabIndex,
+
+            "aria-disabled":
+              preliminarySlotRest[
+                "aria-disabled"
+              ],
+
+            "data-ui-menu-item":
+              "",
+
+            "data-hovered":
+              press.state.hovered ||
+              undefined,
+
+            "data-pressed":
+              press.state.pressed ||
+              undefined,
+
+            "data-focused":
+              press.state.focused ||
+              undefined,
+
+            "data-focus-visible":
+              press.state.focusVisible ||
+              undefined,
+
+            "data-disabled":
+              disabled ||
+              undefined,
+          },
+
+          baseStyle:
+            menuRecipe({
+              hovered:
+                press.state.hovered,
+
+              pressed:
+                press.state.pressed,
+
+              focusVisible:
+                press.state.focusVisible,
+
+              disabled,
+            }).item,
+        });
+
+      return (
+        <div
+          {...rest}
+          {...itemSlot}
+          {...press.pressProps}
+          ref={setRefs}
+        >
+          {children}
+        </div>
+      );
+    }
+  );
+
+MenuItem.displayName =
+  "MenuItem";
 
 export interface MenuSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
   styles?: MenuStyles;
@@ -839,11 +1178,9 @@ export const MenuSeparator = React.forwardRef<HTMLDivElement, MenuSeparatorProps
       slotProps: slotProps ?? ctx?.slotProps,
       className,
       style,
-      baseStyle: {
-        height: 1,
-        margin: "0.35rem 0",
-        background: "var(--ui-border)",
-      },
+      baseStyle:
+        DEFAULT_MENU_RECIPE_STYLES
+          .separator,
     });
 
     return <div {...separatorSlot} ref={ref} role="separator" {...rest} />;
@@ -878,12 +1215,9 @@ export const MenuLabel = React.forwardRef<HTMLDivElement, MenuLabelProps>(
       slotProps: slotProps ?? ctx?.slotProps,
       className,
       style,
-      baseStyle: {
-        padding: "0.45rem 0.75rem 0.35rem 0.75rem",
-        fontSize: "var(--ui-font-size-sm)",
-        fontWeight: 700,
-        color: "var(--ui-text-muted)",
-      },
+      baseStyle:
+        DEFAULT_MENU_RECIPE_STYLES
+          .label,
     });
 
     return (
