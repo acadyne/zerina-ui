@@ -59,6 +59,135 @@ export type SlotPropsMap<TSlot extends string> = Partial<
   Record<TSlot, SlotElementProps>
 >;
 
+export type RecipeVariantValue = string | number;
+
+export type RecipeVariantSelection = Record<
+  string,
+  RecipeVariantValue | undefined
+>;
+
+export type SlotRecipeVariantMap<
+  TSlot extends string,
+  TVariants extends RecipeVariantSelection,
+> = {
+  [TVariant in keyof TVariants]?: Partial<
+    Record<
+      Extract<TVariants[TVariant], RecipeVariantValue>,
+      SlotStyleMap<TSlot>
+    >
+  >;
+};
+
+export interface SlotRecipeConfig<
+  TSlot extends string,
+  TVariants extends RecipeVariantSelection,
+  TState extends object,
+> {
+  /**
+   * Estilos estructurales y visuales compartidos por todas
+   * las combinaciones de la recipe.
+   */
+  base?: SlotStyleMap<TSlot>;
+
+  /**
+   * Estilos seleccionados por props semánticas estables,
+   * por ejemplo variant, size, colorScheme o density.
+   */
+  variants?: SlotRecipeVariantMap<TSlot, TVariants>;
+
+  /**
+   * Estilos derivados de combinaciones o estados producidos
+   * por otros sistemas.
+   *
+   * Interaction produce hovered/pressed/focusVisible/disabled.
+   * Navigation produce active/selected/expanded.
+   * Viewport puede producir density.
+   *
+   * La recipe solo traduce esos valores a estilos.
+   */
+  resolve?: (
+    input: TVariants & TState
+  ) => SlotStyleMap<TSlot> | undefined;
+}
+
+export type SlotRecipe<
+  TSlot extends string,
+  TVariants extends RecipeVariantSelection,
+  TState extends object,
+> = (
+  input: TVariants & TState
+) => SlotStyleMap<TSlot>;
+
+export function mergeSlotStyles<TSlot extends string>(
+  ...maps: Array<SlotStyleMap<TSlot> | undefined>
+): SlotStyleMap<TSlot> {
+  const result: SlotStyleMap<TSlot> = {};
+
+  for (const map of maps) {
+    if (!map) {
+      continue;
+    }
+
+    for (const slot of Object.keys(map) as TSlot[]) {
+      result[slot] = mergeStyles(
+        result[slot],
+        map[slot]
+      );
+    }
+  }
+
+  return result;
+}
+
+export function defineSlotRecipe<
+  TSlot extends string,
+  TVariants extends RecipeVariantSelection,
+  TState extends object = Record<never, never>,
+>({
+  base,
+  variants,
+  resolve,
+}: SlotRecipeConfig<
+  TSlot,
+  TVariants,
+  TState
+>): SlotRecipe<TSlot, TVariants, TState> {
+  return (input) => {
+    const selectedVariantStyles = Object.entries(input).reduce<
+      SlotStyleMap<TSlot>
+    >((acc, [variantName, selectedValue]) => {
+      if (
+        selectedValue === undefined ||
+        typeof selectedValue === "boolean"
+      ) {
+        return acc;
+      }
+
+      const variantMap = variants?.[
+        variantName as keyof TVariants
+      ];
+
+      const selectedStyles = variantMap?.[
+        selectedValue as Extract<
+          TVariants[keyof TVariants],
+          RecipeVariantValue
+        >
+      ];
+
+      return mergeSlotStyles(
+        acc,
+        selectedStyles
+      );
+    }, {});
+
+    return mergeSlotStyles(
+      base,
+      selectedVariantStyles,
+      resolve?.(input)
+    );
+  };
+}
+
 export interface ResolvedSlotProps {
   className?: string;
   style?: React.CSSProperties;
