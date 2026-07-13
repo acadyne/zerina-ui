@@ -1,5 +1,6 @@
 // src/patterns/scaffold/BackButton.tsx
 import React from "react";
+import type { UIPressEvent } from "../../core/interaction";
 import { IconButton } from "../../primitives/forms";
 
 export type BackButtonProps = Omit<
@@ -11,9 +12,9 @@ export type BackButtonProps = Omit<
 
   /**
    * Callback semántico para navegación hacia atrás.
-   * Se ejecuta después de onClick si el evento no fue prevenido.
+   * Se ejecuta después de onPress si el evento no fue prevenido.
    */
-  onBack?: React.MouseEventHandler<HTMLButtonElement>;
+  onBack?: (event: UIPressEvent<HTMLElement>) => void;
 };
 
 export const BackButton = React.forwardRef<HTMLButtonElement, BackButtonProps>(
@@ -23,7 +24,7 @@ export const BackButton = React.forwardRef<HTMLButtonElement, BackButtonProps>(
       icon = "‹",
       size = "sm",
       variant = "ghost",
-      onClick,
+      onPress,
       onBack,
       ...rest
     },
@@ -36,10 +37,12 @@ export const BackButton = React.forwardRef<HTMLButtonElement, BackButtonProps>(
         icon={icon}
         size={size}
         variant={variant}
-        onClick={(event) => {
-          onClick?.(event);
+        onPress={(event) => {
+          onPress?.(event);
 
-          if (event.defaultPrevented) return;
+          if (event.defaultPrevented) {
+            return;
+          }
 
           onBack?.(event);
         }}

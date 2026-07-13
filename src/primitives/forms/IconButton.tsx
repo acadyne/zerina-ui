@@ -1,6 +1,10 @@
 // src/primitives/forms/IconButton.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  usePress,
+  type UIPressEvent,
+} from "../../core/interaction";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   resolveSlot,
@@ -18,7 +22,13 @@ export type IconButtonSlotProps = SlotPropsMap<IconButtonSlot>;
 export interface IconButtonProps
   extends Omit<
     HTMLMotionProps<"button">,
-    "children" | "color" | "ref" | "size" | "style"
+    | "children"
+    | "color"
+    | "onClick"
+    | "ref"
+    | "size"
+    | "style"
+    | "whileTap"
   > {
   icon: React.ReactNode;
   ariaLabel: string;
@@ -26,6 +36,8 @@ export interface IconButtonProps
   variant?: "ghost" | "solid" | "unstyled";
   size?: "sm" | "md" | "lg" | number;
   rounded?: "none" | "sm" | "md" | "lg" | "full" | string;
+
+  onPress?: (event: UIPressEvent<HTMLElement>) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -85,10 +97,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       className = "",
       style,
 
-      onMouseEnter,
-      onMouseLeave,
-      onFocus,
-      onBlur,
+      onPress,
 
       styles,
       slotProps,
@@ -98,14 +107,20 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     ref
   ) => {
     const motionState = useOptionalUIMotion();
-    const [hovered, setHovered] = React.useState(false);
-    const [focused, setFocused] = React.useState(false);
 
-    const pressMotion = motionState.getPressMotion(motionState.effectiveLevel);
+    const press = usePress<HTMLButtonElement>({
+      disabled,
+      nativeInteractive: true,
+      onPress,
+    });
+
+    const pressMotion = press.state.pressed
+      ? motionState.getPressMotion(motionState.effectiveLevel)
+      : undefined;
 
     const pxSize = typeof size === "number" ? size : sizeMap[size] ?? 42;
     const borderRadius = radiusMap[rounded] || rounded;
-    const v = variantMap[variant];
+    const variantStyles = variantMap[variant];
 
     const rootSlot = resolveSlot<IconButtonSlot>({
       slot: "root",
@@ -116,6 +131,11 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       baseProps: {
         "data-ui-icon-button": "",
         "data-ui-icon-button-variant": variant,
+        "data-disabled": disabled || undefined,
+        "data-hovered": press.state.hovered || undefined,
+        "data-pressed": press.state.pressed || undefined,
+        "data-focused": press.state.focused || undefined,
+        "data-focus-visible": press.state.focusVisible || undefined,
       },
       baseStyle: {
         width: pxSize,
@@ -123,18 +143,33 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         minWidth: pxSize,
         minHeight: pxSize,
         borderRadius,
+
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        background: hovered && !disabled ? v.hover : v.bg,
-        color: v.fg,
-        border: v.border,
+
+        background:
+          press.state.pressed && !disabled
+            ? variantStyles.active
+            : press.state.hovered && !disabled
+              ? variantStyles.hover
+              : variantStyles.bg,
+
+        color: variantStyles.fg,
+        border: variantStyles.border,
+
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.6 : 1,
+
         transition:
           "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+
         outline: "none",
-        boxShadow: focused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+
+        boxShadow: press.state.focusVisible
+          ? "0 0 0 3px var(--ui-focus-ring)"
+          : "none",
+
         touchAction: "manipulation",
         WebkitTapHighlightColor: "transparent",
         padding: 0,
@@ -162,37 +197,16 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       <motion.button
         {...rest}
         {...toMotionSlotProps(rootSlot)}
+        {...press.pressProps}
         ref={ref}
         type={type}
         aria-label={ariaLabel}
         disabled={disabled}
-        whileTap={!disabled && pressMotion ? pressMotion : undefined}
+        animate={pressMotion}
         transition={motionState.getTransition(
           motionState.effectiveLevel,
           "press"
         )}
-        onMouseEnter={(event) => {
-          if (!disabled) {
-            setHovered(true);
-          }
-
-          onMouseEnter?.(event);
-        }}
-        onMouseLeave={(event) => {
-          setHovered(false);
-          onMouseLeave?.(event);
-        }}
-        onFocus={(event) => {
-          if (!disabled) {
-            setFocused(true);
-          }
-
-          onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          setFocused(false);
-          onBlur?.(event);
-        }}
       >
         <span {...iconSlot}>{icon}</span>
       </motion.button>

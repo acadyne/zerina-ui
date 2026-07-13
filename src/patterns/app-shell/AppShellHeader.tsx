@@ -270,7 +270,7 @@ export function AppShellHeader({
                       collapsed ? "Expandir navegación" : "Colapsar navegación"
                     }
                     icon={<PanelLeft size={18} />}
-                    onClick={onToggleCollapsed}
+                    onPress={onToggleCollapsed}
                     variant="ghost"
                     size="sm"
                     disabled={resolvedMobile}
@@ -368,7 +368,7 @@ export function AppShellHeader({
                     icon={<Smartphone size={16} />}
                     variant="ghost"
                     size="sm"
-                    onClick={onToggleMobileMode}
+                    onPress={onToggleMobileMode}
                     style={{
                       color: resolvedMobile
                         ? "var(--ui-primary)"
@@ -397,7 +397,7 @@ export function AppShellHeader({
                     icon={<ThemeIcon size={16} />}
                     variant="ghost"
                     size="sm"
-                    onClick={cycleTheme}
+                    onPress={cycleTheme}
                     style={{
                       color: "var(--ui-text)",
                       border: "1px solid var(--ui-border)",

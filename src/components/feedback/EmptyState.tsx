@@ -172,7 +172,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             <div {...actionSlot}>{action}</div>
           ) : actionLabel && onAction ? (
             <div {...actionSlot}>
-              <Button onClick={onAction}>{actionLabel}</Button>
+              <Button onPress={onAction}>{actionLabel}</Button>
             </div>
           ) : null}
         </div>

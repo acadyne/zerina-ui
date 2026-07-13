@@ -197,7 +197,7 @@ export function ActionDialog<TTarget>({
               variant="ghost"
               colorScheme="secondary"
               size="sm"
-              onClick={handleCancel}
+              onPress={handleCancel}
               disabled={loading}
             >
               {cancelLabel}
@@ -214,7 +214,7 @@ export function ActionDialog<TTarget>({
               }
               variant={variant === "default" ? "outline" : "solid"}
               size="sm"
-              onClick={handleAction}
+              onPress={handleAction}
               disabled={isActionDisabled}
               isLoading={loading}
               loadingText="Procesando..."

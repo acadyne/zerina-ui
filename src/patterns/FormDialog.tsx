@@ -178,7 +178,7 @@ export const FormDialog: React.FC<FormDialogProps> = ({
                 variant="ghost"
                 colorScheme="secondary"
                 size="sm"
-                onClick={handleCancel}
+                onPress={handleCancel}
                 disabled={loading}
               >
                 {cancelLabel}

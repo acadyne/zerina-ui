@@ -89,7 +89,7 @@ export const DataTablePagination = React.forwardRef<
         <div {...actionsSlot}>
           <Button
             type="button"
-            onClick={onPreviousPage}
+            onPress={onPreviousPage}
             disabled={page <= 1}
           >
             {previousLabel}
@@ -101,7 +101,7 @@ export const DataTablePagination = React.forwardRef<
 
           <Button
             type="button"
-            onClick={onNextPage}
+            onPress={onNextPage}
             disabled={page >= totalPages}
           >
             {nextLabel}

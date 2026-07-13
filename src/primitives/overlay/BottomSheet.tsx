@@ -542,7 +542,7 @@ export const BottomSheetClose = React.forwardRef<
       icon={<X size={18} />}
       size="sm"
       variant="ghost"
-      onClick={onClose}
+      onPress={onClose}
       className={className}
       style={style}
     />

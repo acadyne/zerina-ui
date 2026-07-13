@@ -199,7 +199,7 @@ export function ConfirmDialog<TTarget>({
               variant="ghost"
               colorScheme="secondary"
               size="sm"
-              onClick={handleCancel}
+              onPress={handleCancel}
               disabled={loading}
             >
               {cancelLabel}
@@ -209,7 +209,7 @@ export function ConfirmDialog<TTarget>({
               type="button"
               colorScheme={variant === "destructive" ? "danger" : "primary"}
               size="sm"
-              onClick={handleConfirm}
+              onPress={handleConfirm}
               disabled={isActionDisabled}
               isLoading={loading}
               loadingText="Procesando..."

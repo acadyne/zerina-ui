@@ -473,7 +473,7 @@ export const DrawerClose = React.forwardRef<HTMLButtonElement, DrawerCloseProps>
         icon={<X size={18} />}
         size="sm"
         variant="ghost"
-        onClick={onClose}
+        onPress={onClose}
         className={className}
         style={style}
       />

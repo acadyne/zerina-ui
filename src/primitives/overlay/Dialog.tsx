@@ -626,7 +626,7 @@ export const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>
   (
     {
       children,
-      onClick,
+      onPress,
       className = "",
       style,
       ...rest
@@ -651,9 +651,9 @@ export const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>
         size="sm"
         className={closeSlot.className}
         style={closeSlot.style}
-        onClick={(event) => {
+        onPress={(event) => {
           ctx.onOpenChange?.(false);
-          onClick?.(event);
+          onPress?.(event);
         }}
         {...rest}
       >

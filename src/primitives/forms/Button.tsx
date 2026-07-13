@@ -1,6 +1,10 @@
 // src/primitives/forms/Button.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  usePress,
+  type UIPressEvent,
+} from "../../core/interaction";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   type SizeProps,
@@ -32,7 +36,13 @@ export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
 export interface ButtonProps
   extends Omit<
       HTMLMotionProps<"button">,
-      "children" | "color" | "ref" | "size" | "style"
+      | "children"
+      | "color"
+      | "onClick"
+      | "ref"
+      | "size"
+      | "style"
+      | "whileTap"
     >,
     SizeProps,
     SpaceProps {
@@ -41,6 +51,7 @@ export interface ButtonProps
   colorScheme?: "primary" | "secondary" | "danger";
   variant?: ButtonVariant;
   size?: ButtonSize;
+
   isLoading?: boolean;
   loadingText?: React.ReactNode;
 
@@ -49,6 +60,8 @@ export interface ButtonProps
 
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+
+  onPress?: (event: UIPressEvent<HTMLElement>) => void;
 
   style?: React.CSSProperties;
 
@@ -110,10 +123,12 @@ const schemeMap = {
     outlineText: "var(--ui-secondary)",
     outlineBorder:
       "color-mix(in srgb, var(--ui-secondary) 42%, var(--ui-border))",
-    outlineHover: "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
+    outlineHover:
+      "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
 
     ghostText: "var(--ui-secondary)",
-    ghostHover: "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
+    ghostHover:
+      "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
   },
   danger: {
     solidBg: "var(--ui-danger)",
@@ -141,15 +156,15 @@ function getVariantStyles(
   shadow: string;
   hoverShadow: string;
 } {
-  const s = schemeMap[colorScheme];
+  const scheme = schemeMap[colorScheme];
 
   if (variant === "outline") {
     return {
       background: "transparent",
-      color: s.outlineText,
-      border: `1px solid ${s.outlineBorder}`,
-      hoverBackground: s.outlineHover,
-      activeBackground: s.outlineHover,
+      color: scheme.outlineText,
+      border: `1px solid ${scheme.outlineBorder}`,
+      hoverBackground: scheme.outlineHover,
+      activeBackground: scheme.outlineHover,
       shadow: "none",
       hoverShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
     };
@@ -158,21 +173,21 @@ function getVariantStyles(
   if (variant === "ghost") {
     return {
       background: "transparent",
-      color: s.ghostText,
+      color: scheme.ghostText,
       border: "1px solid transparent",
-      hoverBackground: s.ghostHover,
-      activeBackground: s.ghostHover,
+      hoverBackground: scheme.ghostHover,
+      activeBackground: scheme.ghostHover,
       shadow: "none",
       hoverShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
     };
   }
 
   return {
-    background: s.solidBg,
-    color: s.solidText,
+    background: scheme.solidBg,
+    color: scheme.solidText,
     border: "1px solid transparent",
-    hoverBackground: s.solidHover,
-    activeBackground: s.solidHover,
+    hoverBackground: scheme.solidHover,
+    activeBackground: scheme.solidHover,
     shadow: "0 6px 14px rgba(0, 0, 0, 0.14)",
     hoverShadow: "0 8px 18px rgba(0, 0, 0, 0.18)",
   };
@@ -221,10 +236,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
 
-      onMouseEnter,
-      onMouseLeave,
-      onFocus,
-      onBlur,
+      onPress,
 
       styles,
       slotProps,
@@ -234,13 +246,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const motionState = useOptionalUIMotion();
-    const [hovered, setHovered] = React.useState(false);
-    const [focused, setFocused] = React.useState(false);
 
     const isDisabled = disabled || isLoading;
     const sizeStyle = sizeStyles[size];
     const variantStyle = getVariantStyles(colorScheme, variant);
-    const pressMotion = motionState.getPressMotion(motionState.effectiveLevel);
+
+    const press = usePress<HTMLButtonElement>({
+      disabled: isDisabled,
+      nativeInteractive: true,
+      onPress,
+    });
+
+    const pressMotion = press.state.pressed
+      ? motionState.getPressMotion(motionState.effectiveLevel)
+      : undefined;
 
     const spinnerColor =
       variant === "solid" ? "rgba(255,255,255,0.78)" : "currentColor";
@@ -257,6 +276,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "data-ui-button-color-scheme": colorScheme,
         "data-ui-button-size": size,
         "data-ui-button-loading": isLoading || undefined,
+        "data-disabled": isDisabled || undefined,
+        "data-hovered": press.state.hovered || undefined,
+        "data-pressed": press.state.pressed || undefined,
+        "data-focused": press.state.focused || undefined,
+        "data-focus-visible": press.state.focusVisible || undefined,
       },
       baseStyle: {
         display: "inline-flex",
@@ -271,16 +295,21 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         WebkitTapHighlightColor: "transparent",
         whiteSpace: "nowrap",
         verticalAlign: "middle",
+
         opacity: isDisabled ? 0.62 : 1,
         cursor: isDisabled ? "not-allowed" : "pointer",
         outline: "none",
-        boxShadow: focused
+
+        boxShadow: press.state.focusVisible
           ? `0 0 0 3px var(--ui-focus-ring), ${
-              hovered && !isDisabled ? variantStyle.hoverShadow : variantStyle.shadow
+              press.state.hovered && !isDisabled
+                ? variantStyle.hoverShadow
+                : variantStyle.shadow
             }`
-          : hovered && !isDisabled
+          : press.state.hovered && !isDisabled
             ? variantStyle.hoverShadow
             : variantStyle.shadow,
+
         transition:
           "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
 
@@ -315,10 +344,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         fontSize: sizeStyle.fontSize,
         borderRadius: rounded ?? sizeStyle.borderRadius,
+
         background:
-          hovered && !isDisabled
-            ? variantStyle.hoverBackground
-            : variantStyle.background,
+          press.state.pressed && !isDisabled
+            ? variantStyle.activeBackground
+            : press.state.hovered && !isDisabled
+              ? variantStyle.hoverBackground
+              : variantStyle.background,
+
         color: variantStyle.color,
         border: variantStyle.border,
       },
@@ -391,37 +424,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         {...rest}
         {...toMotionSlotProps(rootSlot)}
+        {...press.pressProps}
         ref={ref}
         type={type}
         disabled={isDisabled}
         aria-busy={isLoading || undefined}
-        whileTap={!isDisabled && pressMotion ? pressMotion : undefined}
+        animate={pressMotion}
         transition={motionState.getTransition(
           motionState.effectiveLevel,
           "press"
         )}
-        onMouseEnter={(event) => {
-          if (!isDisabled) {
-            setHovered(true);
-          }
-
-          onMouseEnter?.(event);
-        }}
-        onMouseLeave={(event) => {
-          setHovered(false);
-          onMouseLeave?.(event);
-        }}
-        onFocus={(event) => {
-          if (!isDisabled) {
-            setFocused(true);
-          }
-
-          onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          setFocused(false);
-          onBlur?.(event);
-        }}
       >
         {isLoading ? (
           <>

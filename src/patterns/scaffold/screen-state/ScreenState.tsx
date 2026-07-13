@@ -217,7 +217,7 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
     const retryAction =
       errorAction ??
       (onRetry ? (
-        <Button size="sm" variant="outline" onClick={() => void onRetry()}>
+        <Button size="sm" variant="outline" onPress={() => void onRetry()}>
           {errorActionLabel}
         </Button>
       ) : null);

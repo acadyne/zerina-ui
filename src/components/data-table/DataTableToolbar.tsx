@@ -159,7 +159,7 @@ export function DataTableToolbar({
             size="sm"
             colorScheme="primary"
             leftIcon={<Plus size={14} />}
-            onClick={onAddRow}
+            onPress={onAddRow}
             className={addButtonSlot.className}
             style={addButtonSlot.style}
           >
@@ -175,7 +175,7 @@ export function DataTableToolbar({
             colorScheme="danger"
             leftIcon={<Trash2 size={14} />}
             disabled={!canDeleteRows}
-            onClick={onDeleteRows}
+            onPress={onDeleteRows}
             className={deleteButtonSlot.className}
             style={deleteButtonSlot.style}
           >
@@ -217,7 +217,7 @@ export function DataTableToolbar({
         {enableExportCSV && canExport ? (
           <Button
             type="button"
-            onClick={onExportCSV}
+            onPress={onExportCSV}
             variant="ghost"
             leftIcon={<Download size={16} />}
             px="10px"
