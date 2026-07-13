@@ -1,6 +1,14 @@
-// src/layout/ui/patterns/index.ts
-export * from "./state";
-export * from "./useModalState";
+// src/patterns/index.ts
+
+export type {
+  ModalClosedState,
+  ModalOpenState,
+  ModalState,
+} from "./state";
+
+export { useModalState } from "./useModalState";
+export type { UseModalStateResult } from "./useModalState";
+
 export * from "./useConfirmModal";
 export * from "./useFormDialogState";
 

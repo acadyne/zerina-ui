@@ -12,4 +12,16 @@ export * from "./Wrap";
 export * from "./PageScroll";
 export * from "./ScrollArea";
 export * from "./Screen";
-export * from "./List";
+export {
+  List,
+  ListSection,
+  ListItem,
+} from "./List";
+
+export type {
+  ListDensity,
+  ListVariant,
+  ListProps,
+  ListSectionProps,
+  ListItemProps,
+} from "./List";

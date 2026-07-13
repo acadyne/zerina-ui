@@ -16,5 +16,3 @@ export type {
   TransformableSurfaceStyles,
   TransformableSurfaceTransform,
 } from "./transformableSurface.types";
-
-export * from "./hooks";

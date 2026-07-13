@@ -25,5 +25,3 @@ export type {
   NavigationMenuStyles,
   NavigationMenuSubmenuPlacement,
 } from "./navigationMenu.types";
-
-export * from "./hooks";

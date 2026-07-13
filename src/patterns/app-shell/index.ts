@@ -23,8 +23,6 @@ export type {
   UseAppShellStateResult,
 } from "./useAppShellState";
 
-export * from "./AppShellRouteUtils";
-
 export { UncontrolledAppShell } from "./UncontrolledAppShell";
 export type { UncontrolledAppShellProps } from "./UncontrolledAppShell";
 
