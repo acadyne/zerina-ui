@@ -5,17 +5,41 @@ import { usePress, type UIPressEvent } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
+  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-export type IconButtonSlot = "root" | "icon";
+type IconButtonVariant =
+  | "ghost"
+  | "solid"
+  | "unstyled";
 
-export type IconButtonStyles = SlotStyleMap<IconButtonSlot>;
+type IconButtonSize =
+  | "sm"
+  | "md"
+  | "lg"
+  | number;
 
-export type IconButtonSlotProps = SlotPropsMap<IconButtonSlot>;
+type IconButtonRounded =
+  | "none"
+  | "sm"
+  | "md"
+  | "lg"
+  | "full"
+  | string;
+
+export type IconButtonSlot =
+  | "root"
+  | "icon";
+
+export type IconButtonStyles =
+  SlotStyleMap<IconButtonSlot>;
+
+export type IconButtonSlotProps =
+  SlotPropsMap<IconButtonSlot>;
 
 export interface IconButtonProps
   extends Omit<
@@ -31,11 +55,13 @@ export interface IconButtonProps
   icon: React.ReactNode;
   ariaLabel: string;
 
-  variant?: "ghost" | "solid" | "unstyled";
-  size?: "sm" | "md" | "lg" | number;
-  rounded?: "none" | "sm" | "md" | "lg" | "full" | string;
+  variant?: IconButtonVariant;
+  size?: IconButtonSize;
+  rounded?: IconButtonRounded;
 
-  onPress?: (event: UIPressEvent<HTMLElement>) => void;
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -44,13 +70,19 @@ export interface IconButtonProps
   slotProps?: IconButtonSlotProps;
 }
 
-const sizeMap: Record<string, number> = {
+const sizeMap: Record<
+  Exclude<IconButtonSize, number>,
+  number
+> = {
   sm: 34,
   md: 42,
   lg: 50,
 };
 
-const radiusMap: Record<string, string> = {
+const radiusMap: Record<
+  "none" | "sm" | "md" | "lg" | "full",
+  string
+> = {
   none: "0px",
   sm: "var(--ui-radius-sm)",
   md: "var(--ui-radius-md)",
@@ -58,255 +90,457 @@ const radiusMap: Record<string, string> = {
   full: "var(--ui-radius-full)",
 };
 
-const variantMap = {
+const variantMap: Record<
+  IconButtonVariant,
+  {
+    background: string;
+    color: string;
+    hoverBackground: string;
+    activeBackground: string;
+    border: string;
+  }
+> = {
   ghost: {
-    bg: "transparent",
-    fg: "var(--ui-text)",
-    hover: "var(--ui-surface-hover)",
-    active: "var(--ui-surface-hover)",
-    border: "1px solid var(--ui-border)",
+    background: "transparent",
+    color: "var(--ui-text)",
+    hoverBackground:
+      "var(--ui-surface-hover)",
+    activeBackground:
+      "var(--ui-surface-hover)",
+    border:
+      "1px solid var(--ui-border)",
   },
 
   solid: {
-    bg: "var(--ui-primary)",
-    fg: "var(--ui-primary-contrast)",
-    hover: "var(--ui-primary-hover)",
-    active: "var(--ui-primary-hover)",
-    border: "1px solid transparent",
+    background: "var(--ui-primary)",
+    color: "var(--ui-primary-contrast)",
+    hoverBackground:
+      "var(--ui-primary-hover)",
+    activeBackground:
+      "var(--ui-primary-hover)",
+    border:
+      "1px solid transparent",
   },
 
   unstyled: {
-    bg: "transparent",
-    fg: "inherit",
-    hover: "transparent",
-    active: "transparent",
-    border: "1px solid transparent",
+    background: "transparent",
+    color: "inherit",
+    hoverBackground: "transparent",
+    activeBackground: "transparent",
+    border:
+      "1px solid transparent",
   },
-} as const;
+};
 
-export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  (
-    {
-      icon,
-      ariaLabel,
-      variant = "ghost",
-      size = "md",
-      rounded = "full",
-      disabled = false,
-      type = "button",
-      className = "",
-      style,
+function resolveIconButtonSize(
+  size: IconButtonSize
+): number {
+  return typeof size === "number"
+    ? size
+    : sizeMap[size];
+}
 
-      onPress,
+function resolveIconButtonRadius(
+  rounded: IconButtonRounded
+): React.CSSProperties["borderRadius"] {
+  if (
+    rounded === "none" ||
+    rounded === "sm" ||
+    rounded === "md" ||
+    rounded === "lg" ||
+    rounded === "full"
+  ) {
+    return radiusMap[rounded];
+  }
 
-      onPointerEnter,
-      onPointerLeave,
-      onPointerDown,
-      onPointerUp,
-      onPointerCancel,
-      onLostPointerCapture,
+  return rounded;
+}
 
-      onFocus,
-      onBlur,
+type IconButtonRecipeVariants = {
+  variant: IconButtonVariant;
+};
 
-      onKeyDown,
-      onKeyUp,
+type IconButtonRecipeState = {
+  size: IconButtonSize;
+  rounded: IconButtonRounded;
+  hovered: boolean;
+  pressed: boolean;
+  focusVisible: boolean;
+  disabled: boolean;
+};
 
-      styles,
-      slotProps,
+const iconButtonRecipe = defineSlotRecipe<
+  IconButtonSlot,
+  IconButtonRecipeVariants,
+  IconButtonRecipeState
+>({
+  base: {
+    root: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
 
-      ...rest
+      outline: "none",
+
+      touchAction: "manipulation",
+      WebkitTapHighlightColor:
+        "transparent",
+
+      padding: 0,
+      flexShrink: 0,
+
+      transition:
+        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "color var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
     },
-    ref
-  ) => {
-    const motionState = useOptionalUIMotion();
-    const rootSlotProps = slotProps?.root;
 
-    const {
-      onPointerEnter: slotOnPointerEnter,
-      onPointerLeave: slotOnPointerLeave,
-      onPointerDown: slotOnPointerDown,
-      onPointerUp: slotOnPointerUp,
-      onPointerCancel: slotOnPointerCancel,
-      onLostPointerCapture: slotOnLostPointerCapture,
-      onFocus: slotOnFocus,
-      onBlur: slotOnBlur,
-      onKeyDown: slotOnKeyDown,
-      onKeyUp: slotOnKeyUp,
-      onClick: slotOnClick,
-    } = rootSlotProps ?? {};
-    const press = usePress<HTMLButtonElement>({
-      disabled,
-      nativeInteractive: true,
-      onPress,
+    icon: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
 
-      onPointerEnter: composeEventHandlers(
-        onPointerEnter,
-        slotOnPointerEnter
-      ),
+      lineHeight: 1,
+      flexShrink: 0,
+    },
+  },
 
-      onPointerLeave: composeEventHandlers(
-        onPointerLeave,
-        slotOnPointerLeave,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+  resolve: ({
+    variant,
+    size,
+    rounded,
+    hovered,
+    pressed,
+    focusVisible,
+    disabled,
+  }) => {
+    const resolvedSize =
+      resolveIconButtonSize(size);
 
-      onPointerDown: composeEventHandlers(
-        onPointerDown,
-        slotOnPointerDown
-      ),
+    const variantStyles =
+      variantMap[variant];
 
-      onPointerUp: composeEventHandlers(
-        onPointerUp,
-        slotOnPointerUp,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+    return {
+      root: {
+        width: resolvedSize,
+        height: resolvedSize,
+        minWidth: resolvedSize,
+        minHeight: resolvedSize,
 
-      onPointerCancel: composeEventHandlers(
-        onPointerCancel,
-        slotOnPointerCancel,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onLostPointerCapture: composeEventHandlers(
-        onLostPointerCapture,
-        slotOnLostPointerCapture,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onFocus: composeEventHandlers(
-        onFocus,
-        slotOnFocus
-      ),
-
-      onBlur: composeEventHandlers(
-        onBlur,
-        slotOnBlur,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onKeyDown: composeEventHandlers(
-        onKeyDown,
-        slotOnKeyDown
-      ),
-
-      onKeyUp: composeEventHandlers(
-        onKeyUp,
-        slotOnKeyUp
-      ),
-
-      onClick: slotOnClick,
-    });
-
-    const pressMotion = press.state.pressed
-      ? motionState.getPressMotion(motionState.effectiveLevel)
-      : undefined;
-
-    const pxSize = typeof size === "number" ? size : sizeMap[size] ?? 42;
-    const borderRadius = radiusMap[rounded] || rounded;
-    const variantStyles = variantMap[variant];
-
-    const rootSlot = resolveSlot<IconButtonSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        "data-ui-icon-button": "",
-        "data-ui-icon-button-variant": variant,
-        "data-disabled": disabled || undefined,
-        "data-hovered": press.state.hovered || undefined,
-        "data-pressed": press.state.pressed || undefined,
-        "data-focused": press.state.focused || undefined,
-        "data-focus-visible": press.state.focusVisible || undefined,
-      },
-      baseStyle: {
-        width: pxSize,
-        height: pxSize,
-        minWidth: pxSize,
-        minHeight: pxSize,
-        borderRadius,
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
+        borderRadius:
+          resolveIconButtonRadius(
+            rounded
+          ),
 
         background:
-          press.state.pressed && !disabled
-            ? variantStyles.active
-            : press.state.hovered && !disabled
-              ? variantStyles.hover
-              : variantStyles.bg,
+          pressed && !disabled
+            ? variantStyles.activeBackground
+            : hovered && !disabled
+              ? variantStyles.hoverBackground
+              : variantStyles.background,
 
-        color: variantStyles.fg,
-        border: variantStyles.border,
+        color:
+          variantStyles.color,
 
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.6 : 1,
+        border:
+          variantStyles.border,
 
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
 
-        outline: "none",
+        opacity: disabled
+          ? "var(--ui-state-disabled-opacity, 0.6)"
+          : 1,
 
-        boxShadow: press.state.focusVisible
+        boxShadow: focusVisible
           ? "0 0 0 3px var(--ui-focus-ring)"
           : "none",
-
-        touchAction: "manipulation",
-        WebkitTapHighlightColor: "transparent",
-
-        padding: 0,
-        flexShrink: 0,
       },
-    });
+    };
+  },
+});
 
-    const iconSlot = resolveSlot<IconButtonSlot>({
-      slot: "icon",
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
+export const IconButton =
+  React.forwardRef<
+    HTMLButtonElement,
+    IconButtonProps
+  >(
+    (
+      {
+        icon,
+        ariaLabel,
+        variant = "ghost",
+        size = "md",
+        rounded = "full",
+        disabled = false,
+        type = "button",
+        className = "",
+        style,
+
+        onPress,
+
+        onPointerEnter,
+        onPointerLeave,
+        onPointerDown,
+        onPointerUp,
+        onPointerCancel,
+        onLostPointerCapture,
+
+        onFocus,
+        onBlur,
+
+        onKeyDown,
+        onKeyUp,
+
+        styles,
+        slotProps,
+
+        ...rest
       },
-      baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        lineHeight: 1,
-        flexShrink: 0,
-      },
-    });
+      ref
+    ) => {
+      const motionState =
+        useOptionalUIMotion();
 
-    return (
-      <motion.button
-        {...rest}
-        {...toMotionSlotProps(rootSlot)}
-        {...press.pressProps}
-        ref={ref}
-        type={type}
-        aria-label={ariaLabel}
-        disabled={disabled}
-        animate={pressMotion}
-        transition={motionState.getTransition(
-          motionState.effectiveLevel,
-          "press"
-        )}
-      >
-        <span {...iconSlot}>{icon}</span>
-      </motion.button>
-    );
-  }
-);
+      const rootSlotProps =
+        slotProps?.root;
 
-IconButton.displayName = "IconButton";
+      const {
+        onPointerEnter:
+          slotOnPointerEnter,
+
+        onPointerLeave:
+          slotOnPointerLeave,
+
+        onPointerDown:
+          slotOnPointerDown,
+
+        onPointerUp:
+          slotOnPointerUp,
+
+        onPointerCancel:
+          slotOnPointerCancel,
+
+        onLostPointerCapture:
+          slotOnLostPointerCapture,
+
+        onFocus:
+          slotOnFocus,
+
+        onBlur:
+          slotOnBlur,
+
+        onKeyDown:
+          slotOnKeyDown,
+
+        onKeyUp:
+          slotOnKeyUp,
+
+        onClick:
+          slotOnClick,
+      } = rootSlotProps ?? {};
+
+      const press =
+        usePress<HTMLButtonElement>({
+          disabled,
+          nativeInteractive: true,
+          onPress,
+
+          onPointerEnter:
+            composeEventHandlers(
+              onPointerEnter,
+              slotOnPointerEnter
+            ),
+
+          onPointerLeave:
+            composeEventHandlers(
+              onPointerLeave,
+              slotOnPointerLeave,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerDown:
+            composeEventHandlers(
+              onPointerDown,
+              slotOnPointerDown
+            ),
+
+          onPointerUp:
+            composeEventHandlers(
+              onPointerUp,
+              slotOnPointerUp,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerCancel:
+            composeEventHandlers(
+              onPointerCancel,
+              slotOnPointerCancel,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onLostPointerCapture:
+            composeEventHandlers(
+              onLostPointerCapture,
+              slotOnLostPointerCapture,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onFocus:
+            composeEventHandlers(
+              onFocus,
+              slotOnFocus
+            ),
+
+          onBlur:
+            composeEventHandlers(
+              onBlur,
+              slotOnBlur,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onKeyDown:
+            composeEventHandlers(
+              onKeyDown,
+              slotOnKeyDown
+            ),
+
+          onKeyUp:
+            composeEventHandlers(
+              onKeyUp,
+              slotOnKeyUp
+            ),
+
+          onClick:
+            slotOnClick,
+        });
+
+      const pressMotion =
+        press.state.pressed
+          ? motionState.getPressMotion(
+              motionState.effectiveLevel
+            )
+          : undefined;
+
+      const recipeStyles =
+        iconButtonRecipe({
+          variant,
+          size,
+          rounded,
+
+          hovered:
+            press.state.hovered,
+
+          pressed:
+            press.state.pressed,
+
+          focusVisible:
+            press.state.focusVisible,
+
+          disabled,
+        });
+
+      const rootSlot =
+        resolveSlot<IconButtonSlot>({
+          slot: "root",
+          styles,
+          slotProps,
+          className,
+          style,
+
+          baseProps: {
+            "data-ui-icon-button":
+              "",
+
+            "data-ui-icon-button-variant":
+              variant,
+
+            "data-ui-icon-button-size":
+              typeof size === "number"
+                ? size
+                : size,
+
+            "data-disabled":
+              disabled ||
+              undefined,
+
+            "data-hovered":
+              press.state.hovered ||
+              undefined,
+
+            "data-pressed":
+              press.state.pressed ||
+              undefined,
+
+            "data-focused":
+              press.state.focused ||
+              undefined,
+
+            "data-focus-visible":
+              press.state.focusVisible ||
+              undefined,
+          },
+
+          baseStyle:
+            recipeStyles.root,
+        });
+
+      const iconSlot =
+        resolveSlot<IconButtonSlot>({
+          slot: "icon",
+          styles,
+          slotProps,
+
+          baseProps: {
+            "aria-hidden": true,
+          },
+
+          baseStyle:
+            recipeStyles.icon,
+        });
+
+      return (
+        <motion.button
+          {...rest}
+          {...toMotionSlotProps(
+            rootSlot
+          )}
+          {...press.pressProps}
+          ref={ref}
+          type={type}
+          aria-label={ariaLabel}
+          disabled={disabled}
+          animate={pressMotion}
+          transition={motionState.getTransition(
+            motionState.effectiveLevel,
+            "press"
+          )}
+        >
+          <span {...iconSlot}>
+            {icon}
+          </span>
+        </motion.button>
+      );
+    }
+  );
+
+IconButton.displayName =
+  "IconButton";
