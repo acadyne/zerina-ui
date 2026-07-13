@@ -1,5 +1,9 @@
 import React from "react";
 import {
+  defineSlotRecipe,
+  type SlotStyleMap,
+} from "../../../helpers/css";
+import {
   cssSize,
   getOffsetTransform,
 } from "./bottomNavigation.utils";
@@ -10,6 +14,7 @@ import type {
   BottomNavigationIndicator,
   BottomNavigationItemShape,
   BottomNavigationPosition,
+  BottomNavigationSlot,
   BottomNavigationVariant,
 } from "./bottomNavigation.types";
 
@@ -42,6 +47,7 @@ export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
     iconSize: "1.05rem",
     gap: "0.12rem",
   },
+
   comfortable: {
     defaultHeight: 68,
     listPaddingTop: "0.4rem",
@@ -105,9 +111,16 @@ export function getRootSurfaceStyles({
     background: translucent
       ? "color-mix(in srgb, var(--ui-surface) 92%, transparent)"
       : "var(--ui-surface)",
+
     borderTop: "1px solid var(--ui-border)",
-    backdropFilter: translucent ? "blur(14px)" : undefined,
-    WebkitBackdropFilter: translucent ? "blur(14px)" : undefined,
+
+    backdropFilter: translucent
+      ? "blur(14px)"
+      : undefined,
+
+    WebkitBackdropFilter: translucent
+      ? "blur(14px)"
+      : undefined,
   };
 }
 
@@ -127,16 +140,126 @@ export function getListSurfaceStyles({
     marginRight: "0.65rem",
     marginBottom: "0.45rem",
     marginLeft: "0.65rem",
-    borderRadius: "9999px",
+
+    borderRadius: "var(--ui-radius-full)",
     border: "1px solid var(--ui-border)",
+
     background: translucent
       ? "color-mix(in srgb, var(--ui-surface) 88%, transparent)"
       : "var(--ui-surface)",
+
     boxShadow: "var(--ui-shadow-lg)",
-    backdropFilter: translucent ? "blur(16px)" : undefined,
-    WebkitBackdropFilter: translucent ? "blur(16px)" : undefined,
+
+    backdropFilter: translucent
+      ? "blur(16px)"
+      : undefined,
+
+    WebkitBackdropFilter: translucent
+      ? "blur(16px)"
+      : undefined,
   };
 }
+
+type BottomNavigationRecipeVariants = {
+  density: BottomNavigationDensity;
+};
+
+type BottomNavigationRecipeState = {
+  position: BottomNavigationPosition;
+  variant: BottomNavigationVariant;
+  translucent: boolean;
+  safeArea: boolean;
+  height: number | string;
+};
+
+export const bottomNavigationRecipe = defineSlotRecipe<
+  BottomNavigationSlot,
+  BottomNavigationRecipeVariants,
+  BottomNavigationRecipeState
+>({
+  base: {
+    root: {
+      minWidth: 0,
+      boxSizing: "border-box",
+    },
+
+    list: {
+      minWidth: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-around",
+      gap: "0.25rem",
+      boxSizing: "border-box",
+      overflow: "visible",
+    },
+  },
+
+  variants: {
+    density: {
+      compact: {
+        list: {
+          paddingTop:
+            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingTop,
+
+          paddingRight:
+            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingRight,
+
+          paddingBottom:
+            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingBottom,
+
+          paddingLeft:
+            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingLeft,
+        },
+      },
+
+      comfortable: {
+        list: {
+          paddingTop:
+            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingTop,
+
+          paddingRight:
+            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingRight,
+
+          paddingBottom:
+            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingBottom,
+
+          paddingLeft:
+            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingLeft,
+        },
+      },
+    },
+  },
+
+  resolve: ({
+    position,
+    variant,
+    translucent,
+    safeArea,
+    height,
+  }): SlotStyleMap<BottomNavigationSlot> => ({
+    root: {
+      ...getRootPositionStyle(position),
+
+      paddingBottom: safeArea
+        ? "env(safe-area-inset-bottom, 0px)"
+        : undefined,
+
+      ...getRootSurfaceStyles({
+        variant,
+        translucent,
+      }),
+    },
+
+    list: {
+      height: cssSize(height),
+
+      ...getListSurfaceStyles({
+        variant,
+        translucent,
+      }),
+    },
+  }),
+});
 
 export function getItemBackground({
   active,
@@ -145,8 +268,16 @@ export function getItemBackground({
   active: boolean;
   indicator: BottomNavigationIndicator;
 }): string {
-  if (!active) return "transparent";
-  if (indicator === "none" || indicator === "dot") return "transparent";
+  if (!active) {
+    return "transparent";
+  }
+
+  if (
+    indicator === "none" ||
+    indicator === "dot"
+  ) {
+    return "transparent";
+  }
 
   return "color-mix(in srgb, var(--ui-primary) 16%, transparent)";
 }
@@ -158,7 +289,9 @@ export function getItemBorderColor({
   active: boolean;
   indicator: BottomNavigationIndicator;
 }): string {
-  if (!active) return "transparent";
+  if (!active) {
+    return "transparent";
+  }
 
   if (indicator === "pill") {
     return "color-mix(in srgb, var(--ui-primary) 32%, transparent)";
@@ -174,9 +307,17 @@ export function getItemBorderRadius({
   indicator: BottomNavigationIndicator;
   shape: BottomNavigationItemShape;
 }): string | number {
-  if (shape === "none") return 0;
-  if (shape === "pill" || shape === "circle") return "9999px";
-  if (indicator === "pill") return "9999px";
+  if (shape === "none") {
+    return 0;
+  }
+
+  if (
+    shape === "pill" ||
+    shape === "circle" ||
+    indicator === "pill"
+  ) {
+    return "var(--ui-radius-full)";
+  }
 
   return "var(--ui-radius-lg)";
 }
@@ -188,7 +329,8 @@ export function getBadgePlacementStyles({
   placement: BottomNavigationBadgePlacement;
   offset?: BottomNavigationBadgeOffset;
 }): React.CSSProperties {
-  const offsetTransform = getOffsetTransform(offset);
+  const offsetTransform =
+    getOffsetTransform(offset);
 
   if (placement === "top-center") {
     return {
@@ -198,6 +340,7 @@ export function getBadgePlacementStyles({
       zIndex: 5,
       minWidth: 0,
       pointerEvents: "none",
+
       transform: offsetTransform
         ? `translateX(-50%) ${offsetTransform}`
         : "translateX(-50%)",
@@ -212,6 +355,7 @@ export function getBadgePlacementStyles({
       zIndex: 5,
       minWidth: 0,
       pointerEvents: "none",
+
       transform: offsetTransform
         ? `translateY(-50%) ${offsetTransform}`
         : "translateY(-50%)",

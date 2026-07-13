@@ -10,10 +10,7 @@ import {
 import { BottomNavigationItem } from "./BottomNavigationItem";
 import {
   BOTTOM_NAVIGATION_DENSITY_MAP,
-  cssSize,
-  getListSurfaceStyles,
-  getRootPositionStyle,
-  getRootSurfaceStyles,
+  bottomNavigationRecipe,
 } from "./bottomNavigation.styles";
 import type {
   BottomNavigationProps,
@@ -61,20 +58,25 @@ const BottomNavigationRoot = React.forwardRef<
     },
     ref
   ) => {
-    const isControlled = value !== undefined;
+    const isControlled =
+      value !== undefined;
 
     const densityStyles =
       BOTTOM_NAVIGATION_DENSITY_MAP[density];
 
     const resolvedHeight =
-      height ?? densityStyles.defaultHeight;
+      height ??
+      densityStyles.defaultHeight;
 
     const [internalValue, setInternalValue] =
-      React.useState<string | null>(defaultValue);
+      React.useState<string | null>(
+        defaultValue
+      );
 
-    const currentValue = isControlled
-      ? value ?? null
-      : internalValue;
+    const currentValue =
+      isControlled
+        ? value ?? null
+        : internalValue;
 
     const setValue = React.useCallback(
       (
@@ -89,7 +91,10 @@ const BottomNavigationRoot = React.forwardRef<
           setInternalValue(nextValue);
         }
 
-        onValueChange?.(nextValue, event);
+        onValueChange?.(
+          nextValue,
+          event
+        );
       },
       [
         currentValue,
@@ -144,6 +149,16 @@ const BottomNavigationRoot = React.forwardRef<
         ]
       );
 
+    const recipeStyles =
+      bottomNavigationRecipe({
+        density,
+        position,
+        variant,
+        translucent,
+        safeArea,
+        height: resolvedHeight,
+      });
+
     const rootSlot =
       resolveSlot<BottomNavigationSlot>({
         slot: "root",
@@ -151,32 +166,30 @@ const BottomNavigationRoot = React.forwardRef<
         slotProps,
         className,
         style,
+
         baseProps: {
           "aria-label":
             rest["aria-label"] ??
             "Navegación inferior",
-          "data-ui-bottom-navigation": "",
+
+          "data-ui-bottom-navigation":
+            "",
+
           "data-ui-bottom-navigation-variant":
             variant,
+
           "data-ui-bottom-navigation-density":
             density,
+
           "data-ui-bottom-navigation-indicator":
             indicator,
+
           "data-ui-bottom-navigation-label-behavior":
             labelBehavior,
         },
-        baseStyle: {
-          ...getRootPositionStyle(position),
-          minWidth: 0,
-          paddingBottom: safeArea
-            ? "env(safe-area-inset-bottom, 0px)"
-            : undefined,
-          boxSizing: "border-box",
-          ...getRootSurfaceStyles({
-            variant,
-            translucent,
-          }),
-        },
+
+        baseStyle:
+          recipeStyles.root,
       });
 
     const listSlot =
@@ -184,32 +197,14 @@ const BottomNavigationRoot = React.forwardRef<
         slot: "list",
         styles,
         slotProps,
+
         baseProps: {
           "data-ui-bottom-navigation-list":
             "",
         },
-        baseStyle: {
-          height: cssSize(resolvedHeight),
-          minWidth: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-around",
-          gap: "0.25rem",
-          paddingTop:
-            densityStyles.listPaddingTop,
-          paddingRight:
-            densityStyles.listPaddingRight,
-          paddingBottom:
-            densityStyles.listPaddingBottom,
-          paddingLeft:
-            densityStyles.listPaddingLeft,
-          boxSizing: "border-box",
-          overflow: "visible",
-          ...getListSurfaceStyles({
-            variant,
-            translucent,
-          }),
-        },
+
+        baseStyle:
+          recipeStyles.list,
       });
 
     return (
