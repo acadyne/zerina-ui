@@ -11,6 +11,7 @@ import {
   getSpacingStyles,
 } from "../../helpers";
 import {
+  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -19,6 +20,7 @@ import {
 
 type ButtonSize = "sm" | "md" | "lg";
 type ButtonVariant = "solid" | "outline" | "ghost";
+type ButtonColorScheme = "primary" | "secondary" | "danger";
 
 export type ButtonSlot =
   | "root"
@@ -33,20 +35,20 @@ export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
 
 export interface ButtonProps
   extends Omit<
-    HTMLMotionProps<"button">,
-    | "children"
-    | "color"
-    | "onClick"
-    | "ref"
-    | "size"
-    | "style"
-    | "whileTap"
-  >,
-  SizeProps,
-  SpaceProps {
+      HTMLMotionProps<"button">,
+      | "children"
+      | "color"
+      | "onClick"
+      | "ref"
+      | "size"
+      | "style"
+      | "whileTap"
+    >,
+    SizeProps,
+    SpaceProps {
   children?: React.ReactNode;
 
-  colorScheme?: "primary" | "secondary" | "danger";
+  colorScheme?: ButtonColorScheme;
   variant?: ButtonVariant;
   size?: ButtonSize;
 
@@ -71,32 +73,24 @@ const sizeStyles: Record<
   ButtonSize,
   {
     minHeight: React.CSSProperties["minHeight"];
-    fontSize: React.CSSProperties["fontSize"];
     paddingY: string;
     paddingX: string;
-    borderRadius: React.CSSProperties["borderRadius"];
   }
 > = {
   sm: {
     minHeight: "var(--ui-control-h-sm)",
-    fontSize: "var(--ui-font-size-sm)",
     paddingY: "0.45rem",
     paddingX: "0.8rem",
-    borderRadius: "var(--ui-radius-sm)",
   },
   md: {
     minHeight: "var(--ui-control-h-md)",
-    fontSize: "var(--ui-font-size-md)",
     paddingY: "0.6rem",
     paddingX: "0.95rem",
-    borderRadius: "var(--ui-radius-md)",
   },
   lg: {
     minHeight: "var(--ui-control-h-lg)",
-    fontSize: "var(--ui-font-size-lg)",
     paddingY: "0.75rem",
     paddingX: "1.1rem",
-    borderRadius: "var(--ui-radius-lg)",
   },
 };
 
@@ -151,7 +145,7 @@ const schemeMap = {
 } as const;
 
 function getVariantStyles(
-  colorScheme: NonNullable<ButtonProps["colorScheme"]>,
+  colorScheme: ButtonColorScheme,
   variant: ButtonVariant
 ): {
   background: string;
@@ -198,6 +192,160 @@ function getVariantStyles(
     hoverShadow: "0 8px 18px rgba(0, 0, 0, 0.18)",
   };
 }
+
+type ButtonRecipeVariants = {
+  variant: ButtonVariant;
+  size: ButtonSize;
+  colorScheme: ButtonColorScheme;
+};
+
+type ButtonRecipeState = {
+  hovered: boolean;
+  pressed: boolean;
+  focusVisible: boolean;
+  disabled: boolean;
+};
+
+const buttonRecipe = defineSlotRecipe<
+  ButtonSlot,
+  ButtonRecipeVariants,
+  ButtonRecipeState
+>({
+  base: {
+    root: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "0.55rem",
+
+      lineHeight: 1.1,
+      fontWeight: 700,
+      letterSpacing: "0.2px",
+
+      touchAction: "manipulation",
+      userSelect: "none",
+      WebkitTapHighlightColor: "transparent",
+
+      whiteSpace: "nowrap",
+      verticalAlign: "middle",
+
+      outline: "none",
+
+      transition:
+        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "color var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+    },
+
+    spinner: {
+      width: 16,
+      height: 16,
+      borderRadius: "var(--ui-radius-full)",
+      borderTopColor: "transparent",
+      animation: "ui-spin 0.8s linear infinite",
+      flexShrink: 0,
+    },
+
+    content: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 0,
+    },
+
+    leftIcon: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      lineHeight: 1,
+    },
+
+    rightIcon: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      lineHeight: 1,
+    },
+  },
+
+  variants: {
+    size: {
+      sm: {
+        root: {
+          minHeight: "var(--ui-control-h-sm)",
+          fontSize: "var(--ui-font-size-sm)",
+          paddingBlock: "0.45rem",
+          paddingInline: "0.8rem",
+          borderRadius: "var(--ui-radius-sm)",
+        },
+      },
+
+      md: {
+        root: {
+          minHeight: "var(--ui-control-h-md)",
+          fontSize: "var(--ui-font-size-md)",
+          paddingBlock: "0.6rem",
+          paddingInline: "0.95rem",
+          borderRadius: "var(--ui-radius-md)",
+        },
+      },
+
+      lg: {
+        root: {
+          minHeight: "var(--ui-control-h-lg)",
+          fontSize: "var(--ui-font-size-lg)",
+          paddingBlock: "0.75rem",
+          paddingInline: "1.1rem",
+          borderRadius: "var(--ui-radius-lg)",
+        },
+      },
+    },
+  },
+
+  resolve: ({
+    variant,
+    colorScheme,
+    hovered,
+    pressed,
+    focusVisible,
+    disabled,
+  }) => {
+    const variantStyle = getVariantStyles(colorScheme, variant);
+
+    const shadow =
+      hovered && !disabled
+        ? variantStyle.hoverShadow
+        : variantStyle.shadow;
+
+    return {
+      root: {
+        opacity: disabled
+          ? "var(--ui-state-disabled-opacity)"
+          : 1,
+
+        cursor: disabled ? "not-allowed" : "pointer",
+
+        boxShadow: focusVisible
+          ? `0 0 0 3px var(--ui-focus-ring), ${shadow}`
+          : shadow,
+
+        background:
+          pressed && !disabled
+            ? variantStyle.activeBackground
+            : hovered && !disabled
+              ? variantStyle.hoverBackground
+              : variantStyle.background,
+
+        color: variantStyle.color,
+        border: variantStyle.border,
+      },
+    };
+  },
+});
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -268,7 +416,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const isDisabled = disabled || isLoading;
     const sizeStyle = sizeStyles[size];
-    const variantStyle = getVariantStyles(colorScheme, variant);
     const rootSlotProps = slotProps?.root;
 
     const {
@@ -362,8 +509,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ? motionState.getPressMotion(motionState.effectiveLevel)
       : undefined;
 
+    const recipeStyles = buttonRecipe({
+      variant,
+      size,
+      colorScheme,
+      hovered: press.state.hovered,
+      pressed: press.state.pressed,
+      focusVisible: press.state.focusVisible,
+      disabled: isDisabled,
+    });
+
     const spinnerColor =
-      variant === "solid" ? "rgba(255,255,255,0.78)" : "currentColor";
+      variant === "solid"
+        ? "rgba(255,255,255,0.78)"
+        : "currentColor";
 
     const rootSlot = resolveSlot<ButtonSlot>({
       slot: "root",
@@ -384,37 +543,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "data-focus-visible": press.state.focusVisible || undefined,
       },
       baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "0.55rem",
-
-        lineHeight: 1.1,
-        fontWeight: 700,
-        letterSpacing: "0.2px",
-
-        touchAction: "manipulation",
-        userSelect: "none",
-        WebkitTapHighlightColor: "transparent",
-
-        whiteSpace: "nowrap",
-        verticalAlign: "middle",
-
-        opacity: isDisabled ? 0.62 : 1,
-        cursor: isDisabled ? "not-allowed" : "pointer",
-        outline: "none",
-
-        boxShadow: press.state.focusVisible
-          ? `0 0 0 3px var(--ui-focus-ring), ${press.state.hovered && !isDisabled
-            ? variantStyle.hoverShadow
-            : variantStyle.shadow
-          }`
-          : press.state.hovered && !isDisabled
-            ? variantStyle.hoverShadow
-            : variantStyle.shadow,
-
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+        ...recipeStyles.root,
 
         ...getSizeStyles({
           w,
@@ -445,18 +574,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         width: fullWidth ? "100%" : w,
         minWidth: fullWidth ? 0 : minW,
 
-        fontSize: sizeStyle.fontSize,
-        borderRadius: rounded ?? sizeStyle.borderRadius,
-
-        background:
-          press.state.pressed && !isDisabled
-            ? variantStyle.activeBackground
-            : press.state.hovered && !isDisabled
-              ? variantStyle.hoverBackground
-              : variantStyle.background,
-
-        color: variantStyle.color,
-        border: variantStyle.border,
+        borderRadius:
+          rounded ?? recipeStyles.root?.borderRadius,
       },
     });
 
@@ -468,13 +587,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "aria-hidden": true,
       },
       baseStyle: {
-        width: 16,
-        height: 16,
-        borderRadius: "9999px",
+        ...recipeStyles.spinner,
         border: `2px solid ${spinnerColor}`,
-        borderTopColor: "transparent",
-        animation: "ui-spin 0.8s linear infinite",
-        flexShrink: 0,
       },
     });
 
@@ -483,10 +597,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       styles,
       slotProps,
       baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: 0,
+        ...recipeStyles.content,
         opacity: isLoading ? 0.95 : undefined,
       },
     });
@@ -498,13 +609,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseProps: {
         "aria-hidden": true,
       },
-      baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        lineHeight: 1,
-      },
+      baseStyle: recipeStyles.leftIcon,
     });
 
     const rightIconSlot = resolveSlot<ButtonSlot>({
@@ -514,13 +619,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseProps: {
         "aria-hidden": true,
       },
-      baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        lineHeight: 1,
-      },
+      baseStyle: recipeStyles.rightIcon,
     });
 
     return (
@@ -545,9 +644,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           </>
         ) : (
           <>
-            {leftIcon ? <span {...leftIconSlot}>{leftIcon}</span> : null}
+            {leftIcon ? (
+              <span {...leftIconSlot}>{leftIcon}</span>
+            ) : null}
+
             <span {...contentSlot}>{children}</span>
-            {rightIcon ? <span {...rightIconSlot}>{rightIcon}</span> : null}
+
+            {rightIcon ? (
+              <span {...rightIconSlot}>{rightIcon}</span>
+            ) : null}
           </>
         )}
       </motion.button>
