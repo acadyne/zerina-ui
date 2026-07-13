@@ -1,29 +1,20 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigationItem.tsx
 import React from "react";
 import {
-  cx,
-  mergeStyles,
-  resolveMergedSlot,
-  type SlotElementProps,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 import { Pressable } from "../../forms";
 import { Box } from "../../layout";
 import { Typography } from "../../typography";
 import { useBottomNavigationContext } from "./BottomNavigationContext";
 import {
-  BOTTOM_NAVIGATION_DENSITY_MAP,
-  cssSize,
+  bottomNavigationItemRecipe,
   getBadgePlacementStyles,
-  getItemBackground,
-  getItemBorderColor,
-  getItemBorderRadius,
 } from "./bottomNavigation.styles";
 import type {
   BottomNavigationBadgeAnchor,
   BottomNavigationItemProps,
   BottomNavigationSlot,
-  BottomNavigationSlotProps,
-  BottomNavigationStyles,
 } from "./bottomNavigation.types";
 
 function renderAnchoredBadge({
@@ -40,75 +31,6 @@ function renderAnchoredBadge({
   }
 
   return badgeNode;
-}
-
-function resolveNavigationItemSlot({
-  slots,
-  ctxStyles,
-  ctxSlotProps,
-  styles,
-  slotProps,
-  className,
-  style,
-  baseStyle,
-  baseProps,
-}: {
-  slots: BottomNavigationSlot[];
-
-  ctxStyles?:
-    BottomNavigationStyles;
-
-  ctxSlotProps?:
-    BottomNavigationSlotProps;
-
-  styles?:
-    BottomNavigationStyles;
-
-  slotProps?:
-    BottomNavigationSlotProps;
-
-  className?: string;
-  style?: React.CSSProperties;
-
-  baseStyle?:
-    React.CSSProperties;
-
-  baseProps?:
-    SlotElementProps;
-}): SlotElementProps {
-  const contextSlot =
-    resolveMergedSlot({
-      slots,
-      styles: ctxStyles,
-      slotProps:
-        ctxSlotProps,
-      baseStyle,
-      baseProps,
-    });
-
-  const localSlot =
-    resolveMergedSlot({
-      slots,
-      styles,
-      slotProps,
-    });
-
-  return {
-    ...contextSlot,
-    ...localSlot,
-
-    className: cx(
-      contextSlot.className,
-      className,
-      localSlot.className
-    ),
-
-    style: mergeStyles(
-      contextSlot.style,
-      localSlot.style,
-      style
-    ),
-  };
 }
 
 export const BottomNavigationItem =
@@ -158,11 +80,6 @@ export const BottomNavigationItem =
       const itemLabel =
         children ?? label;
 
-      const densityStyles =
-        BOTTOM_NAVIGATION_DENSITY_MAP[
-          ctx.density
-        ];
-
       const resolvedLabelBehavior =
         labelBehavior ??
         ctx.labelBehavior;
@@ -202,11 +119,9 @@ export const BottomNavigationItem =
       const showLabel =
         Boolean(itemLabel) &&
         (
-          resolvedLabelBehavior ===
-            "always" ||
+          resolvedLabelBehavior === "always" ||
           (
-            resolvedLabelBehavior ===
-              "active" &&
+            resolvedLabelBehavior === "active" &&
             active
           )
         );
@@ -214,65 +129,72 @@ export const BottomNavigationItem =
       const itemSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "item",
-              "activeItem",
-            ]
+          ? ["item", "activeItem"]
           : ["item"];
 
       const contentSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "content",
-              "activeContent",
-            ]
+          ? ["content", "activeContent"]
           : ["content"];
 
       const iconWrapSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "iconWrap",
-              "activeIconWrap",
-            ]
+          ? ["iconWrap", "activeIconWrap"]
           : ["iconWrap"];
 
       const iconSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "icon",
-              "activeIcon",
-            ]
+          ? ["icon", "activeIcon"]
           : ["icon"];
 
       const labelSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "label",
-              "activeLabel",
-            ]
+          ? ["label", "activeLabel"]
           : ["label"];
 
       const badgeSlots:
         BottomNavigationSlot[] =
         active
-          ? [
-              "badge",
-              "activeBadge",
-            ]
+          ? ["badge", "activeBadge"]
           : ["badge"];
 
+      const recipeStyles =
+        bottomNavigationItemRecipe({
+          density: ctx.density,
+          active,
+          disabled,
+
+          indicator:
+            resolvedIndicator,
+
+          shape:
+            resolvedItemShape,
+
+          iconPosition:
+            resolvedIconPosition,
+
+          itemMinWidth:
+            resolvedItemMinWidth,
+
+          hasBadge:
+            Boolean(badge),
+
+          badgeAnchor:
+            resolvedBadgeAnchor,
+        });
+
       const itemSlot =
-        resolveNavigationItemSlot({
+        resolveLayeredSlot({
           slots: itemSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
@@ -308,102 +230,18 @@ export const BottomNavigationItem =
                 : undefined,
           },
 
-          baseStyle: {
-            flex: "1 1 0",
-
-            minWidth:
-              resolvedItemMinWidth !==
-              undefined
-                ? cssSize(
-                    resolvedItemMinWidth
-                  )
-                : 0,
-
-            position:
-              "relative",
-
-            border:
-              "1px solid",
-
-            borderColor:
-              getItemBorderColor({
-                active,
-                indicator:
-                  resolvedIndicator,
-              }),
-
-            borderRadius:
-              getItemBorderRadius({
-                indicator:
-                  resolvedIndicator,
-
-                shape:
-                  resolvedItemShape,
-              }),
-
-            background:
-              getItemBackground({
-                active,
-                indicator:
-                  resolvedIndicator,
-              }),
-
-            color:
-              active
-                ? "var(--ui-text)"
-                : "var(--ui-text-muted)",
-
-            opacity:
-              disabled
-                ? "var(--ui-state-disabled-opacity, 0.62)"
-                : 1,
-
-            display: "flex",
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            paddingTop:
-              densityStyles
-                .itemPaddingTop,
-
-            paddingRight:
-              densityStyles
-                .itemPaddingRight,
-
-            paddingBottom:
-              densityStyles
-                .itemPaddingBottom,
-
-            paddingLeft:
-              densityStyles
-                .itemPaddingLeft,
-
-            textAlign:
-              "center",
-
-            overflow:
-              "visible",
-
-            transition:
-              "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-              "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-              "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-              "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-              "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-          },
+          baseStyle:
+            recipeStyles.item,
         });
 
       const contentSlot =
-        resolveNavigationItemSlot({
+        resolveLayeredSlot({
           slots: contentSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
@@ -414,50 +252,18 @@ export const BottomNavigationItem =
               "",
           },
 
-          baseStyle: {
-            minWidth: 0,
-            minHeight: 0,
-
-            position:
-              "relative",
-
-            display: "flex",
-
-            flexDirection:
-              resolvedIconPosition ===
-              "start"
-                ? "row"
-                : "column",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            gap:
-              densityStyles.gap,
-
-            overflow:
-              "visible",
-
-            borderRadius:
-              "inherit",
-
-            boxSizing:
-              "border-box",
-          },
+          baseStyle:
+            recipeStyles.content,
         });
 
       const iconWrapSlot =
-        resolveNavigationItemSlot({
-          slots:
-            iconWrapSlots,
+        resolveLayeredSlot({
+          slots: iconWrapSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
@@ -468,90 +274,42 @@ export const BottomNavigationItem =
               "",
           },
 
-          baseStyle: {
-            position:
-              "relative",
-
-            display:
-              "inline-flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            width:
-              badge &&
-              resolvedBadgeAnchor ===
-                "icon"
-                ? "1.65rem"
-                : undefined,
-
-            height:
-              badge &&
-              resolvedBadgeAnchor ===
-                "icon"
-                ? "1.35rem"
-                : undefined,
-
-            minWidth: 0,
-            lineHeight: 1,
-            flexShrink: 0,
-
-            overflow:
-              "visible",
-          },
+          baseStyle:
+            recipeStyles.iconWrap,
         });
 
       const iconSlot =
-        resolveNavigationItemSlot({
+        resolveLayeredSlot({
           slots: iconSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden":
-              true,
+            "aria-hidden": true,
 
             "data-ui-bottom-navigation-item-icon":
               "",
           },
 
-          baseStyle: {
-            fontSize:
-              densityStyles
-                .iconSize,
-
-            lineHeight: 1,
-
-            display:
-              "inline-flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-          },
+          baseStyle:
+            recipeStyles.icon,
         });
 
       const labelSlot =
-        resolveNavigationItemSlot({
-          slots:
-            labelSlots,
+        resolveLayeredSlot({
+          slots: labelSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
@@ -562,37 +320,18 @@ export const BottomNavigationItem =
               "",
           },
 
-          baseStyle: {
-            maxWidth: "100%",
-            minWidth: 0,
-            margin: 0,
-
-            overflow:
-              "hidden",
-
-            textOverflow:
-              "ellipsis",
-
-            whiteSpace:
-              "nowrap",
-
-            color:
-              "inherit",
-
-            lineHeight:
-              1.1,
-          },
+          baseStyle:
+            recipeStyles.label,
         });
 
       const badgeSlot =
-        resolveNavigationItemSlot({
-          slots:
-            badgeSlots,
+        resolveLayeredSlot({
+          slots: badgeSlots,
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
@@ -614,49 +353,27 @@ export const BottomNavigationItem =
         });
 
       const dotSlot =
-        resolveNavigationItemSlot({
+        resolveLayeredSlot({
           slots: ["dot"],
 
-          ctxStyles:
+          contextStyles:
             ctx.styles,
 
-          ctxSlotProps:
+          contextSlotProps:
             ctx.slotProps,
 
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden":
-              true,
+            "aria-hidden": true,
 
             "data-ui-bottom-navigation-item-dot":
               "",
           },
 
-          baseStyle: {
-            position:
-              "absolute",
-
-            left: "50%",
-            bottom:
-              "0.18rem",
-
-            width: 18,
-            height: 4,
-
-            borderRadius:
-              "9999px",
-
-            transform:
-              "translateX(-50%)",
-
-            background:
-              "var(--ui-primary)",
-
-            pointerEvents:
-              "none",
-          },
+          baseStyle:
+            recipeStyles.dot,
         });
 
       const badgeNode =
@@ -692,13 +409,9 @@ export const BottomNavigationItem =
           }}
         >
           <Box {...contentSlot}>
-            <Box
-              {...iconWrapSlot}
-            >
+            <Box {...iconWrapSlot}>
               {icon ? (
-                <Box
-                  {...iconSlot}
-                >
+                <Box {...iconSlot}>
                   {icon}
                 </Box>
               ) : null}
@@ -707,8 +420,7 @@ export const BottomNavigationItem =
                 anchor:
                   resolvedBadgeAnchor,
 
-                target:
-                  "icon",
+                target: "icon",
 
                 badgeNode,
               })}
@@ -733,8 +445,7 @@ export const BottomNavigationItem =
               anchor:
                 resolvedBadgeAnchor,
 
-              target:
-                "content",
+              target: "content",
 
               badgeNode,
             })}
@@ -744,14 +455,12 @@ export const BottomNavigationItem =
             anchor:
               resolvedBadgeAnchor,
 
-            target:
-              "item",
+            target: "item",
 
             badgeNode,
           })}
 
-          {resolvedIndicator ===
-            "dot" &&
+          {resolvedIndicator === "dot" &&
           active ? (
             <Box {...dotSlot} />
           ) : null}

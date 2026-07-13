@@ -11,6 +11,7 @@ import type {
   BottomNavigationBadgeOffset,
   BottomNavigationBadgePlacement,
   BottomNavigationDensity,
+  BottomNavigationIconPosition,
   BottomNavigationIndicator,
   BottomNavigationItemShape,
   BottomNavigationPosition,
@@ -98,7 +99,10 @@ export function getRootSurfaceStyles({
   variant: BottomNavigationVariant;
   translucent: boolean;
 }): React.CSSProperties {
-  if (variant === "plain" || variant === "floating") {
+  if (
+    variant === "plain" ||
+    variant === "floating"
+  ) {
     return {
       background: "transparent",
       borderTop: "1px solid transparent",
@@ -112,7 +116,8 @@ export function getRootSurfaceStyles({
       ? "color-mix(in srgb, var(--ui-surface) 92%, transparent)"
       : "var(--ui-surface)",
 
-    borderTop: "1px solid var(--ui-border)",
+    borderTop:
+      "1px solid var(--ui-border)",
 
     backdropFilter: translucent
       ? "blur(14px)"
@@ -141,14 +146,18 @@ export function getListSurfaceStyles({
     marginBottom: "0.45rem",
     marginLeft: "0.65rem",
 
-    borderRadius: "var(--ui-radius-full)",
-    border: "1px solid var(--ui-border)",
+    borderRadius:
+      "var(--ui-radius-full)",
+
+    border:
+      "1px solid var(--ui-border)",
 
     background: translucent
       ? "color-mix(in srgb, var(--ui-surface) 88%, transparent)"
       : "var(--ui-surface)",
 
-    boxShadow: "var(--ui-shadow-lg)",
+    boxShadow:
+      "var(--ui-shadow-lg)",
 
     backdropFilter: translucent
       ? "blur(16px)"
@@ -172,94 +181,383 @@ type BottomNavigationRecipeState = {
   height: number | string;
 };
 
-export const bottomNavigationRecipe = defineSlotRecipe<
-  BottomNavigationSlot,
-  BottomNavigationRecipeVariants,
-  BottomNavigationRecipeState
->({
-  base: {
-    root: {
-      minWidth: 0,
-      boxSizing: "border-box",
-    },
-
-    list: {
-      minWidth: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-around",
-      gap: "0.25rem",
-      boxSizing: "border-box",
-      overflow: "visible",
-    },
-  },
-
-  variants: {
-    density: {
-      compact: {
-        list: {
-          paddingTop:
-            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingTop,
-
-          paddingRight:
-            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingRight,
-
-          paddingBottom:
-            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingBottom,
-
-          paddingLeft:
-            BOTTOM_NAVIGATION_DENSITY_MAP.compact.listPaddingLeft,
-        },
+export const bottomNavigationRecipe =
+  defineSlotRecipe<
+    BottomNavigationSlot,
+    BottomNavigationRecipeVariants,
+    BottomNavigationRecipeState
+  >({
+    base: {
+      root: {
+        minWidth: 0,
+        boxSizing: "border-box",
       },
 
-      comfortable: {
-        list: {
-          paddingTop:
-            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingTop,
+      list: {
+        minWidth: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-around",
+        gap: "0.25rem",
+        boxSizing: "border-box",
+        overflow: "visible",
+      },
+    },
 
-          paddingRight:
-            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingRight,
+    variants: {
+      density: {
+        compact: {
+          list: {
+            paddingTop:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .listPaddingTop,
 
-          paddingBottom:
-            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingBottom,
+            paddingRight:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .listPaddingRight,
 
-          paddingLeft:
-            BOTTOM_NAVIGATION_DENSITY_MAP.comfortable.listPaddingLeft,
+            paddingBottom:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .listPaddingBottom,
+
+            paddingLeft:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .listPaddingLeft,
+          },
+        },
+
+        comfortable: {
+          list: {
+            paddingTop:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .listPaddingTop,
+
+            paddingRight:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .listPaddingRight,
+
+            paddingBottom:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .listPaddingBottom,
+
+            paddingLeft:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .listPaddingLeft,
+          },
         },
       },
     },
-  },
 
-  resolve: ({
-    position,
-    variant,
-    translucent,
-    safeArea,
-    height,
-  }): SlotStyleMap<BottomNavigationSlot> => ({
-    root: {
-      ...getRootPositionStyle(position),
+    resolve: ({
+      position,
+      variant,
+      translucent,
+      safeArea,
+      height,
+    }): SlotStyleMap<BottomNavigationSlot> => ({
+      root: {
+        ...getRootPositionStyle(position),
 
-      paddingBottom: safeArea
-        ? "env(safe-area-inset-bottom, 0px)"
-        : undefined,
+        paddingBottom: safeArea
+          ? "env(safe-area-inset-bottom, 0px)"
+          : undefined,
 
-      ...getRootSurfaceStyles({
-        variant,
-        translucent,
-      }),
+        ...getRootSurfaceStyles({
+          variant,
+          translucent,
+        }),
+      },
+
+      list: {
+        height: cssSize(height),
+
+        ...getListSurfaceStyles({
+          variant,
+          translucent,
+        }),
+      },
+    }),
+  });
+
+type BottomNavigationItemRecipeVariants = {
+  density: BottomNavigationDensity;
+};
+
+type BottomNavigationItemRecipeState = {
+  active: boolean;
+  disabled: boolean;
+
+  indicator:
+    BottomNavigationIndicator;
+
+  shape:
+    BottomNavigationItemShape;
+
+  iconPosition:
+    BottomNavigationIconPosition;
+
+  itemMinWidth?: number | string;
+
+  hasBadge: boolean;
+
+  badgeAnchor:
+    | "icon"
+    | "content"
+    | "item";
+};
+
+export const bottomNavigationItemRecipe =
+  defineSlotRecipe<
+    BottomNavigationSlot,
+    BottomNavigationItemRecipeVariants,
+    BottomNavigationItemRecipeState
+  >({
+    base: {
+      item: {
+        flex: "1 1 0",
+        position: "relative",
+
+        border: "1px solid",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        textAlign: "center",
+        overflow: "visible",
+
+        transition:
+          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "color var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+      },
+
+      content: {
+        minWidth: 0,
+        minHeight: 0,
+
+        position: "relative",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        overflow: "visible",
+
+        borderRadius: "inherit",
+        boxSizing: "border-box",
+      },
+
+      iconWrap: {
+        position: "relative",
+
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        minWidth: 0,
+        lineHeight: 1,
+        flexShrink: 0,
+        overflow: "visible",
+      },
+
+      icon: {
+        lineHeight: 1,
+
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+
+      label: {
+        maxWidth: "100%",
+        minWidth: 0,
+        margin: 0,
+
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+
+        color: "inherit",
+        lineHeight: 1.1,
+      },
+
+      dot: {
+        position: "absolute",
+        left: "50%",
+        bottom: "0.18rem",
+
+        width: 18,
+        height: 4,
+
+        borderRadius:
+          "var(--ui-radius-full)",
+
+        transform:
+          "translateX(-50%)",
+
+        background:
+          "var(--ui-primary)",
+
+        pointerEvents: "none",
+      },
     },
 
-    list: {
-      height: cssSize(height),
+    variants: {
+      density: {
+        compact: {
+          item: {
+            paddingTop:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .itemPaddingTop,
 
-      ...getListSurfaceStyles({
-        variant,
-        translucent,
-      }),
+            paddingRight:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .itemPaddingRight,
+
+            paddingBottom:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .itemPaddingBottom,
+
+            paddingLeft:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .itemPaddingLeft,
+          },
+
+          content: {
+            gap:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .gap,
+          },
+
+          icon: {
+            fontSize:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .compact
+                .iconSize,
+          },
+        },
+
+        comfortable: {
+          item: {
+            paddingTop:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .itemPaddingTop,
+
+            paddingRight:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .itemPaddingRight,
+
+            paddingBottom:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .itemPaddingBottom,
+
+            paddingLeft:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .itemPaddingLeft,
+          },
+
+          content: {
+            gap:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .gap,
+          },
+
+          icon: {
+            fontSize:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .comfortable
+                .iconSize,
+          },
+        },
+      },
     },
-  }),
-});
+
+    resolve: ({
+      active,
+      disabled,
+      indicator,
+      shape,
+      iconPosition,
+      itemMinWidth,
+      hasBadge,
+      badgeAnchor,
+    }): SlotStyleMap<BottomNavigationSlot> => ({
+      item: {
+        minWidth:
+          itemMinWidth !== undefined
+            ? cssSize(itemMinWidth)
+            : 0,
+
+        borderColor:
+          getItemBorderColor({
+            active,
+            indicator,
+          }),
+
+        borderRadius:
+          getItemBorderRadius({
+            indicator,
+            shape,
+          }),
+
+        background:
+          getItemBackground({
+            active,
+            indicator,
+          }),
+
+        color: active
+          ? "var(--ui-text)"
+          : "var(--ui-text-muted)",
+
+        opacity: disabled
+          ? "var(--ui-state-disabled-opacity)"
+          : 1,
+      },
+
+      content: {
+        flexDirection:
+          iconPosition === "start"
+            ? "row"
+            : "column",
+      },
+
+      iconWrap: {
+        width:
+          hasBadge &&
+          badgeAnchor === "icon"
+            ? "1.65rem"
+            : undefined,
+
+        height:
+          hasBadge &&
+          badgeAnchor === "icon"
+            ? "1.35rem"
+            : undefined,
+      },
+    }),
+  });
 
 export function getItemBackground({
   active,
@@ -326,8 +624,11 @@ export function getBadgePlacementStyles({
   placement,
   offset,
 }: {
-  placement: BottomNavigationBadgePlacement;
-  offset?: BottomNavigationBadgeOffset;
+  placement:
+    BottomNavigationBadgePlacement;
+
+  offset?:
+    BottomNavigationBadgeOffset;
 }): React.CSSProperties {
   const offsetTransform =
     getOffsetTransform(offset);
