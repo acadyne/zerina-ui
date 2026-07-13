@@ -1,29 +1,20 @@
 // src/primitives/navigation/navigation-rail/NavigationRailItem.tsx
 import React from "react";
 import {
-  cx,
-  mergeStyles,
-  resolveMergedSlot,
-  type SlotElementProps,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 import { Pressable } from "../../forms";
 import { Box } from "../../layout";
 import { Typography } from "../../typography";
 import { useNavigationRailContext } from "./NavigationRailContext";
 import {
-  NAVIGATION_RAIL_DENSITY_MAP,
-  cssSize,
   getBadgePlacementStyles,
-  getItemBackground,
-  getItemBorderColor,
-  getItemBorderRadius,
+  navigationRailItemRecipe,
 } from "./navigationRail.styles";
 import type {
   NavigationRailBadgeAnchor,
   NavigationRailItemProps,
   NavigationRailSlot,
-  NavigationRailSlotProps,
-  NavigationRailStyles,
 } from "./navigationRail.types";
 
 function renderAnchoredBadge({
@@ -40,59 +31,6 @@ function renderAnchoredBadge({
   }
 
   return badgeNode;
-}
-
-function resolveNavigationRailItemSlot({
-  slots,
-  ctxStyles,
-  ctxSlotProps,
-  styles,
-  slotProps,
-  className,
-  style,
-  baseStyle,
-  baseProps,
-}: {
-  slots: NavigationRailSlot[];
-  ctxStyles?: NavigationRailStyles;
-  ctxSlotProps?: NavigationRailSlotProps;
-  styles?: NavigationRailStyles;
-  slotProps?: NavigationRailSlotProps;
-  className?: string;
-  style?: React.CSSProperties;
-  baseStyle?: React.CSSProperties;
-  baseProps?: SlotElementProps;
-}): SlotElementProps {
-  const contextSlot =
-    resolveMergedSlot({
-      slots,
-      styles: ctxStyles,
-      slotProps: ctxSlotProps,
-      baseStyle,
-      baseProps,
-    });
-
-  const localSlot =
-    resolveMergedSlot({
-      slots,
-      styles,
-      slotProps,
-    });
-
-  return {
-    ...contextSlot,
-    ...localSlot,
-    className: cx(
-      contextSlot.className,
-      className,
-      localSlot.className
-    ),
-    style: mergeStyles(
-      contextSlot.style,
-      localSlot.style,
-      style
-    ),
-  };
 }
 
 export const NavigationRailItem =
@@ -128,6 +66,7 @@ export const NavigationRailItem =
 
         className = "",
         style,
+
         ...rest
       },
       ref
@@ -140,11 +79,6 @@ export const NavigationRailItem =
 
       const itemLabel =
         children ?? label;
-
-      const densityStyles =
-        NAVIGATION_RAIL_DENSITY_MAP[
-          ctx.density
-        ];
 
       const resolvedLabelBehavior =
         labelBehavior ??
@@ -197,7 +131,10 @@ export const NavigationRailItem =
       const itemSlots:
         NavigationRailSlot[] =
         active
-          ? ["item", "activeItem"]
+          ? [
+              "item",
+              "activeItem",
+            ]
           : ["item"];
 
       const contentSlots:
@@ -221,276 +158,252 @@ export const NavigationRailItem =
       const iconSlots:
         NavigationRailSlot[] =
         active
-          ? ["icon", "activeIcon"]
+          ? [
+              "icon",
+              "activeIcon",
+            ]
           : ["icon"];
 
       const labelSlots:
         NavigationRailSlot[] =
         active
-          ? ["label", "activeLabel"]
+          ? [
+              "label",
+              "activeLabel",
+            ]
           : ["label"];
 
       const badgeSlots:
         NavigationRailSlot[] =
         active
-          ? ["badge", "activeBadge"]
+          ? [
+              "badge",
+              "activeBadge",
+            ]
           : ["badge"];
 
+      const recipeStyles =
+        navigationRailItemRecipe({
+          density:
+            ctx.density,
+
+          active,
+          disabled,
+
+          indicator:
+            resolvedIndicator,
+
+          shape:
+            resolvedItemShape,
+
+          itemMinWidth:
+            resolvedItemMinWidth,
+
+          itemMinHeight:
+            resolvedItemMinHeight,
+
+          hasBadge:
+            Boolean(badge),
+
+          badgeAnchor:
+            resolvedBadgeAnchor,
+        });
+
       const itemSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: itemSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
           className,
           style,
+
           baseProps: {
-            "aria-current": active
-              ? "page"
-              : undefined,
+            "aria-current":
+              active
+                ? "page"
+                : undefined,
+
             "data-active":
-              active || undefined,
+              active ||
+              undefined,
+
             "data-ui-navigation-rail-item":
               "",
+
             "data-ui-navigation-rail-item-active":
-              active || undefined,
+              active ||
+              undefined,
+
             "data-ui-navigation-rail-item-badge-anchor":
               badge
                 ? resolvedBadgeAnchor
                 : undefined,
+
             "data-ui-navigation-rail-item-badge-placement":
               badge
                 ? resolvedBadgePlacement
                 : undefined,
           },
-          baseStyle: {
-            width: "100%",
-            minWidth:
-              resolvedItemMinWidth !==
-              undefined
-                ? cssSize(
-                    resolvedItemMinWidth
-                  )
-                : densityStyles.itemMinWidth,
-            minHeight:
-              resolvedItemMinHeight !==
-              undefined
-                ? cssSize(
-                    resolvedItemMinHeight
-                  )
-                : densityStyles.itemMinHeight,
-            position: "relative",
-            border: "1px solid",
-            borderColor:
-              getItemBorderColor({
-                active,
-                indicator:
-                  resolvedIndicator,
-              }),
-            borderRadius:
-              getItemBorderRadius({
-                indicator:
-                  resolvedIndicator,
-                shape:
-                  resolvedItemShape,
-              }),
-            background:
-              getItemBackground({
-                active,
-                indicator:
-                  resolvedIndicator,
-              }),
-            color: active
-              ? "var(--ui-text)"
-              : "var(--ui-text-muted)",
-            opacity: disabled
-              ? "var(--ui-state-disabled-opacity, 0.62)"
-              : 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingTop:
-              densityStyles.itemPaddingTop,
-            paddingRight:
-              densityStyles.itemPaddingRight,
-            paddingBottom:
-              densityStyles.itemPaddingBottom,
-            paddingLeft:
-              densityStyles.itemPaddingLeft,
-            textAlign: "center",
-            overflow: "visible",
-            transition:
-              "background var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-          },
+
+          baseStyle:
+            recipeStyles.item,
         });
 
       const contentSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: contentSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "data-ui-navigation-rail-item-content":
               "",
           },
-          baseStyle: {
-            width: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: densityStyles.gap,
-            overflow: "visible",
-            borderRadius: "inherit",
-            boxSizing: "border-box",
-          },
+
+          baseStyle:
+            recipeStyles.content,
         });
 
       const iconWrapSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: iconWrapSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "data-ui-navigation-rail-item-icon-wrap":
               "",
           },
-          baseStyle: {
-            position: "relative",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width:
-              badge &&
-              resolvedBadgeAnchor ===
-                "icon"
-                ? "1.65rem"
-                : undefined,
-            height:
-              badge &&
-              resolvedBadgeAnchor ===
-                "icon"
-                ? "1.35rem"
-                : undefined,
-            minWidth: 0,
-            lineHeight: 1,
-            flexShrink: 0,
-            overflow: "visible",
-          },
+
+          baseStyle:
+            recipeStyles.iconWrap,
         });
 
       const iconSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: iconSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "aria-hidden": true,
+
             "data-ui-navigation-rail-item-icon":
               "",
           },
-          baseStyle: {
-            fontSize:
-              densityStyles.iconSize,
-            lineHeight: 1,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          },
+
+          baseStyle:
+            recipeStyles.icon,
         });
 
       const labelSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: labelSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "data-ui-navigation-rail-item-label":
               "",
           },
-          baseStyle: {
-            maxWidth: "100%",
-            minWidth: 0,
-            margin: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            color: "inherit",
-            lineHeight: 1.15,
-          },
+
+          baseStyle:
+            recipeStyles.label,
         });
 
       const badgeSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: badgeSlots,
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "data-ui-navigation-rail-item-badge":
               "",
           },
+
           baseStyle:
             getBadgePlacementStyles({
               placement:
                 resolvedBadgePlacement,
+
               offset:
                 resolvedBadgeOffset,
             }),
         });
 
       const dotSlot =
-        resolveNavigationRailItemSlot({
+        resolveLayeredSlot({
           slots: ["dot"],
-          ctxStyles: ctx.styles,
-          ctxSlotProps:
+
+          contextStyles:
+            ctx.styles,
+
+          contextSlotProps:
             ctx.slotProps,
+
           styles,
           slotProps,
+
           baseProps: {
             "aria-hidden": true,
+
             "data-ui-navigation-rail-item-dot":
               "",
           },
-          baseStyle: {
-            position: "absolute",
-            right: "0.22rem",
-            top: "50%",
-            width: 4,
-            height: 18,
-            borderRadius: "9999px",
-            transform:
-              "translateY(-50%)",
-            background:
-              "var(--ui-primary)",
-            pointerEvents: "none",
-          },
+
+          baseStyle:
+            recipeStyles.dot,
         });
 
-      const badgeNode = badge ? (
-        <Box {...badgeSlot}>
-          {badge}
-        </Box>
-      ) : null;
+      const badgeNode =
+        badge ? (
+          <Box {...badgeSlot}>
+            {badge}
+          </Box>
+        ) : null;
 
       return (
         <Pressable
@@ -528,7 +441,10 @@ export const NavigationRailItem =
               {renderAnchoredBadge({
                 anchor:
                   resolvedBadgeAnchor,
-                target: "icon",
+
+                target:
+                  "icon",
+
                 badgeNode,
               })}
             </Box>
@@ -551,7 +467,10 @@ export const NavigationRailItem =
             {renderAnchoredBadge({
               anchor:
                 resolvedBadgeAnchor,
-              target: "content",
+
+              target:
+                "content",
+
               badgeNode,
             })}
           </Box>
@@ -559,7 +478,10 @@ export const NavigationRailItem =
           {renderAnchoredBadge({
             anchor:
               resolvedBadgeAnchor,
-            target: "item",
+
+            target:
+              "item",
+
             badgeNode,
           })}
 

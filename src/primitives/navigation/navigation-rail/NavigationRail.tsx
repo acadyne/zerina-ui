@@ -10,11 +10,7 @@ import {
 import { NavigationRailItem } from "./NavigationRailItem";
 import {
   NAVIGATION_RAIL_DENSITY_MAP,
-  cssSize,
-  getListAlignmentStyle,
-  getListSurfaceStyles,
-  getRootPositionStyle,
-  getRootSurfaceStyles,
+  navigationRailRecipe,
 } from "./navigationRail.styles";
 import type {
   NavigationRailItemProps,
@@ -72,10 +68,13 @@ const NavigationRailRoot = React.forwardRef<
       value !== undefined;
 
     const densityStyles =
-      NAVIGATION_RAIL_DENSITY_MAP[density];
+      NAVIGATION_RAIL_DENSITY_MAP[
+        density
+      ];
 
     const resolvedWidth =
-      width ?? densityStyles.defaultWidth;
+      width ??
+      densityStyles.defaultWidth;
 
     const [
       internalValue,
@@ -84,21 +83,26 @@ const NavigationRailRoot = React.forwardRef<
       defaultValue
     );
 
-    const currentValue = isControlled
-      ? value ?? null
-      : internalValue;
+    const currentValue =
+      isControlled
+        ? value ?? null
+        : internalValue;
 
     const setValue = React.useCallback(
       (
         nextValue: string,
         event: UIPressEvent<HTMLElement>
       ): void => {
-        if (currentValue === nextValue) {
+        if (
+          currentValue === nextValue
+        ) {
           return;
         }
 
         if (!isControlled) {
-          setInternalValue(nextValue);
+          setInternalValue(
+            nextValue
+          );
         }
 
         onValueChange?.(
@@ -159,6 +163,18 @@ const NavigationRailRoot = React.forwardRef<
         ]
       );
 
+    const recipeStyles =
+      navigationRailRecipe({
+        density,
+        width: resolvedWidth,
+        position,
+        placement,
+        safeArea,
+        translucent,
+        variant,
+        alignment,
+      });
+
     const rootSlot =
       resolveSlot<NavigationRailSlot>({
         slot: "root",
@@ -166,61 +182,36 @@ const NavigationRailRoot = React.forwardRef<
         slotProps,
         className,
         style,
+
         baseProps: {
           "aria-label":
             rest["aria-label"] ??
             "Navegación lateral compacta",
-          "data-ui-navigation-rail": "",
+
+          "data-ui-navigation-rail":
+            "",
+
           "data-ui-navigation-rail-position":
             position,
+
           "data-ui-navigation-rail-placement":
             placement,
+
           "data-ui-navigation-rail-variant":
             variant,
+
           "data-ui-navigation-rail-density":
             density,
+
           "data-ui-navigation-rail-indicator":
             indicator,
+
           "data-ui-navigation-rail-label-behavior":
             labelBehavior,
         },
-        baseStyle: {
-          ...getRootPositionStyle({
-            position,
-            placement,
-          }),
-          width: cssSize(resolvedWidth),
-          minWidth: cssSize(resolvedWidth),
-          maxWidth: cssSize(resolvedWidth),
-          height:
-            position === "static"
-              ? "100%"
-              : undefined,
-          minHeight: 0,
-          paddingTop: safeArea
-            ? "env(safe-area-inset-top, 0px)"
-            : undefined,
-          paddingBottom: safeArea
-            ? "env(safe-area-inset-bottom, 0px)"
-            : undefined,
-          paddingLeft:
-            safeArea &&
-            placement === "left"
-              ? "env(safe-area-inset-left, 0px)"
-              : undefined,
-          paddingRight:
-            safeArea &&
-            placement === "right"
-              ? "env(safe-area-inset-right, 0px)"
-              : undefined,
-          boxSizing: "border-box",
-          color: "var(--ui-text)",
-          ...getRootSurfaceStyles({
-            variant,
-            translucent,
-            placement,
-          }),
-        },
+
+        baseStyle:
+          recipeStyles.root,
       });
 
     const containerSlot =
@@ -228,32 +219,14 @@ const NavigationRailRoot = React.forwardRef<
         slot: "container",
         styles,
         slotProps,
+
         baseProps: {
           "data-ui-navigation-rail-container":
             "",
         },
-        baseStyle: {
-          width: "100%",
-          height: "100%",
-          minWidth: 0,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          boxSizing: "border-box",
-          overflow: "visible",
-          paddingTop:
-            densityStyles.rootPaddingTop,
-          paddingRight:
-            densityStyles.rootPaddingRight,
-          paddingBottom:
-            densityStyles.rootPaddingBottom,
-          paddingLeft:
-            densityStyles.rootPaddingLeft,
-          ...getListSurfaceStyles({
-            variant,
-            translucent,
-          }),
-        },
+
+        baseStyle:
+          recipeStyles.container,
       });
 
     const headerSlot =
@@ -261,17 +234,14 @@ const NavigationRailRoot = React.forwardRef<
         slot: "header",
         styles,
         slotProps,
+
         baseProps: {
           "data-ui-navigation-rail-header":
             "",
         },
-        baseStyle: {
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexShrink: 0,
-          marginBottom: "0.4rem",
-        },
+
+        baseStyle:
+          recipeStyles.header,
       });
 
     const listSlot =
@@ -279,25 +249,14 @@ const NavigationRailRoot = React.forwardRef<
         slot: "list",
         styles,
         slotProps,
+
         baseProps: {
           "data-ui-navigation-rail-list":
             "",
         },
-        baseStyle: {
-          width: "100%",
-          minWidth: 0,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "0.35rem",
-          boxSizing: "border-box",
-          overflow: "visible",
-          flex: 1,
-          ...getListAlignmentStyle(
-            alignment
-          ),
-        },
+
+        baseStyle:
+          recipeStyles.list,
       });
 
     const footerSlot =
@@ -305,17 +264,14 @@ const NavigationRailRoot = React.forwardRef<
         slot: "footer",
         styles,
         slotProps,
+
         baseProps: {
           "data-ui-navigation-rail-footer":
             "",
         },
-        baseStyle: {
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexShrink: 0,
-          marginTop: "0.4rem",
-        },
+
+        baseStyle:
+          recipeStyles.footer,
       });
 
     return (
