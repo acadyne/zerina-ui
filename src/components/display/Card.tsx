@@ -5,6 +5,7 @@ import { usePress, type UIPressEvent } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
+  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -61,6 +62,69 @@ export interface CardProps
   slotProps?: CardSlotProps;
 }
 
+type CardRecipeVariants = Record<never, never>;
+
+type CardRecipeState = {
+  bordered: boolean;
+  interactive: boolean;
+  hovered: boolean;
+  focusVisible: boolean;
+  disabled: boolean;
+  shadow: React.CSSProperties["boxShadow"];
+};
+
+const cardRecipe = defineSlotRecipe<
+  CardSlot,
+  CardRecipeVariants,
+  CardRecipeState
+>({
+  base: {
+    root: {
+      minWidth: 0,
+      background: "var(--ui-surface)",
+      color: "var(--ui-text)",
+      outline: "none",
+
+      transition:
+        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+        "opacity var(--ui-duration-normal) var(--ui-ease-standard)",
+    },
+  },
+
+  resolve: ({
+    bordered,
+    interactive,
+    hovered,
+    focusVisible,
+    disabled,
+    shadow,
+  }) => ({
+    root: {
+      boxShadow: focusVisible
+        ? "0 0 0 3px var(--ui-focus-ring)"
+        : hovered && !disabled
+          ? "var(--ui-shadow-md)"
+          : shadow,
+
+      border: bordered
+        ? `1px solid ${
+            hovered && !disabled
+              ? "var(--ui-border-strong)"
+              : "var(--ui-border)"
+          }`
+        : "1px solid transparent",
+
+      cursor: interactive
+        ? disabled
+          ? "not-allowed"
+          : "pointer"
+        : undefined,
+    },
+  }),
+});
+
 function CardLoadingContent({
   lines = 3,
   animated = true,
@@ -74,13 +138,13 @@ function CardLoadingContent({
 }) {
   const shimmerStyle: React.CSSProperties = animated
     ? {
-      position: "absolute",
-      inset: 0,
-      background:
-        "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight, rgba(255,255,255,0.08)), transparent)",
-      animation:
-        "ui-skeleton-shimmer var(--ui-skeleton-duration, 1.2s) infinite",
-    }
+        position: "absolute",
+        inset: 0,
+        background:
+          "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight, rgba(255,255,255,0.08)), transparent)",
+        animation:
+          "ui-skeleton-shimmer var(--ui-skeleton-duration, 1.2s) infinite",
+      }
     : {};
 
   const blockBase: React.CSSProperties = {
@@ -254,6 +318,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const motionState = useOptionalUIMotion();
+
     const rootSlotProps = slotProps?.root;
 
     const {
@@ -350,6 +415,15 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ? motionState.getPressMotion(motionState.effectiveLevel)
       : undefined;
 
+    const recipeStyles = cardRecipe({
+      bordered,
+      interactive: isInteractive,
+      hovered: press.state.hovered,
+      focusVisible: press.state.focusVisible,
+      disabled: isDisabled,
+      shadow,
+    });
+
     const rootSlot = resolveSlot<CardSlot>({
       slot: "root",
       styles,
@@ -369,36 +443,9 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           press.state.focusVisible || undefined,
       },
       baseStyle: {
+        ...recipeStyles.root,
         padding: p,
         borderRadius: rounded,
-
-        boxShadow: press.state.focusVisible
-          ? "0 0 0 3px var(--ui-focus-ring)"
-          : press.state.hovered && !isDisabled
-            ? "var(--ui-shadow-md)"
-            : shadow,
-
-        minWidth: 0,
-        background: "var(--ui-surface)",
-        color: "var(--ui-text)",
-
-        border: bordered
-          ? `1px solid ${press.state.hovered && !isDisabled
-            ? "var(--ui-border-strong)"
-            : "var(--ui-border)"
-          }`
-          : "1px solid transparent",
-
-        transition:
-          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-
-        cursor: isInteractive
-          ? loading
-            ? "not-allowed"
-            : "pointer"
-          : undefined,
-
-        outline: "none",
       },
     });
 
@@ -458,7 +505,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
 Card.displayName = "Card";
 
-export interface CardSectionProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardSectionProps
+  extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -468,7 +516,10 @@ export interface CardSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   slotProps?: CardSlotProps;
 }
 
-export const CardHeader = React.forwardRef<HTMLDivElement, CardSectionProps>(
+export const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  CardSectionProps
+>(
   (
     {
       children,
@@ -505,7 +556,10 @@ export const CardHeader = React.forwardRef<HTMLDivElement, CardSectionProps>(
 
 CardHeader.displayName = "CardHeader";
 
-export const CardBody = React.forwardRef<HTMLDivElement, CardSectionProps>(
+export const CardBody = React.forwardRef<
+  HTMLDivElement,
+  CardSectionProps
+>(
   (
     {
       children,
@@ -542,7 +596,10 @@ export const CardBody = React.forwardRef<HTMLDivElement, CardSectionProps>(
 
 CardBody.displayName = "CardBody";
 
-export const CardFooter = React.forwardRef<HTMLDivElement, CardSectionProps>(
+export const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  CardSectionProps
+>(
   (
     {
       children,
