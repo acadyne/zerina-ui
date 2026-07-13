@@ -1,10 +1,8 @@
 // src/primitives/forms/Button.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import {
-  usePress,
-  type UIPressEvent,
-} from "../../core/interaction";
+import { usePress, type UIPressEvent } from "../../core/interaction";
+import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   type SizeProps,
@@ -35,17 +33,17 @@ export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
 
 export interface ButtonProps
   extends Omit<
-      HTMLMotionProps<"button">,
-      | "children"
-      | "color"
-      | "onClick"
-      | "ref"
-      | "size"
-      | "style"
-      | "whileTap"
-    >,
-    SizeProps,
-    SpaceProps {
+    HTMLMotionProps<"button">,
+    | "children"
+    | "color"
+    | "onClick"
+    | "ref"
+    | "size"
+    | "style"
+    | "whileTap"
+  >,
+  SizeProps,
+  SpaceProps {
   children?: React.ReactNode;
 
   colorScheme?: "primary" | "secondary" | "danger";
@@ -109,12 +107,16 @@ const schemeMap = {
     solidText: "var(--ui-primary-contrast)",
 
     outlineText: "var(--ui-primary)",
-    outlineBorder: "color-mix(in srgb, var(--ui-primary) 42%, var(--ui-border))",
-    outlineHover: "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-primary) 42%, var(--ui-border))",
+    outlineHover:
+      "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
 
     ghostText: "var(--ui-primary)",
-    ghostHover: "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
+    ghostHover:
+      "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
   },
+
   secondary: {
     solidBg: "var(--ui-secondary)",
     solidHover: "var(--ui-secondary-hover)",
@@ -130,17 +132,21 @@ const schemeMap = {
     ghostHover:
       "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
   },
+
   danger: {
     solidBg: "var(--ui-danger)",
     solidHover: "var(--ui-danger-hover)",
     solidText: "var(--ui-danger-contrast)",
 
     outlineText: "var(--ui-danger)",
-    outlineBorder: "color-mix(in srgb, var(--ui-danger) 42%, var(--ui-border))",
-    outlineHover: "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-danger) 42%, var(--ui-border))",
+    outlineHover:
+      "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
 
     ghostText: "var(--ui-danger)",
-    ghostHover: "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
+    ghostHover:
+      "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
   },
 } as const;
 
@@ -238,6 +244,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
       onPress,
 
+      onPointerEnter,
+      onPointerLeave,
+      onPointerDown,
+      onPointerUp,
+      onPointerCancel,
+      onLostPointerCapture,
+
+      onFocus,
+      onBlur,
+
+      onKeyDown,
+      onKeyUp,
+
       styles,
       slotProps,
 
@@ -250,11 +269,93 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isDisabled = disabled || isLoading;
     const sizeStyle = sizeStyles[size];
     const variantStyle = getVariantStyles(colorScheme, variant);
+    const rootSlotProps = slotProps?.root;
+
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    } = rootSlotProps ?? {};
 
     const press = usePress<HTMLButtonElement>({
       disabled: isDisabled,
       nativeInteractive: true,
       onPress,
+
+      onPointerEnter: composeEventHandlers(
+        onPointerEnter,
+        slotOnPointerEnter
+      ),
+
+      onPointerLeave: composeEventHandlers(
+        onPointerLeave,
+        slotOnPointerLeave,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerDown: composeEventHandlers(
+        onPointerDown,
+        slotOnPointerDown
+      ),
+
+      onPointerUp: composeEventHandlers(
+        onPointerUp,
+        slotOnPointerUp,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerCancel: composeEventHandlers(
+        onPointerCancel,
+        slotOnPointerCancel,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        slotOnLostPointerCapture,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onFocus: composeEventHandlers(
+        onFocus,
+        slotOnFocus
+      ),
+
+      onBlur: composeEventHandlers(
+        onBlur,
+        slotOnBlur,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onKeyDown: composeEventHandlers(
+        onKeyDown,
+        slotOnKeyDown
+      ),
+
+      onKeyUp: composeEventHandlers(
+        onKeyUp,
+        slotOnKeyUp
+      ),
+
+      onClick: slotOnClick,
     });
 
     const pressMotion = press.state.pressed
@@ -287,12 +388,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         alignItems: "center",
         justifyContent: "center",
         gap: "0.55rem",
+
         lineHeight: 1.1,
         fontWeight: 700,
         letterSpacing: "0.2px",
+
         touchAction: "manipulation",
         userSelect: "none",
         WebkitTapHighlightColor: "transparent",
+
         whiteSpace: "nowrap",
         verticalAlign: "middle",
 
@@ -301,11 +405,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         outline: "none",
 
         boxShadow: press.state.focusVisible
-          ? `0 0 0 3px var(--ui-focus-ring), ${
-              press.state.hovered && !isDisabled
-                ? variantStyle.hoverShadow
-                : variantStyle.shadow
-            }`
+          ? `0 0 0 3px var(--ui-focus-ring), ${press.state.hovered && !isDisabled
+            ? variantStyle.hoverShadow
+            : variantStyle.shadow
+          }`
           : press.state.hovered && !isDisabled
             ? variantStyle.hoverShadow
             : variantStyle.shadow,

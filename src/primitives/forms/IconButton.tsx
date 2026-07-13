@@ -1,10 +1,8 @@
 // src/primitives/forms/IconButton.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import {
-  usePress,
-  type UIPressEvent,
-} from "../../core/interaction";
+import { usePress, type UIPressEvent } from "../../core/interaction";
+import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   resolveSlot,
@@ -68,6 +66,7 @@ const variantMap = {
     active: "var(--ui-surface-hover)",
     border: "1px solid var(--ui-border)",
   },
+
   solid: {
     bg: "var(--ui-primary)",
     fg: "var(--ui-primary-contrast)",
@@ -75,6 +74,7 @@ const variantMap = {
     active: "var(--ui-primary-hover)",
     border: "1px solid transparent",
   },
+
   unstyled: {
     bg: "transparent",
     fg: "inherit",
@@ -99,6 +99,19 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 
       onPress,
 
+      onPointerEnter,
+      onPointerLeave,
+      onPointerDown,
+      onPointerUp,
+      onPointerCancel,
+      onLostPointerCapture,
+
+      onFocus,
+      onBlur,
+
+      onKeyDown,
+      onKeyUp,
+
       styles,
       slotProps,
 
@@ -107,11 +120,92 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     ref
   ) => {
     const motionState = useOptionalUIMotion();
+    const rootSlotProps = slotProps?.root;
 
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    } = rootSlotProps ?? {};
     const press = usePress<HTMLButtonElement>({
       disabled,
       nativeInteractive: true,
       onPress,
+
+      onPointerEnter: composeEventHandlers(
+        onPointerEnter,
+        slotOnPointerEnter
+      ),
+
+      onPointerLeave: composeEventHandlers(
+        onPointerLeave,
+        slotOnPointerLeave,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerDown: composeEventHandlers(
+        onPointerDown,
+        slotOnPointerDown
+      ),
+
+      onPointerUp: composeEventHandlers(
+        onPointerUp,
+        slotOnPointerUp,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerCancel: composeEventHandlers(
+        onPointerCancel,
+        slotOnPointerCancel,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        slotOnLostPointerCapture,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onFocus: composeEventHandlers(
+        onFocus,
+        slotOnFocus
+      ),
+
+      onBlur: composeEventHandlers(
+        onBlur,
+        slotOnBlur,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onKeyDown: composeEventHandlers(
+        onKeyDown,
+        slotOnKeyDown
+      ),
+
+      onKeyUp: composeEventHandlers(
+        onKeyUp,
+        slotOnKeyUp
+      ),
+
+      onClick: slotOnClick,
     });
 
     const pressMotion = press.state.pressed
@@ -172,6 +266,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 
         touchAction: "manipulation",
         WebkitTapHighlightColor: "transparent",
+
         padding: 0,
         flexShrink: 0,
       },

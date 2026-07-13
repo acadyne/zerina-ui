@@ -200,26 +200,27 @@ export function resolveMergedSlot<TSlot extends string>({
   };
 }
 
-export type MotionSlotProps = {
-  className?: string;
-  style?: React.CSSProperties;
-} & SlotDataAttributes &
-  SlotAriaAttributes;
+type MotionSlotCollision =
+  | "onAnimationStart"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd";
+
+export type MotionSlotProps = Omit<
+  SlotElementProps,
+  MotionSlotCollision
+>;
 
 export function toMotionSlotProps(
   slot: SlotElementProps | undefined
 ): MotionSlotProps {
-  const { className, style, ...rest } = slot ?? {};
+  const {
+    onAnimationStart: _onAnimationStart,
+    onDrag: _onDrag,
+    onDragStart: _onDragStart,
+    onDragEnd: _onDragEnd,
+    ...motionSlotProps
+  } = slot ?? {};
 
-  const filteredAttributes = Object.fromEntries(
-    Object.entries(rest).filter(
-      ([key]) => key.startsWith("data-") || key.startsWith("aria-")
-    )
-  ) as SlotDataAttributes & SlotAriaAttributes;
-
-  return {
-    className,
-    style,
-    ...filteredAttributes,
-  };
+  return motionSlotProps;
 }

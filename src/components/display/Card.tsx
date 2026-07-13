@@ -1,6 +1,8 @@
 // src/components/display/Card.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import { usePress, type UIPressEvent } from "../../core/interaction";
+import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   resolveSlot,
@@ -35,7 +37,10 @@ function useOptionalCardContext() {
 }
 
 export interface CardProps
-  extends Omit<HTMLMotionProps<"div">, "children" | "ref" | "style"> {
+  extends Omit<
+    HTMLMotionProps<"div">,
+    "children" | "onClick" | "ref" | "style" | "whileTap"
+  > {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -44,12 +49,13 @@ export interface CardProps
   rounded?: React.CSSProperties["borderRadius"];
   shadow?: React.CSSProperties["boxShadow"];
   bordered?: boolean;
-  interactive?: boolean;
 
   loading?: boolean;
   loadingFallback?: React.ReactNode;
   loadingLines?: number;
   loadingAnimated?: boolean;
+
+  onPress?: (event: UIPressEvent<HTMLDivElement>) => void;
 
   styles?: CardStyles;
   slotProps?: CardSlotProps;
@@ -68,13 +74,13 @@ function CardLoadingContent({
 }) {
   const shimmerStyle: React.CSSProperties = animated
     ? {
-        position: "absolute",
-        inset: 0,
-        background:
-          "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight, rgba(255,255,255,0.08)), transparent)",
-        animation:
-          "ui-skeleton-shimmer var(--ui-skeleton-duration, 1.2s) infinite",
-      }
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight, rgba(255,255,255,0.08)), transparent)",
+      animation:
+        "ui-skeleton-shimmer var(--ui-skeleton-duration, 1.2s) infinite",
+    }
     : {};
 
   const blockBase: React.CSSProperties = {
@@ -219,19 +225,28 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       rounded = "var(--ui-radius-lg)",
       shadow = "var(--ui-shadow-sm)",
       bordered = true,
-      interactive = false,
       loading = false,
       loadingFallback,
       loadingLines = 3,
       loadingAnimated = true,
+
       tabIndex,
       role,
-      onClick,
-      onKeyDown,
-      onMouseEnter,
-      onMouseLeave,
+      onPress,
+
+      onPointerEnter,
+      onPointerLeave,
+      onPointerDown,
+      onPointerUp,
+      onPointerCancel,
+      onLostPointerCapture,
+
       onFocus,
       onBlur,
+
+      onKeyDown,
+      onKeyUp,
+
       styles,
       slotProps,
       ...rest
@@ -239,12 +254,101 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const motionState = useOptionalUIMotion();
-    const pressMotion = motionState.getPressMotion(motionState.effectiveLevel);
+    const rootSlotProps = slotProps?.root;
 
-    const [hovered, setHovered] = React.useState(false);
-    const [focused, setFocused] = React.useState(false);
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    } = rootSlotProps ?? {};
 
-    const isInteractive = interactive && !loading;
+    const isInteractive = onPress !== undefined;
+    const isDisabled = loading || !isInteractive;
+
+    const press = usePress<HTMLDivElement>({
+      disabled: isDisabled,
+      nativeInteractive: false,
+      onPress,
+
+      onPointerEnter: composeEventHandlers(
+        onPointerEnter,
+        slotOnPointerEnter
+      ),
+
+      onPointerLeave: composeEventHandlers(
+        onPointerLeave,
+        slotOnPointerLeave,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerDown: composeEventHandlers(
+        onPointerDown,
+        slotOnPointerDown
+      ),
+
+      onPointerUp: composeEventHandlers(
+        onPointerUp,
+        slotOnPointerUp,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onPointerCancel: composeEventHandlers(
+        onPointerCancel,
+        slotOnPointerCancel,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        slotOnLostPointerCapture,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onFocus: composeEventHandlers(
+        onFocus,
+        slotOnFocus
+      ),
+
+      onBlur: composeEventHandlers(
+        onBlur,
+        slotOnBlur,
+        {
+          checkDefaultPrevented: false,
+        }
+      ),
+
+      onKeyDown: composeEventHandlers(
+        onKeyDown,
+        slotOnKeyDown
+      ),
+
+      onKeyUp: composeEventHandlers(
+        onKeyUp,
+        slotOnKeyUp
+      ),
+
+      onClick: slotOnClick,
+    });
+
+    const pressMotion = press.state.pressed
+      ? motionState.getPressMotion(motionState.effectiveLevel)
+      : undefined;
 
     const rootSlot = resolveSlot<CardSlot>({
       slot: "root",
@@ -254,32 +358,47 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       style,
       baseProps: {
         "data-ui-card": "",
-        "data-ui-card-interactive": interactive || undefined,
-        "data-loading": loading || undefined,
+        "data-ui-card-interactive": isInteractive || undefined,
+        "data-ui-card-loading": loading || undefined,
+        "data-ui-card-disabled":
+          isInteractive && loading ? true : undefined,
+        "data-ui-card-hovered": press.state.hovered || undefined,
+        "data-ui-card-pressed": press.state.pressed || undefined,
+        "data-ui-card-focused": press.state.focused || undefined,
+        "data-ui-card-focus-visible":
+          press.state.focusVisible || undefined,
       },
       baseStyle: {
         padding: p,
         borderRadius: rounded,
-        boxShadow: focused
+
+        boxShadow: press.state.focusVisible
           ? "0 0 0 3px var(--ui-focus-ring)"
-          : hovered && isInteractive
+          : press.state.hovered && !isDisabled
             ? "var(--ui-shadow-md)"
             : shadow,
+
         minWidth: 0,
         background: "var(--ui-surface)",
         color: "var(--ui-text)",
+
         border: bordered
-          ? `1px solid ${
-              hovered && isInteractive
-                ? "var(--ui-border-strong)"
-                : "var(--ui-border)"
-            }`
+          ? `1px solid ${press.state.hovered && !isDisabled
+            ? "var(--ui-border-strong)"
+            : "var(--ui-border)"
+          }`
           : "1px solid transparent",
+
         transition:
           "box-shadow var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), background var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-        cursor: isInteractive ? "pointer" : undefined,
+
+        cursor: isInteractive
+          ? loading
+            ? "not-allowed"
+            : "pointer"
+          : undefined,
+
         outline: "none",
-        pointerEvents: loading ? "none" : undefined,
       },
     });
 
@@ -291,59 +410,33 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       [styles, slotProps]
     );
 
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-      onKeyDown?.(event);
-
-      if (
-        event.defaultPrevented ||
-        !isInteractive ||
-        (event.key !== "Enter" && event.key !== " ")
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      event.currentTarget.click();
-    };
-
     return (
       <CardContext.Provider value={contextValue}>
         <motion.div
           {...rest}
           {...toMotionSlotProps(rootSlot)}
+          {...press.pressProps}
           ref={ref}
           role={isInteractive ? role ?? "button" : role}
-          tabIndex={isInteractive ? tabIndex ?? 0 : tabIndex}
+          tabIndex={
+            isInteractive
+              ? loading
+                ? -1
+                : tabIndex ?? 0
+              : tabIndex
+          }
+          aria-disabled={isInteractive && loading ? true : undefined}
           aria-busy={loading || undefined}
-          whileTap={isInteractive && pressMotion ? pressMotion : undefined}
+          animate={
+            pressMotion ?? {
+              scale: 1,
+              y: 0,
+            }
+          }
           transition={motionState.getTransition(
             motionState.effectiveLevel,
             "press"
           )}
-          onMouseEnter={(event) => {
-            if (isInteractive) {
-              setHovered(true);
-            }
-
-            onMouseEnter?.(event);
-          }}
-          onMouseLeave={(event) => {
-            setHovered(false);
-            onMouseLeave?.(event);
-          }}
-          onFocus={(event) => {
-            if (isInteractive) {
-              setFocused(true);
-            }
-
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setFocused(false);
-            onBlur?.(event);
-          }}
-          onClick={onClick}
-          onKeyDown={handleKeyDown}
         >
           {loading ? (
             loadingFallback ?? (
