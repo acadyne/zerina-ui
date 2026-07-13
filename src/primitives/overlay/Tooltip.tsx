@@ -1,6 +1,10 @@
 // src/primitives/overlay/Tooltip.tsx
 import React from "react";
-import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  type HTMLMotionProps,
+} from "framer-motion";
 import {
   FloatingLayer,
   Portal,
@@ -9,84 +13,199 @@ import {
 } from "../../core/overlay";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
+  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-export type TooltipSlot = "trigger" | "content";
+export type TooltipSlot =
+  | "trigger"
+  | "content";
 
-export type TooltipStyles = SlotStyleMap<TooltipSlot>;
+export type TooltipStyles =
+  SlotStyleMap<TooltipSlot>;
 
-export type TooltipSlotProps = SlotPropsMap<TooltipSlot>;
+export type TooltipSlotProps =
+  SlotPropsMap<TooltipSlot>;
+
+type TooltipRecipeVariants =
+  Record<never, never>;
+
+type TooltipRecipeState = {
+  floatingStyle?: React.CSSProperties;
+};
+
+/**
+ * La recipe concentra únicamente la política visual del Tooltip.
+ *
+ * FloatingLayer conserva posicionamiento y medición.
+ * Motion conserva presencia, variantes y transición.
+ * La apertura por puntero, foco y touch se mantiene fuera de Styling.
+ */
+const tooltipRecipe =
+  defineSlotRecipe<
+    TooltipSlot,
+    TooltipRecipeVariants,
+    TooltipRecipeState
+  >({
+    base: {
+      content: {
+        maxWidth:
+          "min(280px, calc(100vw - 16px))",
+
+        padding: "0.4rem 0.7rem",
+
+        borderRadius:
+          "var(--ui-radius-sm)",
+
+        border:
+          "1px solid var(--ui-border)",
+
+        background:
+          "var(--ui-surface)",
+
+        color:
+          "var(--ui-text)",
+
+        boxShadow:
+          "var(--ui-shadow-md)",
+
+        fontSize: "0.78rem",
+        lineHeight: 1.35,
+
+        pointerEvents: "none",
+
+        transformOrigin: "center",
+      },
+    },
+
+    resolve: ({
+      floatingStyle,
+    }) => ({
+      content: {
+        ...floatingStyle,
+
+        zIndex:
+          getLayerZIndex("tooltip"),
+      },
+    }),
+  });
 
 type TooltipContextValue = {
   open: boolean;
+
   triggerId: string;
   contentId: string;
-  anchorRef: React.RefObject<HTMLElement | null>;
-  setAnchorNode: (node: HTMLElement | null) => void;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+  anchorRef:
+    React.RefObject<HTMLElement | null>;
+
+  setAnchorNode: (
+    node: HTMLElement | null
+  ) => void;
+
+  setOpen:
+    React.Dispatch<
+      React.SetStateAction<boolean>
+    >;
+
   openDelayMs: number;
   closeDelayMs: number;
   enableTouch: boolean;
+
   styles?: TooltipStyles;
   slotProps?: TooltipSlotProps;
 };
 
-const TooltipContext = React.createContext<TooltipContextValue | null>(null);
+const TooltipContext =
+  React.createContext<
+    TooltipContextValue | null
+  >(null);
 
 function useTooltipContext() {
-  const ctx = React.useContext(TooltipContext);
+  const ctx =
+    React.useContext(
+      TooltipContext
+    );
 
   if (!ctx) {
-    throw new Error("Tooltip subcomponents must be used inside <Tooltip />");
+    throw new Error(
+      "Tooltip subcomponents must be used inside <Tooltip />"
+    );
   }
 
   return ctx;
 }
 
-function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
-  if (!ref) return;
+function assignRef<T>(
+  ref:
+    | React.Ref<T>
+    | undefined,
+  value: T | null
+) {
+  if (!ref) {
+    return;
+  }
 
-  if (typeof ref === "function") {
+  if (
+    typeof ref === "function"
+  ) {
     ref(value);
     return;
   }
 
   try {
-    (ref as React.MutableRefObject<T | null>).current = value;
+    (
+      ref as React.MutableRefObject<T | null>
+    ).current = value;
   } catch {
-    // noop
+    // Algunos refs externos pueden ser de solo lectura.
   }
 }
 
 function isTouchDevice(): boolean {
-  if (typeof window === "undefined") return false;
+  if (
+    typeof window === "undefined"
+  ) {
+    return false;
+  }
 
   return (
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
-    // @ts-expect-error legacy
+    // @ts-expect-error compatibilidad con navegadores legacy
     navigator.msMaxTouchPoints > 0
   );
 }
 
 type TriggerChildProps = {
-  onMouseEnter?: React.MouseEventHandler<HTMLElement>;
-  onMouseLeave?: React.MouseEventHandler<HTMLElement>;
-  onFocus?: React.FocusEventHandler<HTMLElement>;
-  onBlur?: React.FocusEventHandler<HTMLElement>;
-  onClick?: React.MouseEventHandler<HTMLElement>;
+  onMouseEnter?:
+    React.MouseEventHandler<HTMLElement>;
+
+  onMouseLeave?:
+    React.MouseEventHandler<HTMLElement>;
+
+  onFocus?:
+    React.FocusEventHandler<HTMLElement>;
+
+  onBlur?:
+    React.FocusEventHandler<HTMLElement>;
+
+  onClick?:
+    React.MouseEventHandler<HTMLElement>;
+
   id?: string;
   className?: string;
   style?: React.CSSProperties;
+
   "aria-describedby"?: string;
 };
 
 export interface TooltipProps {
   children?: React.ReactNode;
+
   openDelayMs?: number;
   closeDelayMs?: number;
   enableTouch?: boolean;
@@ -95,222 +214,442 @@ export interface TooltipProps {
   slotProps?: TooltipSlotProps;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({
-  children,
-  openDelayMs = 150,
-  closeDelayMs = 80,
-  enableTouch = true,
-  styles,
-  slotProps,
-}) => {
-  const reactId = React.useId().replace(/:/g, "");
-  const [open, setOpen] = React.useState(false);
-  const anchorRef = React.useRef<HTMLElement | null>(null);
+export const Tooltip:
+  React.FC<TooltipProps> = ({
+    children,
+    openDelayMs = 150,
+    closeDelayMs = 80,
+    enableTouch = true,
+    styles,
+    slotProps,
+  }) => {
+    const reactId =
+      React.useId().replace(
+        /:/g,
+        ""
+      );
 
-  const setAnchorNode = React.useCallback((node: HTMLElement | null) => {
-    anchorRef.current = node;
-  }, []);
-
-  const value = React.useMemo<TooltipContextValue>(
-    () => ({
+    const [
       open,
-      triggerId: `tooltip-trigger-${reactId}`,
-      contentId: `tooltip-content-${reactId}`,
-      anchorRef,
-      setAnchorNode,
       setOpen,
-      openDelayMs,
-      closeDelayMs,
-      enableTouch,
-      styles,
-      slotProps,
-    }),
-    [
-      open,
-      reactId,
-      setAnchorNode,
-      openDelayMs,
-      closeDelayMs,
-      enableTouch,
-      styles,
-      slotProps,
-    ]
-  );
+    ] = React.useState(false);
 
-  return (
-    <TooltipContext.Provider value={value}>{children}</TooltipContext.Provider>
-  );
-};
+    const anchorRef =
+      React.useRef<HTMLElement | null>(
+        null
+      );
+
+    const setAnchorNode =
+      React.useCallback(
+        (
+          node:
+            | HTMLElement
+            | null
+        ) => {
+          anchorRef.current = node;
+        },
+        []
+      );
+
+    const value =
+      React.useMemo<
+        TooltipContextValue
+      >(
+        () => ({
+          open,
+
+          triggerId:
+            `tooltip-trigger-${reactId}`,
+
+          contentId:
+            `tooltip-content-${reactId}`,
+
+          anchorRef,
+          setAnchorNode,
+          setOpen,
+
+          openDelayMs,
+          closeDelayMs,
+          enableTouch,
+
+          styles,
+          slotProps,
+        }),
+        [
+          open,
+          reactId,
+          setAnchorNode,
+          openDelayMs,
+          closeDelayMs,
+          enableTouch,
+          styles,
+          slotProps,
+        ]
+      );
+
+    return (
+      <TooltipContext.Provider
+        value={value}
+      >
+        {children}
+      </TooltipContext.Provider>
+    );
+  };
 
 Tooltip.displayName = "Tooltip";
 
 export interface TooltipTriggerProps {
-  children: React.ReactElement<TriggerChildProps>;
+  children:
+    React.ReactElement<TriggerChildProps>;
+
   asChild?: boolean;
 
   className?: string;
   style?: React.CSSProperties;
+
   styles?: TooltipStyles;
   slotProps?: TooltipSlotProps;
 }
 
-export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>(
-  (
-    {
-      children,
-      asChild = true,
-      className = "",
-      style,
-      styles,
-      slotProps,
-    },
-    ref
-  ) => {
-    const ctx = useTooltipContext();
-    const openTimerRef = React.useRef<number | null>(null);
-    const closeTimerRef = React.useRef<number | null>(null);
-
-    const triggerSlot = resolveSlot<TooltipSlot>({
-      slot: "trigger",
-      styles: styles ?? ctx.styles,
-      slotProps: slotProps ?? ctx.slotProps,
-      className,
-      style,
-    });
-
-    const touch = React.useMemo(
-      () => (ctx.enableTouch ? isTouchDevice() : false),
-      [ctx.enableTouch]
-    );
-
-    const clearTimers = React.useCallback(() => {
-      if (openTimerRef.current !== null) {
-        window.clearTimeout(openTimerRef.current);
-        openTimerRef.current = null;
-      }
-
-      if (closeTimerRef.current !== null) {
-        window.clearTimeout(closeTimerRef.current);
-        closeTimerRef.current = null;
-      }
-    }, []);
-
-    React.useEffect(() => {
-      return () => {
-        clearTimers();
-      };
-    }, [clearTimers]);
-
-    const setRefs = React.useCallback(
-      (node: HTMLElement | null) => {
-        ctx.setAnchorNode(node);
-        assignRef(ref, node);
-        assignRef(
-          (children as React.ReactElement & { ref?: React.Ref<HTMLElement> }).ref,
-          node
-        );
+export const TooltipTrigger =
+  React.forwardRef<
+    HTMLElement,
+    TooltipTriggerProps
+  >(
+    (
+      {
+        children,
+        asChild = true,
+        className = "",
+        style,
+        styles,
+        slotProps,
       },
-      [children, ctx, ref]
-    );
+      ref
+    ) => {
+      const ctx =
+        useTooltipContext();
 
-    const scheduleOpen = React.useCallback(() => {
-      clearTimers();
-      openTimerRef.current = window.setTimeout(() => {
-        ctx.setOpen(true);
-      }, ctx.openDelayMs);
-    }, [clearTimers, ctx]);
+      const openTimerRef =
+        React.useRef<
+          number | null
+        >(null);
 
-    const scheduleClose = React.useCallback(() => {
-      clearTimers();
-      closeTimerRef.current = window.setTimeout(() => {
-        ctx.setOpen(false);
-      }, ctx.closeDelayMs);
-    }, [clearTimers, ctx]);
+      const closeTimerRef =
+        React.useRef<
+          number | null
+        >(null);
 
-    if (asChild && React.isValidElement<TriggerChildProps>(children)) {
-      return React.cloneElement(children, {
-        ref: setRefs,
-        id: ctx.triggerId,
-        className: [children.props.className, triggerSlot.className]
-          .filter(Boolean)
-          .join(" "),
-        style: {
-          ...children.props.style,
-          ...triggerSlot.style,
-        },
-        "aria-describedby": ctx.open ? ctx.contentId : undefined,
-        onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
-          children.props.onMouseEnter?.(event);
-          if (!touch) scheduleOpen();
-        },
-        onMouseLeave: (event: React.MouseEvent<HTMLElement>) => {
-          children.props.onMouseLeave?.(event);
-          if (!touch) scheduleClose();
-        },
-        onFocus: (event: React.FocusEvent<HTMLElement>) => {
-          children.props.onFocus?.(event);
-          if (!touch) {
-            clearTimers();
-            ctx.setOpen(true);
+      const triggerSlot =
+        resolveSlot<TooltipSlot>({
+          slot: "trigger",
+
+          styles:
+            styles ??
+            ctx.styles,
+
+          slotProps:
+            slotProps ??
+            ctx.slotProps,
+
+          className,
+          style,
+        });
+
+      const touch =
+        React.useMemo(
+          () =>
+            ctx.enableTouch
+              ? isTouchDevice()
+              : false,
+          [ctx.enableTouch]
+        );
+
+      const clearTimers =
+        React.useCallback(() => {
+          if (
+            openTimerRef.current !==
+            null
+          ) {
+            window.clearTimeout(
+              openTimerRef.current
+            );
+
+            openTimerRef.current =
+              null;
           }
-        },
-        onBlur: (event: React.FocusEvent<HTMLElement>) => {
-          children.props.onBlur?.(event);
-          if (!touch) {
-            clearTimers();
-            ctx.setOpen(false);
+
+          if (
+            closeTimerRef.current !==
+            null
+          ) {
+            window.clearTimeout(
+              closeTimerRef.current
+            );
+
+            closeTimerRef.current =
+              null;
           }
-        },
-        onClick: (event: React.MouseEvent<HTMLElement>) => {
-          children.props.onClick?.(event);
-          if (touch) {
-            clearTimers();
-            ctx.setOpen((prev) => !prev);
+        }, []);
+
+      React.useEffect(() => {
+        return () => {
+          clearTimers();
+        };
+      }, [clearTimers]);
+
+      const setRefs =
+        React.useCallback(
+          (
+            node:
+              | HTMLElement
+              | null
+          ) => {
+            ctx.setAnchorNode(
+              node
+            );
+
+            assignRef(
+              ref,
+              node
+            );
+
+            assignRef(
+              (
+                children as React.ReactElement & {
+                  ref?: React.Ref<HTMLElement>;
+                }
+              ).ref,
+              node
+            );
+          },
+          [
+            children,
+            ctx,
+            ref,
+          ]
+        );
+
+      const scheduleOpen =
+        React.useCallback(() => {
+          clearTimers();
+
+          openTimerRef.current =
+            window.setTimeout(
+              () => {
+                ctx.setOpen(
+                  true
+                );
+              },
+              ctx.openDelayMs
+            );
+        }, [
+          clearTimers,
+          ctx,
+        ]);
+
+      const scheduleClose =
+        React.useCallback(() => {
+          clearTimers();
+
+          closeTimerRef.current =
+            window.setTimeout(
+              () => {
+                ctx.setOpen(
+                  false
+                );
+              },
+              ctx.closeDelayMs
+            );
+        }, [
+          clearTimers,
+          ctx,
+        ]);
+
+      if (
+        asChild &&
+        React.isValidElement<
+          TriggerChildProps
+        >(children)
+      ) {
+        return React.cloneElement(
+          children,
+          {
+            ref: setRefs,
+
+            id: ctx.triggerId,
+
+            className: [
+              children.props
+                .className,
+
+              triggerSlot.className,
+            ]
+              .filter(Boolean)
+              .join(" "),
+
+            style: {
+              ...children.props
+                .style,
+
+              ...triggerSlot.style,
+            },
+
+            "aria-describedby":
+              ctx.open
+                ? ctx.contentId
+                : undefined,
+
+            onMouseEnter: (
+              event:
+                React.MouseEvent<HTMLElement>
+            ) => {
+              children.props
+                .onMouseEnter?.(
+                  event
+                );
+
+              if (
+                !event.defaultPrevented &&
+                !touch
+              ) {
+                scheduleOpen();
+              }
+            },
+
+            onMouseLeave: (
+              event:
+                React.MouseEvent<HTMLElement>
+            ) => {
+              children.props
+                .onMouseLeave?.(
+                  event
+                );
+
+              if (
+                !event.defaultPrevented &&
+                !touch
+              ) {
+                scheduleClose();
+              }
+            },
+
+            onFocus: (
+              event:
+                React.FocusEvent<HTMLElement>
+            ) => {
+              children.props
+                .onFocus?.(event);
+
+              if (
+                !event.defaultPrevented &&
+                !touch
+              ) {
+                clearTimers();
+                ctx.setOpen(true);
+              }
+            },
+
+            onBlur: (
+              event:
+                React.FocusEvent<HTMLElement>
+            ) => {
+              children.props
+                .onBlur?.(event);
+
+              if (
+                !event.defaultPrevented &&
+                !touch
+              ) {
+                clearTimers();
+                ctx.setOpen(false);
+              }
+            },
+
+            onClick: (
+              event:
+                React.MouseEvent<HTMLElement>
+            ) => {
+              children.props
+                .onClick?.(event);
+
+              if (
+                !event.defaultPrevented &&
+                touch
+              ) {
+                clearTimers();
+
+                ctx.setOpen(
+                  (previous) =>
+                    !previous
+                );
+              }
+            },
+          } as TriggerChildProps & {
+            ref: React.Ref<HTMLElement>;
           }
-        },
-      } as TriggerChildProps & { ref: React.Ref<HTMLElement> });
+        );
+      }
+
+      return (
+        <button
+          ref={
+            setRefs as React.Ref<HTMLButtonElement>
+          }
+          id={ctx.triggerId}
+          type="button"
+          aria-describedby={
+            ctx.open
+              ? ctx.contentId
+              : undefined
+          }
+          className={
+            triggerSlot.className
+          }
+          style={
+            triggerSlot.style
+          }
+          onMouseEnter={() => {
+            if (!touch) {
+              scheduleOpen();
+            }
+          }}
+          onMouseLeave={() => {
+            if (!touch) {
+              scheduleClose();
+            }
+          }}
+          onFocus={() => {
+            if (!touch) {
+              clearTimers();
+              ctx.setOpen(true);
+            }
+          }}
+          onBlur={() => {
+            if (!touch) {
+              clearTimers();
+              ctx.setOpen(false);
+            }
+          }}
+          onClick={() => {
+            if (touch) {
+              clearTimers();
+
+              ctx.setOpen(
+                (previous) =>
+                  !previous
+              );
+            }
+          }}
+        >
+          {children}
+        </button>
+      );
     }
+  );
 
-    return (
-      <button
-        ref={setRefs as React.Ref<HTMLButtonElement>}
-        id={ctx.triggerId}
-        type="button"
-        aria-describedby={ctx.open ? ctx.contentId : undefined}
-        className={triggerSlot.className}
-        style={triggerSlot.style}
-        onMouseEnter={() => {
-          if (!touch) scheduleOpen();
-        }}
-        onMouseLeave={() => {
-          if (!touch) scheduleClose();
-        }}
-        onFocus={() => {
-          if (!touch) {
-            clearTimers();
-            ctx.setOpen(true);
-          }
-        }}
-        onBlur={() => {
-          if (!touch) {
-            clearTimers();
-            ctx.setOpen(false);
-          }
-        }}
-        onClick={() => {
-          if (touch) {
-            clearTimers();
-            ctx.setOpen((prev) => !prev);
-          }
-        }}
-      >
-        {children}
-      </button>
-    );
-  }
-);
-
-TooltipTrigger.displayName = "TooltipTrigger";
+TooltipTrigger.displayName =
+  "TooltipTrigger";
 
 export interface TooltipContentProps
   extends Omit<
@@ -326,163 +665,294 @@ export interface TooltipContentProps
     | "transition"
   > {
   children?: React.ReactNode;
+
   className?: string;
   style?: React.CSSProperties;
 
   portalled?: boolean;
-  container?: Element | DocumentFragment | null;
+
+  container?:
+    | Element
+    | DocumentFragment
+    | null;
+
   placement?: FloatingPlacement;
   offset?: number;
   flip?: boolean;
   shift?: boolean;
   viewportPadding?: number;
+
   closeOnClickOutside?: boolean;
 
   styles?: TooltipStyles;
   slotProps?: TooltipSlotProps;
 }
 
-export const TooltipContent = React.forwardRef<
-  HTMLDivElement,
-  TooltipContentProps
->(
-  (
-    {
-      children,
-      style,
-      className = "",
-      portalled = true,
-      container,
-      placement = "top",
-      offset = 8,
-      flip = true,
-      shift = true,
-      viewportPadding = 8,
-      closeOnClickOutside = true,
-      styles,
-      slotProps,
-      ...rest
-    },
-    ref
-  ) => {
-    const ctx = useTooltipContext();
-    const motionState = useOptionalUIMotion();
-    const contentRef = React.useRef<HTMLDivElement | null>(null);
+export const TooltipContent =
+  React.forwardRef<
+    HTMLDivElement,
+    TooltipContentProps
+  >(
+    (
+      {
+        children,
+        style,
+        className = "",
 
-    const resolvedStyles = styles ?? ctx.styles;
-    const resolvedSlotProps = slotProps ?? ctx.slotProps;
+        portalled = true,
+        container,
 
-    const variants = motionState.getVariants(
-      "tooltip",
-      motionState.effectiveLevel
-    );
+        placement = "top",
+        offset = 8,
+        flip = true,
+        shift = true,
 
-    const transition = motionState.getTransition(
-      motionState.effectiveLevel,
-      "fade"
-    );
+        viewportPadding = 8,
 
-    const setRefs = React.useCallback(
-      (node: HTMLDivElement | null) => {
-        contentRef.current = node;
-        assignRef(ref, node);
+        closeOnClickOutside =
+          true,
+
+        styles,
+        slotProps,
+
+        ...rest
       },
-      [ref]
-    );
+      ref
+    ) => {
+      const ctx =
+        useTooltipContext();
 
-    React.useEffect(() => {
-      if (!ctx.open) return;
-      if (!closeOnClickOutside) return;
+      const motionState =
+        useOptionalUIMotion();
 
-      const handlePointerDown = (event: PointerEvent) => {
-        const target = event.target as Node | null;
-        const anchorEl = ctx.anchorRef.current;
-        const contentEl = contentRef.current;
+      const contentRef =
+        React.useRef<
+          HTMLDivElement | null
+        >(null);
 
-        const clickedAnchor = !!anchorEl && !!target && anchorEl.contains(target);
-        const clickedContent =
-          !!contentEl && !!target && contentEl.contains(target);
+      const resolvedStyles =
+        styles ??
+        ctx.styles;
 
-        if (!clickedAnchor && !clickedContent) {
-          ctx.setOpen(false);
-        }
-      };
+      const resolvedSlotProps =
+        slotProps ??
+        ctx.slotProps;
 
-      document.addEventListener("pointerdown", handlePointerDown);
+      const variants =
+        motionState.getVariants(
+          "tooltip",
+          motionState.effectiveLevel
+        );
 
-      return () => {
-        document.removeEventListener("pointerdown", handlePointerDown);
-      };
-    }, [closeOnClickOutside, ctx]);
+      const transition =
+        motionState.getTransition(
+          motionState.effectiveLevel,
+          "fade"
+        );
 
-    const content =
-      ctx.open && ctx.anchorRef.current ? (
-        <FloatingLayer
-          anchorRef={ctx.anchorRef}
-          open={ctx.open}
-          placement={placement}
-          offset={offset}
-          flip={flip}
-          shift={shift}
-          viewportPadding={viewportPadding}
-          zIndex={getLayerZIndex("tooltip")}
-          strategy="fixed"
-        >
-          {({ ref: floatingRef, style: floatingStyle, placement: side }) => {
-            const contentSlot = resolveSlot<TooltipSlot>({
-              slot: "content",
-              styles: resolvedStyles,
-              slotProps: resolvedSlotProps,
-              className,
-              style,
-              baseProps: {
-                "data-side": side,
-                "data-ui-tooltip-content": "",
-              },
-              baseStyle: {
-                ...floatingStyle,
-                zIndex: getLayerZIndex("tooltip"),
-                maxWidth: "min(280px, calc(100vw - 16px))",
-                padding: "0.4rem 0.7rem",
-                borderRadius: "var(--ui-radius-sm)",
-                border: "1px solid var(--ui-border)",
-                background: "var(--ui-surface)",
-                color: "var(--ui-text)",
-                boxShadow: "var(--ui-shadow-md)",
-                fontSize: "0.78rem",
-                lineHeight: 1.35,
-                pointerEvents: "none",
-                transformOrigin: "center",
-              },
-            });
+      const setRefs =
+        React.useCallback(
+          (
+            node:
+              | HTMLDivElement
+              | null
+          ) => {
+            contentRef.current =
+              node;
 
-            return (
-              <motion.div
-                {...rest}
-                {...toMotionSlotProps(contentSlot)}
-                ref={(node) => {
-                  assignRef(floatingRef, node);
-                  setRefs(node);
-                }}
-                id={ctx.contentId}
-                role="tooltip"
-                variants={variants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={transition}
-              >
-                {children}
-              </motion.div>
+            assignRef(
+              ref,
+              node
             );
-          }}
-        </FloatingLayer>
-      ) : null;
+          },
+          [ref]
+        );
 
-    const animated = <AnimatePresence>{content}</AnimatePresence>;
+      React.useEffect(() => {
+        if (!ctx.open) {
+          return;
+        }
 
-    return portalled ? <Portal container={container}>{animated}</Portal> : animated;
-  }
-);
+        if (
+          !closeOnClickOutside
+        ) {
+          return;
+        }
 
-TooltipContent.displayName = "TooltipContent";
+        const handlePointerDown =
+          (
+            event:
+              PointerEvent
+          ) => {
+            const target =
+              event.target as
+                | Node
+                | null;
+
+            const anchorEl =
+              ctx.anchorRef.current;
+
+            const contentEl =
+              contentRef.current;
+
+            const clickedAnchor =
+              !!anchorEl &&
+              !!target &&
+              anchorEl.contains(
+                target
+              );
+
+            const clickedContent =
+              !!contentEl &&
+              !!target &&
+              contentEl.contains(
+                target
+              );
+
+            if (
+              !clickedAnchor &&
+              !clickedContent
+            ) {
+              ctx.setOpen(
+                false
+              );
+            }
+          };
+
+        document.addEventListener(
+          "pointerdown",
+          handlePointerDown
+        );
+
+        return () => {
+          document.removeEventListener(
+            "pointerdown",
+            handlePointerDown
+          );
+        };
+      }, [
+        closeOnClickOutside,
+        ctx,
+      ]);
+
+      const content =
+        ctx.open &&
+        ctx.anchorRef.current ? (
+          <FloatingLayer
+            anchorRef={
+              ctx.anchorRef
+            }
+            open={ctx.open}
+            placement={placement}
+            offset={offset}
+            flip={flip}
+            shift={shift}
+            viewportPadding={
+              viewportPadding
+            }
+            zIndex={
+              getLayerZIndex(
+                "tooltip"
+              )
+            }
+            strategy="fixed"
+          >
+            {({
+              ref:
+                floatingRef,
+
+              style:
+                floatingStyle,
+
+              placement:
+                side,
+            }) => {
+              const recipeStyles =
+                tooltipRecipe({
+                  floatingStyle,
+                });
+
+              const contentSlot =
+                resolveSlot<TooltipSlot>(
+                  {
+                    slot:
+                      "content",
+
+                    styles:
+                      resolvedStyles,
+
+                    slotProps:
+                      resolvedSlotProps,
+
+                    className,
+                    style,
+
+                    baseProps: {
+                      "data-side":
+                        side,
+
+                      "data-ui-tooltip-content":
+                        "",
+                    },
+
+                    baseStyle:
+                      recipeStyles
+                        .content,
+                  }
+                );
+
+              return (
+                <motion.div
+                  {...rest}
+                  {...toMotionSlotProps(
+                    contentSlot
+                  )}
+                  ref={(node) => {
+                    assignRef(
+                      floatingRef,
+                      node
+                    );
+
+                    setRefs(node);
+                  }}
+                  id={
+                    ctx.contentId
+                  }
+                  role="tooltip"
+                  variants={
+                    variants
+                  }
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={
+                    transition
+                  }
+                >
+                  {children}
+                </motion.div>
+              );
+            }}
+          </FloatingLayer>
+        ) : null;
+
+      const animated = (
+        <AnimatePresence>
+          {content}
+        </AnimatePresence>
+      );
+
+      return portalled ? (
+        <Portal
+          container={container}
+        >
+          {animated}
+        </Portal>
+      ) : (
+        animated
+      );
+    }
+  );
+
+TooltipContent.displayName =
+  "TooltipContent";
