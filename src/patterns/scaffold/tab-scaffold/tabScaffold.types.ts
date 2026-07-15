@@ -1,5 +1,4 @@
 // src/patterns/scaffold/tab-scaffold/tabScaffold.types.ts
-
 import React from "react";
 import type {
   SlotPropsMap,
@@ -11,6 +10,7 @@ import type {
   NavigationStackEntry,
   NavigationStackParams,
   NavigationStackScreenRenderProps,
+  NavigationStackTransitionDirection,
 } from "../../navigation-stack";
 import type { BackButtonProps } from "../BackButton";
 import type {
@@ -74,7 +74,8 @@ export interface TabScaffoldContextValue {
   canGoBack: boolean;
 
   setEntries: (
-    entries: NavigationStackEntry[]
+    entries: NavigationStackEntry[],
+    transitionDirection: NavigationStackTransitionDirection
   ) => void;
 
   push: (
@@ -103,7 +104,12 @@ export interface TabScaffoldRenderContext
   tabs: TabScaffoldTab[];
 }
 
-export interface TabScaffoldProps
+type TabScaffoldEntriesChangeHandler = (
+  entries: NavigationStackEntry[],
+  transitionDirection: NavigationStackTransitionDirection
+) => void;
+
+interface TabScaffoldBaseProps
   extends Omit<
     MobileScaffoldProps,
     | "children"
@@ -121,12 +127,6 @@ export interface TabScaffoldProps
 
   initialTab?: string;
   initialParams?: NavigationStackParams;
-
-  entries?: NavigationStackEntry[];
-
-  onEntriesChange?: (
-    entries: NavigationStackEntry[]
-  ) => void;
 
   animation?: NavigationStackAnimation;
 
@@ -187,3 +187,25 @@ export interface TabScaffoldProps
   styles?: TabScaffoldStyles;
   slotProps?: TabScaffoldSlotProps;
 }
+
+interface TabScaffoldUncontrolledProps {
+  entries?: never;
+  transitionDirection?: never;
+
+  onEntriesChange?: TabScaffoldEntriesChangeHandler;
+}
+
+interface TabScaffoldControlledProps {
+  entries: NavigationStackEntry[];
+
+  transitionDirection: NavigationStackTransitionDirection;
+
+  onEntriesChange?: TabScaffoldEntriesChangeHandler;
+}
+
+export type TabScaffoldProps =
+  TabScaffoldBaseProps &
+    (
+      | TabScaffoldUncontrolledProps
+      | TabScaffoldControlledProps
+    );

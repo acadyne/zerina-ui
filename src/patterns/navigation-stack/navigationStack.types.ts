@@ -13,13 +13,18 @@ export type NavigationStackAnimation = Extract<
   "slide" | "fade" | "none" | "shared-axis" | "fade-through"
 >;
 
-export type NavigationStackTransitionDirection = "forward" | "back" | "replace";
+export type NavigationStackTransitionDirection =
+  | "forward"
+  | "back"
+  | "replace";
 
 export type NavigationStackSlot = "root" | "screen";
 
-export type NavigationStackStyles = SlotStyleMap<NavigationStackSlot>;
+export type NavigationStackStyles =
+  SlotStyleMap<NavigationStackSlot>;
 
-export type NavigationStackSlotProps = SlotPropsMap<NavigationStackSlot>;
+export type NavigationStackSlotProps =
+  SlotPropsMap<NavigationStackSlot>;
 
 export interface NavigationStackEntry<
   TParams extends NavigationStackParams = NavigationStackParams,
@@ -36,12 +41,25 @@ export interface NavigationStackState {
   canGoBack: boolean;
 }
 
-export interface NavigationStackContextValue extends NavigationStackState {
-  push: (name: string, params?: NavigationStackParams) => void;
-  replace: (name: string, params?: NavigationStackParams) => void;
+export interface NavigationStackContextValue
+  extends NavigationStackState {
+  push: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
+
+  replace: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
+
   pop: () => void;
   popToRoot: () => void;
-  reset: (name: string, params?: NavigationStackParams) => void;
+
+  reset: (
+    name: string,
+    params?: NavigationStackParams
+  ) => void;
 }
 
 export interface NavigationStackScreenRenderProps<
@@ -55,61 +73,31 @@ export interface NavigationStackScreenProps<
   TParams extends NavigationStackParams = NavigationStackParams,
 > {
   name: string;
-
-  /**
-   * Título opcional para introspección o headers custom.
-   */
   title?: React.ReactNode;
 
-  /**
-   * Componente que recibe navigation + route.
-   */
-  component?: React.ComponentType<NavigationStackScreenRenderProps<TParams>>;
+  component?: React.ComponentType<
+    NavigationStackScreenRenderProps<TParams>
+  >;
 
-  /**
-   * Render prop que recibe navigation + route.
-   */
   render?: (
     props: NavigationStackScreenRenderProps<TParams>
   ) => React.ReactNode;
 
-  /**
-   * Elemento directo. Útil para pantallas simples.
-   */
   element?: React.ReactNode;
 }
 
-export interface NavigationStackProps {
+type NavigationStackEntriesChangeHandler = (
+  entries: NavigationStackEntry[],
+  transitionDirection: NavigationStackTransitionDirection
+) => void;
+
+interface NavigationStackBaseProps {
   children?: React.ReactNode;
 
-  /**
-   * Pantalla inicial.
-   */
   initialName: string;
-
-  /**
-   * Params iniciales.
-   */
   initialParams?: NavigationStackParams;
 
-  /**
-   * Estado controlado opcional.
-   */
-  entries?: NavigationStackEntry[];
-
-  /**
-   * Cambio de stack cuando se usa controlado o no controlado.
-   */
-  onEntriesChange?: (entries: NavigationStackEntry[]) => void;
-
-  /**
-   * Animación entre pantallas.
-   */
   animation?: NavigationStackAnimation;
-
-  /**
-   * Qué renderizar si no existe la pantalla actual.
-   */
   fallback?: React.ReactNode;
 
   className?: string;
@@ -119,14 +107,45 @@ export interface NavigationStackProps {
   slotProps?: NavigationStackSlotProps;
 }
 
+interface NavigationStackUncontrolledProps {
+  entries?: never;
+  transitionDirection?: never;
+
+  onEntriesChange?: NavigationStackEntriesChangeHandler;
+}
+
+interface NavigationStackControlledProps {
+  entries: NavigationStackEntry[];
+
+  /**
+   * Dirección semántica que produjo la versión controlada de entries.
+   */
+  transitionDirection: NavigationStackTransitionDirection;
+
+  onEntriesChange?: NavigationStackEntriesChangeHandler;
+}
+
+export type NavigationStackProps =
+  NavigationStackBaseProps &
+    (
+      | NavigationStackUncontrolledProps
+      | NavigationStackControlledProps
+    );
+
 export type RegisteredNavigationStackScreen = {
   name: string;
   title?: React.ReactNode;
+
   component?: React.ComponentType<any>;
-  render?: (props: NavigationStackScreenRenderProps<any>) => React.ReactNode;
+
+  render?: (
+    props: NavigationStackScreenRenderProps<any>
+  ) => React.ReactNode;
+
   element?: React.ReactNode;
 };
 
-export type NavigationStackComponent = React.FC<NavigationStackProps> & {
-  Screen: React.FC<NavigationStackScreenProps>;
-};
+export type NavigationStackComponent =
+  React.FC<NavigationStackProps> & {
+    Screen: React.FC<NavigationStackScreenProps>;
+  };
