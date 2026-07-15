@@ -14,6 +14,9 @@ export {
   getCollapsibleContentVariants,
   getCollapsibleTriggerIconVariants,
   getProgressIndeterminateVariants,
+  getSpinnerTransition,
+  getSpinnerVariants,
+  shouldAnimateSpinner,
 } from "./motion.presets";
 
 export {

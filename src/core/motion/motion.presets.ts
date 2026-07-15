@@ -55,9 +55,9 @@ export function getMotionTransition(
       intent === "press"
         ? UI_MOTION_EASINGS.press
         : intent === "slide" ||
-            intent === "expand" ||
-            intent === "layout" ||
-            intent === "feedback"
+          intent === "expand" ||
+          intent === "layout" ||
+          intent === "feedback"
           ? UI_MOTION_EASINGS.emphasized
           : UI_MOTION_EASINGS.standard,
   };
@@ -322,13 +322,71 @@ export function shouldAnimateProgressIndeterminate(
   return level !== "none" && level !== "reduced";
 }
 
+export function getSpinnerVariants(
+  level: UIMotionLevel
+): Variants {
+  if (
+    level === "none" ||
+    level === "reduced"
+  ) {
+    return {
+      initial: {
+        rotate: 0,
+      },
+      animate: {
+        rotate: 0,
+      },
+    };
+  }
+
+  return {
+    initial: {
+      rotate: 0,
+    },
+    animate: {
+      rotate: 360,
+    },
+  };
+}
+
+export function getSpinnerTransition(
+  level: UIMotionLevel
+): Transition {
+  if (
+    level === "none" ||
+    level === "reduced"
+  ) {
+    return {
+      duration: 0,
+    };
+  }
+
+  return {
+    duration:
+      level === "expressive"
+        ? 0.75
+        : 0.9,
+    ease: "linear",
+    repeat: Infinity,
+  };
+}
+
+export function shouldAnimateSpinner(
+  level: UIMotionLevel
+): boolean {
+  return (
+    level !== "none" &&
+    level !== "reduced"
+  );
+}
+
 export function getPressMotion(
   level: UIMotionLevel
 ):
   | {
-      scale: number;
-      y: number;
-    }
+    scale: number;
+    y: number;
+  }
   | undefined {
   if (level === "none" || level === "reduced") {
     return undefined;

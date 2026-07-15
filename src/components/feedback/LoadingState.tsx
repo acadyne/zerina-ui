@@ -77,17 +77,17 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
       baseStyle:
         variant === "spinner"
           ? {
-              width: "100%",
-              minWidth: 0,
-              display: "flex",
-              alignItems: centered ? "center" : "flex-start",
-              justifyContent: centered ? "center" : "flex-start",
-              padding: centered ? "1.5rem" : undefined,
-            }
+            width: "100%",
+            minWidth: 0,
+            display: "flex",
+            alignItems: centered ? "center" : "flex-start",
+            justifyContent: centered ? "center" : "flex-start",
+            padding: centered ? "1.5rem" : undefined,
+          }
           : {
-              width: "100%",
-              minWidth: 0,
-            },
+            width: "100%",
+            minWidth: 0,
+          },
     });
 
     if (variant === "table") {
@@ -156,8 +156,13 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
         <div {...contentSlot}>
           <Spinner
             size="md"
-            className={spinnerSlot.className}
-            style={spinnerSlot.style}
+            decorative
+            className={
+              spinnerSlot.className
+            }
+            style={
+              spinnerSlot.style
+            }
           />
 
           {label ? <div {...labelSlot}>{label}</div> : null}

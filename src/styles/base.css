@@ -80,14 +80,6 @@ button,
   outline: none;
 }
 
-@keyframes ui-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 @keyframes ui-skeleton-shimmer {
   0% {
@@ -233,11 +225,6 @@ select[data-invalid="true"]:focus {
 [data-ui-motion="none"] [data-ui-skeleton],
 [data-ui-motion-effective="reduced"] [data-ui-skeleton] {
   animation: none !important;
-}
-
-[data-ui-motion="none"] [data-ui-spinner],
-[data-ui-motion-effective="reduced"] [data-ui-spinner] {
-  animation-duration: var(--ui-duration-instant, 1ms) !important;
 }
 
 @keyframes ui-progress-indeterminate {
