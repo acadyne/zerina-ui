@@ -10,6 +10,10 @@ import React, {
   useState,
 } from "react";
 import {
+  getElementSize,
+  observeElementSizes,
+} from "../../core/dom";
+import {
   defineSlotRecipe,
   resolveSlot,
   type SlotPropsMap,
@@ -172,19 +176,6 @@ function getControlSize(
     : "md";
 }
 
-function measureWidth(
-  node: HTMLElement | null
-): number {
-  if (!node) {
-    return 0;
-  }
-
-  return Math.ceil(
-    node.getBoundingClientRect()
-      .width
-  );
-}
-
 function assignMutableRef<T>(
   ref:
     | React.Ref<T>
@@ -224,12 +215,6 @@ type InputGroupRecipeState = {
   disabled: boolean;
 };
 
-/**
- * La recipe concentra únicamente la política visual del root.
- *
- * La medición de controles auxiliares y la inyección de padding
- * permanecen fuera de Styling.
- */
 const inputGroupRecipe =
   defineSlotRecipe<
     InputGroupSlot,
@@ -354,42 +339,7 @@ export const InputGroup =
           return count;
         }, [children]);
 
-      /*
-       * Esta medición pertenece al comportamiento estructural del grupo.
-       * Queda pendiente mover la percepción del DOM al sistema Viewport/DOM.
-       */
       useEffect(() => {
-        const update = () => {
-          const nodes =
-            Array.from(
-              rightElementNodesRef
-                .current
-                .values()
-            );
-
-          if (
-            nodes.length === 0
-          ) {
-            setRightWidth(0);
-            return;
-          }
-
-          const total =
-            nodes.reduce(
-              (
-                accumulated,
-                node
-              ) =>
-                accumulated +
-                measureWidth(node),
-              0
-            );
-
-          setRightWidth(total);
-        };
-
-        update();
-
         const nodes =
           Array.from(
             rightElementNodesRef
@@ -397,35 +347,36 @@ export const InputGroup =
               .values()
           );
 
-        const resizeObserver =
-          typeof ResizeObserver !==
-          "undefined"
-            ? new ResizeObserver(
-                update
-              )
-            : null;
-
-        nodes.forEach(
-          (node) => {
-            resizeObserver?.observe(
-              node
+        const update = () => {
+          const total =
+            nodes.reduce(
+              (
+                accumulated,
+                node
+              ) =>
+                accumulated +
+                Math.ceil(
+                  getElementSize(
+                    node
+                  ).width
+                ),
+              0
             );
-          }
-        );
 
-        window.addEventListener(
-          "resize",
-          update
-        );
-
-        return () => {
-          resizeObserver?.disconnect();
-
-          window.removeEventListener(
-            "resize",
-            update
+          setRightWidth(
+            (currentWidth) =>
+              currentWidth === total
+                ? currentWidth
+                : total
           );
         };
+
+        update();
+
+        return observeElementSizes(
+          nodes,
+          update
+        );
       }, [
         children,
         rightElementCount,
