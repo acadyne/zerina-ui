@@ -13,7 +13,7 @@ import {
   MotionOverlayPanel,
   MotionOverlayPresence,
   MotionOverlayRoot,
-} from "../../core/motion/MotionOverlay";
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
