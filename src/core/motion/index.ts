@@ -21,6 +21,19 @@ export {
 } from "./MotionPresence";
 
 export {
+  MotionOverlayPresence,
+  MotionOverlayRoot,
+  MotionOverlayBackdrop,
+  MotionOverlayPanel,
+  type MotionOverlayPresenceProps,
+  type MotionOverlayRootProps,
+  type MotionOverlayBackdropProps,
+  type MotionOverlayPanelKind,
+  type MotionOverlayPanelAs,
+  type MotionOverlayPanelProps,
+} from "./MotionOverlay";
+
+export {
   UIMotionProvider,
   type UIMotionContextValue,
   type UIMotionProviderProps,

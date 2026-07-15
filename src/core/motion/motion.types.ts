@@ -25,11 +25,9 @@ export type UIMotionPreset =
   | "slide-down"
   | "slide-left"
   | "slide-right"
-  | "dialog"
   | "popover"
   | "menu"
   | "tooltip"
-  | "press"
   | "feedback"
   | "layout";
 

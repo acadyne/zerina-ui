@@ -1,5 +1,8 @@
 // src/core/motion/motion.presets.ts
-import type { Transition, Variants } from "framer-motion";
+import type {
+  Transition,
+  Variants,
+} from "framer-motion";
 import type {
   UIMotionIntent,
   UIMotionLevel,
@@ -17,7 +20,8 @@ export function getMotionTransition(
   level: UIMotionLevel,
   intent: UIMotionIntent = "fade"
 ): Transition {
-  const duration = getMotionDuration(level, intent);
+  const duration =
+    getMotionDuration(level, intent);
 
   if (level === "none") {
     return {
@@ -50,72 +54,110 @@ export function getMotionPresetVariants(
   preset: UIMotionPreset,
   level: UIMotionLevel
 ): Variants {
-  if (level === "none" || preset === "none") {
+  if (
+    level === "none" ||
+    preset === "none"
+  ) {
     return createStaticMotionVariants();
   }
 
-  const distance = getMotionDistance(level);
-  const scale = getMotionScale(level);
+  const distance =
+    getMotionDistance(level);
+
+  const scale =
+    getMotionScale(level);
 
   switch (preset) {
     case "fade":
       return {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
+        initial: {
+          opacity: 0,
+        },
+        animate: {
+          opacity: 1,
+        },
+        exit: {
+          opacity: 0,
+        },
       };
 
     case "scale-fade":
       return {
-        initial: { opacity: 0, scale },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale },
-      };
-
-    case "slide-up":
-      return {
-        initial: { opacity: 0, y: distance },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: distance },
-      };
-
-    case "slide-down":
-      return {
-        initial: { opacity: 0, y: -distance },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -distance },
-      };
-
-    case "slide-left":
-      return {
-        initial: { opacity: 0, x: distance },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: distance },
-      };
-
-    case "slide-right":
-      return {
-        initial: { opacity: 0, x: -distance },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: -distance },
-      };
-
-    case "dialog":
-      return {
         initial: {
           opacity: 0,
           scale,
-          y: level === "expressive" ? 10 : 6,
         },
         animate: {
           opacity: 1,
           scale: 1,
-          y: 0,
         },
         exit: {
           opacity: 0,
           scale,
-          y: level === "expressive" ? 10 : 6,
+        },
+      };
+
+    case "slide-up":
+      return {
+        initial: {
+          opacity: 0,
+          y: distance,
+        },
+        animate: {
+          opacity: 1,
+          y: 0,
+        },
+        exit: {
+          opacity: 0,
+          y: distance,
+        },
+      };
+
+    case "slide-down":
+      return {
+        initial: {
+          opacity: 0,
+          y: -distance,
+        },
+        animate: {
+          opacity: 1,
+          y: 0,
+        },
+        exit: {
+          opacity: 0,
+          y: -distance,
+        },
+      };
+
+    case "slide-left":
+      return {
+        initial: {
+          opacity: 0,
+          x: distance,
+        },
+        animate: {
+          opacity: 1,
+          x: 0,
+        },
+        exit: {
+          opacity: 0,
+          x: distance,
+        },
+      };
+
+    case "slide-right":
+      return {
+        initial: {
+          opacity: 0,
+          x: -distance,
+        },
+        animate: {
+          opacity: 1,
+          x: 0,
+        },
+        exit: {
+          opacity: 0,
+          x: -distance,
         },
       };
 
@@ -125,7 +167,10 @@ export function getMotionPresetVariants(
         initial: {
           opacity: 0,
           scale,
-          y: level === "expressive" ? 10 : 6,
+          y:
+            level === "expressive"
+              ? 10
+              : 6,
         },
         animate: {
           opacity: 1,
@@ -135,7 +180,10 @@ export function getMotionPresetVariants(
         exit: {
           opacity: 0,
           scale,
-          y: level === "expressive" ? 10 : 6,
+          y:
+            level === "expressive"
+              ? 10
+              : 6,
         },
       };
 
@@ -143,7 +191,10 @@ export function getMotionPresetVariants(
       return {
         initial: {
           opacity: 0,
-          scale: level === "expressive" ? 0.94 : 0.98,
+          scale:
+            level === "expressive"
+              ? 0.94
+              : 0.98,
           y: 4,
         },
         animate: {
@@ -153,7 +204,10 @@ export function getMotionPresetVariants(
         },
         exit: {
           opacity: 0,
-          scale: level === "expressive" ? 0.94 : 0.98,
+          scale:
+            level === "expressive"
+              ? 0.94
+              : 0.98,
           y: 4,
         },
       };
@@ -162,7 +216,10 @@ export function getMotionPresetVariants(
       return {
         initial: {
           opacity: 0,
-          scale: level === "expressive" ? 0.92 : 0.96,
+          scale:
+            level === "expressive"
+              ? 0.92
+              : 0.96,
         },
         animate: {
           opacity: 1,
@@ -170,7 +227,10 @@ export function getMotionPresetVariants(
         },
         exit: {
           opacity: 0,
-          scale: level === "expressive" ? 0.92 : 0.96,
+          scale:
+            level === "expressive"
+              ? 0.92
+              : 0.96,
         },
       };
 
@@ -190,22 +250,6 @@ export function getMotionPresetVariants(
         },
       };
 
-    case "press":
-      return {
-        initial: {
-          scale: 1,
-          y: 0,
-        },
-        animate: {
-          scale: 1,
-          y: 0,
-        },
-        exit: {
-          scale: 1,
-          y: 0,
-        },
-      };
-
     default:
       return createStaticMotionVariants();
   }
@@ -214,14 +258,21 @@ export function getMotionPresetVariants(
 export function getProgressIndeterminateTransition(
   level: UIMotionLevel
 ): Transition {
-  if (level === "none" || level === "reduced") {
+  if (
+    level === "none" ||
+    level === "reduced"
+  ) {
     return {
       duration: 0,
     };
   }
 
   return {
-    duration: getMotionDuration(level, "progress"),
+    duration:
+      getMotionDuration(
+        level,
+        "progress"
+      ),
     ease: "linear",
     repeat: Infinity,
   };
@@ -230,17 +281,32 @@ export function getProgressIndeterminateTransition(
 export function shouldAnimateProgressIndeterminate(
   level: UIMotionLevel
 ): boolean {
-  return level !== "none" && level !== "reduced";
+  return (
+    level !== "none" &&
+    level !== "reduced"
+  );
 }
-
 
 export function getPressMotion(
   level: UIMotionLevel
-): { scale: number; y: number } | undefined {
-  if (level === "none" || level === "reduced") return undefined;
+):
+  | {
+      scale: number;
+      y: number;
+    }
+  | undefined {
+  if (
+    level === "none" ||
+    level === "reduced"
+  ) {
+    return undefined;
+  }
 
   return {
-    scale: level === "expressive" ? 0.97 : 0.985,
+    scale:
+      level === "expressive"
+        ? 0.97
+        : 0.985,
     y: 1,
   };
 }
