@@ -11,6 +11,11 @@ export type {
 } from "./motion.types";
 
 export {
+  getCollapsibleContentVariants,
+  getCollapsibleTriggerIconVariants,
+} from "./motion.presets";
+
+export {
   MotionSwitch,
   type MotionSwitchProps,
 } from "./MotionSwitch";

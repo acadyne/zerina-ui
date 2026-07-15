@@ -248,6 +248,34 @@ export function getMotionPresetVariants(
   }
 }
 
+export function getCollapsibleTriggerIconVariants(): Variants {
+  return {
+    closed: {
+      rotate: 0,
+    },
+    open: {
+      rotate: 180,
+    },
+  };
+}
+
+export function getCollapsibleContentVariants(): Variants {
+  return {
+    closed: {
+      height: 0,
+      opacity: 0,
+    },
+    open: {
+      height: "auto",
+      opacity: 1,
+    },
+    exit: {
+      height: 0,
+      opacity: 0,
+    },
+  };
+}
+
 export function getProgressIndeterminateTransition(
   level: UIMotionLevel
 ): Transition {

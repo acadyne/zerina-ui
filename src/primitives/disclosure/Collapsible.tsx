@@ -6,7 +6,11 @@ import {
   type HTMLMotionProps,
 } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  getCollapsibleContentVariants,
+  getCollapsibleTriggerIconVariants,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -37,12 +41,6 @@ type CollapsibleRecipeState = {
   focused: boolean;
 };
 
-/**
- * La recipe concentra únicamente la política visual del Collapsible.
- *
- * El estado de apertura, la semántica, la presencia y las transiciones
- * permanecen en los sistemas Interaction y Motion.
- */
 const collapsibleRecipe =
   defineSlotRecipe<
     CollapsibleSlot,
@@ -55,8 +53,7 @@ const collapsibleRecipe =
         minWidth: 0,
 
         border: "none",
-        borderRadius:
-          "var(--ui-radius-sm)",
+        borderRadius: "var(--ui-radius-sm)",
 
         background: "transparent",
         color: "var(--ui-text)",
@@ -68,8 +65,7 @@ const collapsibleRecipe =
 
         outline: "none",
 
-        WebkitTapHighlightColor:
-          "transparent",
+        WebkitTapHighlightColor: "transparent",
       },
 
       triggerContent: {
@@ -84,8 +80,7 @@ const collapsibleRecipe =
 
         flexShrink: 0,
 
-        color:
-          "var(--ui-text-muted)",
+        color: "var(--ui-text-muted)",
       },
 
       content: {
@@ -447,6 +442,9 @@ export const CollapsibleTrigger =
               .triggerIcon,
         });
 
+      const triggerIconVariants =
+        getCollapsibleTriggerIconVariants();
+
       if (
         asChild &&
         React.isValidElement<
@@ -566,12 +564,15 @@ export const CollapsibleTrigger =
                 {...toMotionSlotProps(
                   triggerIconSlot
                 )}
-                animate={{
-                  rotate:
-                    ctx.open
-                      ? 180
-                      : 0,
-                }}
+                variants={
+                  triggerIconVariants
+                }
+                initial={false}
+                animate={
+                  ctx.open
+                    ? "open"
+                    : "closed"
+                }
                 transition={motionState.getTransition(
                   motionState.effectiveLevel,
                   ctx.open
@@ -697,6 +698,9 @@ export const CollapsibleContent =
             recipeStyles.inner,
         });
 
+      const contentVariants =
+        getCollapsibleContentVariants();
+
       const content =
         shouldRender ? (
           <motion.div
@@ -711,22 +715,16 @@ export const CollapsibleContent =
               ctx.triggerId
             }
             ref={ref}
+            variants={
+              contentVariants
+            }
             initial={false}
-            animate={{
-              height:
-                ctx.open
-                  ? "auto"
-                  : 0,
-
-              opacity:
-                ctx.open
-                  ? 1
-                  : 0,
-            }}
-            exit={{
-              height: 0,
-              opacity: 0,
-            }}
+            animate={
+              ctx.open
+                ? "open"
+                : "closed"
+            }
+            exit="exit"
             transition={motionState.getTransition(
               motionState.effectiveLevel,
               ctx.open
