@@ -18,7 +18,10 @@ import {
 import { useOptionalUIMotion } from "./useUIMotion";
 
 export interface MotionPresenceProps
-  extends Omit<HTMLMotionProps<"div">, "children" | "initial"> {
+  extends Omit<
+    HTMLMotionProps<"div">,
+    "children" | "initial"
+  > {
   children?: React.ReactNode;
 
   present: boolean;
@@ -36,35 +39,60 @@ export interface MotionPresenceProps
 
 export function MotionPresence({
   children,
+
   present,
+
   motionKey = "motion-presence",
+
   preset = "fade",
-  direction = "enter",
+  direction = "replace",
+
   mode = "wait",
   initial = false,
+
   transitionIntent,
+
   className,
   style,
+
   ...rest
 }: MotionPresenceProps) {
-  const motionState = useOptionalUIMotion();
+  const motionState =
+    useOptionalUIMotion();
 
   const effectivePreset =
-    motionState.shouldAnimate && preset !== "none" ? preset : "none";
+    motionState.shouldAnimate &&
+    preset !== "none"
+      ? preset
+      : "none";
 
-  const variants = getAppTransitionVariants({
-    transition: effectivePreset,
-    direction,
-    level: motionState.effectiveLevel,
-  });
+  const variants =
+    getAppTransitionVariants({
+      transition:
+        effectivePreset,
 
-  const transition = motionState.getTransition(
-    motionState.effectiveLevel,
-    transitionIntent ?? getAppTransitionIntent(effectivePreset)
-  );
+      direction,
+
+      level:
+        motionState.effectiveLevel,
+    });
+
+  const transition =
+    motionState.getTransition(
+      motionState.effectiveLevel,
+
+      transitionIntent ??
+        getAppTransitionIntent(
+          effectivePreset
+        )
+    );
 
   return (
-    <AnimatePresence mode={mode} initial={initial} custom={direction}>
+    <AnimatePresence
+      mode={mode}
+      initial={initial}
+      custom={direction}
+    >
       {present ? (
         <motion.div
           key={motionKey}
@@ -85,4 +113,5 @@ export function MotionPresence({
   );
 }
 
-MotionPresence.displayName = "MotionPresence";
+MotionPresence.displayName =
+  "MotionPresence";

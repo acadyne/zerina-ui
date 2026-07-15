@@ -42,18 +42,20 @@ export type UIMotionAppTransition =
   | "fade-through";
 
 export type UIMotionTransitionDirection =
-  | "enter"
-  | "exit"
   | "forward"
   | "back"
   | "replace";
 
-export type UIMotionPreference = "system" | UIMotionLevel;
+export type UIMotionPreference =
+  | "system"
+  | UIMotionLevel;
 
 export interface UIMotionState {
   level: UIMotionLevel;
   effectiveLevel: UIMotionLevel;
+
   prefersReducedMotion: boolean;
   respectReducedMotion: boolean;
+
   shouldAnimate: boolean;
 }

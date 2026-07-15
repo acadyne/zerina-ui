@@ -1,5 +1,8 @@
 // src/core/motion/motion.app.ts
-import type { Variants } from "framer-motion";
+import type {
+  TargetAndTransition,
+  Variants,
+} from "framer-motion";
 import type {
   UIMotionAppTransition,
   UIMotionIntent,
@@ -12,21 +15,15 @@ import {
 } from "./motion.tokens";
 import { createStaticMotionVariants } from "./motion.utils";
 
-function resolveTransitionDirection(
-  customDirection: unknown,
-  fallbackDirection: UIMotionTransitionDirection
-): UIMotionTransitionDirection {
-  if (
-    customDirection === "enter" ||
-    customDirection === "exit" ||
-    customDirection === "forward" ||
-    customDirection === "back" ||
-    customDirection === "replace"
-  ) {
-    return customDirection;
-  }
+type DirectionalVariantResolver = (
+  custom: UIMotionTransitionDirection | undefined
+) => TargetAndTransition;
 
-  return fallbackDirection;
+function resolveDirection(
+  custom: UIMotionTransitionDirection | undefined,
+  direction: UIMotionTransitionDirection
+): UIMotionTransitionDirection {
+  return custom ?? direction;
 }
 
 export function getAppTransitionIntent(
@@ -64,7 +61,12 @@ export function getAppTransitionVariants({
   }
 
   const distance = getMotionDistance(level);
-  const axisDistance = level === "expressive" ? distance * 2 : distance * 1.5;
+
+  const axisDistance =
+    level === "expressive"
+      ? distance * 2
+      : distance * 1.5;
+
   const scale = getMotionScale(level);
 
   if (transition === "fade") {
@@ -99,10 +101,20 @@ export function getAppTransitionVariants({
   }
 
   if (transition === "fade-through") {
+    const initialScale =
+      level === "expressive"
+        ? 0.98
+        : 0.995;
+
+    const exitScale =
+      level === "expressive"
+        ? 1.02
+        : 1.005;
+
     return {
       initial: {
         opacity: 0,
-        scale: level === "expressive" ? 0.98 : 0.995,
+        scale: initialScale,
       },
       animate: {
         opacity: 1,
@@ -110,129 +122,137 @@ export function getAppTransitionVariants({
       },
       exit: {
         opacity: 0,
-        scale: level === "expressive" ? 1.02 : 1.005,
+        scale: exitScale,
       },
     };
   }
 
   if (transition === "shared-axis") {
-    return {
-      initial: (customDirection) => {
-        const resolvedDirection = resolveTransitionDirection(
-          customDirection,
-          direction
-        );
+    const initial: DirectionalVariantResolver = (custom) => {
+      const resolvedDirection = resolveDirection(
+        custom,
+        direction
+      );
 
-        if (resolvedDirection === "back") {
-          return {
-            opacity: 0,
-            x: -axisDistance,
-          };
-        }
+      if (resolvedDirection === "back") {
+        return {
+          opacity: 0,
+          x: -axisDistance,
+        };
+      }
 
-        if (resolvedDirection === "replace") {
-          return {
-            opacity: 0,
-            y: axisDistance * 0.5,
-            scale,
-          };
-        }
+      if (resolvedDirection === "replace") {
+        return {
+          opacity: 0,
+          y: axisDistance * 0.5,
+          scale,
+        };
+      }
 
+      return {
+        opacity: 0,
+        x: axisDistance,
+      };
+    };
+
+    const exit: DirectionalVariantResolver = (custom) => {
+      const resolvedDirection = resolveDirection(
+        custom,
+        direction
+      );
+
+      if (resolvedDirection === "back") {
         return {
           opacity: 0,
           x: axisDistance,
         };
-      },
+      }
+
+      if (resolvedDirection === "replace") {
+        return {
+          opacity: 0,
+          y: -axisDistance * 0.5,
+          scale,
+        };
+      }
+
+      return {
+        opacity: 0,
+        x: -axisDistance,
+      };
+    };
+
+    return {
+      initial,
       animate: {
         opacity: 1,
         x: 0,
         y: 0,
         scale: 1,
       },
-      exit: (customDirection) => {
-        const resolvedDirection = resolveTransitionDirection(
-          customDirection,
-          direction
-        );
-
-        if (resolvedDirection === "back") {
-          return {
-            opacity: 0,
-            x: axisDistance,
-          };
-        }
-
-        if (resolvedDirection === "replace") {
-          return {
-            opacity: 0,
-            y: -axisDistance * 0.5,
-            scale,
-          };
-        }
-
-        return {
-          opacity: 0,
-          x: -axisDistance,
-        };
-      },
+      exit,
     };
   }
 
-  return {
-    initial: (customDirection) => {
-      const resolvedDirection = resolveTransitionDirection(
-        customDirection,
-        direction
-      );
+  const initial: DirectionalVariantResolver = (custom) => {
+    const resolvedDirection = resolveDirection(
+      custom,
+      direction
+    );
 
-      if (resolvedDirection === "back") {
-        return {
-          x: "-18%",
-          opacity: 0.96,
-        };
-      }
+    if (resolvedDirection === "back") {
+      return {
+        x: "-18%",
+        opacity: 0.96,
+      };
+    }
 
-      if (resolvedDirection === "replace") {
-        return {
-          opacity: 0.92,
-          scale: 0.995,
-        };
-      }
+    if (resolvedDirection === "replace") {
+      return {
+        opacity: 0.92,
+        scale: 0.995,
+      };
+    }
 
+    return {
+      x: "100%",
+      opacity: 1,
+    };
+  };
+
+  const exit: DirectionalVariantResolver = (custom) => {
+    const resolvedDirection = resolveDirection(
+      custom,
+      direction
+    );
+
+    if (resolvedDirection === "back") {
       return {
         x: "100%",
         opacity: 1,
       };
-    },
+    }
+
+    if (resolvedDirection === "replace") {
+      return {
+        opacity: 0,
+        scale: 0.995,
+      };
+    }
+
+    return {
+      x: "-18%",
+      opacity: 0.92,
+    };
+  };
+
+  return {
+    initial,
     animate: {
       x: 0,
       opacity: 1,
       scale: 1,
     },
-    exit: (customDirection) => {
-      const resolvedDirection = resolveTransitionDirection(
-        customDirection,
-        direction
-      );
-
-      if (resolvedDirection === "back") {
-        return {
-          x: "100%",
-          opacity: 1,
-        };
-      }
-
-      if (resolvedDirection === "replace") {
-        return {
-          opacity: 0,
-          scale: 0.995,
-        };
-      }
-
-      return {
-        x: "-18%",
-        opacity: 0.92,
-      };
-    },
+    exit,
   };
 }
