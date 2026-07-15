@@ -7,6 +7,12 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import {
+  getElementLayoutSize,
+  getElementRect,
+  getElementSize,
+  observeElementSizes,
+} from "../../../core/dom";
 import type {
   TransformableSurfaceApi,
   TransformableSurfaceBounds,
@@ -474,13 +480,13 @@ export function useTransformableSurface({
       );
 
       const context: TransformableSurfaceChangeContext =
-        {
-          transform: resolvedTransform,
-          previousTransform,
-          reason,
-          gesture:
-            gestureRef.current,
-        };
+      {
+        transform: resolvedTransform,
+        previousTransform,
+        reason,
+        gesture:
+          gestureRef.current,
+      };
 
       onTransformChange?.(context);
 
@@ -496,9 +502,9 @@ export function useTransformableSurface({
 
       if (
         previousTransform.position.x !==
-          resolvedTransform.position.x ||
+        resolvedTransform.position.x ||
         previousTransform.position.y !==
-          resolvedTransform.position.y
+        resolvedTransform.position.y
       ) {
         onPositionChange?.(
           resolvedTransform.position,
@@ -531,69 +537,53 @@ export function useTransformableSurface({
 
       return getRelativeSurfacePoint(
         point,
-        viewport.getBoundingClientRect()
+        getElementRect(viewport)
       );
     },
     []
   );
 
   const measure = useCallback((): void => {
-    const viewport =
-      viewportRef.current;
-
-    const content =
-      contentRef.current;
-
-    if (viewport) {
-      const rect =
-        viewport.getBoundingClientRect();
-
-      const nextViewportSize =
-        normalizeSurfaceSize({
-          width: rect.width,
-          height: rect.height,
-        });
-
-      if (
-        !areSurfaceSizesEqual(
-          viewportSizeRef.current,
-          nextViewportSize
+    const nextViewportSize =
+      normalizeSurfaceSize(
+        getElementSize(
+          viewportRef.current
         )
-      ) {
-        viewportSizeRef.current =
-          nextViewportSize;
+      );
 
-        setViewportSize(
-          nextViewportSize
-        );
-      }
+    if (
+      !areSurfaceSizesEqual(
+        viewportSizeRef.current,
+        nextViewportSize
+      )
+    ) {
+      viewportSizeRef.current =
+        nextViewportSize;
+
+      setViewportSize(
+        nextViewportSize
+      );
     }
 
-    if (content) {
-      const nextContentSize =
-        normalizeSurfaceSize({
-          width:
-            content.offsetWidth ||
-            content.getBoundingClientRect()
-              .width,
-
-          height:
-            content.offsetHeight ||
-            content.getBoundingClientRect()
-              .height,
-        });
-
-      if (
-        !areSurfaceSizesEqual(
-          contentSizeRef.current,
-          nextContentSize
+    const nextContentSize =
+      normalizeSurfaceSize(
+        getElementLayoutSize(
+          contentRef.current
         )
-      ) {
-        contentSizeRef.current =
-          nextContentSize;
+      );
 
-        setContentSize(nextContentSize);
-      }
+    if (
+      !areSurfaceSizesEqual(
+        contentSizeRef.current,
+        nextContentSize
+      )
+    ) {
+      contentSizeRef.current =
+        nextContentSize;
+
+      setContentSize(
+        nextContentSize
+      );
     }
   }, []);
 
@@ -680,7 +670,7 @@ export function useTransformableSurface({
     ): void => {
       setScale(
         transformRef.current.scale +
-          Math.abs(scaleStep),
+        Math.abs(scaleStep),
         origin
       );
     },
@@ -696,7 +686,7 @@ export function useTransformableSurface({
     ): void => {
       setScale(
         transformRef.current.scale -
-          Math.abs(scaleStep),
+        Math.abs(scaleStep),
         origin
       );
     },
@@ -759,13 +749,13 @@ export function useTransformableSurface({
 
         const targetScale =
           currentScale >
-          resetScale + 0.0001
+            resetScale + 0.0001
             ? resetScale
             : clampSurfaceScale(
-                doubleInteractionScale,
-                minScale,
-                maxScale
-              );
+              doubleInteractionScale,
+              minScale,
+              maxScale
+            );
 
         if (targetScale === resetScale) {
           commitTransform(
@@ -923,7 +913,7 @@ export function useTransformableSurface({
 
       if (
         activePointersRef.current.size >=
-          2 &&
+        2 &&
         pinchEnabled
       ) {
         tapCandidateRef.current = null;
@@ -984,7 +974,7 @@ export function useTransformableSurface({
       if (
         tapCandidate &&
         tapCandidate.pointerId ===
-          event.pointerId &&
+        event.pointerId &&
         getSurfacePointDistance(
           tapCandidate.point,
           point
@@ -1080,7 +1070,7 @@ export function useTransformableSurface({
         !panEnabled ||
         !panStart ||
         panStart.pointerId !==
-          event.pointerId
+        event.pointerId
       ) {
         return;
       }
@@ -1131,7 +1121,7 @@ export function useTransformableSurface({
         if (
           previousTap &&
           now - previousTap.timestamp <=
-            doubleTapDelay &&
+          doubleTapDelay &&
           getSurfacePointDistance(
             previousTap.point,
             point
@@ -1207,11 +1197,11 @@ export function useTransformableSurface({
         pointer?.pointerType === "touch" &&
         tapCandidate &&
         tapCandidate.pointerId ===
-          event.pointerId &&
+        event.pointerId &&
         !tapCandidate.moved &&
         getNow() -
-          tapCandidate.startedAt <=
-          doubleTapDelay
+        tapCandidate.startedAt <=
+        doubleTapDelay
       ) {
         processDoubleTap(
           tapCandidate.point
@@ -1323,7 +1313,7 @@ export function useTransformableSurface({
 
       const factor = Math.exp(
         -event.deltaY *
-          wheelZoomSensitivity
+        wheelZoomSensitivity
       );
 
       const nextScale =
@@ -1443,27 +1433,25 @@ export function useTransformableSurface({
   );
 
   useEffect(() => {
-    const viewport =
-      viewportRef.current;
+    const nodes = [
+      viewportRef.current,
+      contentRef.current,
+    ].filter(
+      (
+        node
+      ): node is HTMLDivElement =>
+        node !== null
+    );
 
-    const content =
-      contentRef.current;
-
-    if (!viewport && !content) {
+    if (nodes.length === 0) {
       return;
     }
 
     measure();
 
-    if (
-      typeof ResizeObserver ===
-      "undefined"
-    ) {
-      return;
-    }
-
-    const observer =
-      new ResizeObserver(() => {
+    return observeElementSizes(
+      nodes,
+      () => {
         measure();
 
         if (constrainOnResize) {
@@ -1471,19 +1459,8 @@ export function useTransformableSurface({
             constrain();
           });
         }
-      });
-
-    if (viewport) {
-      observer.observe(viewport);
-    }
-
-    if (content) {
-      observer.observe(content);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
+      }
+    );
   }, [
     constrain,
     constrainOnResize,

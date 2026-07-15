@@ -6,18 +6,19 @@ export interface ElementSize {
   height: number;
 }
 
+const EMPTY_ELEMENT_SIZE: ElementSize = {
+  width: 0,
+  height: 0,
+};
+
 export function getElementSize(
   node: HTMLElement | null
 ): ElementSize {
   if (!node) {
-    return {
-      width: 0,
-      height: 0,
-    };
+    return EMPTY_ELEMENT_SIZE;
   }
 
-  const rect =
-    node.getBoundingClientRect();
+  const rect = node.getBoundingClientRect();
 
   return {
     width: rect.width,
@@ -25,27 +26,44 @@ export function getElementSize(
   };
 }
 
+/**
+ * Obtiene el tamaño de layout sin incorporar transformaciones CSS.
+ *
+ * Es útil para elementos escalados o trasladados mediante transform.
+ */
+export function getElementLayoutSize(
+  node: HTMLElement | null
+): ElementSize {
+  if (!node) {
+    return EMPTY_ELEMENT_SIZE;
+  }
+
+  const rect = node.getBoundingClientRect();
+
+  return {
+    width: node.offsetWidth || rect.width,
+    height: node.offsetHeight || rect.height,
+  };
+}
+
 export function observeElementSizes(
   nodes: Iterable<HTMLElement>,
   onChange: () => void
 ): () => void {
-  const elements =
-    Array.from(nodes);
+  const elements = Array.from(nodes);
 
   if (
     elements.length === 0 ||
-    typeof ResizeObserver ===
-      "undefined"
+    typeof ResizeObserver === "undefined"
   ) {
     return () => {
       // noop
     };
   }
 
-  const observer =
-    new ResizeObserver(() => {
-      onChange();
-    });
+  const observer = new ResizeObserver(() => {
+    onChange();
+  });
 
   elements.forEach((element) => {
     observer.observe(element);
@@ -69,37 +87,30 @@ function areElementSizesEqual(
 export function useElementSize<
   TElement extends HTMLElement,
 >() {
-  const ref =
-    React.useRef<TElement | null>(
-      null
-    );
+  const ref = React.useRef<TElement | null>(null);
 
   const [size, setSize] =
-    React.useState<ElementSize>({
-      width: 0,
-      height: 0,
-    });
+    React.useState<ElementSize>(
+      EMPTY_ELEMENT_SIZE
+    );
 
-  const update =
-    React.useCallback(() => {
-      const nextSize =
-        getElementSize(
-          ref.current
-        );
+  const update = React.useCallback(() => {
+    const nextSize = getElementSize(
+      ref.current
+    );
 
-      setSize((currentSize) =>
-        areElementSizesEqual(
-          currentSize,
-          nextSize
-        )
-          ? currentSize
-          : nextSize
-      );
-    }, []);
+    setSize((currentSize) =>
+      areElementSizesEqual(
+        currentSize,
+        nextSize
+      )
+        ? currentSize
+        : nextSize
+    );
+  }, []);
 
   React.useLayoutEffect(() => {
-    const node =
-      ref.current;
+    const node = ref.current;
 
     if (!node) {
       return;
@@ -113,8 +124,5 @@ export function useElementSize<
     );
   }, [update]);
 
-  return [
-    ref,
-    size,
-  ] as const;
+  return [ref, size] as const;
 }
