@@ -3,3 +3,4 @@
 export * from "./useMediaQuery";
 export * from "./useViewportSize";
 export * from "./useElementSize";
+export * from "./useElementRect";

@@ -4,11 +4,12 @@ import {
   AnimatePresence,
   motion,
 } from "framer-motion";
+import { useElementRect } from "../../core/dom";
+import { useOptionalUIMotion } from "../../core/motion";
 import {
   DismissableLayer,
   getLayerZIndex,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -59,12 +60,6 @@ type RecursiveFloatingMenuLayerRecipeState = {
   zIndex: number;
 };
 
-/**
- * La recipe concentra la política visual de la capa flotante.
- *
- * La medición, el posicionamiento dinámico, la presencia, el dismiss
- * y las transiciones permanecen en sus sistemas correspondientes.
- */
 const recursiveFloatingMenuLayerRecipe =
   defineSlotRecipe<
     RecursiveFloatingMenuLayerSlot,
@@ -208,10 +203,49 @@ export const RecursiveFloatingMenuLayer:
         null
       );
 
-    const [
-      left,
-      setLeft,
-    ] = React.useState(0);
+    const containerRect =
+      useElementRect(
+        containerRef,
+        {
+          enabled: open,
+        }
+      );
+
+    const panelRect =
+      useElementRect(
+        panelRef,
+        {
+          enabled: open,
+        }
+      );
+
+    const left =
+      React.useMemo(() => {
+        const minLeft =
+          edgeMargin;
+
+        const maxLeft =
+          Math.max(
+            edgeMargin,
+
+            containerRect.width -
+              panelRect.width -
+              edgeMargin
+          );
+
+        return clamp(
+          anchorX -
+            panelRect.width / 2,
+
+          minLeft,
+          maxLeft
+        );
+      }, [
+        anchorX,
+        containerRect.width,
+        edgeMargin,
+        panelRect.width,
+      ]);
 
     const motionState =
       useOptionalUIMotion();
@@ -230,141 +264,6 @@ export const RecursiveFloatingMenuLayer:
         motionState.effectiveLevel,
         "slide"
       );
-
-    const updatePosition =
-      React.useCallback(() => {
-        const containerElement =
-          containerRef.current;
-
-        const panelElement =
-          panelRef.current;
-
-        if (
-          !open ||
-          !containerElement ||
-          !panelElement
-        ) {
-          return;
-        }
-
-        const containerRect =
-          containerElement.getBoundingClientRect();
-
-        const panelRect =
-          panelElement.getBoundingClientRect();
-
-        const minLeft =
-          edgeMargin;
-
-        const maxLeft =
-          Math.max(
-            edgeMargin,
-
-            containerRect.width -
-              panelRect.width -
-              edgeMargin
-          );
-
-        const nextLeft =
-          clamp(
-            anchorX -
-              panelRect.width / 2,
-
-            minLeft,
-            maxLeft
-          );
-
-        setLeft(nextLeft);
-      }, [
-        anchorX,
-        containerRef,
-        edgeMargin,
-        open,
-      ]);
-
-    React.useLayoutEffect(() => {
-      if (!open) {
-        return;
-      }
-
-      updatePosition();
-    }, [
-      open,
-      updatePosition,
-      children,
-    ]);
-
-    /*
-     * La medición y escucha directa de resize/scroll quedan registradas
-     * como deuda de Viewport/DOM. Esta fase solo centraliza Styling.
-     */
-    React.useEffect(() => {
-      if (!open) {
-        return;
-      }
-
-      const handleResize = () => {
-        updatePosition();
-      };
-
-      const handleScroll = () => {
-        updatePosition();
-      };
-
-      window.addEventListener(
-        "resize",
-        handleResize
-      );
-
-      const containerElement =
-        containerRef.current;
-
-      containerElement?.addEventListener(
-        "scroll",
-        handleScroll,
-        {
-          passive: true,
-        }
-      );
-
-      const resizeObserver =
-        typeof ResizeObserver !==
-        "undefined"
-          ? new ResizeObserver(
-              updatePosition
-            )
-          : null;
-
-      if (containerElement) {
-        resizeObserver?.observe(
-          containerElement
-        );
-      }
-
-      if (panelRef.current) {
-        resizeObserver?.observe(
-          panelRef.current
-        );
-      }
-
-      return () => {
-        window.removeEventListener(
-          "resize",
-          handleResize
-        );
-
-        containerElement?.removeEventListener(
-          "scroll",
-          handleScroll
-        );
-
-        resizeObserver?.disconnect();
-      };
-    }, [
-      open,
-      updatePosition,
-      containerRef,
-    ]);
 
     const verticalOffsetRem =
       level * 2.2;
