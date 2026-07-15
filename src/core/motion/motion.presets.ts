@@ -16,12 +16,25 @@ import {
 } from "./motion.tokens";
 import { createStaticMotionVariants } from "./motion.utils";
 
+function createReducedMotionVariants(): Variants {
+  return {
+    initial: {
+      opacity: 0,
+    },
+    animate: {
+      opacity: 1,
+    },
+    exit: {
+      opacity: 0,
+    },
+  };
+}
+
 export function getMotionTransition(
   level: UIMotionLevel,
   intent: UIMotionIntent = "fade"
 ): Transition {
-  const duration =
-    getMotionDuration(level, intent);
+  const duration = getMotionDuration(level, intent);
 
   if (level === "none") {
     return {
@@ -54,18 +67,16 @@ export function getMotionPresetVariants(
   preset: UIMotionPreset,
   level: UIMotionLevel
 ): Variants {
-  if (
-    level === "none" ||
-    preset === "none"
-  ) {
+  if (level === "none" || preset === "none") {
     return createStaticMotionVariants();
   }
 
-  const distance =
-    getMotionDistance(level);
+  if (level === "reduced") {
+    return createReducedMotionVariants();
+  }
 
-  const scale =
-    getMotionScale(level);
+  const distance = getMotionDistance(level);
+  const scale = getMotionScale(level);
 
   switch (preset) {
     case "fade":
@@ -167,10 +178,7 @@ export function getMotionPresetVariants(
         initial: {
           opacity: 0,
           scale,
-          y:
-            level === "expressive"
-              ? 10
-              : 6,
+          y: level === "expressive" ? 10 : 6,
         },
         animate: {
           opacity: 1,
@@ -180,10 +188,7 @@ export function getMotionPresetVariants(
         exit: {
           opacity: 0,
           scale,
-          y:
-            level === "expressive"
-              ? 10
-              : 6,
+          y: level === "expressive" ? 10 : 6,
         },
       };
 
@@ -191,10 +196,7 @@ export function getMotionPresetVariants(
       return {
         initial: {
           opacity: 0,
-          scale:
-            level === "expressive"
-              ? 0.94
-              : 0.98,
+          scale: level === "expressive" ? 0.94 : 0.98,
           y: 4,
         },
         animate: {
@@ -204,10 +206,7 @@ export function getMotionPresetVariants(
         },
         exit: {
           opacity: 0,
-          scale:
-            level === "expressive"
-              ? 0.94
-              : 0.98,
+          scale: level === "expressive" ? 0.94 : 0.98,
           y: 4,
         },
       };
@@ -216,10 +215,7 @@ export function getMotionPresetVariants(
       return {
         initial: {
           opacity: 0,
-          scale:
-            level === "expressive"
-              ? 0.92
-              : 0.96,
+          scale: level === "expressive" ? 0.92 : 0.96,
         },
         animate: {
           opacity: 1,
@@ -227,10 +223,7 @@ export function getMotionPresetVariants(
         },
         exit: {
           opacity: 0,
-          scale:
-            level === "expressive"
-              ? 0.92
-              : 0.96,
+          scale: level === "expressive" ? 0.92 : 0.96,
         },
       };
 
@@ -258,21 +251,14 @@ export function getMotionPresetVariants(
 export function getProgressIndeterminateTransition(
   level: UIMotionLevel
 ): Transition {
-  if (
-    level === "none" ||
-    level === "reduced"
-  ) {
+  if (level === "none" || level === "reduced") {
     return {
       duration: 0,
     };
   }
 
   return {
-    duration:
-      getMotionDuration(
-        level,
-        "progress"
-      ),
+    duration: getMotionDuration(level, "progress"),
     ease: "linear",
     repeat: Infinity,
   };
@@ -281,10 +267,7 @@ export function getProgressIndeterminateTransition(
 export function shouldAnimateProgressIndeterminate(
   level: UIMotionLevel
 ): boolean {
-  return (
-    level !== "none" &&
-    level !== "reduced"
-  );
+  return level !== "none" && level !== "reduced";
 }
 
 export function getPressMotion(
@@ -295,18 +278,12 @@ export function getPressMotion(
       y: number;
     }
   | undefined {
-  if (
-    level === "none" ||
-    level === "reduced"
-  ) {
+  if (level === "none" || level === "reduced") {
     return undefined;
   }
 
   return {
-    scale:
-      level === "expressive"
-        ? 0.97
-        : 0.985,
+    scale: level === "expressive" ? 0.97 : 0.985,
     y: 1,
   };
 }
