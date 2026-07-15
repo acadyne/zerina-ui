@@ -1,5 +1,12 @@
 // src/core/overlay/FloatingLayer.tsx
 import React from "react";
+import {
+  getElementRect,
+  useElementRect,
+  useViewportSize,
+  type ElementRect,
+  type ViewportSize,
+} from "../dom";
 
 export type FloatingPlacement =
   | "top"
@@ -20,214 +27,334 @@ type FloatingCoordinates = {
   left: number;
 };
 
-type RectLike = {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-};
-
-function getViewportRect(): RectLike {
-  return {
-    top: 0,
-    left: 0,
-    right: window.innerWidth,
-    bottom: window.innerHeight,
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-}
-
 function getPlacementCandidates(
   placement: FloatingPlacement,
   flip: boolean
 ): FloatingPlacement[] {
-  if (!flip) return [placement];
+  if (!flip) {
+    return [placement];
+  }
 
-  const oppositeMap: Record<FloatingPlacement, FloatingPlacement> = {
+  const oppositeMap: Record<
+    FloatingPlacement,
+    FloatingPlacement
+  > = {
     top: "bottom",
     bottom: "top",
     left: "right",
     right: "left",
+
     "top-start": "bottom-start",
     "top-end": "bottom-end",
+
     "bottom-start": "top-start",
     "bottom-end": "top-end",
+
     "left-start": "right-start",
     "left-end": "right-end",
+
     "right-start": "left-start",
     "right-end": "left-end",
   };
 
-  const opposite = oppositeMap[placement];
-  return opposite && opposite !== placement ? [placement, opposite] : [placement];
+  const opposite =
+    oppositeMap[placement];
+
+  return opposite === placement
+    ? [placement]
+    : [placement, opposite];
 }
 
 function computeCoordinates(
-  triggerRect: RectLike,
-  floatingRect: RectLike,
+  triggerRect: ElementRect,
+  floatingRect: ElementRect,
   placement: FloatingPlacement,
   offset: number
 ): FloatingCoordinates {
   switch (placement) {
     case "top":
       return {
-        top: triggerRect.top - floatingRect.height - offset,
-        left: triggerRect.left + triggerRect.width / 2 - floatingRect.width / 2,
+        top:
+          triggerRect.top -
+          floatingRect.height -
+          offset,
+
+        left:
+          triggerRect.left +
+          triggerRect.width / 2 -
+          floatingRect.width / 2,
       };
 
     case "bottom":
       return {
-        top: triggerRect.bottom + offset,
-        left: triggerRect.left + triggerRect.width / 2 - floatingRect.width / 2,
+        top:
+          triggerRect.bottom +
+          offset,
+
+        left:
+          triggerRect.left +
+          triggerRect.width / 2 -
+          floatingRect.width / 2,
       };
 
     case "left":
       return {
-        top: triggerRect.top + triggerRect.height / 2 - floatingRect.height / 2,
-        left: triggerRect.left - floatingRect.width - offset,
+        top:
+          triggerRect.top +
+          triggerRect.height / 2 -
+          floatingRect.height / 2,
+
+        left:
+          triggerRect.left -
+          floatingRect.width -
+          offset,
       };
 
     case "right":
       return {
-        top: triggerRect.top + triggerRect.height / 2 - floatingRect.height / 2,
-        left: triggerRect.right + offset,
+        top:
+          triggerRect.top +
+          triggerRect.height / 2 -
+          floatingRect.height / 2,
+
+        left:
+          triggerRect.right +
+          offset,
       };
 
     case "top-start":
       return {
-        top: triggerRect.top - floatingRect.height - offset,
-        left: triggerRect.left,
+        top:
+          triggerRect.top -
+          floatingRect.height -
+          offset,
+
+        left:
+          triggerRect.left,
       };
 
     case "top-end":
       return {
-        top: triggerRect.top - floatingRect.height - offset,
-        left: triggerRect.right - floatingRect.width,
+        top:
+          triggerRect.top -
+          floatingRect.height -
+          offset,
+
+        left:
+          triggerRect.right -
+          floatingRect.width,
       };
 
     case "bottom-start":
       return {
-        top: triggerRect.bottom + offset,
-        left: triggerRect.left,
+        top:
+          triggerRect.bottom +
+          offset,
+
+        left:
+          triggerRect.left,
       };
 
     case "bottom-end":
       return {
-        top: triggerRect.bottom + offset,
-        left: triggerRect.right - floatingRect.width,
+        top:
+          triggerRect.bottom +
+          offset,
+
+        left:
+          triggerRect.right -
+          floatingRect.width,
       };
 
     case "left-start":
       return {
-        top: triggerRect.top,
-        left: triggerRect.left - floatingRect.width - offset,
+        top:
+          triggerRect.top,
+
+        left:
+          triggerRect.left -
+          floatingRect.width -
+          offset,
       };
 
     case "left-end":
       return {
-        top: triggerRect.bottom - floatingRect.height,
-        left: triggerRect.left - floatingRect.width - offset,
+        top:
+          triggerRect.bottom -
+          floatingRect.height,
+
+        left:
+          triggerRect.left -
+          floatingRect.width -
+          offset,
       };
 
     case "right-start":
       return {
-        top: triggerRect.top,
-        left: triggerRect.right + offset,
+        top:
+          triggerRect.top,
+
+        left:
+          triggerRect.right +
+          offset,
       };
 
     case "right-end":
       return {
-        top: triggerRect.bottom - floatingRect.height,
-        left: triggerRect.right + offset,
-      };
+        top:
+          triggerRect.bottom -
+          floatingRect.height,
 
-    default:
-      return {
-        top: triggerRect.bottom + offset,
-        left: triggerRect.left,
+        left:
+          triggerRect.right +
+          offset,
       };
   }
 }
 
 function fitsInViewport(
   coords: FloatingCoordinates,
-  floatingRect: RectLike,
+  floatingRect: ElementRect,
+  viewportSize: ViewportSize,
   viewportPadding: number
 ): boolean {
-  const viewport = getViewportRect();
-
   return (
-    coords.left >= viewport.left + viewportPadding &&
-    coords.top >= viewport.top + viewportPadding &&
-    coords.left + floatingRect.width <= viewport.right - viewportPadding &&
-    coords.top + floatingRect.height <= viewport.bottom - viewportPadding
+    coords.left >=
+      viewportPadding &&
+    coords.top >=
+      viewportPadding &&
+    coords.left +
+        floatingRect.width <=
+      viewportSize.width -
+        viewportPadding &&
+    coords.top +
+        floatingRect.height <=
+      viewportSize.height -
+        viewportPadding
   );
 }
 
 function clampToViewport(
   coords: FloatingCoordinates,
-  floatingRect: RectLike,
+  floatingRect: ElementRect,
+  viewportSize: ViewportSize,
   viewportPadding: number
 ): FloatingCoordinates {
-  const viewport = getViewportRect();
+  const minLeft =
+    viewportPadding;
 
-  const minLeft = viewport.left + viewportPadding;
-  const minTop = viewport.top + viewportPadding;
+  const minTop =
+    viewportPadding;
 
-  const maxLeft = Math.max(
-    minLeft,
-    viewport.right - floatingRect.width - viewportPadding
-  );
+  const maxLeft =
+    Math.max(
+      minLeft,
 
-  const maxTop = Math.max(
-    minTop,
-    viewport.bottom - floatingRect.height - viewportPadding
-  );
+      viewportSize.width -
+        floatingRect.width -
+        viewportPadding
+    );
+
+  const maxTop =
+    Math.max(
+      minTop,
+
+      viewportSize.height -
+        floatingRect.height -
+        viewportPadding
+    );
 
   return {
-    left: Math.min(Math.max(coords.left, minLeft), maxLeft),
-    top: Math.min(Math.max(coords.top, minTop), maxTop),
+    left:
+      Math.min(
+        Math.max(
+          coords.left,
+          minLeft
+        ),
+        maxLeft
+      ),
+
+    top:
+      Math.min(
+        Math.max(
+          coords.top,
+          minTop
+        ),
+        maxTop
+      ),
   };
 }
 
 function resolvePosition(
-  triggerRect: RectLike,
-  floatingRect: RectLike,
+  triggerRect: ElementRect,
+  floatingRect: ElementRect,
+  viewportSize: ViewportSize,
   placement: FloatingPlacement,
   offset: number,
   flip: boolean,
   shift: boolean,
   viewportPadding: number
-): { coords: FloatingCoordinates; resolvedPlacement: FloatingPlacement } {
-  const candidates = getPlacementCandidates(placement, flip);
+): {
+  coords: FloatingCoordinates;
+  resolvedPlacement: FloatingPlacement;
+} {
+  const candidates =
+    getPlacementCandidates(
+      placement,
+      flip
+    );
 
-  for (const candidate of candidates) {
-    const coords = computeCoordinates(triggerRect, floatingRect, candidate, offset);
+  for (
+    const candidate of
+    candidates
+  ) {
+    const coords =
+      computeCoordinates(
+        triggerRect,
+        floatingRect,
+        candidate,
+        offset
+      );
 
-    if (fitsInViewport(coords, floatingRect, viewportPadding)) {
+    if (
+      fitsInViewport(
+        coords,
+        floatingRect,
+        viewportSize,
+        viewportPadding
+      )
+    ) {
       return {
         coords,
-        resolvedPlacement: candidate,
+        resolvedPlacement:
+          candidate,
       };
     }
   }
 
-  const fallbackPlacement = candidates[0];
-  const rawCoords = computeCoordinates(
-    triggerRect,
-    floatingRect,
-    fallbackPlacement,
-    offset
-  );
+  const fallbackPlacement =
+    candidates[0];
+
+  const rawCoords =
+    computeCoordinates(
+      triggerRect,
+      floatingRect,
+      fallbackPlacement,
+      offset
+    );
 
   return {
     coords: shift
-      ? clampToViewport(rawCoords, floatingRect, viewportPadding)
+      ? clampToViewport(
+          rawCoords,
+          floatingRect,
+          viewportSize,
+          viewportPadding
+        )
       : rawCoords,
-    resolvedPlacement: fallbackPlacement,
+
+    resolvedPlacement:
+      fallbackPlacement,
   };
 }
 
@@ -241,9 +368,13 @@ export interface FloatingLayerRenderProps {
 export interface FloatingLayerProps {
   children:
     | React.ReactNode
-    | ((props: FloatingLayerRenderProps) => React.ReactNode);
+    | ((
+        props: FloatingLayerRenderProps
+      ) => React.ReactNode);
 
-  anchorRef: React.RefObject<HTMLElement | null>;
+  anchorRef:
+    React.RefObject<HTMLElement | null>;
+
   open: boolean;
 
   placement?: FloatingPlacement;
@@ -263,159 +394,270 @@ export interface FloatingLayerProps {
   updateOnScroll?: boolean;
 }
 
-export const FloatingLayer: React.FC<FloatingLayerProps> = ({
-  children,
-  anchorRef,
-  open,
-  placement = "bottom-start",
-  offset = 8,
-  flip = true,
-  shift = true,
-  viewportPadding = 8,
-  zIndex,
-  strategy = "fixed",
-  className = "",
-  style,
-  matchAnchorWidth = false,
-  updateOnResize = true,
-  updateOnScroll = true,
-}) => {
-  const floatingRef = React.useRef<HTMLDivElement | null>(null);
-  const [coords, setCoords] = React.useState<FloatingCoordinates | null>(null);
-  const [resolvedPlacement, setResolvedPlacement] =
-    React.useState<FloatingPlacement>(placement);
+export const FloatingLayer:
+  React.FC<FloatingLayerProps> = ({
+    children,
 
-  const setRef = React.useCallback((node: HTMLDivElement | null) => {
-    floatingRef.current = node;
-  }, []);
+    anchorRef,
+    open,
 
-  const updatePosition = React.useCallback(() => {
-    const anchorEl = anchorRef.current;
-    const floatingEl = floatingRef.current;
+    placement = "bottom-start",
+    offset = 8,
+    flip = true,
+    shift = true,
+    viewportPadding = 8,
 
-    if (!open || !anchorEl || !floatingEl) {
-      return;
-    }
-
-    const anchorRect = anchorEl.getBoundingClientRect();
-    const floatingRect = floatingEl.getBoundingClientRect();
-
-    const next = resolvePosition(
-      anchorRect,
-      floatingRect,
-      placement,
-      offset,
-      flip,
-      shift,
-      viewportPadding
-    );
-
-    setCoords((prev) => {
-      if (prev && prev.top === next.coords.top && prev.left === next.coords.left) {
-        return prev;
-      }
-
-      return next.coords;
-    });
-
-    setResolvedPlacement((prev) =>
-      prev === next.resolvedPlacement ? prev : next.resolvedPlacement
-    );
-  }, [anchorRef, open, placement, offset, flip, shift, viewportPadding]);
-
-  React.useLayoutEffect(() => {
-    if (!open) return;
-    updatePosition();
-  }, [open, updatePosition]);
-
-  React.useEffect(() => {
-    if (!open) return;
-
-    const handleUpdate = () => {
-      updatePosition();
-    };
-
-    if (updateOnResize) {
-      window.addEventListener("resize", handleUpdate);
-    }
-
-    if (updateOnScroll) {
-      window.addEventListener("scroll", handleUpdate, true);
-    }
-
-    const ro =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(handleUpdate)
-        : null;
-
-    if (anchorRef.current) {
-      ro?.observe(anchorRef.current);
-    }
-
-    if (floatingRef.current) {
-      ro?.observe(floatingRef.current);
-    }
-
-    return () => {
-      if (updateOnResize) {
-        window.removeEventListener("resize", handleUpdate);
-      }
-
-      if (updateOnScroll) {
-        window.removeEventListener("scroll", handleUpdate, true);
-      }
-
-      ro?.disconnect();
-    };
-  }, [open, updatePosition, updateOnResize, updateOnScroll, anchorRef]);
-
-  React.useEffect(() => {
-    if (!open) {
-      setCoords(null);
-      setResolvedPlacement(placement);
-    }
-  }, [open, placement]);
-
-  if (!open) {
-    return null;
-  }
-
-  const width = matchAnchorWidth
-    ? anchorRef.current?.getBoundingClientRect().width
-    : undefined;
-
-  const floatingStyle: React.CSSProperties = {
-    position: strategy,
-    top: coords?.top ?? -9999,
-    left: coords?.left ?? -9999,
     zIndex,
-    width,
-    ...style,
+    strategy = "fixed",
+
+    className = "",
+    style,
+
+    matchAnchorWidth = false,
+    updateOnResize = true,
+    updateOnScroll = true,
+  }) => {
+    const floatingRef =
+      React.useRef<HTMLDivElement | null>(
+        null
+      );
+
+    const [
+      coords,
+      setCoords,
+    ] =
+      React.useState<FloatingCoordinates | null>(
+        null
+      );
+
+    const [
+      resolvedPlacement,
+      setResolvedPlacement,
+    ] =
+      React.useState<FloatingPlacement>(
+        placement
+      );
+
+    const viewportSize =
+      useViewportSize({
+        ssrSafe: true,
+
+        observeResize:
+          open &&
+          updateOnResize,
+      });
+
+    const anchorRect =
+      useElementRect(
+        anchorRef,
+        {
+          enabled: open,
+
+          observeResize:
+            updateOnResize,
+
+          observeScroll:
+            updateOnScroll,
+        }
+      );
+
+    const floatingRect =
+      useElementRect(
+        floatingRef,
+        {
+          enabled: open,
+
+          observeResize:
+            updateOnResize,
+
+          observeScroll: false,
+        }
+      );
+
+    const setRef =
+      React.useCallback(
+        (
+          node:
+            | HTMLDivElement
+            | null
+        ) => {
+          floatingRef.current =
+            node;
+        },
+        []
+      );
+
+    const commitPosition =
+      React.useCallback(
+        (
+          nextAnchorRect:
+            ElementRect,
+
+          nextFloatingRect:
+            ElementRect
+        ) => {
+          if (
+            !open ||
+            nextAnchorRect.width <= 0 ||
+            nextAnchorRect.height <= 0 ||
+            nextFloatingRect.width <= 0 ||
+            nextFloatingRect.height <= 0 ||
+            viewportSize.width <= 0 ||
+            viewportSize.height <= 0
+          ) {
+            return;
+          }
+
+          const next =
+            resolvePosition(
+              nextAnchorRect,
+              nextFloatingRect,
+              viewportSize,
+              placement,
+              offset,
+              flip,
+              shift,
+              viewportPadding
+            );
+
+          setCoords(
+            (currentCoords) => {
+              if (
+                currentCoords &&
+                currentCoords.top ===
+                  next.coords.top &&
+                currentCoords.left ===
+                  next.coords.left
+              ) {
+                return currentCoords;
+              }
+
+              return next.coords;
+            }
+          );
+
+          setResolvedPlacement(
+            (currentPlacement) =>
+              currentPlacement ===
+              next.resolvedPlacement
+                ? currentPlacement
+                : next.resolvedPlacement
+          );
+        },
+        [
+          flip,
+          offset,
+          open,
+          placement,
+          shift,
+          viewportPadding,
+          viewportSize,
+        ]
+      );
+
+    const updatePosition =
+      React.useCallback(() => {
+        commitPosition(
+          getElementRect(
+            anchorRef.current
+          ),
+
+          getElementRect(
+            floatingRef.current
+          )
+        );
+      }, [
+        anchorRef,
+        commitPosition,
+      ]);
+
+    React.useLayoutEffect(() => {
+      commitPosition(
+        anchorRect,
+        floatingRect
+      );
+    }, [
+      anchorRect,
+      commitPosition,
+      floatingRect,
+    ]);
+
+    React.useEffect(() => {
+      if (open) {
+        return;
+      }
+
+      setCoords(null);
+
+      setResolvedPlacement(
+        placement
+      );
+    }, [
+      open,
+      placement,
+    ]);
+
+    if (!open) {
+      return null;
+    }
+
+    const floatingStyle:
+      React.CSSProperties = {
+        position: strategy,
+
+        top:
+          coords?.top ??
+          -9999,
+
+        left:
+          coords?.left ??
+          -9999,
+
+        zIndex,
+
+        width:
+          matchAnchorWidth &&
+          anchorRect.width > 0
+            ? anchorRect.width
+            : undefined,
+
+        ...style,
+      };
+
+    if (
+      typeof children ===
+      "function"
+    ) {
+      return (
+        <>
+          {children({
+            ref: setRef,
+
+            style:
+              floatingStyle,
+
+            placement:
+              resolvedPlacement,
+
+            updatePosition,
+          })}
+        </>
+      );
+    }
+
+    return (
+      <div
+        ref={setRef}
+        className={className}
+        data-side={
+          resolvedPlacement
+        }
+        style={floatingStyle}
+      >
+        {children}
+      </div>
+    );
   };
 
-  if (typeof children === "function") {
-    return (
-      <>
-        {children({
-          ref: setRef,
-          style: floatingStyle,
-          placement: resolvedPlacement,
-          updatePosition,
-        })}
-      </>
-    );
-  }
-
-  return (
-    <div
-      ref={setRef}
-      className={className}
-      data-side={resolvedPlacement}
-      style={floatingStyle}
-    >
-      {children}
-    </div>
-  );
-};
-
-FloatingLayer.displayName = "FloatingLayer";
+FloatingLayer.displayName =
+  "FloatingLayer";

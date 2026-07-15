@@ -12,6 +12,7 @@ export interface ElementRect {
 
 export interface UseElementRectOptions {
   enabled?: boolean;
+  observeResize?: boolean;
   observeScroll?: boolean;
 }
 
@@ -64,6 +65,7 @@ export function useElementRect<
   ref: React.RefObject<TElement | null>,
   {
     enabled = true,
+    observeResize = true,
     observeScroll = true,
   }: UseElementRectOptions = {}
 ): ElementRect {
@@ -143,8 +145,9 @@ export function useElementRect<
     update();
 
     const resizeObserver =
+      observeResize &&
       typeof ResizeObserver !==
-      "undefined"
+        "undefined"
         ? new ResizeObserver(
             scheduleUpdate
           )
@@ -152,23 +155,22 @@ export function useElementRect<
 
     resizeObserver?.observe(node);
 
-    window.addEventListener(
-      "resize",
-      scheduleUpdate
-    );
+    if (observeResize) {
+      window.addEventListener(
+        "resize",
+        scheduleUpdate
+      );
+    }
 
     const visualViewport =
       window.visualViewport;
 
-    visualViewport?.addEventListener(
-      "resize",
-      scheduleUpdate
-    );
-
-    visualViewport?.addEventListener(
-      "scroll",
-      scheduleUpdate
-    );
+    if (observeResize) {
+      visualViewport?.addEventListener(
+        "resize",
+        scheduleUpdate
+      );
+    }
 
     if (observeScroll) {
       window.addEventListener(
@@ -176,31 +178,38 @@ export function useElementRect<
         scheduleUpdate,
         true
       );
+
+      visualViewport?.addEventListener(
+        "scroll",
+        scheduleUpdate
+      );
     }
 
     return () => {
       resizeObserver?.disconnect();
 
-      window.removeEventListener(
-        "resize",
-        scheduleUpdate
-      );
+      if (observeResize) {
+        window.removeEventListener(
+          "resize",
+          scheduleUpdate
+        );
 
-      visualViewport?.removeEventListener(
-        "resize",
-        scheduleUpdate
-      );
-
-      visualViewport?.removeEventListener(
-        "scroll",
-        scheduleUpdate
-      );
+        visualViewport?.removeEventListener(
+          "resize",
+          scheduleUpdate
+        );
+      }
 
       if (observeScroll) {
         window.removeEventListener(
           "scroll",
           scheduleUpdate,
           true
+        );
+
+        visualViewport?.removeEventListener(
+          "scroll",
+          scheduleUpdate
         );
       }
 
@@ -218,6 +227,7 @@ export function useElementRect<
     };
   }, [
     enabled,
+    observeResize,
     observeScroll,
     ref,
     scheduleUpdate,
