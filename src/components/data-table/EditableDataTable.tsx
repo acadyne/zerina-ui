@@ -186,18 +186,45 @@ export function EditableDataTable<
     <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
       <DataTableToolbar
         search={table.search}
-        onSearchChange={table.setSearch}
-        enableSearch={enableSearch}
-        enableExportCSV={enableExportCSV}
-        canExport={csv.canExport}
-        onExportCSV={csv.handleExportCSV}
-        rowsPerPage={table.rowsPerPage}
-        onRowsPerPageChange={table.setRowsPerPage}
-        enableAddRow={enableAddRow}
-        onAddRow={handleAddRow}
-        enableDeleteRows={enableDeleteRows}
-        canDeleteRows={selectedIds.length > 0}
-        onDeleteRows={handleDeleteRows}
+        onSearchChange={
+          table.setSearch
+        }
+        enableSearch={
+          enableSearch
+        }
+        enableExportCSV={
+          enableExportCSV
+        }
+        canExport={
+          csv.canExport
+        }
+        exportHref={
+          csv.href
+        }
+        exportFilename={
+          csv.download
+        }
+        rowsPerPage={
+          table.rowsPerPage
+        }
+        onRowsPerPageChange={
+          table.setRowsPerPage
+        }
+        enableAddRow={
+          enableAddRow
+        }
+        onAddRow={
+          handleAddRow
+        }
+        enableDeleteRows={
+          enableDeleteRows
+        }
+        canDeleteRows={
+          selectedIds.length > 0
+        }
+        onDeleteRows={
+          handleDeleteRows
+        }
         styles={styles}
         slotProps={slotProps}
       />

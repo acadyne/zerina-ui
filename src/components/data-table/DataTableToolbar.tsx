@@ -1,8 +1,18 @@
 // src/components/data-table/DataTableToolbar.tsx
 import type React from "react";
-import { Download, Plus, Trash2 } from "lucide-react";
-import { Button, Input, Select } from "../../primitives/forms";
-import { resolveSlot } from "../../helpers/css";
+import {
+  Download,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
+  Button,
+  Input,
+  Select,
+} from "../../primitives/forms";
+import {
+  resolveSlot,
+} from "../../helpers/css";
 import type {
   DataTableSlot,
   DataTableSlotProps,
@@ -11,17 +21,26 @@ import type {
 
 interface DataTableToolbarProps {
   search: string;
-  onSearchChange: (value: string) => void;
+
+  onSearchChange: (
+    value: string
+  ) => void;
 
   enableSearch?: boolean;
   enableExportCSV?: boolean;
   canExport?: boolean;
-  onExportCSV?: () => void;
 
-  renderActions?: () => React.ReactNode;
+  exportHref?: string;
+  exportFilename?: string;
+
+  renderActions?: () =>
+    React.ReactNode;
 
   rowsPerPage: number;
-  onRowsPerPageChange: (value: number) => void;
+
+  onRowsPerPageChange: (
+    value: number
+  ) => void;
 
   enableAddRow?: boolean;
   onAddRow?: () => void;
@@ -37,18 +56,26 @@ interface DataTableToolbarProps {
 export function DataTableToolbar({
   search,
   onSearchChange,
+
   enableSearch = false,
+
   enableExportCSV = false,
   canExport = false,
-  onExportCSV,
+  exportHref,
+  exportFilename,
+
   renderActions,
+
   rowsPerPage,
   onRowsPerPageChange,
+
   enableAddRow = false,
   onAddRow,
+
   enableDeleteRows = false,
   canDeleteRows = false,
   onDeleteRows,
+
   styles,
   slotProps,
 }: DataTableToolbarProps) {
@@ -59,109 +86,180 @@ export function DataTableToolbar({
     enableAddRow ||
     enableDeleteRows;
 
-  if (!shouldRender) return null;
+  if (!shouldRender) {
+    return null;
+  }
 
-  const toolbarSlot = resolveSlot<DataTableSlot>({
-    slot: "toolbar",
-    styles,
-    slotProps,
-    baseProps: {
-      "data-ui-data-table-toolbar": "",
-    },
-    baseStyle: {
-      minWidth: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-      flexWrap: "wrap",
-      marginBottom: 12,
-    },
-  });
+  const toolbarSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "toolbar",
 
-  const actionsSlot = resolveSlot<DataTableSlot>({
-    slot: "toolbarActions",
-    styles,
-    slotProps,
-    baseStyle: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      gap: 8,
-      flexWrap: "wrap",
-      minWidth: 0,
-    },
-  });
+      styles,
+      slotProps,
 
-  const controlsSlot = resolveSlot<DataTableSlot>({
-    slot: "toolbarControls",
-    styles,
-    slotProps,
-    baseStyle: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 10,
-      flexWrap: "wrap",
-      minWidth: 0,
-    },
-  });
+      baseProps: {
+        "data-ui-data-table-toolbar":
+          "",
+      },
 
-  const searchSlot = resolveSlot<DataTableSlot>({
-    slot: "search",
-    styles,
-    slotProps,
-    baseStyle: {
-      minWidth: 220,
-    },
-  });
+      baseStyle: {
+        minWidth: 0,
 
-  const rowsPerPageSlot = resolveSlot<DataTableSlot>({
-    slot: "rowsPerPage",
-    styles,
-    slotProps,
-  });
+        display: "flex",
+        alignItems: "center",
+        justifyContent:
+          "space-between",
 
-  const addButtonSlot = resolveSlot<DataTableSlot>({
-    slot: "addButton",
-    styles,
-    slotProps,
-  });
+        gap: 12,
+        flexWrap: "wrap",
 
-  const deleteButtonSlot = resolveSlot<DataTableSlot>({
-    slot: "deleteButton",
-    styles,
-    slotProps,
-  });
+        marginBottom: 12,
+      },
+    });
 
-  const exportButtonSlot = resolveSlot<DataTableSlot>({
-    slot: "exportButton",
-    styles,
-    slotProps,
-    baseProps: {
-      title: "Exporta lo filtrado y ordenado",
-    },
-    baseStyle: {
-      minHeight: 34,
-      fontWeight: 700,
-      borderRadius: 10,
-    },
-  });
+  const actionsSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "toolbarActions",
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent:
+          "flex-start",
+
+        gap: 8,
+        flexWrap: "wrap",
+
+        minWidth: 0,
+      },
+    });
+
+  const controlsSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "toolbarControls",
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent:
+          "flex-end",
+
+        gap: 10,
+        flexWrap: "wrap",
+
+        minWidth: 0,
+      },
+    });
+
+  const searchSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "search",
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        minWidth: 220,
+      },
+    });
+
+  const rowsPerPageSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "rowsPerPage",
+
+      styles,
+      slotProps,
+    });
+
+  const addButtonSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "addButton",
+
+      styles,
+      slotProps,
+    });
+
+  const deleteButtonSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "deleteButton",
+
+      styles,
+      slotProps,
+    });
+
+  const exportButtonSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "exportButton",
+
+      styles,
+      slotProps,
+
+      baseProps: {
+        title:
+          "Exporta lo filtrado y ordenado",
+      },
+
+      baseStyle: {
+        minHeight: 34,
+
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        gap: 8,
+
+        padding:
+          "6px 10px",
+
+        border: 0,
+        borderRadius: 10,
+
+        color:
+          "inherit",
+
+        background:
+          "transparent",
+
+        font: "inherit",
+        fontWeight: 700,
+
+        lineHeight: 1,
+        textDecoration: "none",
+
+        cursor: "pointer",
+      },
+    });
 
   return (
     <div {...toolbarSlot}>
       <div {...actionsSlot}>
-        {renderActions ? <div>{renderActions()}</div> : null}
+        {renderActions ? (
+          <div>
+            {renderActions()}
+          </div>
+        ) : null}
 
         {enableAddRow ? (
           <Button
             type="button"
             size="sm"
             colorScheme="primary"
-            leftIcon={<Plus size={14} />}
+            leftIcon={
+              <Plus size={14} />
+            }
             onPress={onAddRow}
-            className={addButtonSlot.className}
-            style={addButtonSlot.style}
+            className={
+              addButtonSlot.className
+            }
+            style={
+              addButtonSlot.style
+            }
           >
             Fila
           </Button>
@@ -173,11 +271,21 @@ export function DataTableToolbar({
             size="sm"
             variant="outline"
             colorScheme="danger"
-            leftIcon={<Trash2 size={14} />}
-            disabled={!canDeleteRows}
-            onPress={onDeleteRows}
-            className={deleteButtonSlot.className}
-            style={deleteButtonSlot.style}
+            leftIcon={
+              <Trash2 size={14} />
+            }
+            disabled={
+              !canDeleteRows
+            }
+            onPress={
+              onDeleteRows
+            }
+            className={
+              deleteButtonSlot.className
+            }
+            style={
+              deleteButtonSlot.style
+            }
           >
             Eliminar
           </Button>
@@ -190,44 +298,93 @@ export function DataTableToolbar({
             type="text"
             placeholder="Buscar…"
             value={search}
-            onChange={(event) => onSearchChange(event.currentTarget.value)}
+            onChange={(
+              event
+            ) =>
+              onSearchChange(
+                event.currentTarget
+                  .value
+              )
+            }
             fullWidth={false}
-            className={searchSlot.className}
-            style={searchSlot.style}
+            className={
+              searchSlot.className
+            }
+            style={
+              searchSlot.style
+            }
           />
         ) : null}
 
         <Select
-          value={String(rowsPerPage)}
-          onChange={(event) =>
-            onRowsPerPageChange(Number(event.currentTarget.value))
+          value={String(
+            rowsPerPage
+          )}
+          onChange={(
+            event
+          ) =>
+            onRowsPerPageChange(
+              Number(
+                event.currentTarget
+                  .value
+              )
+            )
           }
           fullWidth={false}
           size="sm"
           options={[
-            { label: "10", value: "10" },
-            { label: "20", value: "20" },
-            { label: "50", value: "50" },
-            { label: "100", value: "100" },
+            {
+              label: "10",
+              value: "10",
+            },
+            {
+              label: "20",
+              value: "20",
+            },
+            {
+              label: "50",
+              value: "50",
+            },
+            {
+              label: "100",
+              value: "100",
+            },
           ]}
-          className={rowsPerPageSlot.className}
-          style={rowsPerPageSlot.style}
+          className={
+            rowsPerPageSlot.className
+          }
+          style={
+            rowsPerPageSlot.style
+          }
         />
 
-        {enableExportCSV && canExport ? (
-          <Button
-            type="button"
-            onPress={onExportCSV}
-            variant="ghost"
-            leftIcon={<Download size={16} />}
-            px="10px"
-            py="6px"
-            className={exportButtonSlot.className}
-            style={exportButtonSlot.style}
-            title={exportButtonSlot.title}
+        {enableExportCSV &&
+          canExport &&
+          exportHref &&
+          exportFilename ? (
+          <a
+            href={exportHref}
+            download={
+              exportFilename
+            }
+            className={
+              exportButtonSlot.className
+            }
+            style={
+              exportButtonSlot.style
+            }
+            title={
+              exportButtonSlot.title
+            }
+            data-ui-data-table-export=""
           >
-            CSV
-          </Button>
+            <Download
+              size={16}
+              aria-hidden="true"
+            />
+
+            <span>CSV</span>
+          </a>
         ) : null}
       </div>
     </div>

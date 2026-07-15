@@ -161,7 +161,9 @@ function escapeCsvValue(value: unknown): string {
   return safeRaw;
 }
 
-function rowsToCsv(rows: Record<string, unknown>[]): string {
+export function rowsToCsv(
+  rows: Record<string, unknown>[]
+): string {
   if (rows.length === 0) return "";
 
   const headers = Object.keys(rows[0]);
@@ -172,22 +174,6 @@ function rowsToCsv(rows: Record<string, unknown>[]): string {
   ];
 
   return lines.join("\n");
-}
-
-export function downloadCsv(rows: Record<string, unknown>[], filename: string): void {
-  const csv = rowsToCsv(rows);
-  const blob = new Blob([csv], {
-    type: "text/csv;charset=utf-8",
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = filename.endsWith(".csv") ? filename : `${filename}.csv`;
-  link.click();
-
-  URL.revokeObjectURL(url);
 }
 
 export function coerceEditableValue(

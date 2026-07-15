@@ -104,14 +104,33 @@ export function DataTable<
     <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
       <DataTableToolbar
         search={table.search}
-        onSearchChange={table.setSearch}
-        enableSearch={enableSearch}
-        enableExportCSV={enableExportCSV}
-        canExport={csv.canExport}
-        onExportCSV={csv.handleExportCSV}
-        renderActions={renderActions}
-        rowsPerPage={table.rowsPerPage}
-        onRowsPerPageChange={table.setRowsPerPage}
+        onSearchChange={
+          table.setSearch
+        }
+        enableSearch={
+          enableSearch
+        }
+        enableExportCSV={
+          enableExportCSV
+        }
+        canExport={
+          csv.canExport
+        }
+        exportHref={
+          csv.href
+        }
+        exportFilename={
+          csv.download
+        }
+        renderActions={
+          renderActions
+        }
+        rowsPerPage={
+          table.rowsPerPage
+        }
+        onRowsPerPageChange={
+          table.setRowsPerPage
+        }
         styles={styles}
         slotProps={slotProps}
       />
