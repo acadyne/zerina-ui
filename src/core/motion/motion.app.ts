@@ -26,6 +26,20 @@ function resolveDirection(
   return custom ?? direction;
 }
 
+function createReducedAppTransitionVariants(): Variants {
+  return {
+    initial: {
+      opacity: 0,
+    },
+    animate: {
+      opacity: 1,
+    },
+    exit: {
+      opacity: 0,
+    },
+  };
+}
+
 export function getAppTransitionIntent(
   transition: UIMotionAppTransition
 ): UIMotionIntent {
@@ -58,6 +72,10 @@ export function getAppTransitionVariants({
 }): Variants {
   if (transition === "none" || level === "none") {
     return createStaticMotionVariants();
+  }
+
+  if (level === "reduced") {
+    return createReducedAppTransitionVariants();
   }
 
   const distance = getMotionDistance(level);
