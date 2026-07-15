@@ -15,7 +15,7 @@ export interface UseElementRectOptions {
   observeScroll?: boolean;
 }
 
-const EMPTY_ELEMENT_RECT: ElementRect = {
+export const EMPTY_ELEMENT_RECT: ElementRect = {
   top: 0,
   right: 0,
   bottom: 0,
@@ -24,7 +24,7 @@ const EMPTY_ELEMENT_RECT: ElementRect = {
   height: 0,
 };
 
-function measureElementRect(
+export function getElementRect(
   node: HTMLElement | null
 ): ElementRect {
   if (!node) {
@@ -79,7 +79,7 @@ export function useElementRect<
 
   const update = React.useCallback(() => {
     const nextRect =
-      measureElementRect(
+      getElementRect(
         ref.current
       );
 

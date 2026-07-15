@@ -1,5 +1,6 @@
 // src/patterns/app-shell/AppShellMobileBar.tsx
 import React from "react";
+import { getElementRect } from "../../core/dom";
 import type { UIPressEvent } from "../../core/interaction";
 import { Box } from "../../primitives/layout";
 import { BottomNavigation } from "../../primitives/navigation";
@@ -23,7 +24,9 @@ export interface AppShellMobileBarProps {
   activePath?: string;
   height?: number;
 
-  onNavigate?: (route: AppShellProcessedRoute) => void;
+  onNavigate?: (
+    route: AppShellProcessedRoute
+  ) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -32,7 +35,11 @@ export interface AppShellMobileBarProps {
 function getRouteIcon(
   route: AppShellProcessedRoute
 ): React.ReactNode {
-  return route.icon ?? route.emoji ?? "•";
+  return (
+    route.icon ??
+    route.emoji ??
+    "•"
+  );
 }
 
 function getActiveRootRouteId(
@@ -41,9 +48,12 @@ function getActiveRootRouteId(
 ): string | null {
   return (
     routes.find((route) =>
-      appShellRouteContainsActive(route, {
-        activePath,
-      })
+      appShellRouteContainsActive(
+        route,
+        {
+          activePath,
+        }
+      )
     )?.id ?? null
   );
 }
@@ -58,25 +68,40 @@ export function AppShellMobileBar({
   style,
 }: AppShellMobileBarProps) {
   const containerRef =
-    React.useRef<HTMLDivElement | null>(null);
+    React.useRef<HTMLDivElement | null>(
+      null
+    );
 
-  const [openRouteId, setOpenRouteId] =
-    React.useState<string | null>(null);
+  const [
+    openRouteId,
+    setOpenRouteId,
+  ] =
+    React.useState<string | null>(
+      null
+    );
 
-  const [anchorX, setAnchorX] =
+  const [
+    anchorX,
+    setAnchorX,
+  ] =
     React.useState(0);
 
   const isContained =
     viewport === "contained";
 
-  const openRoute = React.useMemo(() => {
-    return (
-      routes.find(
-        (route) =>
-          route.id === openRouteId
-      ) ?? null
-    );
-  }, [routes, openRouteId]);
+  const openRoute =
+    React.useMemo(() => {
+      return (
+        routes.find(
+          (route) =>
+            route.id ===
+            openRouteId
+        ) ?? null
+      );
+    }, [
+      routes,
+      openRouteId,
+    ]);
 
   const activeRootRouteId =
     React.useMemo(
@@ -85,7 +110,10 @@ export function AppShellMobileBar({
           routes,
           activePath
         ),
-      [activePath, routes]
+      [
+        activePath,
+        routes,
+      ]
     );
 
   const updateAnchor =
@@ -93,16 +121,20 @@ export function AppShellMobileBar({
       (
         event: UIPressEvent<HTMLElement>
       ): void => {
-        const rect =
-          event.currentTarget.getBoundingClientRect();
+        const triggerRect =
+          getElementRect(
+            event.currentTarget
+          );
 
         const containerRect =
-          containerRef.current?.getBoundingClientRect();
+          getElementRect(
+            containerRef.current
+          );
 
         setAnchorX(
-          rect.left -
-            (containerRect?.left ?? 0) +
-            rect.width / 2
+          triggerRect.left -
+            containerRect.left +
+            triggerRect.width / 2
         );
       },
       []
@@ -121,15 +153,20 @@ export function AppShellMobileBar({
         updateAnchor(event);
 
         const children =
-          getAppShellRouteChildren(route);
+          getAppShellRouteChildren(
+            route
+          );
 
-        if (children.length > 0) {
+        if (
+          children.length > 0
+        ) {
           event.preventDefault();
 
-          setOpenRouteId((current) =>
-            current === route.id
-              ? null
-              : route.id
+          setOpenRouteId(
+            (current) =>
+              current === route.id
+                ? null
+                : route.id
           );
 
           return;
@@ -138,12 +175,17 @@ export function AppShellMobileBar({
         setOpenRouteId(null);
 
         if (
-          isAppShellRouteSelectable(route)
+          isAppShellRouteSelectable(
+            route
+          )
         ) {
           onNavigate?.(route);
         }
       },
-      [onNavigate, updateAnchor]
+      [
+        onNavigate,
+        updateAnchor,
+      ]
     );
 
   const renderMobileMenuItem =
@@ -164,7 +206,9 @@ export function AppShellMobileBar({
           <button
             key={route.id}
             type="button"
-            disabled={route.disabled}
+            disabled={
+              route.disabled
+            }
             onClick={() => {
               const children =
                 getAppShellRouteChildren(
@@ -172,7 +216,8 @@ export function AppShellMobileBar({
                 );
 
               if (
-                children.length > 0
+                children.length >
+                0
               ) {
                 return;
               }
@@ -185,34 +230,52 @@ export function AppShellMobileBar({
                 return;
               }
 
-              setOpenRouteId(null);
-              onNavigate?.(route);
+              setOpenRouteId(
+                null
+              );
+
+              onNavigate?.(
+                route
+              );
             }}
             style={{
               width: "100%",
               minHeight: 42,
+
               display: "flex",
               alignItems: "center",
+
               gap: "0.65rem",
+
               padding:
                 "0.55rem 0.7rem",
+
               borderRadius:
                 "var(--ui-radius-md)",
+
               border: active
                 ? "1px solid color-mix(in srgb, var(--ui-primary) 30%, var(--ui-border))"
                 : "1px solid transparent",
-              background: active
-                ? "color-mix(in srgb, var(--ui-primary) 16%, transparent)"
-                : "transparent",
+
+              background:
+                active
+                  ? "color-mix(in srgb, var(--ui-primary) 16%, transparent)"
+                  : "transparent",
+
               color: active
                 ? "var(--ui-text)"
                 : "var(--ui-text-muted)",
-              cursor: route.disabled
-                ? "not-allowed"
-                : "pointer",
-              opacity: route.disabled
-                ? "var(--ui-state-disabled-opacity)"
-                : 1,
+
+              cursor:
+                route.disabled
+                  ? "not-allowed"
+                  : "pointer",
+
+              opacity:
+                route.disabled
+                  ? "var(--ui-state-disabled-opacity)"
+                  : 1,
+
               textAlign: "left",
             }}
           >
@@ -221,12 +284,16 @@ export function AppShellMobileBar({
               style={{
                 width: 26,
                 height: 26,
+
                 display:
                   "inline-flex",
+
                 alignItems:
                   "center",
+
                 justifyContent:
                   "center",
+
                 flexShrink: 0,
               }}
             >
@@ -237,15 +304,20 @@ export function AppShellMobileBar({
               style={{
                 flex: 1,
                 minWidth: 0,
+
                 overflow:
                   "hidden",
+
                 textOverflow:
                   "ellipsis",
+
                 whiteSpace:
                   "nowrap",
-                fontWeight: active
-                  ? 800
-                  : 700,
+
+                fontWeight:
+                  active
+                    ? 800
+                    : 700,
               }}
             >
               {route.name}
@@ -253,7 +325,10 @@ export function AppShellMobileBar({
           </button>
         );
       },
-      [activePath, onNavigate]
+      [
+        activePath,
+        onNavigate,
+      ]
     );
 
   return (
@@ -261,21 +336,29 @@ export function AppShellMobileBar({
       ref={
         containerRef as React.Ref<Element>
       }
-      className={className}
+      className={
+        className
+      }
       style={{
-        position: isContained
-          ? "absolute"
-          : "fixed",
+        position:
+          isContained
+            ? "absolute"
+            : "fixed",
+
         left: 0,
         right: 0,
         bottom: 0,
+
         zIndex: 1400,
+
         ...style,
       }}
     >
       <Box
         style={{
-          position: "relative",
+          position:
+            "relative",
+
           minWidth: 0,
         }}
       >
@@ -284,73 +367,95 @@ export function AppShellMobileBar({
           safeArea
           translucent
           height={height}
-          value={activeRootRouteId}
+          value={
+            activeRootRouteId
+          }
         >
-          {routes.map((route) => {
-            const children =
-              getAppShellRouteChildren(
-                route
-              );
+          {routes.map(
+            (route) => {
+              const children =
+                getAppShellRouteChildren(
+                  route
+                );
 
-            const hasChildren =
-              children.length > 0;
+              const hasChildren =
+                children.length >
+                0;
 
-            return (
-              <BottomNavigation.Item
-                key={route.id}
-                value={route.id}
-                icon={
-                  getRouteIcon(route)
-                }
-                badge={route.badge}
-                disabled={
-                  route.disabled
-                }
-                aria-haspopup={
-                  hasChildren
-                    ? "menu"
-                    : undefined
-                }
-                aria-expanded={
-                  hasChildren
-                    ? openRouteId ===
-                      route.id
-                    : undefined
-                }
-                onPress={(event) => {
-                  handleRootPress(
-                    route,
+              return (
+                <BottomNavigation.Item
+                  key={
+                    route.id
+                  }
+                  value={
+                    route.id
+                  }
+                  icon={
+                    getRouteIcon(
+                      route
+                    )
+                  }
+                  badge={
+                    route.badge
+                  }
+                  disabled={
+                    route.disabled
+                  }
+                  aria-haspopup={
+                    hasChildren
+                      ? "menu"
+                      : undefined
+                  }
+                  aria-expanded={
+                    hasChildren
+                      ? openRouteId ===
+                        route.id
+                      : undefined
+                  }
+                  onPress={(
                     event
-                  );
-                }}
-              >
-                {route.name}
-              </BottomNavigation.Item>
-            );
-          })}
+                  ) => {
+                    handleRootPress(
+                      route,
+                      event
+                    );
+                  }}
+                >
+                  {route.name}
+                </BottomNavigation.Item>
+              );
+            }
+          )}
         </BottomNavigation>
 
         <RecursiveFloatingMenuLayer
           open={Boolean(
-            openRoute?.subroutes
+            openRoute
+              ?.subroutes
               ?.length
           )}
           level={1}
-          anchorX={anchorX}
+          anchorX={
+            anchorX
+          }
           containerRef={
             containerRef
           }
           direction="up"
           onDismiss={() =>
-            setOpenRouteId(null)
+            setOpenRouteId(
+              null
+            )
           }
           style={{
             minWidth: 220,
           }}
         >
-          {openRoute?.subroutes?.map(
-            renderMobileMenuItem
-          )}
+          {openRoute
+            ?.subroutes
+            ?.map(
+              renderMobileMenuItem
+            )}
         </RecursiveFloatingMenuLayer>
       </Box>
     </Box>
