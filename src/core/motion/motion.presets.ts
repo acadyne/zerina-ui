@@ -276,6 +276,30 @@ export function getCollapsibleContentVariants(): Variants {
   };
 }
 
+export function getProgressIndeterminateVariants(
+  level: UIMotionLevel
+): Variants {
+  if (level === "none" || level === "reduced") {
+    return {
+      initial: {
+        x: "0%",
+      },
+      animate: {
+        x: "0%",
+      },
+    };
+  }
+
+  return {
+    initial: {
+      x: "-45%",
+    },
+    animate: {
+      x: "145%",
+    },
+  };
+}
+
 export function getProgressIndeterminateTransition(
   level: UIMotionLevel
 ): Transition {

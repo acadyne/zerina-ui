@@ -13,6 +13,7 @@ export type {
 export {
   getCollapsibleContentVariants,
   getCollapsibleTriggerIconVariants,
+  getProgressIndeterminateVariants,
 } from "./motion.presets";
 
 export {
