@@ -564,6 +564,19 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
     const motionState = useOptionalUIMotion();
     const contentRef = React.useRef<HTMLDivElement | null>(null);
 
+    const restoreFocusTimerRef =
+      React.useRef<number | null>(null);
+
+    const {
+      anchorRef,
+      focusFirst,
+      focusLast,
+      focusNext,
+      focusPrev,
+      onOpenChange,
+      open,
+    } = ctx;
+
     const resolvedStyles = styles ?? ctx.styles;
     const resolvedSlotProps = slotProps ?? ctx.slotProps;
 
@@ -575,16 +588,34 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
       [ref]
     );
 
-    const handleDismiss = React.useCallback(() => {
-      ctx.onOpenChange?.(false);
+    React.useEffect(() => {
+      return () => {
+        if (restoreFocusTimerRef.current !== null) {
+          window.clearTimeout(
+            restoreFocusTimerRef.current
+          );
+        }
+      };
+    }, []);
 
-      window.setTimeout(() => {
-        ctx.anchorRef.current?.focus?.();
-      }, 0);
-    }, [ctx]);
+    const handleDismiss = React.useCallback(() => {
+      onOpenChange?.(false);
+
+      if (restoreFocusTimerRef.current !== null) {
+        window.clearTimeout(
+          restoreFocusTimerRef.current
+        );
+      }
+
+      restoreFocusTimerRef.current =
+        window.setTimeout(() => {
+          restoreFocusTimerRef.current = null;
+          anchorRef.current?.focus?.();
+        }, 0);
+    }, [anchorRef, onOpenChange]);
 
     React.useEffect(() => {
-      if (!ctx.open) return;
+      if (!open) return;
 
       const handleKeyDown = (event: KeyboardEvent) => {
         const containerNode = contentRef.current;
@@ -596,25 +627,25 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
 
         if (event.key === "ArrowDown") {
           event.preventDefault();
-          ctx.focusNext();
+          focusNext();
           return;
         }
 
         if (event.key === "ArrowUp") {
           event.preventDefault();
-          ctx.focusPrev();
+          focusPrev();
           return;
         }
 
         if (event.key === "Home") {
           event.preventDefault();
-          ctx.focusFirst();
+          focusFirst();
           return;
         }
 
         if (event.key === "End") {
           event.preventDefault();
-          ctx.focusLast();
+          focusLast();
         }
       };
 
@@ -623,19 +654,25 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
       return () => {
         document.removeEventListener("keydown", handleKeyDown);
       };
-    }, [ctx]);
+    }, [
+      focusFirst,
+      focusLast,
+      focusNext,
+      focusPrev,
+      open,
+    ]);
 
     React.useEffect(() => {
-      if (!ctx.open) return;
+      if (!open) return;
 
       const id = window.setTimeout(() => {
-        ctx.focusFirst();
+        focusFirst();
       }, 0);
 
       return () => {
         window.clearTimeout(id);
       };
-    }, [ctx]);
+    }, [focusFirst, open]);
 
     const variants = motionState.getVariants("menu", motionState.effectiveLevel);
     const transition = motionState.getTransition(
@@ -820,6 +857,16 @@ export const MenuItem =
       const ctx =
         useMenuContext();
 
+      const {
+        anchorRef,
+        onOpenChange,
+        registerItem,
+        unregisterItem,
+      } = ctx;
+
+      const restoreFocusTimerRef =
+        React.useRef<number | null>(null);
+
       const itemRef =
         React.useRef<
           HTMLDivElement | null
@@ -845,19 +892,26 @@ export const MenuItem =
         );
 
       React.useEffect(() => {
-        const node =
-          itemRef.current;
+        return () => {
+          if (restoreFocusTimerRef.current !== null) {
+            window.clearTimeout(
+              restoreFocusTimerRef.current
+            );
+          }
+        };
+      }, []);
+
+      React.useEffect(() => {
+        const node = itemRef.current;
 
         if (!node) return;
 
-        ctx.registerItem(node);
+        registerItem(node);
 
         return () => {
-          ctx.unregisterItem(
-            node
-          );
+          unregisterItem(node);
         };
-      }, [ctx]);
+      }, [registerItem, unregisterItem]);
 
       const handleSelect =
         React.useCallback(
@@ -870,22 +924,28 @@ export const MenuItem =
             onSelect?.();
 
             if (closeOnSelect) {
-              ctx.onOpenChange?.(
-                false
-              );
+              onOpenChange?.(false);
 
-              window.setTimeout(
-                () => {
-                  ctx.anchorRef.current?.focus?.();
-                },
-                0
-              );
+              if (
+                restoreFocusTimerRef.current !== null
+              ) {
+                window.clearTimeout(
+                  restoreFocusTimerRef.current
+                );
+              }
+
+              restoreFocusTimerRef.current =
+                window.setTimeout(() => {
+                  restoreFocusTimerRef.current = null;
+                  anchorRef.current?.focus?.();
+                }, 0);
             }
           },
           [
+            anchorRef,
             closeOnSelect,
-            ctx,
             disabled,
+            onOpenChange,
             onSelect,
           ]
         );
