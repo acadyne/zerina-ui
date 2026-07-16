@@ -628,7 +628,7 @@ export const PopoverContent =
           ctx.onOpenChange?.(
             false
           );
-        }, [ctx]);
+        }, [ctx.onOpenChange]);
 
       const resolvedAriaLabelledBy =
         ariaLabel !== undefined ||

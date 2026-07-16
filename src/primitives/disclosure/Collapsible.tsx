@@ -335,7 +335,10 @@ export const CollapsibleTrigger =
           ctx.onOpenChange?.(
             !ctx.open
           );
-        }, [ctx]);
+        }, [
+          ctx.onOpenChange,
+          ctx.open,
+        ]);
 
       const content =
         typeof children ===
