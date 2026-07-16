@@ -1,10 +1,29 @@
 // src/components/feedback/Skeleton.tsx
 import React from "react";
+import {
+  resolveSlot,
+  type SlotPropsMap,
+  type SlotStyleMap,
+} from "../../helpers/css";
 
-export type SkeletonVariant = "rect" | "text" | "circle";
+export type SkeletonVariant =
+  | "rect"
+  | "text"
+  | "circle";
+
+export type SkeletonSlot = "root";
+
+export type SkeletonStyles =
+  SlotStyleMap<SkeletonSlot>;
+
+export type SkeletonSlotProps =
+  SlotPropsMap<SkeletonSlot>;
 
 export interface SkeletonProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "children"
+  > {
   children?: React.ReactNode;
   loading?: boolean;
 
@@ -18,6 +37,9 @@ export interface SkeletonProps
 
   className?: string;
   style?: React.CSSProperties;
+
+  styles?: SkeletonStyles;
+  slotProps?: SkeletonSlotProps;
 }
 
 function getVariantStyles(
@@ -26,24 +48,33 @@ function getVariantStyles(
 ): React.CSSProperties {
   if (variant === "circle") {
     return {
-      borderRadius: rounded ?? "var(--ui-radius-full)",
+      borderRadius:
+        rounded ??
+        "var(--ui-radius-full)",
       aspectRatio: "1 / 1",
     };
   }
 
   if (variant === "text") {
     return {
-      borderRadius: rounded ?? "var(--ui-radius-sm)",
+      borderRadius:
+        rounded ??
+        "var(--ui-radius-sm)",
       minHeight: "0.85em",
     };
   }
 
   return {
-    borderRadius: rounded ?? "var(--ui-radius-md)",
+    borderRadius:
+      rounded ??
+      "var(--ui-radius-md)",
   };
 }
 
-export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+export const Skeleton = React.forwardRef<
+  HTMLDivElement,
+  SkeletonProps
+>(
   (
     {
       children,
@@ -55,6 +86,8 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
       animated = true,
       className = "",
       style,
+      styles,
+      slotProps,
       ...rest
     },
     ref
@@ -63,23 +96,41 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
       return <>{children}</>;
     }
 
+    const rootSlot = resolveSlot<SkeletonSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+      className,
+      style,
+
+      baseProps: {
+        "aria-hidden": true,
+        "data-ui-skeleton": "true",
+        "data-ui-skeleton-variant": variant,
+        "data-ui-skeleton-static":
+          !animated ||
+          undefined,
+      },
+
+      baseStyle: {
+        position: "relative",
+        overflow: "hidden",
+        width,
+        height,
+        minWidth: 0,
+        background:
+          "var(--ui-skeleton-bg)",
+        ...getVariantStyles(
+          variant,
+          rounded
+        ),
+      },
+    });
+
     return (
       <div
+        {...rootSlot}
         ref={ref}
-        className={className}
-        aria-hidden="true"
-        data-ui-skeleton="true"
-        data-ui-skeleton-static={!animated || undefined}
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          width,
-          height,
-          minWidth: 0,
-          background: "var(--ui-skeleton-bg)",
-          ...getVariantStyles(variant, rounded),
-          ...style,
-        }}
         {...rest}
       >
         {children}
