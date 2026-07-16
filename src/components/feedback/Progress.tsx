@@ -61,8 +61,8 @@ const heightMap: Record<ProgressSize, number> = {
 
 const variantColorMap: Record<ProgressVariant, string> = {
   primary: "var(--ui-primary)",
-  success: "#22c55e",
-  warning: "#f59e0b",
+  success: "var(--ui-success)",
+  warning: "var(--ui-warning)",
   danger: "var(--ui-danger)",
   neutral: "var(--ui-text-muted)",
 };

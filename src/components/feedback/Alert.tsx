@@ -61,15 +61,19 @@ const alertVariantMap: Record<
   },
   success: {
     icon: <CheckCircle2 size={18} />,
-    color: "#22c55e",
-    background: "rgba(34, 197, 94, 0.12)",
-    border: "rgba(34, 197, 94, 0.32)",
+    color: "var(--ui-success)",
+    background:
+      "color-mix(in srgb, var(--ui-success) 12%, transparent)",
+    border:
+      "color-mix(in srgb, var(--ui-success) 32%, var(--ui-border))",
   },
   warning: {
     icon: <TriangleAlert size={18} />,
-    color: "#f59e0b",
-    background: "rgba(245, 158, 11, 0.13)",
-    border: "rgba(245, 158, 11, 0.34)",
+    color: "var(--ui-warning)",
+    background:
+      "color-mix(in srgb, var(--ui-warning) 13%, transparent)",
+    border:
+      "color-mix(in srgb, var(--ui-warning) 34%, var(--ui-border))",
   },
   danger: {
     icon: <XCircle size={18} />,

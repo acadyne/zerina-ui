@@ -80,6 +80,9 @@
   --ui-secondary-hover: #4b5563;
   --ui-secondary-contrast: #ffffff;
 
+  --ui-success: #22c55e;
+  --ui-warning: #f59e0b;
+
   --ui-danger: #ef4444;
   --ui-danger-hover: #dc2626;
   --ui-danger-contrast: #ffffff;

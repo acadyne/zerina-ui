@@ -76,14 +76,16 @@ const toastVariantMap: Record<
 
   success: {
     icon: <CheckCircle2 size={18} />,
-    color: "#22c55e",
-    border: "rgba(34, 197, 94, 0.34)",
+    color: "var(--ui-success)",
+    border:
+      "color-mix(in srgb, var(--ui-success) 34%, var(--ui-border))",
   },
 
   warning: {
     icon: <TriangleAlert size={18} />,
-    color: "#f59e0b",
-    border: "rgba(245, 158, 11, 0.36)",
+    color: "var(--ui-warning)",
+    border:
+      "color-mix(in srgb, var(--ui-warning) 36%, var(--ui-border))",
   },
 
   danger: {
