@@ -196,7 +196,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
         height: isContained
           ? `calc(100% - ${resolvedHeaderHeight})`
           : `calc(100dvh - ${resolvedHeaderHeight})`,
-        zIndex: 1000,
+        zIndex: "var(--ui-layer-sidebar)",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",

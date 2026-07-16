@@ -227,7 +227,7 @@ export function AppShellHeader({
         top: 0,
         left: isContained ? 0 : undefined,
         right: isContained ? 0 : undefined,
-        zIndex: 1300,
+        zIndex: "var(--ui-layer-navigation)",
         width: "100%",
         height,
         padding: "0.55rem 0.75rem",

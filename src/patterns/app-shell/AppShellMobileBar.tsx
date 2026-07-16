@@ -347,7 +347,7 @@ export function AppShellMobileBar({
         right: 0,
         bottom: 0,
 
-        zIndex: 1400,
+        zIndex: "var(--ui-layer-navigation-mobile)",
 
         ...style,
       }}

@@ -26,6 +26,13 @@
    --ui-font-size-lg: 1.125rem;
    --ui-font-size-xl: 1.25rem;
 
+  /* =========================
+     Layers
+  ========================= */
+  --ui-layer-sidebar: 1000;
+  --ui-layer-navigation: 1300;
+  --ui-layer-navigation-mobile: 1400;
+
    /* =========================
      Shadows
   ========================= */

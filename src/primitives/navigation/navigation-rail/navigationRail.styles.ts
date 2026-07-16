@@ -87,7 +87,7 @@ export function getRootPositionStyle({
       bottom: 0,
       left: placement === "left" ? 0 : undefined,
       right: placement === "right" ? 0 : undefined,
-      zIndex: 1300,
+      zIndex: "var(--ui-layer-navigation)",
     };
   }
 
