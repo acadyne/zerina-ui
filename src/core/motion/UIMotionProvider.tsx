@@ -14,6 +14,7 @@ import {
   getProgressIndeterminateTransition,
   shouldAnimateProgressIndeterminate,
 } from "./motion.presets";
+import { resolveEffectiveMotionLevel } from "./motion.utils";
 
 export interface UIMotionContextValue extends UIMotionState {
   setLevel: (level: UIMotionLevel) => void;
@@ -51,24 +52,6 @@ export interface UIMotionProviderProps {
   respectReducedMotion?: boolean;
 }
 
-function resolveEffectiveLevel({
-  level,
-  prefersReducedMotion,
-  respectReducedMotion,
-}: {
-  level: UIMotionLevel;
-  prefersReducedMotion: boolean;
-  respectReducedMotion: boolean;
-}): UIMotionLevel {
-  if (level === "none") return "none";
-
-  if (respectReducedMotion && prefersReducedMotion) {
-    return "reduced";
-  }
-
-  return level;
-}
-
 export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
   children,
   level,
@@ -89,12 +72,16 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
 
   const effectiveLevel = React.useMemo(
     () =>
-      resolveEffectiveLevel({
+      resolveEffectiveMotionLevel({
         level: currentLevel,
         prefersReducedMotion,
         respectReducedMotion,
       }),
-    [currentLevel, prefersReducedMotion, respectReducedMotion]
+    [
+      currentLevel,
+      prefersReducedMotion,
+      respectReducedMotion,
+    ]
   );
 
   const setLevel = React.useCallback(

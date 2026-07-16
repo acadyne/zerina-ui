@@ -1,6 +1,10 @@
 // src/core/motion/useUIMotion.ts
 import React from "react";
-import { UIMotionContext, type UIMotionContextValue } from "./UIMotionProvider";
+import { useMediaQuery } from "../dom";
+import {
+  UIMotionContext,
+  type UIMotionContextValue,
+} from "./UIMotionProvider";
 import {
   getMotionPresetVariants,
   getMotionTransition,
@@ -8,33 +12,63 @@ import {
   getProgressIndeterminateTransition,
   shouldAnimateProgressIndeterminate,
 } from "./motion.presets";
+import { resolveEffectiveMotionLevel } from "./motion.utils";
 
-const fallbackMotion: UIMotionContextValue = {
-  level: "subtle",
-  effectiveLevel: "subtle",
-  prefersReducedMotion: false,
-  respectReducedMotion: true,
-  shouldAnimate: true,
-  setLevel: () => {
-    // noop
-  },
-  getTransition: getMotionTransition,
-  getVariants: getMotionPresetVariants,
-  getPressMotion,
-  getProgressIndeterminateTransition,
-  shouldAnimateProgressIndeterminate,
+const FALLBACK_LEVEL = "subtle" as const;
+const FALLBACK_RESPECT_REDUCED_MOTION = true;
+
+const fallbackSetLevel: UIMotionContextValue["setLevel"] = () => {
+  // El fallback no tiene estado controlable.
 };
 
 export function useUIMotion(): UIMotionContextValue {
   const ctx = React.useContext(UIMotionContext);
 
   if (!ctx) {
-    throw new Error("useUIMotion must be used inside <UIMotionProvider />");
+    throw new Error(
+      "useUIMotion must be used inside <UIMotionProvider />"
+    );
   }
 
   return ctx;
 }
 
 export function useOptionalUIMotion(): UIMotionContextValue {
-  return React.useContext(UIMotionContext) ?? fallbackMotion;
+  const ctx = React.useContext(UIMotionContext);
+
+  const prefersReducedMotion = useMediaQuery(
+    "(prefers-reduced-motion: reduce)",
+    false
+  );
+
+  const effectiveLevel = resolveEffectiveMotionLevel({
+    level: FALLBACK_LEVEL,
+    prefersReducedMotion,
+    respectReducedMotion:
+      FALLBACK_RESPECT_REDUCED_MOTION,
+  });
+
+  return React.useMemo(
+    () =>
+      ctx ?? {
+        level: FALLBACK_LEVEL,
+        effectiveLevel,
+        prefersReducedMotion,
+        respectReducedMotion:
+          FALLBACK_RESPECT_REDUCED_MOTION,
+        shouldAnimate:
+          effectiveLevel !== "none",
+        setLevel: fallbackSetLevel,
+        getTransition: getMotionTransition,
+        getVariants: getMotionPresetVariants,
+        getPressMotion,
+        getProgressIndeterminateTransition,
+        shouldAnimateProgressIndeterminate,
+      },
+    [
+      ctx,
+      effectiveLevel,
+      prefersReducedMotion,
+    ]
+  );
 }
