@@ -9,6 +9,7 @@ import { Pressable } from "../../primitives/forms";
 import { Box } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
 import type { UIPressEvent } from "../../core/interaction";
+import { getScaffoldLocalZIndex } from "./scaffoldLayers";
 
 export type FloatingActionButtonSize = "sm" | "md" | "lg";
 
@@ -132,12 +133,12 @@ function getVariantStyles(
     };
   }
 
-return {
-  background: "var(--ui-primary)",
-  color: "var(--ui-primary-contrast)",
-  borderColor: "color-mix(in srgb, var(--ui-primary) 74%, black)",
-  boxShadow: "var(--ui-shadow-lg)",
-};
+  return {
+    background: "var(--ui-primary)",
+    color: "var(--ui-primary-contrast)",
+    borderColor: "color-mix(in srgb, var(--ui-primary) 74%, black)",
+    boxShadow: "var(--ui-shadow-lg)",
+  };
 }
 
 function getPlacementStyles(
@@ -166,7 +167,7 @@ function getPlacementStyles(
   return {
     position: "absolute",
     bottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
-    zIndex: 30,
+    zIndex: getScaffoldLocalZIndex("floating"),
     ...horizontal,
   };
 }

@@ -6,6 +6,7 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { Box, Screen, ScrollArea } from "../../primitives/layout";
+import { getScaffoldLocalZIndex } from "./scaffoldLayers";
 
 export type ScaffoldViewport = "window" | "contained";
 
@@ -235,7 +236,7 @@ export function MobileScaffold({
       bottom: hasBottom
         ? "calc(5.25rem + env(safe-area-inset-bottom, 0px))"
         : "max(1rem, env(safe-area-inset-bottom, 0px))",
-      zIndex: 30,
+      zIndex: getScaffoldLocalZIndex("floating"),
     },
   });
 
@@ -257,11 +258,11 @@ export function MobileScaffold({
       safeArea={
         safeArea
           ? {
-              top: false,
-              right: true,
-              bottom: false,
-              left: true,
-            }
+            top: false,
+            right: true,
+            bottom: false,
+            left: true,
+          }
           : false
       }
       {...rest}
