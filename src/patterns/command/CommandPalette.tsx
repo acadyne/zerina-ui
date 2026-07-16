@@ -367,7 +367,10 @@ export function CommandPalette({
     slotProps,
     baseProps: {
       id: inputId,
-      role: "searchbox",
+      role: "combobox",
+      "aria-label": "Buscar comandos",
+      "aria-expanded": open,
+      "aria-haspopup": "listbox",
       "aria-controls": listId,
       "aria-activedescendant": activeOptionId,
       "aria-autocomplete": "list",
