@@ -532,7 +532,7 @@ function TreeInner<TNode>(
           {emptyContent}
         </div>
       ) : (
-        <div {...groupSlot}>
+        <div {...groupSlot} role="group">
           {nodes.map((node, index) => {
             const nodeId = getNodeId(node);
 
