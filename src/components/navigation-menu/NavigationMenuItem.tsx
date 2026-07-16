@@ -645,7 +645,13 @@ export function NavigationMenuItem<TItem>({
         id={triggerId}
         type="button"
         role={usesMenuSemantics ? "menuitem" : undefined}
-        tabIndex={focused ? 0 : -1}
+        tabIndex={
+          usesMenuSemantics
+            ? focused
+              ? 0
+              : -1
+            : undefined
+        }
         aria-haspopup={
           branch
             ? usesMenuSemantics
