@@ -120,9 +120,9 @@ export const Progress = React.forwardRef<
       max <= min
         ? 0
         : (
-            (safeValue - min) /
-            (max - min)
-          ) * 100;
+          (safeValue - min) /
+          (max - min)
+        ) * 100;
 
     const height = heightMap[size];
 
@@ -137,6 +137,11 @@ export const Progress = React.forwardRef<
 
     const indeterminateTransition =
       motionState.getProgressIndeterminateTransition(
+        motionState.effectiveLevel
+      );
+
+    const animateIndeterminate =
+      motionState.shouldAnimateProgressIndeterminate(
         motionState.effectiveLevel
       );
 
@@ -200,6 +205,14 @@ export const Progress = React.forwardRef<
         "data-ui-progress-indeterminate":
           indeterminate ||
           undefined,
+
+        "data-animated":
+          indeterminate &&
+            animateIndeterminate
+            ? true
+            : undefined,
+
+
       },
 
       baseStyle: {
@@ -264,25 +277,25 @@ export const Progress = React.forwardRef<
       baseStyle:
         indeterminate
           ? {
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              width: "42%",
-              borderRadius: rounded,
-              background: resolvedBarColor,
-            }
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            width: "42%",
+            borderRadius: rounded,
+            background: resolvedBarColor,
+          }
           : {
-              height: "100%",
-              borderRadius: rounded,
-              background: resolvedBarColor,
-            },
+            height: "100%",
+            borderRadius: rounded,
+            background: resolvedBarColor,
+          },
     });
 
     return (
       <div
+        {...rest}
         {...rootSlot}
         ref={ref}
-        {...rest}
       >
         {label || showValue ? (
           <div {...labelRowSlot}>
