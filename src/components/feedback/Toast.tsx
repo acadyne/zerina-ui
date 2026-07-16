@@ -24,6 +24,10 @@ export type ToastVariant =
   | "danger"
   | "neutral";
 
+export type ToastPauseReason =
+  | "pointer"
+  | "focus";
+
 export type ToastSlot =
   | "root"
   | "inner"
@@ -60,6 +64,13 @@ export interface ToastProps
   icon?: React.ReactNode;
   onClose?: () => void;
   closable?: boolean;
+  onPauseAutoDismiss?: (
+    reason: ToastPauseReason
+  ) => void;
+
+  onResumeAutoDismiss?: (
+    reason: ToastPauseReason
+  ) => void;
   className?: string;
   style?: React.CSSProperties;
 
@@ -123,6 +134,8 @@ export const Toast = React.forwardRef<
       icon,
       onClose,
       closable = true,
+      onPauseAutoDismiss,
+      onResumeAutoDismiss,
       className = "",
       style,
       styles,
@@ -133,6 +146,40 @@ export const Toast = React.forwardRef<
   ) => {
     const motionState = useOptionalUIMotion();
     const config = toastVariantMap[variant];
+
+    const handlePointerEnter =
+      React.useCallback(() => {
+        onPauseAutoDismiss?.("pointer");
+      }, [onPauseAutoDismiss]);
+
+    const handlePointerLeave =
+      React.useCallback(() => {
+        onResumeAutoDismiss?.("pointer");
+      }, [onResumeAutoDismiss]);
+
+    const handleFocusCapture =
+      React.useCallback(() => {
+        onPauseAutoDismiss?.("focus");
+      }, [onPauseAutoDismiss]);
+
+    const handleBlurCapture =
+      React.useCallback(
+        (
+          event: React.FocusEvent<HTMLDivElement>
+        ) => {
+          const nextTarget = event.relatedTarget;
+
+          if (
+            nextTarget instanceof Node &&
+            event.currentTarget.contains(nextTarget)
+          ) {
+            return;
+          }
+
+          onResumeAutoDismiss?.("focus");
+        },
+        [onResumeAutoDismiss]
+      );
 
     const closeButtonSlotProps =
       slotProps?.closeButton;
@@ -192,13 +239,13 @@ export const Toast = React.forwardRef<
       baseProps: {
         role:
           variant === "danger" ||
-          variant === "warning"
+            variant === "warning"
             ? "alert"
             : "status",
 
         "aria-live":
           variant === "danger" ||
-          variant === "warning"
+            variant === "warning"
             ? "assertive"
             : "polite",
 
@@ -216,6 +263,30 @@ export const Toast = React.forwardRef<
         overflow: "hidden",
       },
     });
+
+    const {
+      onPointerEnter:
+      slotOnRootPointerEnter,
+      onPointerLeave:
+      slotOnRootPointerLeave,
+      onFocusCapture:
+      slotOnRootFocusCapture,
+      onBlurCapture:
+      slotOnRootBlurCapture,
+      ...rootSlotRest
+    } = toMotionSlotProps(rootSlot);
+
+    const {
+      onPointerEnter:
+      rootOnPointerEnter,
+      onPointerLeave:
+      rootOnPointerLeave,
+      onFocusCapture:
+      rootOnFocusCapture,
+      onBlurCapture:
+      rootOnBlurCapture,
+      ...restWithoutInteractionHandlers
+    } = rest;
 
     const innerSlot = resolveSlot<ToastSlot>({
       slot: "inner",
@@ -386,9 +457,29 @@ export const Toast = React.forwardRef<
 
     return (
       <motion.div
-        {...rest}
-        {...toMotionSlotProps(rootSlot)}
+        {...restWithoutInteractionHandlers}
+        {...rootSlotRest}
         ref={ref}
+        onPointerEnter={(event) => {
+          rootOnPointerEnter?.(event);
+          slotOnRootPointerEnter?.(event);
+          handlePointerEnter();
+        }}
+        onPointerLeave={(event) => {
+          rootOnPointerLeave?.(event);
+          slotOnRootPointerLeave?.(event);
+          handlePointerLeave();
+        }}
+        onFocusCapture={(event) => {
+          rootOnFocusCapture?.(event);
+          slotOnRootFocusCapture?.(event);
+          handleFocusCapture();
+        }}
+        onBlurCapture={(event) => {
+          rootOnBlurCapture?.(event);
+          slotOnRootBlurCapture?.(event);
+          handleBlurCapture(event);
+        }}
         variants={variants}
         initial="initial"
         animate="animate"

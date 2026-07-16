@@ -2,7 +2,11 @@
 import React from "react";
 import { MotionPresenceGroup } from "../../core/motion";
 import { getLayerZIndex } from "../../core/overlay";
-import { Toast, type ToastVariant } from "./Toast";
+import {
+  Toast,
+  type ToastPauseReason,
+  type ToastVariant,
+} from "./Toast";
 
 export type ToastPlacement =
   | "top-right"
@@ -32,6 +36,13 @@ export type ToastRecord = Required<
     ToastInput,
     "id" | "variant" | "duration" | "closable"
   >;
+
+interface ToastTimerState {
+  timeoutId: number | null;
+  startedAt: number;
+  remaining: number;
+  pauseReasons: Set<ToastPauseReason>;
+}
 
 export interface ToastContextValue {
   toasts: ToastRecord[];
@@ -105,18 +116,25 @@ export const ToastProvider: React.FC<
     const [toasts, setToasts] =
       React.useState<ToastRecord[]>([]);
 
-    const timersRef =
-      React.useRef<Map<string, number>>(new Map());
+    const timersRef = React.useRef<
+      Map<string, ToastTimerState>
+    >(new Map());
 
     const clearTimer = React.useCallback(
       (id: string) => {
-        const timer = timersRef.current.get(id);
+        const timerState =
+          timersRef.current.get(id);
 
-        if (timer === undefined) {
+        if (!timerState) {
           return;
         }
 
-        window.clearTimeout(timer);
+        if (timerState.timeoutId !== null) {
+          window.clearTimeout(
+            timerState.timeoutId
+          );
+        }
+
         timersRef.current.delete(id);
       },
       []
@@ -133,10 +151,127 @@ export const ToastProvider: React.FC<
       [clearTimer]
     );
 
+    const startTimer = React.useCallback(
+      (
+        id: string,
+        duration: number
+      ) => {
+        if (duration <= 0) {
+          return;
+        }
+
+        const timerState: ToastTimerState = {
+          timeoutId: null,
+          startedAt: performance.now(),
+          remaining: duration,
+          pauseReasons:
+            new Set<ToastPauseReason>(),
+        };
+
+        timerState.timeoutId =
+          window.setTimeout(() => {
+            timersRef.current.delete(id);
+            dismiss(id);
+          }, duration);
+
+        timersRef.current.set(
+          id,
+          timerState
+        );
+      },
+      [dismiss]
+    );
+
+    const pauseTimer = React.useCallback(
+      (
+        id: string,
+        reason: ToastPauseReason
+      ) => {
+        const timerState =
+          timersRef.current.get(id);
+
+        if (!timerState) {
+          return;
+        }
+
+        const wasAlreadyPaused =
+          timerState.pauseReasons.size > 0;
+
+        timerState.pauseReasons.add(reason);
+
+        if (
+          wasAlreadyPaused ||
+          timerState.timeoutId === null
+        ) {
+          return;
+        }
+
+        const elapsed =
+          performance.now() -
+          timerState.startedAt;
+
+        timerState.remaining = Math.max(
+          0,
+          timerState.remaining - elapsed
+        );
+
+        window.clearTimeout(
+          timerState.timeoutId
+        );
+
+        timerState.timeoutId = null;
+      },
+      []
+    );
+
+    const resumeTimer = React.useCallback(
+      (
+        id: string,
+        reason: ToastPauseReason
+      ) => {
+        const timerState =
+          timersRef.current.get(id);
+
+        if (!timerState) {
+          return;
+        }
+
+        timerState.pauseReasons.delete(reason);
+
+        if (
+          timerState.pauseReasons.size > 0 ||
+          timerState.timeoutId !== null
+        ) {
+          return;
+        }
+
+        if (timerState.remaining <= 0) {
+          dismiss(id);
+          return;
+        }
+
+        timerState.startedAt =
+          performance.now();
+
+        timerState.timeoutId =
+          window.setTimeout(() => {
+            timersRef.current.delete(id);
+            dismiss(id);
+          }, timerState.remaining);
+      },
+      [dismiss]
+    );
+
     const clear = React.useCallback(() => {
-      timersRef.current.forEach((timer) => {
-        window.clearTimeout(timer);
-      });
+      timersRef.current.forEach(
+        (timerState) => {
+          if (timerState.timeoutId !== null) {
+            window.clearTimeout(
+              timerState.timeoutId
+            );
+          }
+        }
+      );
 
       timersRef.current.clear();
       setToasts([]);
@@ -171,21 +306,18 @@ export const ToastProvider: React.FC<
           ].slice(0, Math.max(0, maxToasts));
         });
 
-        if (nextToast.duration > 0) {
-          const timer = window.setTimeout(() => {
-            dismiss(id);
-          }, nextToast.duration);
-
-          timersRef.current.set(id, timer);
-        }
+        startTimer(
+          id,
+          nextToast.duration
+        );
 
         return id;
       },
       [
         clearTimer,
         defaultDuration,
-        dismiss,
         maxToasts,
+        startTimer,
       ]
     );
 
@@ -203,9 +335,17 @@ export const ToastProvider: React.FC<
 
     React.useEffect(() => {
       return () => {
-        timersRef.current.forEach((timer) => {
-          window.clearTimeout(timer);
-        });
+        timersRef.current.forEach(
+          (timerState) => {
+            if (
+              timerState.timeoutId !== null
+            ) {
+              window.clearTimeout(
+                timerState.timeoutId
+              );
+            }
+          }
+        );
 
         timersRef.current.clear();
       };
@@ -239,6 +379,12 @@ export const ToastProvider: React.FC<
                 closable={item.closable}
                 onClose={() => {
                   dismiss(item.id);
+                }}
+                onPauseAutoDismiss={(reason) => {
+                  pauseTimer(item.id, reason);
+                }}
+                onResumeAutoDismiss={(reason) => {
+                  resumeTimer(item.id, reason);
                 }}
                 style={{
                   pointerEvents: "auto",
