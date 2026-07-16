@@ -19,17 +19,28 @@ export type EmptyStateStyles = SlotStyleMap<EmptyStateSlot>;
 
 export type EmptyStateSlotProps = SlotPropsMap<EmptyStateSlot>;
 
+export type EmptyStateTitleAs =
+  | "h2"
+  | "h3"
+  | "h4"
+  | "p"
+  | "div";
+
 export interface EmptyStateProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   icon?: React.ReactNode;
   title?: React.ReactNode;
+  titleAs?: EmptyStateTitleAs;
   description?: React.ReactNode;
+
   actionLabel?: React.ReactNode;
   onAction?: () => void;
   action?: React.ReactNode;
+
   align?: "left" | "center";
   compact?: boolean;
   bordered?: boolean;
+
   className?: string;
   style?: React.CSSProperties;
 
@@ -37,28 +48,41 @@ export interface EmptyStateProps
   slotProps?: EmptyStateSlotProps;
 }
 
-export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
+export const EmptyState = React.forwardRef<
+  HTMLDivElement,
+  EmptyStateProps
+>(
   (
     {
       icon,
       title = "Nada por mostrar",
+      titleAs = "h3",
       description,
+
       actionLabel,
       onAction,
       action,
+
       align = "center",
       compact = false,
       bordered = true,
+
       className = "",
       style,
+
       styles,
       slotProps,
+
       ...rest
     },
     ref
   ) => {
+    const TitleElement = titleAs;
     const textAlign = align;
-    const itemsAlign = align === "center" ? "center" : "flex-start";
+    const itemsAlign =
+      align === "center"
+        ? "center"
+        : "flex-start";
 
     const rootSlot = resolveSlot<EmptyStateSlot>({
       slot: "root",
@@ -66,18 +90,34 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slotProps,
       className,
       style,
+
       baseProps: {
         "data-ui-empty-state": "",
         "data-ui-empty-state-align": align,
       },
+
       baseStyle: {
         width: "100%",
         minWidth: 0,
-        padding: compact ? "1.25rem" : "2rem",
-        borderRadius: "var(--ui-radius-lg)",
-        background: "var(--ui-surface)",
-        border: bordered ? "1px dashed var(--ui-border)" : "none",
-        color: "var(--ui-text)",
+
+        padding:
+          compact
+            ? "1.25rem"
+            : "2rem",
+
+        borderRadius:
+          "var(--ui-radius-lg)",
+
+        background:
+          "var(--ui-surface)",
+
+        border:
+          bordered
+            ? "1px dashed var(--ui-border)"
+            : "none",
+
+        color:
+          "var(--ui-text)",
       },
     });
 
@@ -85,11 +125,17 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slot: "content",
       styles,
       slotProps,
+
       baseStyle: {
         display: "flex",
         flexDirection: "column",
         alignItems: itemsAlign,
-        gap: compact ? "0.65rem" : "0.9rem",
+
+        gap:
+          compact
+            ? "0.65rem"
+            : "0.9rem",
+
         textAlign,
         minWidth: 0,
       },
@@ -99,19 +145,40 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slot: "icon",
       styles,
       slotProps,
+
       baseProps: {
         "aria-hidden": true,
       },
+
       baseStyle: {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        width: compact ? 44 : 56,
-        height: compact ? 44 : 56,
-        borderRadius: "var(--ui-radius-full)",
-        background: "var(--ui-surface-2)",
-        color: "var(--ui-text-muted)",
-        fontSize: compact ? "1.1rem" : "1.35rem",
+
+        width:
+          compact
+            ? 44
+            : 56,
+
+        height:
+          compact
+            ? 44
+            : 56,
+
+        borderRadius:
+          "var(--ui-radius-full)",
+
+        background:
+          "var(--ui-surface-2)",
+
+        color:
+          "var(--ui-text-muted)",
+
+        fontSize:
+          compact
+            ? "1.1rem"
+            : "1.35rem",
+
         flexShrink: 0,
       },
     });
@@ -120,14 +187,21 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slot: "title",
       styles,
       slotProps,
+
       baseStyle: {
         margin: 0,
-        fontSize: compact
-          ? "var(--ui-font-size-lg)"
-          : "var(--ui-font-size-xl)",
+
+        fontSize:
+          compact
+            ? "var(--ui-font-size-lg)"
+            : "var(--ui-font-size-xl)",
+
         fontWeight: 800,
         lineHeight: 1.2,
-        color: "var(--ui-text)",
+
+        color:
+          "var(--ui-text)",
+
         textAlign,
       },
     });
@@ -136,14 +210,28 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slot: "description",
       styles,
       slotProps,
+
       baseStyle: {
-        margin: align === "center" ? "0 auto" : 0,
-        maxWidth: align === "center" ? 520 : undefined,
-        fontSize: compact
-          ? "var(--ui-font-size-sm)"
-          : "var(--ui-font-size-md)",
+        margin:
+          align === "center"
+            ? "0 auto"
+            : 0,
+
+        maxWidth:
+          align === "center"
+            ? 520
+            : undefined,
+
+        fontSize:
+          compact
+            ? "var(--ui-font-size-sm)"
+            : "var(--ui-font-size-md)",
+
         lineHeight: 1.5,
-        color: "var(--ui-text-muted)",
+
+        color:
+          "var(--ui-text-muted)",
+
         textAlign,
       },
     });
@@ -152,27 +240,52 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       slot: "action",
       styles,
       slotProps,
+
       baseStyle: {
         marginTop: "0.25rem",
       },
     });
 
+    const resolvedAction =
+      action ??
+      (
+        actionLabel && onAction
+          ? (
+              <Button onPress={onAction}>
+                {actionLabel}
+              </Button>
+            )
+          : null
+      );
+
     return (
-      <div {...rootSlot} ref={ref} {...rest}>
+      <div
+        {...rootSlot}
+        ref={ref}
+        {...rest}
+      >
         <div {...contentSlot}>
-          {icon ? <div {...iconSlot}>{icon}</div> : null}
-
-          {title ? <h3 {...titleSlot}>{title}</h3> : null}
-
-          {description ? (
-            <div {...descriptionSlot}>{description}</div>
+          {icon ? (
+            <div {...iconSlot}>
+              {icon}
+            </div>
           ) : null}
 
-          {action ? (
-            <div {...actionSlot}>{action}</div>
-          ) : actionLabel && onAction ? (
+          {title ? (
+            <TitleElement {...titleSlot}>
+              {title}
+            </TitleElement>
+          ) : null}
+
+          {description ? (
+            <div {...descriptionSlot}>
+              {description}
+            </div>
+          ) : null}
+
+          {resolvedAction ? (
             <div {...actionSlot}>
-              <Button onPress={onAction}>{actionLabel}</Button>
+              {resolvedAction}
             </div>
           ) : null}
         </div>
