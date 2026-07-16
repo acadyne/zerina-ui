@@ -293,7 +293,7 @@ type DialogContextValue = {
   ) => void;
 
   recipeStyles:
-    SlotStyleMap<DialogSlot>;
+  SlotStyleMap<DialogSlot>;
 
   styles?: DialogStyles;
   slotProps?: DialogSlotProps;
@@ -337,7 +337,7 @@ export interface DialogProps {
   closeOnEscape?: boolean;
 
   closeOnPointerDownOutside?:
-    boolean;
+  boolean;
 
   modal?: boolean;
   lockScroll?: boolean;
@@ -347,16 +347,16 @@ export interface DialogProps {
   autoFocus?: boolean;
 
   initialFocusRef?:
-    React.RefObject<
-      HTMLElement | null
-    >;
+  React.RefObject<
+    HTMLElement | null
+  >;
 
   portalled?: boolean;
 
   container?:
-    | Element
-    | DocumentFragment
-    | null;
+  | Element
+  | DocumentFragment
+  | null;
 
   size?: DialogSize;
   overlayId?: string;
@@ -374,7 +374,7 @@ export const Dialog:
     closeOnEscape = true,
 
     closeOnPointerDownOutside =
-      true,
+    true,
 
     modal = true,
     lockScroll = true,
@@ -391,7 +391,7 @@ export const Dialog:
     size = "md",
 
     overlayId:
-      overlayIdProp,
+    overlayIdProp,
 
     styles,
     slotProps,
@@ -1001,7 +1001,7 @@ export const DialogTitle =
         <Comp
           {...titleSlot}
           ref={
-            ref as React.Ref<any>
+            ref as React.Ref<HTMLElement>
           }
           id={ctx.titleId}
           {...rest}
