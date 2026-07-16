@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  AnimatePresence,
   motion,
   type HTMLMotionProps,
 } from "framer-motion";
@@ -11,7 +10,10 @@ import {
   getLayerZIndex,
   type FloatingPlacement,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  MotionPresenceGroup,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   resolveSlot,
   toMotionSlotProps,
@@ -81,6 +83,7 @@ export interface NavigationMenuPanelProps
     | "exit"
     | "variants"
     | "transition"
+    | "custom"
   > {
   open: boolean;
   semantics?: NavigationMenuSemantics;
@@ -387,9 +390,9 @@ export const NavigationMenuPanel =
         ) : null;
 
       const animated = (
-        <AnimatePresence>
+        <MotionPresenceGroup>
           {content}
-        </AnimatePresence>
+        </MotionPresenceGroup>
       );
 
       return portalled ? (
