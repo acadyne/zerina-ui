@@ -305,10 +305,19 @@ export function getProgressIndeterminateTransition(
   };
 }
 
+export function shouldAnimateContinuousMotion(
+  level: UIMotionLevel
+): boolean {
+  return (
+    level !== "none" &&
+    level !== "reduced"
+  );
+}
+
 export function shouldAnimateProgressIndeterminate(
   level: UIMotionLevel
 ): boolean {
-  return level !== "none" && level !== "reduced";
+  return shouldAnimateContinuousMotion(level);
 }
 
 export function getSpinnerVariants(
@@ -364,10 +373,7 @@ export function getSpinnerTransition(
 export function shouldAnimateSpinner(
   level: UIMotionLevel
 ): boolean {
-  return (
-    level !== "none" &&
-    level !== "reduced"
-  );
+  return shouldAnimateContinuousMotion(level);
 }
 
 export function getPressMotion(

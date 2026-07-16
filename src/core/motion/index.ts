@@ -17,6 +17,7 @@ export {
   getSpinnerTransition,
   getSpinnerVariants,
   shouldAnimateSpinner,
+  shouldAnimateContinuousMotion,
 } from "./motion.presets";
 
 export {

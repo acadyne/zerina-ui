@@ -3,7 +3,10 @@ import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { usePress, type UIPressEvent } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  shouldAnimateContinuousMotion,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -332,6 +335,12 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ) => {
     const motionState = useOptionalUIMotion();
 
+    const animateLoading =
+      loadingAnimated &&
+      shouldAnimateContinuousMotion(
+        motionState.effectiveLevel
+      );
+
     const rootSlotProps = slotProps?.root;
 
     const {
@@ -447,6 +456,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         "data-ui-card": "",
         "data-ui-card-interactive": isInteractive || undefined,
         "data-ui-card-loading": loading || undefined,
+        "data-ui-card-loading-animated":
+          loading && animateLoading
+            ? true
+            : undefined,
         "data-ui-card-disabled":
           isInteractive && loading ? true : undefined,
         "data-ui-card-hovered": press.state.hovered || undefined,
@@ -502,7 +515,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             loadingFallback ?? (
               <CardLoadingContent
                 lines={loadingLines}
-                animated={loadingAnimated}
+                animated={animateLoading}
                 styles={styles}
                 slotProps={slotProps}
               />
