@@ -915,9 +915,7 @@ export const DrawerDescription =
         <Typography
           {...descriptionSlot}
           {...rest}
-          ref={
-            ref as React.Ref<HTMLElement>
-          }
+          ref={ref}
           as="p"
           size="sm"
           color="var(--ui-text-muted)"
