@@ -33,19 +33,6 @@ function getHeaderAriaSort<T extends Record<string, unknown>>({
   return sortConfig?.direction === "asc" ? "ascending" : "descending";
 }
 
-function handleSortableHeaderKeyDown(
-  event: React.KeyboardEvent<HTMLTableCellElement>,
-  sortable: boolean,
-  onSort: (() => void) | undefined
-) {
-  if (!sortable) return;
-
-  if (event.key !== "Enter" && event.key !== " ") return;
-
-  event.preventDefault();
-  onSort?.();
-}
-
 export interface DataTableEditableDesktopProps<
   T extends Record<string, unknown>,
   IDType extends DataTableRowId,
@@ -303,42 +290,43 @@ export function DataTableEditableDesktop<
 
                 return (
                   <th
-                    key={`${String(column.header)}-${index}`}
                     scope="col"
                     aria-sort={ariaSort}
-                    tabIndex={sortable ? 0 : undefined}
-                    {...resolveSlot<DataTableSlot>({
-                      slot: "headerCell",
-                      styles,
-                      slotProps,
-                      baseProps: {
-                        title: sortable ? "Ordenar" : undefined,
-                        "data-ui-data-table-column-index": String(index),
-                        "data-ui-data-table-sortable": sortable || undefined,
-                      },
-                      baseStyle: {
-                        padding: cellPad,
-                        textAlign: column.align ?? "left",
-                        background: "var(--ui-surface)",
-                        color: "var(--ui-text)",
-                        cursor: sortable ? "pointer" : "default",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 2,
-                        borderBottom: "1px solid var(--ui-border)",
-                        width: column.width ?? "auto",
-                        whiteSpace: column.nowrap ? "nowrap" : undefined,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      },
-                    })}
-                    onClick={handleSort}
-                    onKeyDown={(event) => {
-                      handleSortableHeaderKeyDown(event, sortable, handleSort);
-                    }}
                   >
-                    {column.header}
-                    {arrow}
+                    {sortable ? (
+                      <button
+                        type="button"
+                        onClick={handleSort}
+                        style={{
+                          width: "100%",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent:
+                            column.align === "right"
+                              ? "flex-end"
+                              : column.align === "center"
+                                ? "center"
+                                : "flex-start",
+                          gap: "0.25rem",
+                          padding: 0,
+                          border: 0,
+                          background: "transparent",
+                          color: "inherit",
+                          font: "inherit",
+                          fontWeight: "inherit",
+                          textAlign: "inherit",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span>{column.header}</span>
+
+                        <span aria-hidden="true">
+                          {arrow}
+                        </span>
+                      </button>
+                    ) : (
+                      column.header
+                    )}
                   </th>
                 );
               })}
@@ -355,7 +343,7 @@ export function DataTableEditableDesktop<
                 rowId !== undefined
                   ? String(rowId)
                   : rowKeyFallback?.(row, rowIndex) ??
-                    createFallbackRowId(rowIndex);
+                  createFallbackRowId(rowIndex);
 
               const baseRowBg = isSelected
                 ? "var(--ui-surface)"
