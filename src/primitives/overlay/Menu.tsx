@@ -392,6 +392,15 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
   ) => {
     const ctx = useMenuContext();
 
+    const focusTimerRef =
+      React.useRef<number | null>(null);
+
+    const {
+      focusFirst,
+      focusLast,
+      onOpenChange,
+    } = ctx;
+
     const triggerSlot = resolveSlot<MenuSlot>({
       slot: "trigger",
       styles: styles ?? ctx.styles,
@@ -412,19 +421,55 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
       [children, ctx, ref]
     );
 
-    const openAndFocusFirst = React.useCallback(() => {
-      ctx.onOpenChange?.(true);
-      window.setTimeout(() => {
-        ctx.focusFirst();
-      }, 0);
-    }, [ctx]);
+    React.useEffect(() => {
+      return () => {
+        if (focusTimerRef.current !== null) {
+          window.clearTimeout(
+            focusTimerRef.current
+          );
+        }
+      };
+    }, []);
 
-    const openAndFocusLast = React.useCallback(() => {
-      ctx.onOpenChange?.(true);
-      window.setTimeout(() => {
-        ctx.focusLast();
-      }, 0);
-    }, [ctx]);
+    const scheduleFocus =
+      React.useCallback(
+        (focus: () => void) => {
+          if (focusTimerRef.current !== null) {
+            window.clearTimeout(
+              focusTimerRef.current
+            );
+          }
+
+          focusTimerRef.current =
+            window.setTimeout(() => {
+              focusTimerRef.current = null;
+              focus();
+            }, 0);
+        },
+        []
+      );
+
+    const openAndFocusFirst =
+      React.useCallback(() => {
+        onOpenChange?.(true);
+        scheduleFocus(focusFirst);
+      }, [
+        focusFirst,
+        onOpenChange,
+        scheduleFocus,
+      ]);
+
+    const openAndFocusLast =
+      React.useCallback(() => {
+        onOpenChange?.(true);
+        scheduleFocus(focusLast);
+      }, [
+        focusLast,
+        onOpenChange,
+        scheduleFocus,
+      ]);
+
+
 
     if (asChild && React.isValidElement<TriggerChildProps>(children)) {
       return React.cloneElement(children, {
