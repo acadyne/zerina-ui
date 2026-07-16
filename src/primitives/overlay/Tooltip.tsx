@@ -19,6 +19,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { setRef } from "../../core/interaction/events";
 
 export type TooltipSlot =
   | "trigger"
@@ -137,32 +138,6 @@ function useTooltipContext() {
   }
 
   return ctx;
-}
-
-function assignRef<T>(
-  ref:
-    | React.Ref<T>
-    | undefined,
-  value: T | null
-) {
-  if (!ref) {
-    return;
-  }
-
-  if (
-    typeof ref === "function"
-  ) {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as React.MutableRefObject<T | null>
-    ).current = value;
-  } catch {
-    // Algunos refs externos pueden ser de solo lectura.
-  }
 }
 
 type TooltipPointerType =
@@ -417,12 +392,12 @@ export const TooltipTrigger =
               node
             );
 
-            assignRef(
+            setRef(
               ref,
               node
             );
 
-            assignRef(
+            setRef(
               (
                 children as React.ReactElement & {
                   ref?: React.Ref<HTMLElement>;
@@ -880,7 +855,7 @@ export const TooltipContent =
             contentRef.current =
               node;
 
-            assignRef(
+            setRef(
               ref,
               node
             );
@@ -1028,7 +1003,7 @@ export const TooltipContent =
                     contentSlot
                   )}
                   ref={(node) => {
-                    assignRef(
+                    setRef(
                       floatingRef,
                       node
                     );

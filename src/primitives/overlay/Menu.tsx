@@ -13,6 +13,7 @@ import {
   type UIPressEvent,
 } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
+import { setRef } from "../../core/interaction/events";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   defineSlotRecipe,
@@ -164,21 +165,6 @@ function useMenuContext() {
 
 function useOptionalMenuContext() {
   return React.useContext(MenuContext);
-}
-
-function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
-  if (!ref) return;
-
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  try {
-    (ref as React.MutableRefObject<T | null>).current = value;
-  } catch {
-    // noop
-  }
 }
 
 function getFloatingSide(
@@ -411,8 +397,8 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
     const setRefs = React.useCallback(
       (node: HTMLElement | null) => {
         ctx.setAnchorNode(node);
-        assignRef(ref, node);
-        assignRef(
+        setRef(ref, node);
+        setRef(
           (children as React.ReactElement & { ref?: React.Ref<HTMLElement> }).ref,
           node
         );
@@ -577,7 +563,7 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
         contentRef.current = node;
-        assignRef(ref, node);
+        setRef(ref, node);
       },
       [ref]
     );
@@ -736,7 +722,7 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
                     contentSlot
                   )}
                   ref={(node) => {
-                    assignRef(
+                    setRef(
                       floatingRef,
                       node
                     );
@@ -842,7 +828,7 @@ export const MenuItem =
               | null
           ) => {
             itemRef.current = node;
-            assignRef(ref, node);
+            setRef(ref, node);
           },
           [ref]
         );

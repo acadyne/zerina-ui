@@ -20,6 +20,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { setRef } from "../../core/interaction/events";
 
 type PopoverPlacement =
   | "top"
@@ -212,30 +213,6 @@ function useOptionalPopoverContext() {
   );
 }
 
-function assignRef<T>(
-  ref:
-    | React.Ref<T>
-    | undefined,
-  value: T | null
-) {
-  if (!ref) {
-    return;
-  }
-
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as React.MutableRefObject<T | null>
-    ).current = value;
-  } catch {
-    // Algunos refs externos pueden ser de solo lectura.
-  }
-}
-
 export interface PopoverProps {
   children?: React.ReactNode;
 
@@ -379,12 +356,12 @@ export const PopoverTrigger =
               node
             );
 
-            assignRef(
+            setRef(
               ref,
               node
             );
 
-            assignRef(
+            setRef(
               (
                 children as React.ReactElement & {
                   ref?: React.Ref<HTMLElement>;
@@ -635,7 +612,7 @@ export const PopoverContent =
               | HTMLDivElement
               | null
           ) => {
-            assignRef(
+            setRef(
               ref,
               node
             );
@@ -799,7 +776,7 @@ export const PopoverContent =
                       contentSlot
                     )}
                     ref={(node) => {
-                      assignRef(
+                      setRef(
                         floatingRef,
                         node
                       );
