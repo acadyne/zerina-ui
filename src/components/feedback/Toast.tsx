@@ -8,6 +8,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import { usePress } from "../../core/interaction";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
   resolveSlot,
@@ -16,7 +17,12 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 
-export type ToastVariant = "info" | "success" | "warning" | "danger" | "neutral";
+export type ToastVariant =
+  | "info"
+  | "success"
+  | "warning"
+  | "danger"
+  | "neutral";
 
 export type ToastSlot =
   | "root"
@@ -34,7 +40,10 @@ export type ToastStyles = SlotStyleMap<ToastSlot>;
 export type ToastSlotProps = SlotPropsMap<ToastSlot>;
 
 export interface ToastProps
-  extends Omit<HTMLMotionProps<"div">, "children" | "style" | "title"> {
+  extends Omit<
+    HTMLMotionProps<"div">,
+    "children" | "style" | "title"
+  > {
   id?: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
@@ -61,23 +70,29 @@ const toastVariantMap: Record<
   info: {
     icon: <Info size={18} />,
     color: "var(--ui-primary)",
-    border: "color-mix(in srgb, var(--ui-primary) 36%, var(--ui-border))",
+    border:
+      "color-mix(in srgb, var(--ui-primary) 36%, var(--ui-border))",
   },
+
   success: {
     icon: <CheckCircle2 size={18} />,
     color: "#22c55e",
     border: "rgba(34, 197, 94, 0.34)",
   },
+
   warning: {
     icon: <TriangleAlert size={18} />,
     color: "#f59e0b",
     border: "rgba(245, 158, 11, 0.36)",
   },
+
   danger: {
     icon: <XCircle size={18} />,
     color: "var(--ui-danger)",
-    border: "color-mix(in srgb, var(--ui-danger) 36%, var(--ui-border))",
+    border:
+      "color-mix(in srgb, var(--ui-danger) 36%, var(--ui-border))",
   },
+
   neutral: {
     icon: <Info size={18} />,
     color: "var(--ui-text-muted)",
@@ -85,7 +100,10 @@ const toastVariantMap: Record<
   },
 };
 
-export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
+export const Toast = React.forwardRef<
+  HTMLDivElement,
+  ToastProps
+>(
   (
     {
       title,
@@ -106,8 +124,22 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
     const motionState = useOptionalUIMotion();
     const config = toastVariantMap[variant];
 
-    const [closeHovered, setCloseHovered] = React.useState(false);
-    const [closeFocused, setCloseFocused] = React.useState(false);
+    const closeButtonSlotProps =
+      slotProps?.closeButton;
+
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    } = closeButtonSlotProps ?? {};
 
     const variants = motionState.getVariants(
       "feedback",
@@ -119,19 +151,51 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       "feedback"
     );
 
+    const closePress = usePress<HTMLButtonElement>({
+      disabled: !closable,
+      nativeInteractive: true,
+
+      onPress: () => {
+        onClose?.();
+      },
+
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    });
+
     const rootSlot = resolveSlot<ToastSlot>({
       slot: "root",
       styles,
       slotProps,
       className,
       style,
+
       baseProps: {
-        role: variant === "danger" || variant === "warning" ? "alert" : "status",
+        role:
+          variant === "danger" ||
+          variant === "warning"
+            ? "alert"
+            : "status",
+
         "aria-live":
-          variant === "danger" || variant === "warning" ? "assertive" : "polite",
+          variant === "danger" ||
+          variant === "warning"
+            ? "assertive"
+            : "polite",
+
         "data-ui-toast": "",
         "data-ui-toast-variant": variant,
       },
+
       baseStyle: {
         width: "min(420px, calc(100vw - 24px))",
         borderRadius: "var(--ui-radius-xl)",
@@ -147,6 +211,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "inner",
       styles,
       slotProps,
+
       baseStyle: {
         display: "flex",
         alignItems: "flex-start",
@@ -161,9 +226,11 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "icon",
       styles,
       slotProps,
+
       baseProps: {
         "aria-hidden": true,
       },
+
       baseStyle: {
         display: "inline-flex",
         alignItems: "center",
@@ -178,6 +245,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "content",
       styles,
       slotProps,
+
       baseStyle: {
         flex: 1,
         minWidth: 0,
@@ -191,6 +259,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "title",
       styles,
       slotProps,
+
       baseStyle: {
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",
@@ -204,6 +273,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "description",
       styles,
       slotProps,
+
       baseStyle: {
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",
@@ -217,6 +287,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "action",
       styles,
       slotProps,
+
       baseStyle: {
         marginTop: "0.45rem",
       },
@@ -226,22 +297,64 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "closeButton",
       styles,
       slotProps,
+
+      baseProps: {
+        "aria-label": "Cerrar notificación",
+
+        "data-hovered":
+          closePress.state.hovered ||
+          undefined,
+
+        "data-pressed":
+          closePress.state.pressed ||
+          undefined,
+
+        "data-focused":
+          closePress.state.focused ||
+          undefined,
+
+        "data-focus-visible":
+          closePress.state.focusVisible ||
+          undefined,
+      },
+
       baseStyle: {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
+
         width: 28,
         height: 28,
-        borderRadius: "var(--ui-radius-full)",
-        border: "1px solid transparent",
-        background: closeHovered ? "var(--ui-surface-hover)" : "transparent",
-        color: closeHovered ? "var(--ui-text)" : "var(--ui-text-muted)",
+
+        borderRadius:
+          "var(--ui-radius-full)",
+
+        border:
+          "1px solid transparent",
+
+        background:
+          closePress.state.hovered
+            ? "var(--ui-surface-hover)"
+            : "transparent",
+
+        color:
+          closePress.state.hovered
+            ? "var(--ui-text)"
+            : "var(--ui-text-muted)",
+
         cursor: "pointer",
         flexShrink: 0,
         outline: "none",
-        boxShadow: closeFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+
+        boxShadow:
+          closePress.state.focusVisible
+            ? "0 0 0 3px var(--ui-focus-ring)"
+            : "none",
+
         transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "color var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
       },
     });
 
@@ -249,9 +362,11 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       slot: "closeIcon",
       styles,
       slotProps,
+
       baseProps: {
         "aria-hidden": true,
       },
+
       baseStyle: {
         display: "inline-flex",
         alignItems: "center",
@@ -271,36 +386,35 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         transition={transition}
       >
         <div {...innerSlot}>
-          <div {...iconSlot}>{icon ?? config.icon}</div>
+          <div {...iconSlot}>
+            {icon ?? config.icon}
+          </div>
 
           <div {...contentSlot}>
-            {title ? <div {...titleSlot}>{title}</div> : null}
-
-            {description ? (
-              <div {...descriptionSlot}>{description}</div>
+            {title ? (
+              <div {...titleSlot}>
+                {title}
+              </div>
             ) : null}
 
-            {action ? <div {...actionSlot}>{action}</div> : null}
+            {description ? (
+              <div {...descriptionSlot}>
+                {description}
+              </div>
+            ) : null}
+
+            {action ? (
+              <div {...actionSlot}>
+                {action}
+              </div>
+            ) : null}
           </div>
 
           {closable ? (
             <button
               {...closeButtonSlot}
+              {...closePress.pressProps}
               type="button"
-              aria-label="Cerrar notificación"
-              onClick={onClose}
-              onMouseEnter={() => {
-                setCloseHovered(true);
-              }}
-              onMouseLeave={() => {
-                setCloseHovered(false);
-              }}
-              onFocus={() => {
-                setCloseFocused(true);
-              }}
-              onBlur={() => {
-                setCloseFocused(false);
-              }}
             >
               <span {...closeIconSlot}>
                 <X size={16} />
