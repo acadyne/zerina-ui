@@ -16,7 +16,7 @@ export interface AppShellRoute {
   disabled?: boolean;
   readonly?: boolean;
 
-  component?: React.ComponentType<any>;
+  component?: React.ComponentType<Record<never, never>>;
   element?: React.ReactNode;
 
   subroutes?: AppShellRoute[];
