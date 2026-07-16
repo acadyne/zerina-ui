@@ -30,13 +30,6 @@
   --ui-overlay: rgba(15, 23, 42, 0.18);
   --ui-focus-ring: rgba(47, 140, 121, 0.22);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="dark"] {
@@ -69,13 +62,6 @@
   --ui-overlay: rgba(0, 0, 0, 0.55);
   --ui-focus-ring: rgba(47, 140, 121, 0.35);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="spring"] {
@@ -108,13 +94,6 @@
   --ui-overlay: rgba(17, 24, 39, 0.18);
   --ui-focus-ring: rgba(90, 164, 105, 0.28);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="summer"] {
@@ -147,13 +126,6 @@
   --ui-overlay: rgba(0, 0, 0, 0.2);
   --ui-focus-ring: rgba(245, 158, 11, 0.3);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="autumn"] {
@@ -186,13 +158,6 @@
   --ui-overlay: rgba(0, 0, 0, 0.48);
   --ui-focus-ring: rgba(192, 101, 42, 0.32);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="winter"] {
@@ -225,13 +190,6 @@
   --ui-overlay: rgba(2, 6, 23, 0.55);
   --ui-focus-ring: rgba(96, 165, 250, 0.3);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="retro-futurist"] {
@@ -264,13 +222,6 @@
   --ui-overlay: rgba(4, 0, 10, 0.62);
   --ui-focus-ring: rgba(34, 211, 238, 0.35);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
 
 [data-ui-theme="sepia-retro"] {
@@ -303,11 +254,4 @@
   --ui-overlay: rgba(20, 12, 6, 0.55);
   --ui-focus-ring: rgba(192, 138, 62, 0.32);
 
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
 }
