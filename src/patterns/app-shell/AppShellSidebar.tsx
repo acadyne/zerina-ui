@@ -208,7 +208,8 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         transition:
-          "width 0.25s ease, padding var(--ui-duration-normal) var(--ui-ease-standard)",
+          "width var(--ui-duration-slow) var(--ui-ease-emphasized), " +
+          "padding var(--ui-duration-normal) var(--ui-ease-standard)",
         ...style,
       }}
     >

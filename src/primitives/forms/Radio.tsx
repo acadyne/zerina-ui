@@ -131,7 +131,7 @@ const radioRecipe =
         transformOrigin: "center",
 
         transition:
-          "transform 0.15s ease-in-out",
+          "transform var(--ui-duration-fast) var(--ui-ease-standard)",
       },
 
       label: {
