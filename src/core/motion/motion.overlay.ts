@@ -2,7 +2,10 @@
 import type { Variants } from "framer-motion";
 import type { UIMotionIntent, UIMotionLevel } from "./motion.types";
 import { getMotionScale } from "./motion.tokens";
-import { createStaticMotionVariants } from "./motion.utils";
+import {
+  createReducedMotionVariants,
+  createStaticMotionVariants,
+} from "./motion.utils";
 export type UIOverlayMotionKind =
   | "backdrop"
   | "dialog"
@@ -28,27 +31,27 @@ export function getOverlayMotionIntent(
   }
 }
 
-export function getOverlayBackdropVariants(level: UIMotionLevel): Variants {
+export function getOverlayBackdropVariants(
+  level: UIMotionLevel
+): Variants {
   if (level === "none") {
     return createStaticMotionVariants();
   }
 
-  return {
-    initial: {
-      opacity: 0,
-    },
-    animate: {
-      opacity: 1,
-    },
-    exit: {
-      opacity: 0,
-    },
-  };
+  if (level === "reduced") {
+    return createReducedMotionVariants();
+  }
+
+  return createReducedMotionVariants();
 }
 
 export function getOverlayDialogVariants(level: UIMotionLevel): Variants {
-  if (level === "none" || level === "reduced") {
+  if (level === "none") {
     return createStaticMotionVariants();
+  }
+
+  if (level === "reduced") {
+    return createReducedMotionVariants();
   }
 
   const scale = getMotionScale(level);
@@ -80,8 +83,13 @@ export function getOverlayDrawerVariants({
   placement: UIOverlayPlacement;
   level: UIMotionLevel;
 }): Variants {
-  if (level === "none" || level === "reduced") {
+
+  if (level === "none") {
     return createStaticMotionVariants();
+  }
+
+  if (level === "reduced") {
+    return createReducedMotionVariants();
   }
 
   const x = placement === "left" ? "-100%" : "100%";
@@ -103,8 +111,13 @@ export function getOverlayDrawerVariants({
 }
 
 export function getOverlayBottomSheetVariants(level: UIMotionLevel): Variants {
-  if (level === "none" || level === "reduced") {
+
+  if (level === "none") {
     return createStaticMotionVariants();
+  }
+
+  if (level === "reduced") {
+    return createReducedMotionVariants();
   }
 
   return {
