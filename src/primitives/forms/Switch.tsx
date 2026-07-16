@@ -34,8 +34,8 @@ export interface SwitchProps
   label?: React.ReactNode;
 
   labelPlacement?:
-    | "right"
-    | "left";
+  | "right"
+  | "left";
 
   size?: "sm" | "md" | "lg";
 
@@ -146,10 +146,10 @@ const switchRecipe =
         borderRadius:
           "var(--ui-radius-full)",
 
-        background: "#fff",
+        background: "var(--ui-control-indicator)",
 
         boxShadow:
-          "0 1px 3px rgba(0,0,0,0.25)",
+          "var(--ui-shadow-control)",
 
         pointerEvents: "none",
 
@@ -253,8 +253,8 @@ const switchRecipe =
       const thumbOffset =
         checked
           ? resolvedSize.trackW -
-            resolvedSize.knob -
-            resolvedSize.offset
+          resolvedSize.knob -
+          resolvedSize.offset
           : resolvedSize.offset;
 
       return {
@@ -270,10 +270,9 @@ const switchRecipe =
             : "var(--ui-surface-3)",
 
           border:
-            `1px solid ${
-              checked
-                ? color
-                : "var(--ui-border)"
+            `1px solid ${checked
+              ? color
+              : "var(--ui-border)"
             }`,
 
           boxShadow: focused
@@ -323,18 +322,18 @@ export const Switch =
         required,
 
         "aria-describedby":
-          ariaDescribedBy,
+        ariaDescribedBy,
 
         "aria-invalid":
-          ariaInvalid,
+        ariaInvalid,
 
         size = "md",
 
         color =
-          "var(--ui-primary)",
+        "var(--ui-primary)",
 
         labelPlacement =
-          "right",
+        "right",
 
         className = "",
         style,
@@ -525,9 +524,9 @@ export const Switch =
           {...(
             label
               ? {
-                  htmlFor:
-                    inputId,
-                }
+                htmlFor:
+                  inputId,
+              }
               : {}
           )}
         >

@@ -1,134 +1,137 @@
 /* src/theme/tokens.css */
 
 :root {
-  /* =========================
+   /* =========================
      Radius
   ========================= */
-  --ui-radius-sm: 0.5rem;
-  --ui-radius-md: 0.65rem;
-  --ui-radius-lg: 0.85rem;
-  --ui-radius-xl: 1rem;
-  --ui-radius-full: 9999px;
+   --ui-radius-sm: 0.5rem;
+   --ui-radius-md: 0.65rem;
+   --ui-radius-lg: 0.85rem;
+   --ui-radius-xl: 1rem;
+   --ui-radius-full: 9999px;
 
-  /* =========================
+   /* =========================
      Spacing / control sizes
   ========================= */
-  --ui-control-h-sm: 34px;
-  --ui-control-h-md: 42px;
-  --ui-control-h-lg: 48px;
+   --ui-control-h-sm: 34px;
+   --ui-control-h-md: 42px;
+   --ui-control-h-lg: 48px;
 
-  /* =========================
+   /* =========================
      Typography
   ========================= */
-  --ui-font-size-xs: 0.75rem;
-  --ui-font-size-sm: 0.875rem;
-  --ui-font-size-md: 1rem;
-  --ui-font-size-lg: 1.125rem;
-  --ui-font-size-xl: 1.25rem;
+   --ui-font-size-xs: 0.75rem;
+   --ui-font-size-sm: 0.875rem;
+   --ui-font-size-md: 1rem;
+   --ui-font-size-lg: 1.125rem;
+   --ui-font-size-xl: 1.25rem;
 
-  /* =========================
+   /* =========================
      Shadows
   ========================= */
-  --ui-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
-  --ui-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.22);
-  --ui-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.35);
+   --ui-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
+   --ui-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.22);
+   --ui-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.35);
 
-  /* =========================
+   --ui-shadow-control: 0 1px 3px rgba(0, 0, 0, 0.25);
+   --ui-shadow-action: 0 6px 14px rgba(0, 0, 0, 0.14);
+   --ui-shadow-action-hover: 0 8px 18px rgba(0, 0, 0, 0.18);
+   --ui-shadow-action-subtle-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+   --ui-shadow-action-outline-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+   /* =========================
      Motion
   ========================= */
-  --ui-duration-instant: 1ms;
-  --ui-duration-fast: 120ms;
-  --ui-duration-normal: 180ms;
-  --ui-duration-slow: 260ms;
-  --ui-duration-slower: 360ms;
+   --ui-duration-instant: 1ms;
+   --ui-duration-fast: 120ms;
+   --ui-duration-normal: 180ms;
+   --ui-duration-slow: 260ms;
+   --ui-duration-slower: 360ms;
 
-  --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ui-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
-  --ui-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
-  --ui-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --ui-ease-press: cubic-bezier(0.2, 0, 0, 1);
+   --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+   --ui-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+   --ui-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+   --ui-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+   --ui-ease-press: cubic-bezier(0.2, 0, 0, 1);
 
-  --ui-motion-distance-sm: 4px;
-  --ui-motion-distance-md: 8px;
-  --ui-motion-distance-lg: 14px;
+   --ui-motion-distance-sm: 4px;
+   --ui-motion-distance-md: 8px;
+   --ui-motion-distance-lg: 14px;
 
-  --ui-motion-scale-subtle: 0.98;
-  --ui-motion-scale-expressive: 0.96;
+   --ui-motion-scale-subtle: 0.98;
+   --ui-motion-scale-expressive: 0.96;
 
-  /* =========================
+   /* =========================
      Semantic colors (defaults)
   ========================= */
-  --ui-bg: #0b0d10;
-  --ui-surface: #111315;
-  --ui-surface-2: #171a1d;
-  --ui-surface-3: #1d2125;
-  --ui-surface-hover: rgba(255, 255, 255, 0.08);
+   --ui-bg: #0b0d10;
+   --ui-surface: #111315;
+   --ui-surface-2: #171a1d;
+   --ui-surface-3: #1d2125;
+   --ui-surface-hover: rgba(255, 255, 255, 0.08);
 
-  --ui-text: #f3f4f6;
-  --ui-text-muted: #c4c7cc;
-  --ui-text-soft: #9ca3af;
-  --ui-text-inverse: #111827;
+   --ui-text: #f3f4f6;
+   --ui-text-muted: #c4c7cc;
+   --ui-text-soft: #9ca3af;
+   --ui-text-inverse: #111827;
 
-  --ui-border: rgba(255, 255, 255, 0.12);
-  --ui-border-strong: rgba(255, 255, 255, 0.2);
+   --ui-border: rgba(255, 255, 255, 0.12);
+   --ui-border-strong: rgba(255, 255, 255, 0.2);
 
-  --ui-primary: #2f8c79;
-  --ui-primary-hover: #267564;
-  --ui-primary-contrast: #ffffff;
+   --ui-control-indicator: #ffffff;
+   --ui-control-indicator-overlay: rgba(0, 0, 0, 0.18);
 
-  --ui-secondary: #6b7280;
-  --ui-secondary-hover: #4b5563;
-  --ui-secondary-contrast: #ffffff;
+   --ui-primary: #2f8c79;
+   --ui-primary-hover: #267564;
+   --ui-primary-contrast: #ffffff;
 
-  --ui-success: #22c55e;
-  --ui-success-strong: #15803d;
-  --ui-success-contrast: #ffffff;
+   --ui-secondary: #6b7280;
+   --ui-secondary-hover: #4b5563;
+   --ui-secondary-contrast: #ffffff;
 
-  --ui-warning: #f59e0b;
-  --ui-warning-strong: #b45309;
-  --ui-warning-contrast: #ffffff;
+   --ui-success: #22c55e;
+   --ui-success-strong: #15803d;
+   --ui-success-contrast: #ffffff;
 
-  --ui-danger: #ef4444;
-  --ui-danger-hover: #dc2626;
-  --ui-danger-contrast: #ffffff;
+   --ui-warning: #f59e0b;
+   --ui-warning-strong: #b45309;
+   --ui-warning-contrast: #ffffff;
 
-  --ui-overlay: rgba(0, 0, 0, 0.55);
-  --ui-focus-ring: rgba(47, 140, 121, 0.35);
+   --ui-danger: #ef4444;
+   --ui-danger-hover: #dc2626;
+   --ui-danger-contrast: #ffffff;
 
-  /* =========================
+   --ui-overlay: rgba(0, 0, 0, 0.55);
+   --ui-focus-ring: rgba(47, 140, 121, 0.35);
+
+   /* =========================
      State tokens
   ========================= */
-  --ui-state-focus: var(--ui-focus-ring);
-  --ui-state-focus-danger: color-mix(
-    in srgb,
-    var(--ui-danger) 22%,
-    transparent
-  );
-  --ui-state-disabled-opacity: 0.65;
+   --ui-state-focus: var(--ui-focus-ring);
+   --ui-state-focus-danger: color-mix(in srgb,
+         var(--ui-danger) 22%,
+         transparent);
+   --ui-state-disabled-opacity: 0.65;
 
-  /* =========================
+   /* =========================
      Skeleton / Loading
   ========================= */
-  --ui-skeleton-bg: color-mix(
-    in srgb,
-    var(--ui-surface-3) 82%,
-    var(--ui-surface) 18%
-  );
-  --ui-skeleton-highlight: color-mix(
-    in srgb,
-    var(--ui-text) 8%,
-    transparent
-  );
-  --ui-skeleton-duration: 1.2s;
+   --ui-skeleton-bg: color-mix(in srgb,
+         var(--ui-surface-3) 82%,
+         var(--ui-surface) 18%);
+   --ui-skeleton-highlight: color-mix(in srgb,
+         var(--ui-text) 8%,
+         transparent);
+   --ui-skeleton-duration: 1.2s;
 
-  /* =========================
+   /* =========================
      Compat
   ========================= */
-  --bg: var(--ui-bg);
-  --form-bg: var(--ui-surface);
-  --text: var(--ui-text);
-  --input-border: var(--ui-border);
-  --input-focus: var(--ui-primary);
-  --button: var(--ui-primary);
-  --button-hover: var(--ui-primary-hover);
+   --bg: var(--ui-bg);
+   --form-bg: var(--ui-surface);
+   --text: var(--ui-text);
+   --input-border: var(--ui-border);
+   --input-focus: var(--ui-primary);
+   --button: var(--ui-primary);
+   --button-hover: var(--ui-primary-hover);
 }

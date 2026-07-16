@@ -171,7 +171,7 @@ function getVariantStyles(
       hoverBackground: scheme.outlineHover,
       activeBackground: scheme.outlineHover,
       shadow: "none",
-      hoverShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
+      hoverShadow: "var(--ui-shadow-action-outline-hover)",
     };
   }
 
@@ -183,7 +183,7 @@ function getVariantStyles(
       hoverBackground: scheme.ghostHover,
       activeBackground: scheme.ghostHover,
       shadow: "none",
-      hoverShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+      hoverShadow: "var(--ui-shadow-action-subtle-hover)",
     };
   }
 
@@ -193,8 +193,8 @@ function getVariantStyles(
     border: "1px solid transparent",
     hoverBackground: scheme.solidHover,
     activeBackground: scheme.solidHover,
-    shadow: "0 6px 14px rgba(0, 0, 0, 0.14)",
-    hoverShadow: "0 8px 18px rgba(0, 0, 0, 0.18)",
+    shadow: "var(--ui-shadow-action)",
+    hoverShadow: "var(--ui-shadow-action-hover)",
   };
 }
 
@@ -530,7 +530,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const spinnerColor =
       variant === "solid"
-        ? "rgba(255,255,255,0.78)"
+        ? "color-mix(in srgb, currentColor 78%, transparent)"
         : "currentColor";
 
     const rootSlot = resolveSlot<ButtonSlot>({
