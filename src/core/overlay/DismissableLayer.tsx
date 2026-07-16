@@ -1,6 +1,7 @@
 // src/core/overlay/DismissableLayer.tsx
 import React from "react";
 import { useIsOverlayTopmost, useOverlayRegistration } from "./OverlayProvider";
+import { setRef } from "../interaction/events";
 
 type DismissableLayerEvent = {
   defaultPrevented: boolean;
@@ -63,12 +64,7 @@ export const DismissableLayer = React.forwardRef<
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
         localRef.current = node;
-
-        if (typeof ref === "function") {
-          ref(node);
-        } else if (ref) {
-          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-        }
+        setRef(ref, node);
       },
       [ref]
     );

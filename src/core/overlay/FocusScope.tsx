@@ -1,6 +1,7 @@
 // src/core/overlay/FocusScope.tsx
 import React from "react";
 import { useIsOverlayTopmost } from "./OverlayProvider";
+import { setRef } from "../interaction/events";
 
 function isElementVisible(el: HTMLElement): boolean {
   const style = window.getComputedStyle(el);
@@ -48,20 +49,7 @@ function getBestInitialFocusTarget(
   );
 }
 
-function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
-  if (!ref) return;
 
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  try {
-    (ref as React.MutableRefObject<T | null>).current = value;
-  } catch {
-    // noop
-  }
-}
 
 export interface FocusScopeProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -98,7 +86,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
         localRef.current = node;
-        assignRef(ref, node);
+        setRef(ref, node);
       },
       [ref]
     );
