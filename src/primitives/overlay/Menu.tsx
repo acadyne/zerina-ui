@@ -912,9 +912,7 @@ export const MenuItem =
           baseProps: {
             role: "menuitem",
 
-            tabIndex: disabled
-              ? -1
-              : 0,
+            tabIndex: -1,
 
             "aria-disabled":
               disabled ||
