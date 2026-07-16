@@ -390,7 +390,8 @@ export function TreeItem<TNode>({
       transform: expanded
         ? "rotate(90deg)"
         : "rotate(0deg)",
-      transition: "transform 120ms ease",
+      transition:
+        "transform var(--ui-duration-fast) var(--ui-ease-standard)",
     },
   });
 

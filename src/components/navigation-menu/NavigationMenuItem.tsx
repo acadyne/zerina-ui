@@ -398,7 +398,8 @@ export function NavigationMenuItem<TItem>({
         depth === 0 && open
           ? "rotate(180deg)"
           : undefined,
-      transition: "transform 120ms ease",
+      transition:
+        "transform var(--ui-duration-fast) var(--ui-ease-standard)",
     },
   });
 

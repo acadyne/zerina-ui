@@ -283,7 +283,8 @@ export function DataTableDesktop<
                     hoveredRowKey === rowKey
                       ? "var(--ui-surface-hover)"
                       : baseRowBg,
-                  transition: "background 120ms ease",
+                  transition:
+                    "background var(--ui-duration-fast) var(--ui-ease-standard)",
                 },
               });
 
