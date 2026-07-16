@@ -1,6 +1,7 @@
 // src/patterns/command/CommandPalette.tsx
 import React from "react";
 import { Search } from "lucide-react";
+import { usePress } from "../../core/interaction";
 import {
   cssSize,
   resolveMergedSlot,
@@ -737,15 +738,51 @@ export function CommandTrigger({
 
   className = "",
   style,
-  onMouseEnter,
-  onMouseLeave,
+
+  disabled,
+
+  onPointerEnter,
+  onPointerLeave,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+  onLostPointerCapture,
+
   onFocus,
   onBlur,
+
+  onKeyDown,
+  onKeyUp,
+
+  onClick,
+
   ...rest
 }: CommandTriggerProps) {
   const sizeStyles = COMMAND_TRIGGER_SIZE_MAP[size];
-  const [hovered, setHovered] = React.useState(false);
-  const [focused, setFocused] = React.useState(false);
+
+  const press = usePress<HTMLButtonElement>({
+    disabled,
+    nativeInteractive: true,
+
+    onPointerEnter,
+    onPointerLeave,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onLostPointerCapture,
+
+    onFocus,
+    onBlur,
+
+    onKeyDown,
+    onKeyUp,
+
+    onClick,
+  });
+
+  const interactive =
+    press.state.hovered ||
+    press.state.focused;
 
   const SearchIcon = (
     <Search
@@ -756,25 +793,44 @@ export function CommandTrigger({
     />
   );
 
-  const interactive = hovered || focused;
-
   return (
     <button
+      {...rest}
+      {...press.pressProps}
       type="button"
+      disabled={disabled}
       className={className}
       data-ui-command-trigger=""
       data-ui-command-trigger-size={size}
       data-ui-command-trigger-tone={tone}
+      data-ui-command-trigger-hovered={
+        press.state.hovered || undefined
+      }
+      data-ui-command-trigger-focused={
+        press.state.focused || undefined
+      }
+      data-ui-command-trigger-focus-visible={
+        press.state.focusVisible || undefined
+      }
+      data-ui-command-trigger-pressed={
+        press.state.pressed || undefined
+      }
       style={{
-        width: fullWidth ? "100%" : undefined,
-        maxWidth: maxWidth !== undefined ? cssSize(maxWidth) : undefined,
+        width: fullWidth
+          ? "100%"
+          : undefined,
+        maxWidth:
+          maxWidth !== undefined
+            ? cssSize(maxWidth)
+            : undefined,
         height: sizeStyles.height,
         minWidth: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: "0.75rem",
-        paddingInline: sizeStyles.paddingInline,
+        paddingInline:
+          sizeStyles.paddingInline,
         borderRadius: "9999px",
         border: "1px solid",
         borderColor: interactive
@@ -788,35 +844,26 @@ export function CommandTrigger({
             : interactive
               ? "color-mix(in srgb, var(--ui-primary) 8%, var(--ui-surface-2))"
               : "color-mix(in srgb, var(--ui-surface-2) 76%, transparent)",
-        color: interactive ? "var(--ui-text)" : "var(--ui-text-muted)",
+        color: interactive
+          ? "var(--ui-text)"
+          : "var(--ui-text-muted)",
         font: "inherit",
-        cursor: "pointer",
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
+        opacity: disabled
+          ? 0.56
+          : 1,
         boxSizing: "border-box",
         outline: "none",
-        boxShadow: focused
-          ? "0 0 0 3px color-mix(in srgb, var(--ui-primary) 18%, transparent)"
-          : "none",
+        boxShadow:
+          press.state.focusVisible
+            ? "0 0 0 3px color-mix(in srgb, var(--ui-primary) 18%, transparent)"
+            : "none",
         transition:
           "border-color var(--ui-duration-fast) var(--ui-ease-standard), background var(--ui-duration-fast) var(--ui-ease-standard), color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard)",
         ...style,
       }}
-      onMouseEnter={(event) => {
-        setHovered(true);
-        onMouseEnter?.(event);
-      }}
-      onMouseLeave={(event) => {
-        setHovered(false);
-        onMouseLeave?.(event);
-      }}
-      onFocus={(event) => {
-        setFocused(true);
-        onFocus?.(event);
-      }}
-      onBlur={(event) => {
-        setFocused(false);
-        onBlur?.(event);
-      }}
-      {...rest}
     >
       <Flex
         align="center"
@@ -832,7 +879,9 @@ export function CommandTrigger({
             display: "inline-flex",
             alignItems: "center",
             flexShrink: 0,
-            opacity: interactive ? 0.9 : 0.72,
+            opacity: interactive
+              ? 0.9
+              : 0.72,
           }}
         >
           {icon ?? SearchIcon}
@@ -845,7 +894,8 @@ export function CommandTrigger({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            fontSize: sizeStyles.fontSize,
+            fontSize:
+              sizeStyles.fontSize,
             lineHeight: 1.3,
           }}
         >
@@ -860,16 +910,23 @@ export function CommandTrigger({
           style={{
             flexShrink: 0,
             minWidth: 0,
-            padding: sizeStyles.shortcutPadding,
-            borderRadius: "var(--ui-radius-md)",
-            border: "1px solid var(--ui-border)",
+            padding:
+              sizeStyles.shortcutPadding,
+            borderRadius:
+              "var(--ui-radius-md)",
+            border:
+              "1px solid var(--ui-border)",
             background: interactive
               ? "color-mix(in srgb, var(--ui-surface) 86%, transparent)"
               : "color-mix(in srgb, var(--ui-surface) 72%, transparent)",
-            color: "var(--ui-text-muted)",
-            fontSize: "var(--ui-font-size-xs)",
+            color:
+              "var(--ui-text-muted)",
+            fontSize:
+              "var(--ui-font-size-xs)",
             lineHeight: 1.35,
-            boxShadow: interactive ? "var(--ui-shadow-sm)" : "none",
+            boxShadow: interactive
+              ? "var(--ui-shadow-sm)"
+              : "none",
           }}
         >
           {shortcut}
