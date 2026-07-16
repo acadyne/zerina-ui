@@ -7,14 +7,22 @@ import {
 } from "../../helpers/css";
 import { Skeleton } from "./Skeleton";
 
-export type SkeletonTextSlot = "root" | "line" | "lastLine";
+export type SkeletonTextSlot =
+  | "root"
+  | "line"
+  | "lastLine";
 
-export type SkeletonTextStyles = SlotStyleMap<SkeletonTextSlot>;
+export type SkeletonTextStyles =
+  SlotStyleMap<SkeletonTextSlot>;
 
-export type SkeletonTextSlotProps = SlotPropsMap<SkeletonTextSlot>;
+export type SkeletonTextSlotProps =
+  SlotPropsMap<SkeletonTextSlot>;
 
 export interface SkeletonTextProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "children"
+  > {
   lines?: number;
   spacing?: number | string;
   height?: number | string;
@@ -29,7 +37,10 @@ export interface SkeletonTextProps
   slotProps?: SkeletonTextSlotProps;
 }
 
-export const SkeletonText = React.forwardRef<HTMLDivElement, SkeletonTextProps>(
+export const SkeletonText = React.forwardRef<
+  HTMLDivElement,
+  SkeletonTextProps
+>(
   (
     {
       lines = 3,
@@ -70,24 +81,33 @@ export const SkeletonText = React.forwardRef<HTMLDivElement, SkeletonTextProps>(
         aria-hidden="true"
         {...rest}
       >
-        {Array.from({ length: safeLines }).map((_, index) => {
-          const isLast = index === safeLines - 1;
+        {Array.from({
+          length: safeLines,
+        }).map((_, index) => {
+          const isLast =
+            index === safeLines - 1;
 
-          const lineSlot = resolveSlot<SkeletonTextSlot>({
-            slot: isLast ? "lastLine" : "line",
-            styles,
-            slotProps,
-          });
+          const lineSlot =
+            resolveSlot<SkeletonTextSlot>({
+              slot: isLast
+                ? "lastLine"
+                : "line",
+              styles,
+              slotProps,
+            });
 
           return (
             <Skeleton
               key={index}
               variant="text"
               height={height}
-              width={isLast ? lastLineWidth : "100%"}
+              width={
+                isLast
+                  ? lastLineWidth
+                  : "100%"
+              }
               animated={animated}
-              className={lineSlot.className}
-              style={lineSlot.style}
+              {...lineSlot}
             />
           );
         })}

@@ -2,6 +2,7 @@
 import React from "react";
 import {
   resolveSlot,
+  toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
@@ -10,16 +11,29 @@ import { SkeletonCard } from "./SkeletonCard";
 import { SkeletonTable } from "./SkeletonTable";
 import { SkeletonText } from "./SkeletonText";
 
-export type LoadingStateVariant = "spinner" | "text" | "card" | "table";
+export type LoadingStateVariant =
+  | "spinner"
+  | "text"
+  | "card"
+  | "table";
 
-export type LoadingStateSlot = "root" | "content" | "spinner" | "label";
+export type LoadingStateSlot =
+  | "root"
+  | "content"
+  | "spinner"
+  | "label";
 
-export type LoadingStateStyles = SlotStyleMap<LoadingStateSlot>;
+export type LoadingStateStyles =
+  SlotStyleMap<LoadingStateSlot>;
 
-export type LoadingStateSlotProps = SlotPropsMap<LoadingStateSlot>;
+export type LoadingStateSlotProps =
+  SlotPropsMap<LoadingStateSlot>;
 
 export interface LoadingStateProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "children"
+  > {
   children?: React.ReactNode;
   loading?: boolean;
 
@@ -40,7 +54,10 @@ export interface LoadingStateProps
   slotProps?: LoadingStateSlotProps;
 }
 
-export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
+export const LoadingState = React.forwardRef<
+  HTMLDivElement,
+  LoadingStateProps
+>(
   (
     {
       children,
@@ -77,39 +94,67 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
       baseStyle:
         variant === "spinner"
           ? {
-            width: "100%",
-            minWidth: 0,
-            display: "flex",
-            alignItems: centered ? "center" : "flex-start",
-            justifyContent: centered ? "center" : "flex-start",
-            padding: centered ? "1.5rem" : undefined,
-          }
+              width: "100%",
+              minWidth: 0,
+              display: "flex",
+              alignItems: centered
+                ? "center"
+                : "flex-start",
+              justifyContent: centered
+                ? "center"
+                : "flex-start",
+              padding: centered
+                ? "1.5rem"
+                : undefined,
+            }
           : {
-            width: "100%",
-            minWidth: 0,
-          },
+              width: "100%",
+              minWidth: 0,
+            },
     });
 
     if (variant === "table") {
       return (
-        <div {...rootSlot} ref={ref} {...rest}>
-          <SkeletonTable rows={rows} columns={columns} animated={animated} />
+        <div
+          {...rootSlot}
+          ref={ref}
+          {...rest}
+        >
+          <SkeletonTable
+            rows={rows}
+            columns={columns}
+            animated={animated}
+          />
         </div>
       );
     }
 
     if (variant === "card") {
       return (
-        <div {...rootSlot} ref={ref} {...rest}>
-          <SkeletonCard lines={lines} animated={animated} />
+        <div
+          {...rootSlot}
+          ref={ref}
+          {...rest}
+        >
+          <SkeletonCard
+            lines={lines}
+            animated={animated}
+          />
         </div>
       );
     }
 
     if (variant === "text") {
       return (
-        <div {...rootSlot} ref={ref} {...rest}>
-          <SkeletonText lines={lines} animated={animated} />
+        <div
+          {...rootSlot}
+          ref={ref}
+          {...rest}
+        >
+          <SkeletonText
+            lines={lines}
+            animated={animated}
+          />
         </div>
       );
     }
@@ -154,18 +199,17 @@ export const LoadingState = React.forwardRef<HTMLDivElement, LoadingStateProps>(
         {...rest}
       >
         <div {...contentSlot}>
-          <Spinner
-            size="md"
-            decorative
-            className={
-              spinnerSlot.className
-            }
-            style={
-              spinnerSlot.style
-            }
-          />
+        <Spinner
+          {...toMotionSlotProps(spinnerSlot)}
+          size="md"
+          decorative
+        />
 
-          {label ? <div {...labelSlot}>{label}</div> : null}
+          {label ? (
+            <div {...labelSlot}>
+              {label}
+            </div>
+          ) : null}
         </div>
       </div>
     );
