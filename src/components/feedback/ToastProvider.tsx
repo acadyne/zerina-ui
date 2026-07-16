@@ -23,9 +23,15 @@ export type ToastInput = {
 };
 
 export type ToastRecord = Required<
-  Pick<ToastInput, "id" | "variant" | "duration" | "closable">
+  Pick<
+    ToastInput,
+    "id" | "variant" | "duration" | "closable"
+  >
 > &
-  Omit<ToastInput, "id" | "variant" | "duration" | "closable">;
+  Omit<
+    ToastInput,
+    "id" | "variant" | "duration" | "closable"
+  >;
 
 export interface ToastContextValue {
   toasts: ToastRecord[];
@@ -41,13 +47,18 @@ export interface ToastProviderProps {
   defaultDuration?: number;
 }
 
-const ToastContext = React.createContext<ToastContextValue | null>(null);
+const ToastContext =
+  React.createContext<ToastContextValue | null>(null);
 
 function createToastId(): string {
-  return `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `toast-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
 }
 
-function getPlacementStyles(placement: ToastPlacement): React.CSSProperties {
+function getPlacementStyles(
+  placement: ToastPlacement
+): React.CSSProperties {
   const common: React.CSSProperties = {
     position: "fixed",
     zIndex: getLayerZIndex("toast"),
@@ -56,7 +67,10 @@ function getPlacementStyles(placement: ToastPlacement): React.CSSProperties {
     gap: "0.75rem",
     pointerEvents: "none",
     padding:
-      "max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))",
+      "max(12px, env(safe-area-inset-top)) " +
+      "max(12px, env(safe-area-inset-right)) " +
+      "max(12px, env(safe-area-inset-bottom)) " +
+      "max(12px, env(safe-area-inset-left))",
   };
 
   if (placement.startsWith("top")) {
@@ -80,28 +94,41 @@ function getPlacementStyles(placement: ToastPlacement): React.CSSProperties {
   return common;
 }
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({
+export const ToastProvider: React.FC<
+  ToastProviderProps
+> = ({
   children,
   placement = "top-right",
   maxToasts = 5,
   defaultDuration = 4500,
 }) => {
-  const [toasts, setToasts] = React.useState<ToastRecord[]>([]);
-  const timersRef = React.useRef<Map<string, number>>(new Map());
+  const [toasts, setToasts] =
+    React.useState<ToastRecord[]>([]);
 
-  const clearTimer = React.useCallback((id: string) => {
-    const timer = timersRef.current.get(id);
+  const timersRef =
+    React.useRef<Map<string, number>>(new Map());
 
-    if (timer !== undefined) {
+  const clearTimer = React.useCallback(
+    (id: string) => {
+      const timer = timersRef.current.get(id);
+
+      if (timer === undefined) {
+        return;
+      }
+
       window.clearTimeout(timer);
       timersRef.current.delete(id);
-    }
-  }, []);
+    },
+    []
+  );
 
   const dismiss = React.useCallback(
     (id: string) => {
       clearTimer(id);
-      setToasts((current) => current.filter((item) => item.id !== id));
+
+      setToasts((current) =>
+        current.filter((item) => item.id !== id)
+      );
     },
     [clearTimer]
   );
@@ -116,7 +143,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   }, []);
 
   const toast = React.useCallback(
-    (input: ToastInput) => {
+    (input: ToastInput): string => {
       const id = input.id ?? createToastId();
 
       const nextToast: ToastRecord = {
@@ -125,25 +152,24 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
         description: input.description,
         action: input.action,
         variant: input.variant ?? "info",
-        duration: input.duration ?? defaultDuration,
-        closable: input.closable ?? true,
+        duration:
+          input.duration ?? defaultDuration,
+        closable:
+          input.closable ?? true,
       };
 
-      setToasts((current) => {
-        const withoutSameId = current.filter((item) => item.id !== id);
-        const next = [nextToast, ...withoutSameId].slice(0, maxToasts);
-        const visibleIds = new Set(next.map((item) => item.id));
-
-        timersRef.current.forEach((_, timerId) => {
-          if (!visibleIds.has(timerId)) {
-            clearTimer(timerId);
-          }
-        });
-
-        return next;
-      });
-
       clearTimer(id);
+
+      setToasts((current) => {
+        const withoutSameId = current.filter(
+          (item) => item.id !== id
+        );
+
+        return [
+          nextToast,
+          ...withoutSameId,
+        ].slice(0, Math.max(0, maxToasts));
+      });
 
       if (nextToast.duration > 0) {
         const timer = window.setTimeout(() => {
@@ -155,8 +181,25 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 
       return id;
     },
-    [clearTimer, defaultDuration, dismiss, maxToasts]
+    [
+      clearTimer,
+      defaultDuration,
+      dismiss,
+      maxToasts,
+    ]
   );
+
+  React.useEffect(() => {
+    const visibleIds = new Set(
+      toasts.map((item) => item.id)
+    );
+
+    timersRef.current.forEach((_, timerId) => {
+      if (!visibleIds.has(timerId)) {
+        clearTimer(timerId);
+      }
+    });
+  }, [clearTimer, toasts]);
 
   React.useEffect(() => {
     return () => {
@@ -168,15 +211,16 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     };
   }, []);
 
-  const value = React.useMemo<ToastContextValue>(
-    () => ({
-      toasts,
-      toast,
-      dismiss,
-      clear,
-    }),
-    [toasts, toast, dismiss, clear]
-  );
+  const value =
+    React.useMemo<ToastContextValue>(
+      () => ({
+        toasts,
+        toast,
+        dismiss,
+        clear,
+      }),
+      [clear, dismiss, toast, toasts]
+    );
 
   return (
     <ToastContext.Provider value={value}>
@@ -187,12 +231,15 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
           {toasts.map((item) => (
             <Toast
               key={item.id}
+              id={item.id}
               title={item.title}
               description={item.description}
               action={item.action}
               variant={item.variant}
               closable={item.closable}
-              onClose={() => dismiss(item.id)}
+              onClose={() => {
+                dismiss(item.id);
+              }}
               style={{
                 pointerEvents: "auto",
               }}
@@ -207,11 +254,13 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 ToastProvider.displayName = "ToastProvider";
 
 export function useToast(): ToastContextValue {
-  const ctx = React.useContext(ToastContext);
+  const context = React.useContext(ToastContext);
 
-  if (!ctx) {
-    throw new Error("useToast must be used inside <ToastProvider />");
+  if (!context) {
+    throw new Error(
+      "useToast must be used inside <ToastProvider />"
+    );
   }
 
-  return ctx;
+  return context;
 }
