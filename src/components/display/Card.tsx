@@ -109,11 +109,10 @@ const cardRecipe = defineSlotRecipe<
           : shadow,
 
       border: bordered
-        ? `1px solid ${
-            hovered && !disabled
-              ? "var(--ui-border-strong)"
-              : "var(--ui-border)"
-          }`
+        ? `1px solid ${hovered && !disabled
+          ? "var(--ui-border-strong)"
+          : "var(--ui-border)"
+        }`
         : "1px solid transparent",
 
       cursor: interactive
@@ -138,19 +137,19 @@ function CardLoadingContent({
 }) {
   const shimmerStyle: React.CSSProperties = animated
     ? {
-        position: "absolute",
-        inset: 0,
-        background:
-          "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight, rgba(255,255,255,0.08)), transparent)",
-        animation:
-          "ui-skeleton-shimmer var(--ui-skeleton-duration, 1.2s) infinite",
-      }
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(90deg, transparent, var(--ui-skeleton-highlight), transparent)",
+      animation:
+        "ui-skeleton-shimmer var(--ui-skeleton-duration) infinite",
+    }
     : {};
 
   const blockBase: React.CSSProperties = {
     position: "relative",
     overflow: "hidden",
-    background: "var(--ui-skeleton-bg, var(--ui-surface-3))",
+    background: "var(--ui-skeleton-bg)",
   };
 
   const loadingSlot = resolveSlot<CardSlot>({

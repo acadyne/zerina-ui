@@ -349,7 +349,7 @@ export function DataTableEditableDesktop<
                 ? "var(--ui-surface)"
                 : rowIndex % 2 === 0
                   ? "var(--ui-bg)"
-                  : "rgba(255,255,255,0.02)";
+                  : "color-mix(in srgb, var(--ui-text) 2%, var(--ui-bg))";
 
               const rowSlot = resolveSlot<DataTableSlot>({
                 slot: "row",
