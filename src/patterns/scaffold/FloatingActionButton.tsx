@@ -226,7 +226,7 @@ export const FloatingActionButton = React.forwardRef<
         paddingInline: extended ? sizeStyles.paddingInline : 0,
         font: "inherit",
         cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? "var(--ui-state-disabled-opacity, 0.62)" : 1,
+        opacity: disabled ? "var(--ui-state-disabled-opacity)" : 1,
         transition:
           "background var(--ui-duration-normal) var(--ui-ease-standard), color var(--ui-duration-normal) var(--ui-ease-standard), border-color var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard), opacity var(--ui-duration-normal) var(--ui-ease-standard)",
         ...getVariantStyles(variant),

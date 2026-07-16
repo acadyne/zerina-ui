@@ -206,7 +206,7 @@ export const Pressable =
               : "pointer",
 
             opacity: disabled
-              ? "var(--ui-state-disabled-opacity, 0.62)"
+              ? "var(--ui-state-disabled-opacity)"
               : undefined,
 
             userSelect: "none",

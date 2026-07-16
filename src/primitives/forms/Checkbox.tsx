@@ -232,7 +232,7 @@ const checkboxRecipe =
           : "pointer",
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity, 0.65)"
+          ? "var(--ui-state-disabled-opacity)"
           : 1,
       },
 
@@ -280,7 +280,7 @@ const checkboxRecipe =
 
       label: {
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity, 0.65)"
+          ? "var(--ui-state-disabled-opacity)"
           : 1,
       },
     }),

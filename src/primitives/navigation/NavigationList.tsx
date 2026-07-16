@@ -470,7 +470,7 @@ const navigationListRecipe =
             : "var(--ui-text-muted)",
 
           opacity: disabled
-            ? "var(--ui-state-disabled-opacity, 0.62)"
+            ? "var(--ui-state-disabled-opacity)"
             : 1,
         },
       };

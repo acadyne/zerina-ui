@@ -232,7 +232,7 @@ const inputGroupRecipe =
           }`,
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity, 0.65)"
+          ? "var(--ui-state-disabled-opacity)"
           : 1,
       },
     }),

@@ -262,7 +262,7 @@ const iconButtonRecipe = defineSlotRecipe<
           : "pointer",
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity, 0.6)"
+          ? "var(--ui-state-disabled-opacity)"
           : 1,
 
         boxShadow: focusVisible
