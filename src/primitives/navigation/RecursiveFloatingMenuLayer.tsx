@@ -1,11 +1,13 @@
 // src/primitives/navigation/RecursiveFloatingMenuLayer.tsx
 import React from "react";
 import {
-  AnimatePresence,
   motion,
 } from "framer-motion";
 import { useElementRect } from "../../core/dom";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  MotionPresenceGroup,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   DismissableLayer,
   getLayerZIndex,
@@ -34,7 +36,7 @@ export interface RecursiveFloatingMenuLayerProps {
   anchorX: number;
 
   containerRef:
-    React.RefObject<HTMLElement | null>;
+  React.RefObject<HTMLElement | null>;
 
   direction?: "up" | "down";
   edgeMargin?: number;
@@ -229,13 +231,13 @@ export const RecursiveFloatingMenuLayer:
             edgeMargin,
 
             containerRect.width -
-              panelRect.width -
-              edgeMargin
+            panelRect.width -
+            edgeMargin
           );
 
         return clamp(
           anchorX -
-            panelRect.width / 2,
+          panelRect.width / 2,
 
           minLeft,
           maxLeft
@@ -337,7 +339,7 @@ export const RecursiveFloatingMenuLayer:
       );
 
     return (
-      <AnimatePresence>
+      <MotionPresenceGroup>
         {open ? (
           <DismissableLayer
             overlayId={
@@ -372,7 +374,7 @@ export const RecursiveFloatingMenuLayer:
             </motion.div>
           </DismissableLayer>
         ) : null}
-      </AnimatePresence>
+      </MotionPresenceGroup>
     );
   };
 

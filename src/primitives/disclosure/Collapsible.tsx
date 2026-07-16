@@ -1,12 +1,12 @@
 // src/primitives/disclosure/Collapsible.tsx
 import React from "react";
 import {
-  AnimatePresence,
   motion,
   type HTMLMotionProps,
 } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import {
+  MotionPresenceGroup,
   getCollapsibleContentVariants,
   getCollapsibleTriggerIconVariants,
   useOptionalUIMotion,
@@ -577,7 +577,9 @@ export interface CollapsibleContentProps
     | "initial"
     | "animate"
     | "exit"
+    | "variants"
     | "transition"
+    | "custom"
     | "style"
     | "className"
   > {
@@ -723,13 +725,13 @@ export const CollapsibleContent =
       }
 
       return (
-        <AnimatePresence
+        <MotionPresenceGroup
           initial={false}
         >
           {ctx.open
             ? content
             : null}
-        </AnimatePresence>
+        </MotionPresenceGroup>
       );
     }
   );
