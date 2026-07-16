@@ -182,7 +182,7 @@ export function DataTableEditableDesktop<
     },
     baseStyle: {
       border: "1px solid var(--ui-border)",
-      borderRadius: 12,
+      borderRadius: "var(--ui-radius-lg)",
       overflow: "hidden",
       background: "var(--ui-bg)",
     },

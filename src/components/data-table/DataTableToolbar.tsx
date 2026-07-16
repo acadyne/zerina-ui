@@ -218,8 +218,8 @@ export function DataTableToolbar({
           "6px 10px",
 
         border: 0,
-        borderRadius: 10,
-
+        borderRadius: "var(--ui-radius-md)",
+        
         color:
           "inherit",
 
