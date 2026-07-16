@@ -62,20 +62,24 @@ const schemeMap: Record<
       "color-mix(in srgb, var(--ui-secondary) 40%, var(--ui-border))",
   },
   success: {
-    solidBg: "#15803d",
-    solidText: "#ffffff",
-    subtleBg: "rgba(22, 163, 74, 0.16)",
-    subtleText: "#22c55e",
-    outlineText: "#22c55e",
-    outlineBorder: "rgba(34, 197, 94, 0.35)",
+    solidBg: "var(--ui-success-strong)",
+    solidText: "var(--ui-success-contrast)",
+    subtleBg:
+      "color-mix(in srgb, var(--ui-success) 16%, transparent)",
+    subtleText: "var(--ui-success)",
+    outlineText: "var(--ui-success)",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-success) 35%, var(--ui-border))",
   },
   warning: {
-    solidBg: "#b45309",
-    solidText: "#ffffff",
-    subtleBg: "rgba(245, 158, 11, 0.16)",
-    subtleText: "#f59e0b",
-    outlineText: "#f59e0b",
-    outlineBorder: "rgba(245, 158, 11, 0.35)",
+    solidBg: "var(--ui-warning-strong)",
+    solidText: "var(--ui-warning-contrast)",
+    subtleBg:
+      "color-mix(in srgb, var(--ui-warning) 16%, transparent)",
+    subtleText: "var(--ui-warning)",
+    outlineText: "var(--ui-warning)",
+    outlineBorder:
+      "color-mix(in srgb, var(--ui-warning) 35%, var(--ui-border))",
   },
   danger: {
     solidBg: "var(--ui-danger)",

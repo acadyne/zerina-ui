@@ -81,7 +81,12 @@
   --ui-secondary-contrast: #ffffff;
 
   --ui-success: #22c55e;
+  --ui-success-strong: #15803d;
+  --ui-success-contrast: #ffffff;
+
   --ui-warning: #f59e0b;
+  --ui-warning-strong: #b45309;
+  --ui-warning-contrast: #ffffff;
 
   --ui-danger: #ef4444;
   --ui-danger-hover: #dc2626;
