@@ -50,7 +50,17 @@ export interface IconButtonProps
     | "ref"
     | "size"
     | "style"
+    | "initial"
+    | "animate"
+    | "exit"
+    | "variants"
+    | "transition"
+    | "custom"
     | "whileTap"
+    | "whileHover"
+    | "whileFocus"
+    | "whileDrag"
+    | "whileInView"
   > {
   icon: React.ReactNode;
   ariaLabel: string;

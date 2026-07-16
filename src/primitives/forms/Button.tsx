@@ -47,7 +47,17 @@ export interface ButtonProps
     | "ref"
     | "size"
     | "style"
+    | "initial"
+    | "animate"
+    | "exit"
+    | "variants"
+    | "transition"
+    | "custom"
     | "whileTap"
+    | "whileHover"
+    | "whileFocus"
+    | "whileDrag"
+    | "whileInView"
   >,
   SizeProps,
   SpaceProps {
