@@ -3,7 +3,12 @@ import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { usePress, type UIPressEvent } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  getSpinnerTransition,
+  getSpinnerVariants,
+  shouldAnimateSpinner,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   type SizeProps,
   type SpaceProps,
@@ -35,17 +40,17 @@ export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
 
 export interface ButtonProps
   extends Omit<
-      HTMLMotionProps<"button">,
-      | "children"
-      | "color"
-      | "onClick"
-      | "ref"
-      | "size"
-      | "style"
-      | "whileTap"
-    >,
-    SizeProps,
-    SpaceProps {
+    HTMLMotionProps<"button">,
+    | "children"
+    | "color"
+    | "onClick"
+    | "ref"
+    | "size"
+    | "style"
+    | "whileTap"
+  >,
+  SizeProps,
+  SpaceProps {
   children?: React.ReactNode;
 
   colorScheme?: ButtonColorScheme;
@@ -244,7 +249,6 @@ const buttonRecipe = defineSlotRecipe<
       height: 16,
       borderRadius: "var(--ui-radius-full)",
       borderTopColor: "transparent",
-      animation: "ui-spin 0.8s linear infinite",
       flexShrink: 0,
     },
 
@@ -509,6 +513,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ? motionState.getPressMotion(motionState.effectiveLevel)
       : undefined;
 
+    const spinnerAnimated =
+      shouldAnimateSpinner(
+        motionState.effectiveLevel
+      );
+
     const recipeStyles = buttonRecipe({
       variant,
       size,
@@ -585,6 +594,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       slotProps,
       baseProps: {
         "aria-hidden": true,
+        "data-ui-spinner": "true",
+        "data-animated":
+          spinnerAnimated ||
+          undefined,
       },
       baseStyle: {
         ...recipeStyles.spinner,
@@ -639,8 +652,27 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading ? (
           <>
-            <span {...spinnerSlot} />
-            <span {...contentSlot}>{loadingText}</span>
+            <motion.span
+              {...toMotionSlotProps(
+                spinnerSlot
+              )}
+              variants={
+                getSpinnerVariants(
+                  motionState.effectiveLevel
+                )
+              }
+              initial="initial"
+              animate="animate"
+              transition={
+                getSpinnerTransition(
+                  motionState.effectiveLevel
+                )
+              }
+            />
+
+            <span {...contentSlot}>
+              {loadingText}
+            </span>
           </>
         ) : (
           <>
