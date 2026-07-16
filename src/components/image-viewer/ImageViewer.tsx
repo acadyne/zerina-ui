@@ -7,9 +7,7 @@ import {
   useRef,
   useState,
   type ImgHTMLAttributes,
-  type MutableRefObject,
   type ReactElement,
-  type Ref,
 } from "react";
 import { resolveSlot } from "../../helpers/css";
 import {
@@ -24,6 +22,7 @@ import type {
   ImageViewerRenderContext,
   ImageViewerSlot,
 } from "./imageViewer.types";
+import { setRef } from "../../core/interaction/events";
 
 const EMPTY_TRANSFORM: TransformableSurfaceTransform = {
   scale: 1,
@@ -32,28 +31,6 @@ const EMPTY_TRANSFORM: TransformableSurfaceTransform = {
     y: 0,
   },
 };
-
-function assignRef<T>(
-  ref: Ref<T> | undefined,
-  value: T | null
-): void {
-  if (!ref) {
-    return;
-  }
-
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as MutableRefObject<T | null>
-    ).current = value;
-  } catch {
-    // noop
-  }
-}
 
 function getImageFitStyle(
   fit: NonNullable<ImageViewerProps["fit"]>
@@ -686,7 +663,7 @@ export const ImageViewer = forwardRef<
         {...rootSlot}
         {...rest}
         ref={(node) => {
-          assignRef(
+          setRef(
             forwardedRef,
             node
           );

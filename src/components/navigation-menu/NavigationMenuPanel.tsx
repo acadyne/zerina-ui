@@ -22,28 +22,7 @@ import type {
   NavigationMenuSlotProps,
   NavigationMenuStyles,
 } from "./navigationMenu.types";
-
-function assignRef<T>(
-  ref: React.Ref<T> | undefined,
-  value: T | null
-): void {
-  if (!ref) {
-    return;
-  }
-
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as React.MutableRefObject<T | null>
-    ).current = value;
-  } catch {
-    // noop
-  }
-}
+import { setRef } from "../../core/interaction/events";
 
 function getPanelTransformOrigin(
   placement: FloatingPlacement
@@ -379,12 +358,12 @@ export const NavigationMenuPanel =
                     {...rest}
                     {...toMotionSlotProps(panelSlot)}
                     ref={(node) => {
-                      assignRef(
+                      setRef(
                         floatingRef,
                         node
                       );
 
-                      assignRef(
+                      setRef(
                         forwardedRef,
                         node
                       );
