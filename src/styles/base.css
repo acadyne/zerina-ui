@@ -226,13 +226,3 @@ display: none;
 [data-ui-motion-effective="reduced"] [data-ui-skeleton] {
 animation: none !important;
 }
-
-@keyframes ui-progress-indeterminate {
-0% {
-transform: translateX(-110%);
-}
-
-100% {
-transform: translateX(280%);
-}
-}
