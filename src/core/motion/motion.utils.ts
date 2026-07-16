@@ -47,3 +47,17 @@ export function createStaticMotionVariants(): Variants {
     },
   };
 }
+
+export function createReducedMotionVariants(): Variants {
+  return {
+    initial: {
+      opacity: 0,
+    },
+    animate: {
+      opacity: 1,
+    },
+    exit: {
+      opacity: 0,
+    },
+  };
+}

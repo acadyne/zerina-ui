@@ -14,21 +14,10 @@ import {
   getMotionDuration,
   getMotionScale,
 } from "./motion.tokens";
-import { createStaticMotionVariants } from "./motion.utils";
-
-function createReducedMotionVariants(): Variants {
-  return {
-    initial: {
-      opacity: 0,
-    },
-    animate: {
-      opacity: 1,
-    },
-    exit: {
-      opacity: 0,
-    },
-  };
-}
+import {
+  createReducedMotionVariants,
+  createStaticMotionVariants,
+} from "./motion.utils";
 
 export function getMotionTransition(
   level: UIMotionLevel,
