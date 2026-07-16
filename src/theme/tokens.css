@@ -26,6 +26,9 @@
    --ui-font-size-lg: 1.125rem;
    --ui-font-size-xl: 1.25rem;
 
+   --ui-font-weight-medium: 500;
+   --ui-font-weight-bold: 700;
+
   /* =========================
      Layers
   ========================= */
