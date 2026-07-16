@@ -96,7 +96,7 @@ export function getRootPositionStyle({
       position: "sticky",
       top: 0,
       alignSelf: "stretch",
-      zIndex: 10,
+      zIndex: "var(--ui-layer-navigation)",
     };
   }
 
@@ -375,13 +375,13 @@ export const navigationRailRecipe =
 
         paddingLeft:
           safeArea &&
-          placement === "left"
+            placement === "left"
             ? "env(safe-area-inset-left, 0px)"
             : undefined,
 
         paddingRight:
           safeArea &&
-          placement === "right"
+            placement === "right"
             ? "env(safe-area-inset-right, 0px)"
             : undefined,
 
@@ -416,10 +416,10 @@ type NavigationRailItemRecipeState = {
   disabled: boolean;
 
   indicator:
-    NavigationRailIndicator;
+  NavigationRailIndicator;
 
   shape:
-    NavigationRailItemShape;
+  NavigationRailItemShape;
 
   itemMinWidth?: number | string;
   itemMinHeight?: number | string;
@@ -427,7 +427,7 @@ type NavigationRailItemRecipeState = {
   hasBadge: boolean;
 
   badgeAnchor:
-    NavigationRailBadgeAnchor;
+  NavigationRailBadgeAnchor;
 };
 
 export const navigationRailItemRecipe =
@@ -621,7 +621,7 @@ export const navigationRailItemRecipe =
     }): SlotStyleMap<NavigationRailSlot> => {
       const densityStyles =
         NAVIGATION_RAIL_DENSITY_MAP[
-          density
+        density
         ];
 
       return {
@@ -666,13 +666,13 @@ export const navigationRailItemRecipe =
         iconWrap: {
           width:
             hasBadge &&
-            badgeAnchor === "icon"
+              badgeAnchor === "icon"
               ? "1.65rem"
               : undefined,
 
           height:
             hasBadge &&
-            badgeAnchor === "icon"
+              badgeAnchor === "icon"
               ? "1.35rem"
               : undefined,
         },

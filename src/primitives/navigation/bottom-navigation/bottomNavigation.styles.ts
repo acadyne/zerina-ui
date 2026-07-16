@@ -83,7 +83,7 @@ export function getRootPositionStyle(
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: 10,
+      zIndex: "var(--ui-layer-navigation-mobile)",
     };
   }
 
@@ -296,22 +296,22 @@ type BottomNavigationItemRecipeState = {
   disabled: boolean;
 
   indicator:
-    BottomNavigationIndicator;
+  BottomNavigationIndicator;
 
   shape:
-    BottomNavigationItemShape;
+  BottomNavigationItemShape;
 
   iconPosition:
-    BottomNavigationIconPosition;
+  BottomNavigationIconPosition;
 
   itemMinWidth?: number | string;
 
   hasBadge: boolean;
 
   badgeAnchor:
-    | "icon"
-    | "content"
-    | "item";
+  | "icon"
+  | "content"
+  | "item";
 };
 
 export const bottomNavigationItemRecipe =
@@ -546,13 +546,13 @@ export const bottomNavigationItemRecipe =
       iconWrap: {
         width:
           hasBadge &&
-          badgeAnchor === "icon"
+            badgeAnchor === "icon"
             ? "1.65rem"
             : undefined,
 
         height:
           hasBadge &&
-          badgeAnchor === "icon"
+            badgeAnchor === "icon"
             ? "1.35rem"
             : undefined,
       },
@@ -625,10 +625,10 @@ export function getBadgePlacementStyles({
   offset,
 }: {
   placement:
-    BottomNavigationBadgePlacement;
+  BottomNavigationBadgePlacement;
 
   offset?:
-    BottomNavigationBadgeOffset;
+  BottomNavigationBadgeOffset;
 }): React.CSSProperties {
   const offsetTransform =
     getOffsetTransform(offset);
