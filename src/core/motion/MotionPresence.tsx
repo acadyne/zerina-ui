@@ -20,7 +20,13 @@ import { useOptionalUIMotion } from "./useUIMotion";
 export interface MotionPresenceProps
   extends Omit<
     HTMLMotionProps<"div">,
-    "children" | "initial"
+    | "children"
+    | "initial"
+    | "animate"
+    | "exit"
+    | "variants"
+    | "transition"
+    | "custom"
   > {
   children?: React.ReactNode;
 
@@ -62,7 +68,7 @@ export function MotionPresence({
 
   const effectivePreset =
     motionState.shouldAnimate &&
-    preset !== "none"
+      preset !== "none"
       ? preset
       : "none";
 
@@ -82,9 +88,9 @@ export function MotionPresence({
       motionState.effectiveLevel,
 
       transitionIntent ??
-        getAppTransitionIntent(
-          effectivePreset
-        )
+      getAppTransitionIntent(
+        effectivePreset
+      )
     );
 
   return (
@@ -95,16 +101,16 @@ export function MotionPresence({
     >
       {present ? (
         <motion.div
+          {...rest}
           key={motionKey}
           custom={direction}
           className={className}
+          style={style}
           initial="initial"
           animate="animate"
           exit="exit"
           variants={variants}
           transition={transition}
-          style={style}
-          {...rest}
         >
           {children}
         </motion.div>
