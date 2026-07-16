@@ -15,7 +15,8 @@ export type UIMotionIntent =
   | "press"
   | "feedback"
   | "layout"
-  | "progress";
+  | "progress"
+  | "spinner";
 
 export type UIMotionPreset =
   | "none"

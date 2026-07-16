@@ -351,13 +351,14 @@ export function getSpinnerTransition(
   }
 
   return {
-    duration:
-      level === "expressive"
-        ? 0.75
-        : 0.9,
+    duration: getMotionDuration(
+      level,
+      "spinner"
+    ),
     ease: "linear",
     repeat: Infinity,
   };
+
 }
 
 export function shouldAnimateSpinner(

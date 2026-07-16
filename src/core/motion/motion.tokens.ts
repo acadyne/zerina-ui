@@ -3,11 +3,17 @@ import type { UIMotionIntent, UIMotionLevel } from "./motion.types";
 
 export const UI_MOTION_DURATIONS = {
   none: 0,
-  instant: 0.01,
+  instant: 0.001,
   fast: 0.12,
   normal: 0.18,
   slow: 0.26,
   slower: 0.36,
+
+  spinnerSubtle: 0.9,
+  spinnerExpressive: 0.75,
+
+  progressSubtle: 1.35,
+  progressExpressive: 1.1,
 } as const;
 
 export const UI_MOTION_EASINGS = {
@@ -33,15 +39,22 @@ export function getMotionDuration(
     switch (intent) {
       case "press":
         return UI_MOTION_DURATIONS.fast;
+
+      case "spinner":
+        return UI_MOTION_DURATIONS.spinnerExpressive;
+
       case "progress":
-        return 1.1;
+        return UI_MOTION_DURATIONS.progressExpressive;
+
       case "feedback":
       case "layout":
         return UI_MOTION_DURATIONS.slower;
+
       case "collapse":
       case "expand":
       case "slide":
         return UI_MOTION_DURATIONS.slow;
+
       default:
         return UI_MOTION_DURATIONS.normal;
     }
@@ -50,18 +63,26 @@ export function getMotionDuration(
   switch (intent) {
     case "press":
       return UI_MOTION_DURATIONS.fast;
+
+    case "spinner":
+      return UI_MOTION_DURATIONS.spinnerSubtle;
+
     case "progress":
-      return 1.35;
+      return UI_MOTION_DURATIONS.progressSubtle;
+
     case "feedback":
     case "layout":
       return UI_MOTION_DURATIONS.slow;
+
     case "collapse":
     case "expand":
     case "slide":
       return UI_MOTION_DURATIONS.normal;
+
     default:
       return UI_MOTION_DURATIONS.fast;
   }
+
 }
 
 export function getMotionDistance(level: UIMotionLevel): number {
