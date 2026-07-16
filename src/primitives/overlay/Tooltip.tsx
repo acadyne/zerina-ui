@@ -165,26 +165,39 @@ function assignRef<T>(
   }
 }
 
-function isTouchDevice(): boolean {
-  if (
-    typeof window === "undefined" ||
-    typeof navigator === "undefined"
-  ) {
-    return false;
-  }
+type TooltipPointerType =
+  | "mouse"
+  | "touch"
+  | "pen";
 
+function supportsTooltipHover(
+  pointerType: string
+): boolean {
   return (
-    navigator.maxTouchPoints > 0 ||
-    "ontouchstart" in window
+    pointerType === "mouse" ||
+    pointerType === "pen"
+  );
+}
+
+function isTooltipPointerType(
+  pointerType: string
+): pointerType is TooltipPointerType {
+  return (
+    pointerType === "mouse" ||
+    pointerType === "touch" ||
+    pointerType === "pen"
   );
 }
 
 type TriggerChildProps = {
-  onMouseEnter?:
-    React.MouseEventHandler<HTMLElement>;
+  onPointerEnter?:
+    React.PointerEventHandler<HTMLElement>;
 
-  onMouseLeave?:
-    React.MouseEventHandler<HTMLElement>;
+  onPointerLeave?:
+    React.PointerEventHandler<HTMLElement>;
+
+  onPointerDown?:
+    React.PointerEventHandler<HTMLElement>;
 
   onFocus?:
     React.FocusEventHandler<HTMLElement>;
@@ -339,6 +352,11 @@ export const TooltipTrigger =
           number | null
         >(null);
 
+      const lastPointerTypeRef =
+        React.useRef<
+          TooltipPointerType | null
+        >(null);
+
       const triggerSlot =
         resolveSlot<TooltipSlot>({
           slot: "trigger",
@@ -354,15 +372,6 @@ export const TooltipTrigger =
           className,
           style,
         });
-
-      const touch =
-        React.useMemo(
-          () =>
-            ctx.enableTouch
-              ? isTouchDevice()
-              : false,
-          [ctx.enableTouch]
-        );
 
       const clearTimers =
         React.useCallback(() => {
@@ -465,6 +474,110 @@ export const TooltipTrigger =
           ctx,
         ]);
 
+      const handlePointerEnter =
+        React.useCallback(
+          (
+            event:
+              React.PointerEvent<HTMLElement>
+          ) => {
+            if (
+              supportsTooltipHover(
+                event.pointerType
+              )
+            ) {
+              scheduleOpen();
+            }
+          },
+          [scheduleOpen]
+        );
+
+      const handlePointerLeave =
+        React.useCallback(
+          (
+            event:
+              React.PointerEvent<HTMLElement>
+          ) => {
+            if (
+              supportsTooltipHover(
+                event.pointerType
+              )
+            ) {
+              scheduleClose();
+            }
+          },
+          [scheduleClose]
+        );
+
+      const handlePointerDown =
+        React.useCallback(
+          (
+            event:
+              React.PointerEvent<HTMLElement>
+          ) => {
+            if (
+              isTooltipPointerType(
+                event.pointerType
+              )
+            ) {
+              lastPointerTypeRef.current =
+                event.pointerType;
+            }
+          },
+          []
+        );
+
+      const handleFocus =
+        React.useCallback(() => {
+          clearTimers();
+          ctx.setOpen(true);
+        }, [
+          clearTimers,
+          ctx,
+        ]);
+
+      const handleBlur =
+        React.useCallback(() => {
+          clearTimers();
+          ctx.setOpen(false);
+        }, [
+          clearTimers,
+          ctx,
+        ]);
+
+      const handleClick =
+        React.useCallback(
+          (
+            event:
+              React.MouseEvent<HTMLElement>
+          ) => {
+            const isTouchActivation =
+              ctx.enableTouch &&
+              event.detail !== 0 &&
+              lastPointerTypeRef.current ===
+                "touch";
+
+            lastPointerTypeRef.current =
+              null;
+
+            if (
+              !isTouchActivation
+            ) {
+              return;
+            }
+
+            clearTimers();
+
+            ctx.setOpen(
+              (previous) =>
+                !previous
+            );
+          },
+          [
+            clearTimers,
+            ctx,
+          ]
+        );
+
       if (
         asChild &&
         React.isValidElement<
@@ -499,38 +612,64 @@ export const TooltipTrigger =
                 ? ctx.contentId
                 : undefined,
 
-            onMouseEnter: (
+            onPointerEnter: (
               event:
-                React.MouseEvent<HTMLElement>
+                React.PointerEvent<HTMLElement>
             ) => {
               children.props
-                .onMouseEnter?.(
+                .onPointerEnter?.(
                   event
                 );
 
               if (
-                !event.defaultPrevented &&
-                !touch
+                event.defaultPrevented
               ) {
-                scheduleOpen();
+                return;
               }
+
+              handlePointerEnter(
+                event
+              );
             },
 
-            onMouseLeave: (
+            onPointerLeave: (
               event:
-                React.MouseEvent<HTMLElement>
+                React.PointerEvent<HTMLElement>
             ) => {
               children.props
-                .onMouseLeave?.(
+                .onPointerLeave?.(
                   event
                 );
 
               if (
-                !event.defaultPrevented &&
-                !touch
+                event.defaultPrevented
               ) {
-                scheduleClose();
+                return;
               }
+
+              handlePointerLeave(
+                event
+              );
+            },
+
+            onPointerDown: (
+              event:
+                React.PointerEvent<HTMLElement>
+            ) => {
+              children.props
+                .onPointerDown?.(
+                  event
+                );
+
+              if (
+                event.defaultPrevented
+              ) {
+                return;
+              }
+
+              handlePointerDown(
+                event
+              );
             },
 
             onFocus: (
@@ -541,12 +680,12 @@ export const TooltipTrigger =
                 .onFocus?.(event);
 
               if (
-                !event.defaultPrevented &&
-                !touch
+                event.defaultPrevented
               ) {
-                clearTimers();
-                ctx.setOpen(true);
+                return;
               }
+
+              handleFocus();
             },
 
             onBlur: (
@@ -557,12 +696,12 @@ export const TooltipTrigger =
                 .onBlur?.(event);
 
               if (
-                !event.defaultPrevented &&
-                !touch
+                event.defaultPrevented
               ) {
-                clearTimers();
-                ctx.setOpen(false);
+                return;
               }
+
+              handleBlur();
             },
 
             onClick: (
@@ -573,16 +712,12 @@ export const TooltipTrigger =
                 .onClick?.(event);
 
               if (
-                !event.defaultPrevented &&
-                touch
+                event.defaultPrevented
               ) {
-                clearTimers();
-
-                ctx.setOpen(
-                  (previous) =>
-                    !previous
-                );
+                return;
               }
+
+              handleClick(event);
             },
           } as TriggerChildProps & {
             ref: React.Ref<HTMLElement>;
@@ -608,38 +743,24 @@ export const TooltipTrigger =
           style={
             triggerSlot.style
           }
-          onMouseEnter={() => {
-            if (!touch) {
-              scheduleOpen();
-            }
-          }}
-          onMouseLeave={() => {
-            if (!touch) {
-              scheduleClose();
-            }
-          }}
-          onFocus={() => {
-            if (!touch) {
-              clearTimers();
-              ctx.setOpen(true);
-            }
-          }}
-          onBlur={() => {
-            if (!touch) {
-              clearTimers();
-              ctx.setOpen(false);
-            }
-          }}
-          onClick={() => {
-            if (touch) {
-              clearTimers();
-
-              ctx.setOpen(
-                (previous) =>
-                  !previous
-              );
-            }
-          }}
+          onPointerEnter={
+            handlePointerEnter
+          }
+          onPointerLeave={
+            handlePointerLeave
+          }
+          onPointerDown={
+            handlePointerDown
+          }
+          onFocus={
+            handleFocus
+          }
+          onBlur={
+            handleBlur
+          }
+          onClick={
+            handleClick
+          }
         >
           {children}
         </button>
