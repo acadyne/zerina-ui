@@ -136,10 +136,12 @@ export type RegisteredNavigationStackScreen = {
   name: string;
   title?: React.ReactNode;
 
-  component?: React.ComponentType<any>;
+  component?: React.ComponentType<
+    NavigationStackScreenRenderProps<NavigationStackParams>
+  >;
 
   render?: (
-    props: NavigationStackScreenRenderProps<any>
+    props: NavigationStackScreenRenderProps<NavigationStackParams>
   ) => React.ReactNode;
 
   element?: React.ReactNode;

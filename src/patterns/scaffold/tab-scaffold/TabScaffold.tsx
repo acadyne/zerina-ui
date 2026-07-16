@@ -550,13 +550,7 @@ export function TabScaffold(
                 key={tab.value}
                 name={tab.value}
                 component={tab.component}
-                render={
-                  tab.render as
-                  | ((
-                    props: NavigationStackScreenRenderProps<any>
-                  ) => React.ReactNode)
-                  | undefined
-                }
+                render={tab.render}
                 element={tab.element}
               />
             ))}

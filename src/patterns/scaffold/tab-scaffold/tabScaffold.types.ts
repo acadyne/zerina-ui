@@ -22,8 +22,8 @@ import type { TopAppBarProps } from "../TopAppBar";
 export type TabScaffoldHeaderValue =
   | React.ReactNode
   | ((
-      context: TabScaffoldRenderContext
-    ) => React.ReactNode);
+    context: TabScaffoldRenderContext
+  ) => React.ReactNode);
 
 export type TabScaffoldSlot =
   | "root"
@@ -46,11 +46,11 @@ export interface TabScaffoldScreen {
   subtitle?: TabScaffoldHeaderValue;
 
   component?: React.ComponentType<
-    NavigationStackScreenRenderProps<any>
+    NavigationStackScreenRenderProps<NavigationStackParams>
   >;
 
   render?: (
-    props: NavigationStackScreenRenderProps<any>
+    props: NavigationStackScreenRenderProps<NavigationStackParams>
   ) => React.ReactNode;
 
   element?: React.ReactNode;
@@ -137,22 +137,22 @@ interface TabScaffoldBaseProps
   subtitle?: TabScaffoldHeaderValue;
 
   rootLeading?:
-    | React.ReactNode
-    | ((
-        context: TabScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: TabScaffoldRenderContext
+  ) => React.ReactNode);
 
   actions?:
-    | React.ReactNode
-    | ((
-        context: TabScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: TabScaffoldRenderContext
+  ) => React.ReactNode);
 
   floating?:
-    | React.ReactNode
-    | ((
-        context: TabScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: TabScaffoldRenderContext
+  ) => React.ReactNode);
 
   backIcon?: React.ReactNode;
   backAriaLabel?: string;
@@ -205,7 +205,7 @@ interface TabScaffoldControlledProps {
 
 export type TabScaffoldProps =
   TabScaffoldBaseProps &
-    (
-      | TabScaffoldUncontrolledProps
-      | TabScaffoldControlledProps
-    );
+  (
+    | TabScaffoldUncontrolledProps
+    | TabScaffoldControlledProps
+  );
