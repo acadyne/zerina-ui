@@ -12,7 +12,8 @@ import {
   getTypographyStyles,
 } from "../../helpers";
 
-export type BoxStyleProps = SizeProps &
+export type BoxStyleProps =
+  SizeProps &
   SpaceProps &
   SurfaceProps &
   TextStyleProps & {
@@ -21,26 +22,62 @@ export type BoxStyleProps = SizeProps &
     display?: React.CSSProperties["display"];
   };
 
-type OwnProps<E extends React.ElementType> = {
+type BoxOwnProps<
+  E extends React.ElementType,
+> = {
   as?: E;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 } & BoxStyleProps;
 
-export type BoxProps<E extends React.ElementType> = OwnProps<E> &
+export type BoxProps<
+  E extends React.ElementType = "div",
+> =
+  BoxOwnProps<E> &
   Omit<
     React.ComponentPropsWithoutRef<E>,
-    keyof OwnProps<any> | "color" | "boxShadow" | "textAlign"
+    | keyof BoxOwnProps<E>
+    | "color"
+    | "boxShadow"
+    | "textAlign"
   >;
 
-function expandBoxShorthand(value: React.CSSProperties[keyof React.CSSProperties]) {
-  if (value === undefined || value === null) return null;
+type BoxRef<
+  E extends React.ElementType,
+> =
+  React.ComponentPropsWithRef<E>["ref"];
 
-  const raw = String(value).trim();
-  if (!raw) return null;
+type BoxComponent = <
+  E extends React.ElementType = "div",
+>(
+  props: BoxProps<E> & {
+    ref?: BoxRef<E>;
+  }
+) => React.ReactElement | null;
 
-  const parts = raw.split(/\s+/);
+function expandBoxShorthand(
+  value:
+    React.CSSProperties[
+      keyof React.CSSProperties
+    ]
+) {
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return null;
+  }
+
+  const raw =
+    String(value).trim();
+
+  if (!raw) {
+    return null;
+  }
+
+  const parts =
+    raw.split(/\s+/);
 
   if (parts.length === 1) {
     return {
@@ -80,32 +117,70 @@ function expandBoxShorthand(value: React.CSSProperties[keyof React.CSSProperties
 function normalizeSpacingShorthands(
   style: React.CSSProperties
 ): React.CSSProperties {
-  const normalized: React.CSSProperties = { ...style };
+  const normalized:
+    React.CSSProperties = {
+      ...style,
+    };
 
-  const padding = expandBoxShorthand(normalized.padding);
+  const padding =
+    expandBoxShorthand(
+      normalized.padding
+    );
+
   if (padding) {
-    normalized.paddingTop = normalized.paddingTop ?? padding.top;
-    normalized.paddingRight = normalized.paddingRight ?? padding.right;
-    normalized.paddingBottom = normalized.paddingBottom ?? padding.bottom;
-    normalized.paddingLeft = normalized.paddingLeft ?? padding.left;
+    normalized.paddingTop =
+      normalized.paddingTop ??
+      padding.top;
+
+    normalized.paddingRight =
+      normalized.paddingRight ??
+      padding.right;
+
+    normalized.paddingBottom =
+      normalized.paddingBottom ??
+      padding.bottom;
+
+    normalized.paddingLeft =
+      normalized.paddingLeft ??
+      padding.left;
+
     delete normalized.padding;
   }
 
-  const margin = expandBoxShorthand(normalized.margin);
+  const margin =
+    expandBoxShorthand(
+      normalized.margin
+    );
+
   if (margin) {
-    normalized.marginTop = normalized.marginTop ?? margin.top;
-    normalized.marginRight = normalized.marginRight ?? margin.right;
-    normalized.marginBottom = normalized.marginBottom ?? margin.bottom;
-    normalized.marginLeft = normalized.marginLeft ?? margin.left;
+    normalized.marginTop =
+      normalized.marginTop ??
+      margin.top;
+
+    normalized.marginRight =
+      normalized.marginRight ??
+      margin.right;
+
+    normalized.marginBottom =
+      normalized.marginBottom ??
+      margin.bottom;
+
+    normalized.marginLeft =
+      normalized.marginLeft ??
+      margin.left;
+
     delete normalized.margin;
   }
 
   return normalized;
 }
 
-export const Box = React.forwardRef(function Box<
-  E extends React.ElementType = "div"
->(props: BoxProps<E>, ref: React.Ref<Element>) {
+function BoxRender(
+  props:
+    BoxProps<React.ElementType>,
+  ref:
+    React.ForwardedRef<Element>
+) {
   const {
     as,
     children,
@@ -152,61 +227,85 @@ export const Box = React.forwardRef(function Box<
     display,
 
     ...rest
-  } = props as BoxProps<any>;
+  } = props;
 
-  const Component: React.ElementType = as || "div";
+  const Component:
+    React.ElementType =
+      as ?? "div";
 
-  const inlineStyle = normalizeSpacingShorthands({
-    ...getSizeStyles({ w, h, minW, maxW, minH, maxH }),
-    ...getMinWidthFixStyles(),
-    ...getSpacingStyles({
-      p,
-      px,
-      py,
-      pt,
-      pb,
-      pl,
-      pr,
-      m,
-      mx,
-      my,
-      mt,
-      mb,
-      ml,
-      mr,
-    }),
-    ...getSurfaceStyles({
-      bg,
-      color,
-      rounded,
-      shadow,
-      border,
-    }),
-    ...getTypographyStyles({
-      textAlign,
-      fontSize,
-      fontWeight,
-      lineHeight,
-      letterSpacing,
-    }),
-    flex,
-    overflow,
-    display,
-    ...style,
-  });
+  const inlineStyle =
+    normalizeSpacingShorthands({
+      ...getSizeStyles({
+        w,
+        h,
+        minW,
+        maxW,
+        minH,
+        maxH,
+      }),
 
-  return (
-    <Component
-      ref={ref as any}
-      className={className}
-      style={inlineStyle}
-      {...rest}
-    >
-      {children}
-    </Component>
+      ...getMinWidthFixStyles(),
+
+      ...getSpacingStyles({
+        p,
+        px,
+        py,
+        pt,
+        pb,
+        pl,
+        pr,
+
+        m,
+        mx,
+        my,
+        mt,
+        mb,
+        ml,
+        mr,
+      }),
+
+      ...getSurfaceStyles({
+        bg,
+        color,
+        rounded,
+        shadow,
+        border,
+      }),
+
+      ...getTypographyStyles({
+        textAlign,
+        fontSize,
+        fontWeight,
+        lineHeight,
+        letterSpacing,
+      }),
+
+      flex,
+      overflow,
+      display,
+
+      ...style,
+    });
+
+  return React.createElement(
+    Component,
+    {
+      ...rest,
+      ref,
+      className,
+      style: inlineStyle,
+    },
+    children
   );
-}) as <E extends React.ElementType = "div">(
-  props: BoxProps<E> & { ref?: React.Ref<Element> }
-) => React.ReactElement | null;
+}
 
-(Box as any).displayName = "Box";
+const BoxForwardRef =
+  React.forwardRef<
+    Element,
+    BoxProps<React.ElementType>
+  >(BoxRender);
+
+BoxForwardRef.displayName = "Box";
+
+export const Box =
+  BoxForwardRef as unknown as BoxComponent;

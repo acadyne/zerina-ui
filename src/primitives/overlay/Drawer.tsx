@@ -719,9 +719,7 @@ export const DrawerBody =
         <Box
           {...bodySlot}
           {...rest}
-          ref={
-            ref as React.Ref<Element>
-          }
+          ref={ref}
         >
           {children}
         </Box>

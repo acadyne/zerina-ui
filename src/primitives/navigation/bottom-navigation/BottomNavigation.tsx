@@ -213,7 +213,7 @@ const BottomNavigationRoot = React.forwardRef<
       >
         <Box
           as="nav"
-          ref={ref as React.Ref<Element>}
+          ref={ref}
           {...rest}
           {...rootSlot}
         >

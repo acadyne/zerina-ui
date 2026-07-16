@@ -133,8 +133,8 @@ export function AppShellMobileBar({
 
         setAnchorX(
           triggerRect.left -
-            containerRect.left +
-            triggerRect.width / 2
+          containerRect.left +
+          triggerRect.width / 2
         );
       },
       []
@@ -333,9 +333,7 @@ export function AppShellMobileBar({
 
   return (
     <Box
-      ref={
-        containerRef as React.Ref<Element>
-      }
+      ref={containerRef}
       className={
         className
       }
@@ -409,7 +407,7 @@ export function AppShellMobileBar({
                   aria-expanded={
                     hasChildren
                       ? openRouteId ===
-                        route.id
+                      route.id
                       : undefined
                   }
                   onPress={(

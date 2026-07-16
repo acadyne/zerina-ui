@@ -246,7 +246,7 @@ type BottomSheetContextValue = {
   ) => void;
 
   recipeStyles:
-    SlotStyleMap<BottomSheetSlot>;
+  SlotStyleMap<BottomSheetSlot>;
 
   styles?: BottomSheetStyles;
   slotProps?: BottomSheetSlotProps;
@@ -281,7 +281,7 @@ export interface BottomSheetProps {
   closeOnEscape?: boolean;
 
   closeOnPointerDownOutside?:
-    boolean;
+  boolean;
 
   lockScroll?: boolean;
   trapFocus?: boolean;
@@ -289,9 +289,9 @@ export interface BottomSheetProps {
   restoreFocus?: boolean;
 
   initialFocusRef?:
-    React.RefObject<
-      HTMLElement | null
-    >;
+  React.RefObject<
+    HTMLElement | null
+  >;
 
   showHandle?: boolean;
   showCloseButton?: boolean;
@@ -299,9 +299,9 @@ export interface BottomSheetProps {
   portalled?: boolean;
 
   container?:
-    | Element
-    | DocumentFragment
-    | null;
+  | Element
+  | DocumentFragment
+  | null;
 
   overlayId?: string;
 
@@ -324,12 +324,12 @@ export const BottomSheet:
     height,
 
     maxHeight =
-      "min(82dvh, 760px)",
+    "min(82dvh, 760px)",
 
     closeOnEscape = true,
 
     closeOnPointerDownOutside =
-      true,
+    true,
 
     lockScroll = true,
     trapFocus = true,
@@ -345,7 +345,7 @@ export const BottomSheet:
     container,
 
     overlayId:
-      overlayIdProp,
+    overlayIdProp,
 
     className = "",
     style,
@@ -561,8 +561,8 @@ export const BottomSheet:
                   ) : null}
 
                   {title ||
-                  description ||
-                  showCloseButton ? (
+                    description ||
+                    showCloseButton ? (
                     <BottomSheetHeader>
                       <Box
                         style={{
@@ -635,7 +635,7 @@ BottomSheet.displayName =
 export interface BottomSheetHandleProps
   extends React.HTMLAttributes<HTMLDivElement> {
   indicatorProps?:
-    React.HTMLAttributes<HTMLDivElement>;
+  React.HTMLAttributes<HTMLDivElement>;
 
   styles?: BottomSheetStyles;
   slotProps?: BottomSheetSlotProps;
@@ -662,10 +662,10 @@ export const BottomSheetHandle =
 
       const {
         className:
-          indicatorClassName,
+        indicatorClassName,
 
         style:
-          indicatorStyle,
+        indicatorStyle,
 
         ...indicatorRest
       } = indicatorProps ?? {};
@@ -862,9 +862,7 @@ export const BottomSheetBody =
         <Box
           {...bodySlot}
           {...rest}
-          ref={
-            ref as React.Ref<Element>
-          }
+          ref={ref}
         >
           {children}
         </Box>

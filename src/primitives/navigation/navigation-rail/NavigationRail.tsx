@@ -69,7 +69,7 @@ const NavigationRailRoot = React.forwardRef<
 
     const densityStyles =
       NAVIGATION_RAIL_DENSITY_MAP[
-        density
+      density
       ];
 
     const resolvedWidth =
@@ -280,7 +280,7 @@ const NavigationRailRoot = React.forwardRef<
       >
         <Box
           as="nav"
-          ref={ref as React.Ref<Element>}
+          ref={ref}
           {...rest}
           {...rootSlot}
         >
@@ -313,11 +313,11 @@ NavigationRailRoot.displayName =
 type NavigationRailComponent =
   React.ForwardRefExoticComponent<
     NavigationRailProps &
-      React.RefAttributes<HTMLElement>
+    React.RefAttributes<HTMLElement>
   > & {
     Item: React.ForwardRefExoticComponent<
       NavigationRailItemProps &
-        React.RefAttributes<HTMLButtonElement>
+      React.RefAttributes<HTMLButtonElement>
     >;
   };
 
