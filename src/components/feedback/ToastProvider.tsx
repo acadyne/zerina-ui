@@ -1,6 +1,6 @@
 // src/components/feedback/ToastProvider.tsx
 import React from "react";
-import { AnimatePresence } from "framer-motion";
+import { MotionPresenceGroup } from "../../core/motion";
 import { getLayerZIndex } from "../../core/overlay";
 import { Toast, type ToastVariant } from "./Toast";
 
@@ -102,154 +102,154 @@ export const ToastProvider: React.FC<
   maxToasts = 5,
   defaultDuration = 4500,
 }) => {
-  const [toasts, setToasts] =
-    React.useState<ToastRecord[]>([]);
+    const [toasts, setToasts] =
+      React.useState<ToastRecord[]>([]);
 
-  const timersRef =
-    React.useRef<Map<string, number>>(new Map());
+    const timersRef =
+      React.useRef<Map<string, number>>(new Map());
 
-  const clearTimer = React.useCallback(
-    (id: string) => {
-      const timer = timersRef.current.get(id);
+    const clearTimer = React.useCallback(
+      (id: string) => {
+        const timer = timersRef.current.get(id);
 
-      if (timer === undefined) {
-        return;
-      }
+        if (timer === undefined) {
+          return;
+        }
 
-      window.clearTimeout(timer);
-      timersRef.current.delete(id);
-    },
-    []
-  );
-
-  const dismiss = React.useCallback(
-    (id: string) => {
-      clearTimer(id);
-
-      setToasts((current) =>
-        current.filter((item) => item.id !== id)
-      );
-    },
-    [clearTimer]
-  );
-
-  const clear = React.useCallback(() => {
-    timersRef.current.forEach((timer) => {
-      window.clearTimeout(timer);
-    });
-
-    timersRef.current.clear();
-    setToasts([]);
-  }, []);
-
-  const toast = React.useCallback(
-    (input: ToastInput): string => {
-      const id = input.id ?? createToastId();
-
-      const nextToast: ToastRecord = {
-        id,
-        title: input.title,
-        description: input.description,
-        action: input.action,
-        variant: input.variant ?? "info",
-        duration:
-          input.duration ?? defaultDuration,
-        closable:
-          input.closable ?? true,
-      };
-
-      clearTimer(id);
-
-      setToasts((current) => {
-        const withoutSameId = current.filter(
-          (item) => item.id !== id
-        );
-
-        return [
-          nextToast,
-          ...withoutSameId,
-        ].slice(0, Math.max(0, maxToasts));
-      });
-
-      if (nextToast.duration > 0) {
-        const timer = window.setTimeout(() => {
-          dismiss(id);
-        }, nextToast.duration);
-
-        timersRef.current.set(id, timer);
-      }
-
-      return id;
-    },
-    [
-      clearTimer,
-      defaultDuration,
-      dismiss,
-      maxToasts,
-    ]
-  );
-
-  React.useEffect(() => {
-    const visibleIds = new Set(
-      toasts.map((item) => item.id)
+        window.clearTimeout(timer);
+        timersRef.current.delete(id);
+      },
+      []
     );
 
-    timersRef.current.forEach((_, timerId) => {
-      if (!visibleIds.has(timerId)) {
-        clearTimer(timerId);
-      }
-    });
-  }, [clearTimer, toasts]);
+    const dismiss = React.useCallback(
+      (id: string) => {
+        clearTimer(id);
 
-  React.useEffect(() => {
-    return () => {
+        setToasts((current) =>
+          current.filter((item) => item.id !== id)
+        );
+      },
+      [clearTimer]
+    );
+
+    const clear = React.useCallback(() => {
       timersRef.current.forEach((timer) => {
         window.clearTimeout(timer);
       });
 
       timersRef.current.clear();
-    };
-  }, []);
+      setToasts([]);
+    }, []);
 
-  const value =
-    React.useMemo<ToastContextValue>(
-      () => ({
-        toasts,
-        toast,
+    const toast = React.useCallback(
+      (input: ToastInput): string => {
+        const id = input.id ?? createToastId();
+
+        const nextToast: ToastRecord = {
+          id,
+          title: input.title,
+          description: input.description,
+          action: input.action,
+          variant: input.variant ?? "info",
+          duration:
+            input.duration ?? defaultDuration,
+          closable:
+            input.closable ?? true,
+        };
+
+        clearTimer(id);
+
+        setToasts((current) => {
+          const withoutSameId = current.filter(
+            (item) => item.id !== id
+          );
+
+          return [
+            nextToast,
+            ...withoutSameId,
+          ].slice(0, Math.max(0, maxToasts));
+        });
+
+        if (nextToast.duration > 0) {
+          const timer = window.setTimeout(() => {
+            dismiss(id);
+          }, nextToast.duration);
+
+          timersRef.current.set(id, timer);
+        }
+
+        return id;
+      },
+      [
+        clearTimer,
+        defaultDuration,
         dismiss,
-        clear,
-      }),
-      [clear, dismiss, toast, toasts]
+        maxToasts,
+      ]
     );
 
-  return (
-    <ToastContext.Provider value={value}>
-      {children}
+    React.useEffect(() => {
+      const visibleIds = new Set(
+        toasts.map((item) => item.id)
+      );
 
-      <div style={getPlacementStyles(placement)}>
-        <AnimatePresence initial={false}>
-          {toasts.map((item) => (
-            <Toast
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              description={item.description}
-              action={item.action}
-              variant={item.variant}
-              closable={item.closable}
-              onClose={() => {
-                dismiss(item.id);
-              }}
-              style={{
-                pointerEvents: "auto",
-              }}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
-    </ToastContext.Provider>
-  );
-};
+      timersRef.current.forEach((_, timerId) => {
+        if (!visibleIds.has(timerId)) {
+          clearTimer(timerId);
+        }
+      });
+    }, [clearTimer, toasts]);
+
+    React.useEffect(() => {
+      return () => {
+        timersRef.current.forEach((timer) => {
+          window.clearTimeout(timer);
+        });
+
+        timersRef.current.clear();
+      };
+    }, []);
+
+    const value =
+      React.useMemo<ToastContextValue>(
+        () => ({
+          toasts,
+          toast,
+          dismiss,
+          clear,
+        }),
+        [clear, dismiss, toast, toasts]
+      );
+
+    return (
+      <ToastContext.Provider value={value}>
+        {children}
+
+        <div style={getPlacementStyles(placement)}>
+          <MotionPresenceGroup initial={false}>
+            {toasts.map((item) => (
+              <Toast
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                description={item.description}
+                action={item.action}
+                variant={item.variant}
+                closable={item.closable}
+                onClose={() => {
+                  dismiss(item.id);
+                }}
+                style={{
+                  pointerEvents: "auto",
+                }}
+              />
+            ))}
+          </MotionPresenceGroup>
+        </div>
+      </ToastContext.Provider>
+    );
+  };
 
 ToastProvider.displayName = "ToastProvider";
 

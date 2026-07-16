@@ -42,7 +42,15 @@ export type ToastSlotProps = SlotPropsMap<ToastSlot>;
 export interface ToastProps
   extends Omit<
     HTMLMotionProps<"div">,
-    "children" | "style" | "title"
+    | "children"
+    | "style"
+    | "title"
+    | "initial"
+    | "animate"
+    | "exit"
+    | "variants"
+    | "transition"
+    | "custom"
   > {
   id?: string;
   title?: React.ReactNode;

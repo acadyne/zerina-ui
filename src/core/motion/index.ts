@@ -30,6 +30,11 @@ export {
 } from "./MotionPresence";
 
 export {
+  MotionPresenceGroup,
+  type MotionPresenceGroupProps,
+} from "./MotionPresenceGroup";
+
+export {
   MotionOverlayPresence,
   MotionOverlayRoot,
   MotionOverlayBackdrop,
