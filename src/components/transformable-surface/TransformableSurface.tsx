@@ -222,7 +222,7 @@ export const TransformableSurface = forwardRef<
         willChange: surface.contentTransformStyle.willChange,
 
         transition: surface.isIdle
-          ? "transform var(--ui-duration-normal, 160ms) var(--ui-ease-standard, ease)"
+          ? "transform var(--ui-duration-normal) var(--ui-ease-standard)"
           : "none",
 
         userSelect:

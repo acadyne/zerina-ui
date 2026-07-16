@@ -55,7 +55,7 @@ export interface ActionSheetItemProps
 }
 
 export interface ActionSheetSeparatorProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> { }
 
 export interface ActionSheetSectionProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -93,11 +93,11 @@ function getToneColor(
   }
 
   if (tone === "success") {
-    return "var(--ui-success, var(--ui-primary))";
+    return "var(--ui-success)";
   }
 
   if (tone === "warning") {
-    return "var(--ui-warning, var(--ui-primary))";
+    return "var(--ui-warning)";
   }
 
   return "var(--ui-text)";
