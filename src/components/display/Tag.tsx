@@ -1,5 +1,6 @@
 // src/components/display/Tag.tsx
 import React from "react";
+import { usePress } from "../../core/interaction";
 import {
   resolveSlot,
   type SlotPropsMap,
@@ -127,31 +128,70 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
     },
     ref
   ) => {
-    const [removeHovered, setRemoveHovered] = React.useState(false);
-    const [removeFocused, setRemoveFocused] = React.useState(false);
 
     const scheme = schemeMap[colorScheme];
 
     const variantStyle: React.CSSProperties =
       variant === "solid"
         ? {
-            background: scheme.solidBg,
-            color: scheme.solidText,
-            border: "1px solid transparent",
-          }
+          background: scheme.solidBg,
+          color: scheme.solidText,
+          border: "1px solid transparent",
+        }
         : variant === "outline"
           ? {
-              background: "transparent",
-              color: scheme.outlineText,
-              border: `1px solid ${scheme.outlineBorder}`,
-            }
+            background: "transparent",
+            color: scheme.outlineText,
+            border: `1px solid ${scheme.outlineBorder}`,
+          }
           : {
-              background: scheme.subtleBg,
-              color: scheme.subtleText,
-              border: "1px solid transparent",
-            };
+            background: scheme.subtleBg,
+            color: scheme.subtleText,
+            border: "1px solid transparent",
+          };
 
     const showRemove = removable || Boolean(onRemove);
+
+    const removeButtonSlotProps = slotProps?.removeButton;
+
+    const {
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+      onClick: slotOnClick,
+    } = removeButtonSlotProps ?? {};
+
+    const removePress = usePress<HTMLButtonElement>({
+      disabled: !onRemove,
+      nativeInteractive: true,
+
+      onPress: () => {
+        onRemove?.();
+      },
+
+      onPointerEnter: slotOnPointerEnter,
+      onPointerLeave: slotOnPointerLeave,
+      onPointerDown: slotOnPointerDown,
+      onPointerUp: slotOnPointerUp,
+      onPointerCancel: slotOnPointerCancel,
+      onLostPointerCapture: slotOnLostPointerCapture,
+      onFocus: slotOnFocus,
+      onBlur: slotOnBlur,
+      onKeyDown: slotOnKeyDown,
+      onKeyUp: slotOnKeyUp,
+
+      onClick: (event) => {
+        event.stopPropagation();
+        slotOnClick?.(event);
+      },
+    });
 
     const rootSlot = resolveSlot<TagSlot>({
       slot: "root",
@@ -224,6 +264,27 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
       slot: "removeButton",
       styles,
       slotProps,
+
+      baseProps: {
+        "aria-label": "Quitar",
+
+        "data-hovered":
+          removePress.state.hovered ||
+          undefined,
+
+        "data-pressed":
+          removePress.state.pressed ||
+          undefined,
+
+        "data-focused":
+          removePress.state.focused ||
+          undefined,
+
+        "data-focus-visible":
+          removePress.state.focusVisible ||
+          undefined,
+      },
+
       baseStyle: {
         marginLeft: "0.1rem",
         display: "inline-flex",
@@ -231,19 +292,40 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
         justifyContent: "center",
         width: 18,
         height: 18,
-        borderRadius: 9999,
+        borderRadius: "var(--ui-radius-full)",
         border: "none",
-        background: removeHovered ? "var(--ui-surface-hover)" : "transparent",
+
+        background:
+          removePress.state.hovered
+            ? "var(--ui-surface-hover)"
+            : "transparent",
+
         color: "inherit",
-        cursor: "pointer",
+
+        cursor:
+          onRemove
+            ? "pointer"
+            : "not-allowed",
+
         padding: 0,
         lineHeight: 1,
-        opacity: 0.85,
+
+        opacity:
+          onRemove
+            ? 0.85
+            : "var(--ui-state-disabled-opacity)",
+
         flexShrink: 0,
         outline: "none",
-        boxShadow: removeFocused ? "0 0 0 3px var(--ui-focus-ring)" : "none",
+
+        boxShadow:
+          removePress.state.focusVisible
+            ? "0 0 0 3px var(--ui-focus-ring)"
+            : "none",
+
         transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
+          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
+          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
       },
     });
 
@@ -258,24 +340,9 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
         {showRemove ? (
           <button
             {...removeButtonSlot}
+            {...removePress.pressProps}
             type="button"
-            aria-label="Quitar"
-            onClick={(event) => {
-              event.stopPropagation();
-              onRemove?.();
-            }}
-            onMouseEnter={() => {
-              setRemoveHovered(true);
-            }}
-            onMouseLeave={() => {
-              setRemoveHovered(false);
-            }}
-            onFocus={() => {
-              setRemoveFocused(true);
-            }}
-            onBlur={() => {
-              setRemoveFocused(false);
-            }}
+            disabled={!onRemove}
           >
             ×
           </button>
