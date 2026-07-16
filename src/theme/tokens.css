@@ -133,15 +133,4 @@
          var(--ui-text) 8%,
          transparent);
    --ui-skeleton-duration: 1.2s;
-
-   /* =========================
-     Compat
-  ========================= */
-   --bg: var(--ui-bg);
-   --form-bg: var(--ui-surface);
-   --text: var(--ui-text);
-   --input-border: var(--ui-border);
-   --input-focus: var(--ui-primary);
-   --button: var(--ui-primary);
-   --button-hover: var(--ui-primary-hover);
 }
