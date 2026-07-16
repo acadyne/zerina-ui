@@ -235,15 +235,6 @@ export function CommandPalette({
     setActiveId(firstSelectable?.id ?? null);
   }, [open, selectableItems]);
 
-  React.useEffect(() => {
-    if (!open) return;
-
-    window.requestAnimationFrame(() => {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    });
-  }, [open]);
-
   const setSearchValue = React.useCallback(
     (nextValue: string) => {
       if (value === undefined) {
