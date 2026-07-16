@@ -1,6 +1,9 @@
 // src/primitives/overlay/Menu.tsx
 import React from "react";
-import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
+import {
+  motion,
+  type HTMLMotionProps,
+} from "framer-motion";
 import {
   DismissableLayer,
   FloatingLayer,
@@ -14,7 +17,10 @@ import {
 } from "../../core/interaction";
 import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
 import { setRef } from "../../core/interaction/events";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  MotionPresenceGroup,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -511,6 +517,7 @@ export interface MenuContentProps
     | "exit"
     | "variants"
     | "transition"
+    | "custom"
   > {
   children?: React.ReactNode;
   className?: string;
@@ -749,7 +756,11 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
         </FloatingLayer>
       ) : null;
 
-    const animated = <AnimatePresence>{content}</AnimatePresence>;
+    const animated = (
+      <MotionPresenceGroup>
+        {content}
+      </MotionPresenceGroup>
+    );
 
     return portalled ? <Portal container={container}>{animated}</Portal> : animated;
   }
@@ -929,37 +940,37 @@ export const MenuItem =
 
       const {
         onPointerEnter:
-          slotOnPointerEnter,
+        slotOnPointerEnter,
 
         onPointerLeave:
-          slotOnPointerLeave,
+        slotOnPointerLeave,
 
         onPointerDown:
-          slotOnPointerDown,
+        slotOnPointerDown,
 
         onPointerUp:
-          slotOnPointerUp,
+        slotOnPointerUp,
 
         onPointerCancel:
-          slotOnPointerCancel,
+        slotOnPointerCancel,
 
         onLostPointerCapture:
-          slotOnLostPointerCapture,
+        slotOnLostPointerCapture,
 
         onFocus:
-          slotOnFocus,
+        slotOnFocus,
 
         onBlur:
-          slotOnBlur,
+        slotOnBlur,
 
         onKeyDown:
-          slotOnKeyDown,
+        slotOnKeyDown,
 
         onKeyUp:
-          slotOnKeyUp,
+        slotOnKeyUp,
 
         onClick:
-          slotOnClick,
+        slotOnClick,
 
         ...preliminarySlotRest
       } = preliminarySlot as SlotElementProps;
@@ -1080,7 +1091,7 @@ export const MenuItem =
 
             "aria-disabled":
               preliminarySlotRest[
-                "aria-disabled"
+              "aria-disabled"
               ],
 
             "data-ui-menu-item":

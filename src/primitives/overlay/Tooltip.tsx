@@ -1,7 +1,6 @@
 // src/primitives/overlay/Tooltip.tsx
 import React from "react";
 import {
-  AnimatePresence,
   motion,
   type HTMLMotionProps,
 } from "framer-motion";
@@ -11,7 +10,10 @@ import {
   getLayerZIndex,
   type FloatingPlacement,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  MotionPresenceGroup,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -101,16 +103,16 @@ type TooltipContextValue = {
   contentId: string;
 
   anchorRef:
-    React.RefObject<HTMLElement | null>;
+  React.RefObject<HTMLElement | null>;
 
   setAnchorNode: (
     node: HTMLElement | null
   ) => void;
 
   setOpen:
-    React.Dispatch<
-      React.SetStateAction<boolean>
-    >;
+  React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 
   openDelayMs: number;
   closeDelayMs: number;
@@ -166,22 +168,22 @@ function isTooltipPointerType(
 
 type TriggerChildProps = {
   onPointerEnter?:
-    React.PointerEventHandler<HTMLElement>;
+  React.PointerEventHandler<HTMLElement>;
 
   onPointerLeave?:
-    React.PointerEventHandler<HTMLElement>;
+  React.PointerEventHandler<HTMLElement>;
 
   onPointerDown?:
-    React.PointerEventHandler<HTMLElement>;
+  React.PointerEventHandler<HTMLElement>;
 
   onFocus?:
-    React.FocusEventHandler<HTMLElement>;
+  React.FocusEventHandler<HTMLElement>;
 
   onBlur?:
-    React.FocusEventHandler<HTMLElement>;
+  React.FocusEventHandler<HTMLElement>;
 
   onClick?:
-    React.MouseEventHandler<HTMLElement>;
+  React.MouseEventHandler<HTMLElement>;
 
   id?: string;
   className?: string;
@@ -287,7 +289,7 @@ Tooltip.displayName = "Tooltip";
 
 export interface TooltipTriggerProps {
   children:
-    React.ReactElement<TriggerChildProps>;
+  React.ReactElement<TriggerChildProps>;
 
   asChild?: boolean;
 
@@ -529,7 +531,7 @@ export const TooltipTrigger =
               ctx.enableTouch &&
               event.detail !== 0 &&
               lastPointerTypeRef.current ===
-                "touch";
+              "touch";
 
             lastPointerTypeRef.current =
               null;
@@ -758,6 +760,7 @@ export interface TooltipContentProps
     | "exit"
     | "variants"
     | "transition"
+    | "custom"
   > {
   children?: React.ReactNode;
 
@@ -767,9 +770,9 @@ export interface TooltipContentProps
   portalled?: boolean;
 
   container?:
-    | Element
-    | DocumentFragment
-    | null;
+  | Element
+  | DocumentFragment
+  | null;
 
   placement?: FloatingPlacement;
   offset?: number;
@@ -805,7 +808,7 @@ export const TooltipContent =
         viewportPadding = 8,
 
         closeOnClickOutside =
-          true,
+        true,
 
         styles,
         slotProps,
@@ -881,8 +884,8 @@ export const TooltipContent =
           ) => {
             const target =
               event.target as
-                | Node
-                | null;
+              | Node
+              | null;
 
             const anchorEl =
               ctx.anchorRef.current;
@@ -932,7 +935,7 @@ export const TooltipContent =
 
       const content =
         ctx.open &&
-        ctx.anchorRef.current ? (
+          ctx.anchorRef.current ? (
           <FloatingLayer
             anchorRef={
               ctx.anchorRef
@@ -954,13 +957,13 @@ export const TooltipContent =
           >
             {({
               ref:
-                floatingRef,
+              floatingRef,
 
               style:
-                floatingStyle,
+              floatingStyle,
 
               placement:
-                side,
+              side,
             }) => {
               const recipeStyles =
                 tooltipRecipe({
@@ -1032,9 +1035,9 @@ export const TooltipContent =
         ) : null;
 
       const animated = (
-        <AnimatePresence>
+        <MotionPresenceGroup>
           {content}
-        </AnimatePresence>
+        </MotionPresenceGroup>
       );
 
       return portalled ? (

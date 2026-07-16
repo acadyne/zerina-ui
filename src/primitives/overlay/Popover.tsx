@@ -1,7 +1,6 @@
 // src/primitives/overlay/Popover.tsx
 import React from "react";
 import {
-  AnimatePresence,
   motion,
   type HTMLMotionProps,
 } from "framer-motion";
@@ -12,7 +11,10 @@ import {
   Portal,
   getLayerZIndex,
 } from "../../core/overlay";
-import { useOptionalUIMotion } from "../../core/motion";
+import {
+  MotionPresenceGroup,
+  useOptionalUIMotion,
+} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -153,14 +155,14 @@ const DEFAULT_POPOVER_RECIPE_STYLES =
 
 type TriggerChildProps = {
   onClick?:
-    React.MouseEventHandler<HTMLElement>;
+  React.MouseEventHandler<HTMLElement>;
 
   id?: string;
   className?: string;
   style?: React.CSSProperties;
 
   "aria-haspopup"?:
-    React.AriaAttributes["aria-haspopup"];
+  React.AriaAttributes["aria-haspopup"];
 
   "aria-expanded"?: boolean;
   "aria-controls"?: string;
@@ -170,7 +172,7 @@ type PopoverContextValue = {
   open: boolean;
 
   anchorRef:
-    React.RefObject<HTMLElement | null>;
+  React.RefObject<HTMLElement | null>;
 
   contentId: string;
   triggerId: string;
@@ -299,7 +301,7 @@ Popover.displayName = "Popover";
 
 export interface PopoverTriggerProps {
   children:
-    React.ReactElement<TriggerChildProps>;
+  React.ReactElement<TriggerChildProps>;
 
   asChild?: boolean;
 
@@ -487,6 +489,7 @@ export interface PopoverContentProps
     | "exit"
     | "variants"
     | "transition"
+    | "custom"
   > {
   children?: React.ReactNode;
 
@@ -496,9 +499,9 @@ export interface PopoverContentProps
   portalled?: boolean;
 
   container?:
-    | Element
-    | DocumentFragment
-    | null;
+  | Element
+  | DocumentFragment
+  | null;
 
   placement?: PopoverPlacement;
   offset?: number;
@@ -509,16 +512,16 @@ export interface PopoverContentProps
   closeOnEscape?: boolean;
 
   closeOnPointerDownOutside?:
-    boolean;
+  boolean;
 
   trapFocus?: boolean;
   autoFocus?: boolean;
   restoreFocus?: boolean;
 
   initialFocusRef?:
-    React.RefObject<
-      HTMLElement | null
-    >;
+  React.RefObject<
+    HTMLElement | null
+  >;
 
   matchAnchorWidth?: boolean;
 
@@ -541,7 +544,7 @@ export const PopoverContent =
         container,
 
         placement =
-          "bottom-start",
+        "bottom-start",
 
         offset = 8,
         flip = true,
@@ -552,7 +555,7 @@ export const PopoverContent =
         closeOnEscape = true,
 
         closeOnPointerDownOutside =
-          true,
+        true,
 
         trapFocus = false,
         autoFocus = false,
@@ -561,16 +564,16 @@ export const PopoverContent =
         initialFocusRef,
 
         matchAnchorWidth =
-          false,
+        false,
 
         "aria-label":
-          ariaLabel,
+        ariaLabel,
 
         "aria-labelledby":
-          ariaLabelledBy,
+        ariaLabelledBy,
 
         "aria-describedby":
-          ariaDescribedBy,
+        ariaDescribedBy,
 
         styles,
         slotProps,
@@ -629,7 +632,7 @@ export const PopoverContent =
 
       const resolvedAriaLabelledBy =
         ariaLabel !== undefined ||
-        ariaLabelledBy !==
+          ariaLabelledBy !==
           undefined
           ? ariaLabelledBy
           : ctx.triggerId;
@@ -651,7 +654,7 @@ export const PopoverContent =
 
       const content =
         ctx.open &&
-        ctx.anchorRef.current ? (
+          ctx.anchorRef.current ? (
           <FloatingLayer
             anchorRef={
               ctx.anchorRef
@@ -676,13 +679,13 @@ export const PopoverContent =
           >
             {({
               ref:
-                floatingRef,
+              floatingRef,
 
               style:
-                floatingStyle,
+              floatingStyle,
 
               placement:
-                side,
+              side,
             }) => {
               const recipeStyles =
                 popoverRecipe({
@@ -842,9 +845,9 @@ export const PopoverContent =
         ) : null;
 
       const animated = (
-        <AnimatePresence>
+        <MotionPresenceGroup>
           {content}
-        </AnimatePresence>
+        </MotionPresenceGroup>
       );
 
       return portalled ? (
