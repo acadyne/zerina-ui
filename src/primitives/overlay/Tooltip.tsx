@@ -319,6 +319,17 @@ export const TooltipTrigger =
       const ctx =
         useTooltipContext();
 
+      const {
+        contentId,
+        enableTouch,
+        open,
+        openDelayMs,
+        closeDelayMs,
+        setAnchorNode,
+        setOpen,
+        triggerId,
+      } = ctx;
+
       const openTimerRef =
         React.useRef<
           number | null
@@ -390,7 +401,7 @@ export const TooltipTrigger =
               | HTMLElement
               | null
           ) => {
-            ctx.setAnchorNode(
+            setAnchorNode(
               node
             );
 
@@ -410,8 +421,8 @@ export const TooltipTrigger =
           },
           [
             children,
-            ctx,
             ref,
+            setAnchorNode,
           ]
         );
 
@@ -422,15 +433,15 @@ export const TooltipTrigger =
           openTimerRef.current =
             window.setTimeout(
               () => {
-                ctx.setOpen(
-                  true
-                );
+                openTimerRef.current = null;
+                setOpen(true);
               },
-              ctx.openDelayMs
+              openDelayMs
             );
         }, [
           clearTimers,
-          ctx,
+          openDelayMs,
+          setOpen,
         ]);
 
       const scheduleClose =
@@ -440,15 +451,15 @@ export const TooltipTrigger =
           closeTimerRef.current =
             window.setTimeout(
               () => {
-                ctx.setOpen(
-                  false
-                );
+                closeTimerRef.current = null;
+                setOpen(false);
               },
-              ctx.closeDelayMs
+              closeDelayMs
             );
         }, [
           clearTimers,
-          ctx,
+          closeDelayMs,
+          setOpen,
         ]);
 
       const handlePointerEnter =
@@ -506,19 +517,19 @@ export const TooltipTrigger =
       const handleFocus =
         React.useCallback(() => {
           clearTimers();
-          ctx.setOpen(true);
+          setOpen(true);
         }, [
           clearTimers,
-          ctx,
+          setOpen,
         ]);
 
       const handleBlur =
         React.useCallback(() => {
           clearTimers();
-          ctx.setOpen(false);
+          setOpen(false);
         }, [
           clearTimers,
-          ctx,
+          setOpen,
         ]);
 
       const handleClick =
@@ -528,7 +539,7 @@ export const TooltipTrigger =
               React.MouseEvent<HTMLElement>
           ) => {
             const isTouchActivation =
-              ctx.enableTouch &&
+              enableTouch &&
               event.detail !== 0 &&
               lastPointerTypeRef.current ===
               "touch";
@@ -544,14 +555,15 @@ export const TooltipTrigger =
 
             clearTimers();
 
-            ctx.setOpen(
+            setOpen(
               (previous) =>
                 !previous
             );
           },
           [
             clearTimers,
-            ctx,
+            enableTouch,
+            setOpen,
           ]
         );
 
@@ -566,7 +578,7 @@ export const TooltipTrigger =
           {
             ref: setRefs,
 
-            id: ctx.triggerId,
+            id: triggerId,
 
             className: [
               children.props
@@ -585,8 +597,8 @@ export const TooltipTrigger =
             },
 
             "aria-describedby":
-              ctx.open
-                ? ctx.contentId
+              open
+                ? contentId
                 : undefined,
 
             onPointerEnter: (
@@ -707,11 +719,11 @@ export const TooltipTrigger =
           ref={
             setRefs as React.Ref<HTMLButtonElement>
           }
-          id={ctx.triggerId}
+          id={triggerId}
           type="button"
           aria-describedby={
-            ctx.open
-              ? ctx.contentId
+            open
+              ? contentId
               : undefined
           }
           className={
@@ -820,6 +832,13 @@ export const TooltipContent =
       const ctx =
         useTooltipContext();
 
+      const {
+        anchorRef,
+        contentId,
+        open,
+        setOpen,
+      } = ctx;
+
       const motionState =
         useOptionalUIMotion();
 
@@ -867,7 +886,7 @@ export const TooltipContent =
         );
 
       React.useEffect(() => {
-        if (!ctx.open) {
+        if (!open) {
           return;
         }
 
@@ -888,7 +907,7 @@ export const TooltipContent =
               | null;
 
             const anchorEl =
-              ctx.anchorRef.current;
+              anchorRef.current;
 
             const contentEl =
               contentRef.current;
@@ -911,9 +930,7 @@ export const TooltipContent =
               !clickedAnchor &&
               !clickedContent
             ) {
-              ctx.setOpen(
-                false
-              );
+              setOpen(false);
             }
           };
 
@@ -929,18 +946,19 @@ export const TooltipContent =
           );
         };
       }, [
+        anchorRef,
         closeOnClickOutside,
-        ctx,
+        open,
+        setOpen,
       ]);
-
       const content =
-        ctx.open &&
-          ctx.anchorRef.current ? (
+        open &&
+          anchorRef.current ? (
           <FloatingLayer
             anchorRef={
-              ctx.anchorRef
+              anchorRef
             }
-            open={ctx.open}
+            open={open}
             placement={placement}
             offset={offset}
             flip={flip}
@@ -1014,7 +1032,7 @@ export const TooltipContent =
                     setRefs(node);
                   }}
                   id={
-                    ctx.contentId
+                    contentId
                   }
                   role="tooltip"
                   variants={
