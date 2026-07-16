@@ -11,12 +11,35 @@ import type {
 export const NAVIGATION_STACK_SCREEN_MARKER =
   "__ZERINA_NAVIGATION_STACK_SCREEN__";
 
+function hasNavigationStackScreenMarker(
+  type: unknown
+): boolean {
+  if (
+    type === null ||
+    (
+      typeof type !== "function" &&
+      typeof type !== "object"
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    Reflect.get(
+      type,
+      NAVIGATION_STACK_SCREEN_MARKER
+    ) === true
+  );
+}
+
 export function createNavigationStackEntry(
   name: string,
   params?: NavigationStackParams
 ): NavigationStackEntry {
   return {
-    key: `${name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    key: `${name}-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`,
     name,
     params,
   };
@@ -27,33 +50,54 @@ export function isNavigationStackScreenElement(
 ): child is React.ReactElement<NavigationStackScreenProps> {
   return (
     React.isValidElement(child) &&
-    Boolean((child.type as any)?.[NAVIGATION_STACK_SCREEN_MARKER])
+    hasNavigationStackScreenMarker(child.type)
   );
 }
 
 export function collectNavigationStackScreens(
   children: React.ReactNode
 ): Map<string, RegisteredNavigationStackScreen> {
-  const screens = new Map<string, RegisteredNavigationStackScreen>();
+  const screens =
+    new Map<
+      string,
+      RegisteredNavigationStackScreen
+    >();
 
-  React.Children.forEach(children, (child) => {
-    if (!isNavigationStackScreenElement(child)) return;
+  React.Children.forEach(
+    children,
+    (child) => {
+      if (
+        !isNavigationStackScreenElement(
+          child
+        )
+      ) {
+        return;
+      }
 
-    const { name, title, component, render, element } = child.props;
+      const {
+        name,
+        title,
+        component,
+        render,
+        element,
+      } = child.props;
 
-    screens.set(name, {
-      name,
-      title,
-      component,
-      render,
-      element,
-    });
-  });
+      screens.set(name, {
+        name,
+        title,
+        component,
+        render,
+        element,
+      });
+    }
+  );
 
   return screens;
 }
 
-export function renderMissingNavigationStackScreen(name: string) {
+export function renderMissingNavigationStackScreen(
+  name: string
+) {
   return (
     <Box
       style={{
@@ -62,11 +106,14 @@ export function renderMissingNavigationStackScreen(name: string) {
         display: "grid",
         placeItems: "center",
         padding: "1rem",
-        color: "var(--ui-text-muted)",
+        color:
+          "var(--ui-text-muted)",
         textAlign: "center",
       }}
     >
-      NavigationStack: no existe una pantalla registrada con name="{name}".
+      NavigationStack: no existe una
+      pantalla registrada con name="
+      {name}".
     </Box>
   );
 }
