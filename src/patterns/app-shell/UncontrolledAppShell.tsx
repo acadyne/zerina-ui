@@ -53,10 +53,35 @@ export function UncontrolledAppShell({
   >(() => defaultRouteId ?? firstRoute?.id ?? null);
 
   React.useEffect(() => {
-    if (!internalActiveRouteId && firstRoute?.id) {
-      setInternalActiveRouteId(firstRoute.id);
+    if (controlledActiveRouteId !== undefined) {
+      return;
     }
-  }, [firstRoute?.id, internalActiveRouteId]);
+
+    const internalRoute =
+      findAppShellRouteById(
+        processedRoutes,
+        internalActiveRouteId
+      );
+
+    const nextActiveRouteId =
+      internalRoute?.id ??
+      firstRoute?.id ??
+      null;
+
+    if (
+      nextActiveRouteId !==
+      internalActiveRouteId
+    ) {
+      setInternalActiveRouteId(
+        nextActiveRouteId
+      );
+    }
+  }, [
+    controlledActiveRouteId,
+    firstRoute?.id,
+    internalActiveRouteId,
+    processedRoutes,
+  ]);
 
   const activeRouteId = controlledActiveRouteId ?? internalActiveRouteId;
 
