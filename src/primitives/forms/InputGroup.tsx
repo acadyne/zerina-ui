@@ -20,6 +20,7 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { FormControlContext } from "./FormControl";
+import { setRef } from "../../core/interaction/events";
 
 export type InputGroupSlot =
   "root";
@@ -41,7 +42,7 @@ export interface InputGroupProps
   isDisabled?: boolean;
 
   rounded?:
-    React.CSSProperties["borderRadius"];
+  React.CSSProperties["borderRadius"];
 
   styles?: InputGroupStyles;
   slotProps?: InputGroupSlotProps;
@@ -65,31 +66,31 @@ type ControlSize =
 
 const CONTROL_BASE_RIGHT_PADDING:
   Record<ControlSize, string> = {
-    sm: "0.75rem",
-    md: "0.9rem",
-    lg: "1rem",
-  };
+  sm: "0.75rem",
+  md: "0.9rem",
+  lg: "1rem",
+};
 
 type SupportedControlProps = {
   size?: ControlSize;
 
   rightPadding?:
-    | number
-    | string;
+  | number
+  | string;
 
   indicatorOffset?:
-    | number
-    | string;
+  | number
+  | string;
 
   rounded?:
-    React.CSSProperties["borderRadius"];
+  React.CSSProperties["borderRadius"];
 
   isInvalid?: boolean;
   isDisabled?: boolean;
 
   variant?:
-    | "outline"
-    | "unstyled";
+  | "outline"
+  | "unstyled";
 };
 
 type RightElementProps = {
@@ -99,10 +100,10 @@ type RightElementProps = {
 type UIElementType =
   React.ElementType & {
     __UI_CONTROL_KIND?:
-      SupportedControlKind;
+    SupportedControlKind;
 
     __UI_SLOT_KIND?:
-      InputSlotKind;
+    InputSlotKind;
 
     displayName?: string;
     name?: string;
@@ -176,40 +177,12 @@ function getControlSize(
     : "md";
 }
 
-function assignMutableRef<T>(
-  ref:
-    | React.Ref<T>
-    | undefined,
-  value: T | null
-) {
-  if (!ref) {
-    return;
-  }
-
-  if (
-    typeof ref === "function"
-  ) {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as React.MutableRefObject<
-        T | null
-      >
-    ).current = value;
-  } catch {
-    // Algunos refs externos pueden ser de solo lectura.
-  }
-}
-
 type InputGroupRecipeVariants =
   Record<never, never>;
 
 type InputGroupRecipeState = {
   rounded:
-    React.CSSProperties["borderRadius"];
+  React.CSSProperties["borderRadius"];
 
   invalid: boolean;
   disabled: boolean;
@@ -253,10 +226,9 @@ const inputGroupRecipe =
           rounded,
 
         border:
-          `1px solid ${
-            invalid
-              ? "var(--ui-danger)"
-              : "var(--ui-border)"
+          `1px solid ${invalid
+            ? "var(--ui-danger)"
+            : "var(--ui-border)"
           }`,
 
         opacity: disabled
@@ -282,7 +254,7 @@ export const InputGroup =
         isDisabled,
 
         rounded =
-          "var(--ui-radius-md)",
+        "var(--ui-radius-md)",
 
         styles,
         slotProps,
@@ -434,7 +406,7 @@ export const InputGroup =
                           );
                       }
 
-                      assignMutableRef(
+                      setRef(
                         originalRef,
                         node
                       );
@@ -463,7 +435,7 @@ export const InputGroup =
 
               const basePadding =
                 CONTROL_BASE_RIGHT_PADDING[
-                  size
+                size
                 ];
 
               const currentRightPadding =
@@ -509,7 +481,7 @@ export const InputGroup =
                       extraRightSpace
                         ? `calc(${extraRightSpace} + 10px)`
                         : child.props
-                            .indicatorOffset,
+                          .indicatorOffset,
 
                     rounded:
                       child.props
@@ -521,9 +493,9 @@ export const InputGroup =
 
               if (
                 controlKind ===
-                  "input" ||
+                "input" ||
                 controlKind ===
-                  "textarea"
+                "textarea"
               ) {
                 return React.cloneElement(
                   child,

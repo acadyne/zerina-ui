@@ -14,6 +14,7 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { FormControlContext } from "./FormControl";
+import { setRef } from "../../core/interaction/events";
 
 export type CheckboxSlot =
   | "root"
@@ -41,8 +42,8 @@ export interface CheckboxProps
   radius?: number;
 
   labelPlacement?:
-    | "right"
-    | "left";
+  | "right"
+  | "left";
 
   styles?: CheckboxStyles;
   slotProps?: CheckboxSlotProps;
@@ -50,12 +51,12 @@ export interface CheckboxProps
 
 type CheckboxRecipeVariants = {
   labelPlacement:
-    | "right"
-    | "left";
+  | "right"
+  | "left";
 
   markKind:
-    | "checked"
-    | "indeterminate";
+  | "checked"
+  | "indeterminate";
 };
 
 type CheckboxRecipeState = {
@@ -250,31 +251,31 @@ const checkboxRecipe =
 
       mark:
         markKind ===
-        "indeterminate"
+          "indeterminate"
           ? {
-              width:
-                Math.max(
-                  6,
-                  boxSize - 8
-                ),
-            }
+            width:
+              Math.max(
+                6,
+                boxSize - 8
+              ),
+          }
           : {
-              width:
-                Math.max(
-                  5,
-                  boxSize - 8
-                ),
+            width:
+              Math.max(
+                5,
+                boxSize - 8
+              ),
 
-              height:
-                Math.max(
-                  8,
-                  boxSize - 8
-                ),
+            height:
+              Math.max(
+                8,
+                boxSize - 8
+              ),
 
-              transform: checked
-                ? "rotate(45deg) scale(1)"
-                : "rotate(45deg) scale(0)",
-            },
+            transform: checked
+              ? "rotate(45deg) scale(1)"
+              : "rotate(45deg) scale(0)",
+          },
 
       label: {
         opacity: disabled
@@ -302,21 +303,21 @@ export const Checkbox =
         required,
 
         "aria-describedby":
-          ariaDescribedBy,
+        ariaDescribedBy,
 
         "aria-invalid":
-          ariaInvalid,
+        ariaInvalid,
 
         indeterminate = false,
 
         color =
-          "var(--ui-primary)",
+        "var(--ui-primary)",
 
         boxSize = 16,
         radius = 4,
 
         labelPlacement =
-          "right",
+        "right",
 
         className = "",
         style,
@@ -411,26 +412,17 @@ export const Checkbox =
         }
       }, [indeterminate]);
 
-      const setRefs = (
-        node:
-          | HTMLInputElement
-          | null
-      ) => {
-        innerRef.current = node;
-
-        if (
-          typeof ref ===
-          "function"
-        ) {
-          ref(node);
-        } else if (ref) {
-          (
-            ref as React.MutableRefObject<
-              HTMLInputElement | null
-            >
-          ).current = node;
-        }
-      };
+      const setRefs = React.useCallback(
+        (
+          node:
+            | HTMLInputElement
+            | null
+        ) => {
+          innerRef.current = node;
+          setRef(ref, node);
+        },
+        [ref]
+      );
 
       const WrapperTag =
         label
@@ -574,9 +566,9 @@ export const Checkbox =
           {...(
             label
               ? {
-                  htmlFor:
-                    inputId,
-                }
+                htmlFor:
+                  inputId,
+              }
               : {}
           )}
         >

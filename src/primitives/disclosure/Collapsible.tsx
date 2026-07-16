@@ -19,6 +19,7 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { Box, Flex } from "../layout";
+import { setRef } from "../../core/interaction/events";
 
 export type CollapsibleSlot =
   | "trigger"
@@ -145,32 +146,6 @@ function useCollapsibleContext() {
   return ctx;
 }
 
-function assignRef<T>(
-  ref:
-    | React.Ref<T>
-    | undefined,
-  value: T | null
-) {
-  if (!ref) {
-    return;
-  }
-
-  if (
-    typeof ref === "function"
-  ) {
-    ref(value);
-    return;
-  }
-
-  try {
-    (
-      ref as React.MutableRefObject<T | null>
-    ).current = value;
-  } catch {
-    // Algunos refs externos pueden ser de solo lectura.
-  }
-}
-
 type TriggerChildProps = {
   id?: string;
   disabled?: boolean;
@@ -179,10 +154,10 @@ type TriggerChildProps = {
   "aria-controls"?: string;
 
   onClick?:
-    React.MouseEventHandler<HTMLElement>;
+  React.MouseEventHandler<HTMLElement>;
 
   onKeyDown?:
-    React.KeyboardEventHandler<HTMLElement>;
+  React.KeyboardEventHandler<HTMLElement>;
 };
 
 export interface CollapsibleProps {
@@ -305,12 +280,12 @@ Collapsible.displayName =
 
 export interface CollapsibleTriggerProps {
   children?:
-    | React.ReactNode
-    | ((
-        state: {
-          open: boolean;
-        }
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    state: {
+      open: boolean;
+    }
+  ) => React.ReactNode);
 
   asChild?: boolean;
 
@@ -364,10 +339,10 @@ export const CollapsibleTrigger =
 
       const content =
         typeof children ===
-        "function"
+          "function"
           ? children({
-              open: ctx.open,
-            })
+            open: ctx.open,
+          })
           : children;
 
       const recipeStyles =
@@ -459,12 +434,12 @@ export const CollapsibleTrigger =
                 | HTMLElement
                 | null
             ) => {
-              assignRef(
+              setRef(
                 ref as React.Ref<HTMLElement>,
                 node
               );
 
-              assignRef(
+              setRef(
                 (
                   content as React.ReactElement & {
                     ref?: React.Ref<HTMLElement>;
@@ -510,7 +485,7 @@ export const CollapsibleTrigger =
 
               if (
                 event.key ===
-                  "Enter" ||
+                "Enter" ||
                 event.key === " "
               ) {
                 event.preventDefault();
