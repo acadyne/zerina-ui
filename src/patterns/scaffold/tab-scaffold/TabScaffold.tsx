@@ -6,6 +6,7 @@ import { BottomNavigation } from "../../../primitives/navigation/bottom-navigati
 import {
   NavigationStack,
   type NavigationStackEntry,
+  type NavigationStackParams,
   type NavigationStackScreenRenderProps,
   type NavigationStackTransitionDirection,
 } from "../../navigation-stack";
@@ -142,15 +143,39 @@ export function TabScaffold(
     [tabs, initialTabProp]
   );
 
-  const initialEntryRef = React.useRef<NavigationStackEntry>(
-    createTabScaffoldEntry(initialTab, initialParams)
+  const entryId = React.useId().replace(/:/g, "");
+  const entrySequenceRef = React.useRef(1);
+
+  const createEntry = React.useCallback(
+    (
+      name: string,
+      params?: NavigationStackParams
+    ): NavigationStackEntry => {
+      const key =
+        `${entryId}-${entrySequenceRef.current}`;
+
+      entrySequenceRef.current += 1;
+
+      return createTabScaffoldEntry(
+        key,
+        name,
+        params
+      );
+    },
+    [entryId]
   );
 
   const isControlled = props.entries !== undefined;
 
   const [internalEntries, setInternalEntries] = React.useState<
     NavigationStackEntry[]
-  >([initialEntryRef.current]);
+  >(() => [
+    createTabScaffoldEntry(
+      `${entryId}-0`,
+      initialTab,
+      initialParams
+    ),
+  ]);
 
   const [
     internalTransitionDirection,
@@ -176,11 +201,11 @@ export function TabScaffold(
         nextEntries.length > 0
           ? nextEntries
           : [
-              createTabScaffoldEntry(
-                initialTab,
-                initialParams
-              ),
-            ];
+            createEntry(
+              initialTab,
+              initialParams
+            ),
+          ];
 
       if (!isControlled) {
         setInternalEntries(normalizedEntries);
@@ -205,8 +230,8 @@ export function TabScaffold(
       updater:
         | NavigationStackEntry[]
         | ((
-            currentEntries: NavigationStackEntry[]
-          ) => NavigationStackEntry[]),
+          currentEntries: NavigationStackEntry[]
+        ) => NavigationStackEntry[]),
       transitionDirection: NavigationStackTransitionDirection
     ) => {
       const nextEntries =
@@ -243,7 +268,7 @@ export function TabScaffold(
         updateEntries(
           (currentEntries) => [
             ...currentEntries,
-            createTabScaffoldEntry(name, params),
+            createEntry(name, params),
           ],
           "forward"
         );
@@ -253,7 +278,7 @@ export function TabScaffold(
         updateEntries(
           (currentEntries) => [
             ...currentEntries.slice(0, -1),
-            createTabScaffoldEntry(name, params),
+            createEntry(name, params),
           ],
           "replace"
         );
@@ -276,10 +301,10 @@ export function TabScaffold(
         updateEntries(
           (currentEntries) => [
             currentEntries[0] ??
-              createTabScaffoldEntry(
-                initialTab,
-                initialParams
-              ),
+            createEntry(
+              initialTab,
+              initialParams
+            ),
           ],
           "back"
         );
@@ -287,7 +312,7 @@ export function TabScaffold(
 
       reset: (name, params) => {
         updateEntries(
-          [createTabScaffoldEntry(name, params)],
+          [createEntry(name, params)],
           "replace"
         );
       },
@@ -302,7 +327,7 @@ export function TabScaffold(
         }
 
         updateEntries(
-          [createTabScaffoldEntry(tab)],
+          [createEntry(tab)],
           "replace"
         );
 
@@ -312,6 +337,7 @@ export function TabScaffold(
     [
       activeTab,
       canGoBack,
+      createEntry,
       current,
       initialParams,
       initialTab,
@@ -526,10 +552,10 @@ export function TabScaffold(
                 component={tab.component}
                 render={
                   tab.render as
-                    | ((
-                        props: NavigationStackScreenRenderProps<any>
-                      ) => React.ReactNode)
-                    | undefined
+                  | ((
+                    props: NavigationStackScreenRenderProps<any>
+                  ) => React.ReactNode)
+                  | undefined
                 }
                 element={tab.element}
               />

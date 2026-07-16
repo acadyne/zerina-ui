@@ -13,6 +13,7 @@ import type {
   NavigationStackComponent,
   NavigationStackContextValue,
   NavigationStackEntry,
+  NavigationStackParams,
   NavigationStackProps,
   NavigationStackScreenRenderProps,
   NavigationStackTransitionDirection,
@@ -41,13 +42,37 @@ const NavigationStackRoot = function NavigationStackRoot(
 
   const isControlled = props.entries !== undefined;
 
-  const initialEntryRef = React.useRef<NavigationStackEntry>(
-    createNavigationStackEntry(initialName, initialParams)
+  const entryId = React.useId().replace(/:/g, "");
+  const entrySequenceRef = React.useRef(1);
+
+  const createEntry = React.useCallback(
+    (
+      name: string,
+      params?: NavigationStackParams
+    ): NavigationStackEntry => {
+      const key =
+        `${entryId}-${entrySequenceRef.current}`;
+
+      entrySequenceRef.current += 1;
+
+      return createNavigationStackEntry(
+        key,
+        name,
+        params
+      );
+    },
+    [entryId]
   );
 
   const [internalEntries, setInternalEntries] = React.useState<
     NavigationStackEntry[]
-  >([initialEntryRef.current]);
+  >(() => [
+    createNavigationStackEntry(
+      `${entryId}-0`,
+      initialName,
+      initialParams
+    ),
+  ]);
 
   const [
     internalTransitionDirection,
@@ -77,7 +102,7 @@ const NavigationStackRoot = function NavigationStackRoot(
       const normalizedEntries =
         nextEntries.length > 0
           ? nextEntries
-          : [createNavigationStackEntry(initialName)];
+          : [createEntry(initialName)];
 
       if (!isControlled) {
         setInternalEntries(normalizedEntries);
@@ -89,7 +114,12 @@ const NavigationStackRoot = function NavigationStackRoot(
         nextTransitionDirection
       );
     },
-    [initialName, isControlled, onEntriesChange]
+    [
+  createEntry,
+  initialName,
+  isControlled,
+  onEntriesChange,
+]
   );
 
   const currentIndex = Math.max(0, stackEntries.length - 1);
@@ -107,7 +137,7 @@ const NavigationStackRoot = function NavigationStackRoot(
         setEntries(
           [
             ...stackEntries,
-            createNavigationStackEntry(name, params),
+            createEntry(name, params),
           ],
           "forward"
         );
@@ -117,7 +147,7 @@ const NavigationStackRoot = function NavigationStackRoot(
         setEntries(
           [
             ...stackEntries.slice(0, -1),
-            createNavigationStackEntry(name, params),
+            createEntry(name, params),
           ],
           "replace"
         );
@@ -142,7 +172,7 @@ const NavigationStackRoot = function NavigationStackRoot(
         setEntries(
           [
             stackEntries[0] ??
-              createNavigationStackEntry(initialName),
+            createEntry(initialName),
           ],
           "back"
         );
@@ -150,19 +180,20 @@ const NavigationStackRoot = function NavigationStackRoot(
 
       reset: (name, params) => {
         setEntries(
-          [createNavigationStackEntry(name, params)],
+          [createEntry(name, params)],
           "replace"
         );
       },
     }),
-    [
-      stackEntries,
-      current,
-      currentIndex,
-      canGoBack,
-      setEntries,
-      initialName,
-    ]
+  [
+  stackEntries,
+  current,
+  currentIndex,
+  canGoBack,
+  createEntry,
+  setEntries,
+  initialName,
+]
   );
 
   const activeScreen =

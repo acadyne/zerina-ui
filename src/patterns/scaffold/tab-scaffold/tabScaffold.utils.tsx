@@ -13,11 +13,12 @@ import type {
 } from "./tabScaffold.types";
 
 export function createTabScaffoldEntry(
+  key: string,
   name: string,
   params?: NavigationStackParams
 ): NavigationStackEntry {
   return {
-    key: `${name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    key,
     name,
     params,
   };
