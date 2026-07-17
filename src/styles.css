@@ -1,4 +1,4 @@
-@import "./theme/tokens.css";
+@import "./core/motion/motion.css";
 @import "./styles/base.css";
 
 /* ScrollArea */
