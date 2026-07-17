@@ -19,7 +19,8 @@ import {
 import {
   UIThemeProvider,
   type UIThemeProviderProps,
-} from "../theme/theme";
+} from "../theme";
+
 
 import {
   ToastProvider,
