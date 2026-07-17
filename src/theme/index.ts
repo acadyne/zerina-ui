@@ -5,6 +5,10 @@ export {
   useUITheme,
 } from "./react/theme";
 
+export type {
+  UIThemeProviderProps,
+} from "./react/theme";
+
 
 export {
   ThemeSystem,
@@ -33,4 +37,5 @@ export type {
   ThemeTokens,
   ThemeValidationDiagnostic,
   ThemeValidationResult,
+  ThemeName,
 } from "./contracts/theme.types";
