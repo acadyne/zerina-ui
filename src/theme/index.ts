@@ -29,6 +29,14 @@ export {
   BUILT_IN_THEMES,
 } from "./built-in";
 
+export {
+  resolveThemeIcon,
+} from "./icons";
+
+export type {
+  ThemeIconName,
+} from "./icons";
+
 
 export type {
   ThemeDefinition,

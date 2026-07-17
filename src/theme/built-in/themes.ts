@@ -11,6 +11,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Light",
+      icon: "sun",
       colorScheme: "light",
     },
     tokens: {
@@ -55,6 +56,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Dark",
+      icon: "moon",
       colorScheme: "dark",
     },
     tokens: {
@@ -93,11 +95,12 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       },
     },
   },
-    {
+  {
     name: "spring",
     source: "builtin",
     metadata: {
       label: "Spring",
+      icon: "spring",
       colorScheme: "light",
     },
     tokens: {
@@ -142,6 +145,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Summer",
+      icon: "summer",
       colorScheme: "light",
     },
     tokens: {
@@ -186,6 +190,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Autumn",
+      icon: "autumn",
       colorScheme: "dark",
     },
     tokens: {
@@ -230,6 +235,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Winter",
+      icon: "winter",
       colorScheme: "dark",
     },
     tokens: {
@@ -268,11 +274,12 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       },
     },
   },
-    {
+  {
     name: "retro-futurist",
     source: "builtin",
     metadata: {
       label: "Retro Futurist",
+      icon: "sparkles",
       colorScheme: "dark",
     },
     tokens: {
@@ -317,6 +324,7 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     source: "builtin",
     metadata: {
       label: "Sepia Retro",
+      icon: "palette",
       colorScheme: "dark",
     },
     tokens: {

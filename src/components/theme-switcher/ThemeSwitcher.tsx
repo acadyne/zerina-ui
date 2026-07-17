@@ -3,10 +3,6 @@
 import React from "react";
 
 import {
-  Sparkles,
-} from "lucide-react";
-
-import {
   Button,
 } from "../../primitives/forms";
 
@@ -19,8 +15,8 @@ import {
 
 import {
   useUITheme,
+  resolveThemeIcon,
 } from "../../theme";
-
 
 export interface ThemeSwitcherProps {
   className?: string;
@@ -55,8 +51,9 @@ export function ThemeSwitcher({
 
 
   const ThemeIcon =
-    theme.metadata?.icon ??
-    Sparkles;
+    resolveThemeIcon(
+      theme.metadata?.icon
+    );
 
 
   return (
@@ -107,8 +104,9 @@ export function ThemeSwitcher({
       >
         {themes.map((item) => {
           const Icon =
-            item.metadata?.icon ??
-            Sparkles;
+            resolveThemeIcon(
+              item.metadata?.icon
+            );
 
 
           const active =

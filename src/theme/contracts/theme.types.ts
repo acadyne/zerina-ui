@@ -1,6 +1,7 @@
 // src/theme/contracts/theme.types.ts
 
-import type React from "react";
+export type ThemeIconName =
+  string;
 
 export type ThemeName = string;
 
@@ -22,7 +23,7 @@ export interface ThemeMetadata {
 
   description?: string;
 
-  icon?: React.ComponentType;
+  icon?: ThemeIconName;
 
   colorScheme?: ThemeColorScheme;
 }
