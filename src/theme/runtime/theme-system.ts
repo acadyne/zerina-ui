@@ -71,9 +71,18 @@ export class ThemeSystem {
     }
 
 
+    const storedTheme =
+      this.getStoredTheme();
+
+
     this.activeThemeName =
       options.initialTheme ??
-      this.getStoredTheme() ??
+      (
+        storedTheme &&
+          this.themes.has(storedTheme)
+          ? storedTheme
+          : undefined
+      ) ??
       this.themes.keys().next().value ??
       "light";
   }
