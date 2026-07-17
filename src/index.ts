@@ -23,7 +23,7 @@ export * from "./primitives/typography";
 export * from "./primitives/disclosure";
 
 export * from "./patterns";
-export * from "./theme/theme";
+export * from "./theme";
 
 export * from "./core/motion";
 export * from "./core/viewport";
