@@ -56,29 +56,31 @@ export const UIThemeProvider: React.FC<
   storageKey,
   themes,
 }) => {
-  const system =
-    React.useMemo(
-      () =>
-        new ThemeSystem({
-          initialTheme,
-          persist,
-          storageKey,
-          themes:
-            themes ??
-            BUILT_IN_THEMES,
-        }),
-      [
+  const systemRef =
+    React.useRef<ThemeSystem | null>(null);
+
+
+  if (!systemRef.current) {
+    systemRef.current =
+      new ThemeSystem({
         initialTheme,
         persist,
         storageKey,
-        themes,
-      ]
-    );
+        themes:
+          themes ??
+          BUILT_IN_THEMES,
+      });
+  }
+
+
+  const system =
+    systemRef.current;
 
 
   const [theme, setThemeState] =
     React.useState(
-      () => system.getActiveTheme()
+      () =>
+        system.getActiveTheme()
     );
 
 
