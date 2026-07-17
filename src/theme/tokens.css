@@ -77,15 +77,6 @@
    --ui-danger-contrast: #ffffff;
 
    /* =========================
-     State tokens
-  ========================= */
-   --ui-state-focus: var(--ui-interaction-focus-ring);
-   --ui-state-focus-danger: color-mix(in srgb,
-         var(--ui-danger) 22%,
-         transparent);
-   --ui-state-disabled-opacity: 0.65;
-
-   /* =========================
      Skeleton / Loading
   ========================= */
    --ui-skeleton-bg: color-mix(in srgb,

@@ -1,4 +1,5 @@
 @import "./core/motion/motion.css";
+@import "./core/interaction/interaction.css";
 @import "./styles/base.css";
 
 /* ScrollArea */
