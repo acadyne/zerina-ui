@@ -1,0 +1,15 @@
+/* src/components/feedback/skeleton.css */
+
+:root {
+  --ui-skeleton-bg: color-mix(
+    in srgb,
+    var(--ui-surface-3) 82%,
+    var(--ui-surface) 18%
+  );
+
+  --ui-skeleton-highlight: color-mix(
+    in srgb,
+    var(--ui-text) 8%,
+    transparent
+  );
+}

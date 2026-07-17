@@ -76,14 +76,4 @@
    --ui-danger-hover: #dc2626;
    --ui-danger-contrast: #ffffff;
 
-   /* =========================
-     Skeleton / Loading
-  ========================= */
-   --ui-skeleton-bg: color-mix(in srgb,
-         var(--ui-surface-3) 82%,
-         var(--ui-surface) 18%);
-   --ui-skeleton-highlight: color-mix(in srgb,
-         var(--ui-text) 8%,
-         transparent);
-   --ui-skeleton-duration: 1.2s;
 }
