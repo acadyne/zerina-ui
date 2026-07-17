@@ -96,10 +96,32 @@ export class ThemeSystem {
     }
 
 
+    const previousTheme =
+      this.themes.get(theme.name);
+
+
     this.themes.set(
       theme.name,
       theme
     );
+
+
+    try {
+      this.validateInheritanceChain(theme);
+    } catch (error) {
+      if (previousTheme) {
+        this.themes.set(
+          theme.name,
+          previousTheme
+        );
+      } else {
+        this.themes.delete(
+          theme.name
+        );
+      }
+
+      throw error;
+    }
   }
 
 
@@ -163,19 +185,22 @@ export class ThemeSystem {
       );
 
 
-    const next =
-      themes[
-        (currentIndex + 1) % themes.length
-      ];
+    const nextIndex =
+      (currentIndex + 1) %
+      themes.length;
 
 
-    if (!next) {
+    const nextTheme =
+      themes[nextIndex];
+
+
+    if (!nextTheme) {
       return;
     }
 
 
     this.setTheme(
-      next.name
+      nextTheme.name
     );
   }
 
@@ -239,6 +264,45 @@ export class ThemeSystem {
       root.style.colorScheme =
         resolved.metadata.colorScheme;
     }
+  }
+
+
+  private validateInheritanceChain(
+    theme: ThemeDefinition,
+    visited = new Set<string>()
+  ): void {
+    if (!theme.extends) {
+      return;
+    }
+
+
+    if (visited.has(theme.name)) {
+      throw new Error(
+        `Circular theme inheritance detected: "${theme.name}"`
+      );
+    }
+
+
+    visited.add(theme.name);
+
+
+    const parent =
+      this.themes.get(
+        theme.extends
+      );
+
+
+    if (!parent) {
+      throw new Error(
+        `Theme "${theme.name}" extends unknown theme "${theme.extends}"`
+      );
+    }
+
+
+    this.validateInheritanceChain(
+      parent,
+      visited
+    );
   }
 
 
