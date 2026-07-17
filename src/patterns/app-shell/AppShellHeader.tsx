@@ -2,18 +2,11 @@
 import React from "react";
 import {
   ChevronDown,
-  Leaf,
   LogOut,
   Menu as MenuIcon,
-  Moon,
   PanelLeft,
-  ScrollText,
   Smartphone,
-  Snowflake,
   Sparkles,
-  Sun,
-  Trees,
-  Waves,
 } from "lucide-react";
 import { Box, Flex } from "../../primitives/layout";
 import { IconButton } from "../../primitives/forms";
@@ -28,25 +21,17 @@ import {
   TooltipTrigger,
 } from "../../primitives/overlay";
 import { useOptionalUIViewport } from "../../core/viewport";
-import { useUITheme, type UIThemeMode } from "../../theme/theme";
+
 import type {
   AppShellBrand,
   AppShellUserInfo,
   AppShellViewport,
 } from "./AppShell.types";
 
-const themeIconMap: Partial<
-  Record<UIThemeMode, React.ComponentType<{ size?: number | string }>>
-> = {
-  light: Sun,
-  dark: Moon,
-  spring: Leaf,
-  summer: Waves,
-  autumn: Trees,
-  winter: Snowflake,
-  "retro-futurist": Sparkles,
-  "sepia-retro": ScrollText,
-};
+
+import {
+  useUITheme,
+} from "../../theme";
 
 function getInitials(user?: AppShellUserInfo): string {
   if (user?.initials) return user.initials;
@@ -138,7 +123,9 @@ export function AppShellHeader({
   const isContained = viewport === "contained";
 
   const { theme, cycleTheme } = useUITheme();
-  const ThemeIcon = themeIconMap[theme] ?? Sparkles;
+
+  const ThemeIcon =
+    theme.metadata?.icon ?? Sparkles;
 
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
@@ -393,7 +380,7 @@ export function AppShellHeader({
               <TooltipTrigger asChild>
                 <span>
                   <IconButton
-                    ariaLabel={`Cambiar tema. Tema actual: ${theme}`}
+                    ariaLabel={`Cambiar tema. Tema actual: ${theme.name}`}
                     icon={<ThemeIcon size={16} />}
                     variant="ghost"
                     size="sm"
@@ -409,7 +396,7 @@ export function AppShellHeader({
               </TooltipTrigger>
 
               <TooltipContent>
-                Tema actual: {theme}. Click para cambiar.
+                Tema actual: {theme.name}. Click para cambiar.
               </TooltipContent>
             </Tooltip>
           ) : null}
