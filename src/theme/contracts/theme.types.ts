@@ -55,6 +55,8 @@ export interface ThemeTokens {
   typography?: ThemeTypographyTokens;
 
   extensions?: Record<string, unknown>;
+
+  interaction?: ThemeInteractionTokens;
 }
 
 export interface ThemeColorTokens {
@@ -149,4 +151,11 @@ export interface ThemeValidationResult {
   valid: boolean;
 
   diagnostics: ThemeValidationDiagnostic[];
+}
+
+
+export interface ThemeInteractionTokens {
+  overlay?: string;
+
+  focusRing?: string;
 }

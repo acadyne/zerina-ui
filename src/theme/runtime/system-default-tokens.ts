@@ -83,4 +83,10 @@ export const BASE_DARK_TOKENS: ThemeTokens = {
       bold: 700,
     },
   },
+
+  interaction: {
+  overlay: "rgba(0,0,0,0.55)",
+
+  focusRing: "rgba(47,140,121,0.35)",
+},
 };

@@ -36,12 +36,6 @@
    --ui-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.22);
    --ui-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.35);
 
-   --ui-shadow-control: 0 1px 3px rgba(0, 0, 0, 0.25);
-   --ui-shadow-action: 0 6px 14px rgba(0, 0, 0, 0.14);
-   --ui-shadow-action-hover: 0 8px 18px rgba(0, 0, 0, 0.18);
-   --ui-shadow-action-subtle-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
-   --ui-shadow-action-outline-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
-
    /* =========================
      Semantic colors (defaults)
   ========================= */
