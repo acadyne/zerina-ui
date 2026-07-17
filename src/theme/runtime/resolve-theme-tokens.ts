@@ -3,6 +3,7 @@
 import type {
   ThemeDefinition,
   ThemeTokens,
+  ThemeName,
 } from "../contracts/theme.types";
 
 
@@ -64,7 +65,7 @@ function mergeTokens(
 export interface ResolveThemeTokensOptions {
   theme: ThemeDefinition;
 
-  themes: Map<string, ThemeDefinition>;
+  themes: Map<ThemeName, ThemeDefinition>;
 
   defaults?: ThemeTokens;
 }
@@ -83,6 +84,7 @@ export function resolveThemeTokens({
       )
     : {};
 
+
   return mergeTokens(
     mergeTokens(
       defaults,
@@ -94,8 +96,8 @@ export function resolveThemeTokens({
 
 
 function resolveParentThemeTokens(
-  parentName: string,
-  themes: Map<string, ThemeDefinition>,
+  parentName: ThemeName,
+  themes: Map<ThemeName, ThemeDefinition>,
   defaults: ThemeTokens
 ): ThemeTokens {
   const parent =
