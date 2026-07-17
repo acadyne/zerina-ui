@@ -145,12 +145,12 @@ export const MenuContent =
     return;
   }
 
-
-  const id =
-    window.setTimeout(() => {
-      focusFirst();
-    }, 0);
-
+const id =
+  window.setTimeout(() => {
+    ctx.focusItemAt(
+      ctx.initialFocusIndex
+    );
+  }, 0);
 
   return () => {
     window.clearTimeout(id);

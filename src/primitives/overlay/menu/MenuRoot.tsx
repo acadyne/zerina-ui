@@ -20,6 +20,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
   children,
   open,
   onOpenChange,
+  initialFocusIndex = 0,
   styles,
   slotProps,
 }) => {
@@ -48,6 +49,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const focusedIndexRef =
     React.useRef(0);
 
+  const initialFocusAppliedRef =
+    React.useRef(false);
 
   const setAnchorNode =
     React.useCallback(
@@ -329,6 +332,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
         focusedIndexRef.current = 0;
 
         setHasFocusedItem(false);
+
+        initialFocusAppliedRef.current = false;
       }
     },
     [
@@ -337,17 +342,17 @@ export const MenuRoot: React.FC<MenuProps> = ({
   );
 
 
-console.log(
-  "MENU CONTEXT RENDER",
-  {
-    focusedIndex,
-    hasFocusedItem,
-  }
-);
+  console.log(
+    "MENU CONTEXT RENDER",
+    {
+      focusedIndex,
+      hasFocusedItem,
+    }
+  );
 
-const value =
-  React.useMemo<MenuContextValue>(
-    () => ({
+  const value =
+    React.useMemo<MenuContextValue>(
+      () => ({
         open,
 
         triggerId:
@@ -375,6 +380,10 @@ const value =
         hasFocusedItem,
 
         setHasFocusedItem,
+
+        initialFocusIndex,
+
+        focusItemAt,
 
         focusFirst,
 

@@ -61,6 +61,12 @@ export interface MenuContextValue {
   styles?: MenuStyles;
 
   slotProps?: MenuSlotProps;
+  
+  initialFocusIndex: number;
+
+  focusItemAt:
+    (index: number) => void;
+
 }
 
 
