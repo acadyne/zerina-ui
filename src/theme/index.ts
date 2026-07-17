@@ -25,6 +25,7 @@ export {
 } from "./validation/theme-validation";
 
 export {
+    resolveThemeIcon,
   registerThemeIcon,
 } from "./icons";
 
@@ -32,9 +33,6 @@ export {
   BUILT_IN_THEMES,
 } from "./built-in";
 
-export {
-  resolveThemeIcon,
-} from "./icons";
 
 export type {
   ThemeIconName,
