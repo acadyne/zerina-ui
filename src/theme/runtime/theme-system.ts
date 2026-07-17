@@ -14,7 +14,7 @@ import {
 } from "./resolve-theme-tokens";
 
 import {
-  SYSTEM_DEFAULT_TOKENS,
+  BASE_DARK_TOKENS,
 } from "./system-default-tokens";
 
 
@@ -227,7 +227,7 @@ export class ThemeSystem {
       tokens: resolveThemeTokens({
         theme,
         themes: this.themes,
-        defaults: SYSTEM_DEFAULT_TOKENS,
+        defaults: BASE_DARK_TOKENS,
       }),
     };
   }

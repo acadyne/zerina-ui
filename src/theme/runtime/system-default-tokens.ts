@@ -5,7 +5,7 @@ import type {
 } from "../contracts/theme.types";
 
 
-export const SYSTEM_DEFAULT_TOKENS: ThemeTokens = {
+export const BASE_DARK_TOKENS: ThemeTokens = {
   color: {
     primary: "#2f8c79",
     primaryHover: "#267564",

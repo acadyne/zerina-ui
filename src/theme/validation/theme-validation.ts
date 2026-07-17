@@ -15,17 +15,6 @@ const VALID_SOURCES: ThemeSource[] = [
 ];
 
 
-const PRIVATE_TOKEN_PREFIXES = [
-  "private",
-  "internal",
-];
-
-
-const INFRASTRUCTURE_TOKEN_PREFIXES = [
-  "layer",
-];
-
-
 function createDiagnostic(
   level: ThemeValidationDiagnostic["level"],
   code: string,
@@ -87,12 +76,10 @@ function validateSource(
 function validateInheritance(
   theme: ThemeDefinition
 ): ThemeValidationDiagnostic[] {
-  if (!theme.extends) {
-    return [];
-  }
-
-
-  if (theme.extends !== theme.name) {
+  if (
+    !theme.extends ||
+    theme.extends !== theme.name
+  ) {
     return [];
   }
 
@@ -108,112 +95,31 @@ function validateInheritance(
 }
 
 
-function validateTokenKeys(
-  value: unknown,
-  path: string[] = []
+function validateTokens(
+  theme: ThemeDefinition
 ): ThemeValidationDiagnostic[] {
   if (
-    value === null ||
-    typeof value !== "object"
+    !theme.tokens?.extensions
   ) {
     return [];
   }
 
 
-  const diagnostics: ThemeValidationDiagnostic[] = [];
-
-
-  for (const [
-    key,
-    child,
-  ] of Object.entries(value)) {
-    const nextPath = [
-      ...path,
-      key,
-    ];
-
-
-    if (
-      PRIVATE_TOKEN_PREFIXES.some(
-        (prefix) =>
-          key.startsWith(prefix)
-      )
-    ) {
-      diagnostics.push(
-        createDiagnostic(
-          "error",
-          "theme.tokens.private",
-          "Private tokens cannot be exposed through themes.",
-          nextPath.join(".")
-        )
-      );
-    }
-
-
-    if (
-      INFRASTRUCTURE_TOKEN_PREFIXES.some(
-        (prefix) =>
-          key.startsWith(prefix)
-      )
-    ) {
-      diagnostics.push(
-        createDiagnostic(
-          "warning",
-          "theme.tokens.infrastructure",
-          "Infrastructure tokens are not normal theme customization.",
-          nextPath.join(".")
-        )
-      );
-    }
-
-
-    diagnostics.push(
-      ...validateTokenKeys(
-        child,
-        nextPath
-      )
-    );
-  }
-
-
-  return diagnostics;
-}
-
-
-function validateTokens(
-  theme: ThemeDefinition
-): ThemeValidationDiagnostic[] {
-  if (!theme.tokens) {
-    return [];
-  }
-
-
-  const diagnostics =
-    validateTokenKeys(
-      theme.tokens
-    );
-
-
-  if (theme.tokens.extensions) {
-    diagnostics.push(
-      createDiagnostic(
-        "warning",
-        "theme.tokens.extensions",
-        "Theme contains application extension tokens.",
-        "tokens.extensions"
-      )
-    );
-  }
-
-
-  return diagnostics;
+  return [
+    createDiagnostic(
+      "warning",
+      "theme.tokens.extensions",
+      "Theme contains application extension tokens.",
+      "tokens.extensions"
+    ),
+  ];
 }
 
 
 export function validateThemeDefinition(
   theme: ThemeDefinition
 ): ThemeValidationResult {
-  const diagnostics: ThemeValidationDiagnostic[] = [
+  const diagnostics = [
     ...validateIdentity(theme),
     ...validateSource(theme),
     ...validateTokens(theme),

@@ -13,52 +13,29 @@ export type ThemeColorScheme =
   | "light"
   | "dark";
 
-export interface ThemeMetadata {
+export type CSSFontWeight =
+  | string
+  | number;
 
+export interface ThemeMetadata {
   label?: string;
 
-  /**
-   * Optional theme description.
-   */
   description?: string;
 
-  /**
-   * Optional theme selector icon.
-   */
   icon?: React.ComponentType;
 
-  /**
-   * Browser native color integration hint.
-   */
   colorScheme?: ThemeColorScheme;
 }
 
 export interface ThemeDefinition {
-  /**
-   * Stable public identifier.
-   */
   name: ThemeName;
 
-  /**
-   * Theme origin.
-   */
   source: ThemeSource;
 
-  /**
-   * Optional presentation metadata.
-   */
   metadata?: ThemeMetadata;
 
-  /**
-   * Parent theme identifier.
-   *
-   * Missing values may be resolved from this parent.
-   */
   extends?: ThemeName;
 
-  /**
-   * Semantic token overrides.
-   */
   tokens?: ThemeTokens;
 }
 
@@ -77,9 +54,6 @@ export interface ThemeTokens {
 
   typography?: ThemeTypographyTokens;
 
-  /**
-   * Application-owned semantic extensions.
-   */
   extensions?: Record<string, unknown>;
 }
 
@@ -156,8 +130,8 @@ export interface ThemeTypographyTokens {
   };
 
   fontWeight?: {
-    medium?: number;
-    bold?: number;
+    medium?: CSSFontWeight;
+    bold?: CSSFontWeight;
   };
 }
 
