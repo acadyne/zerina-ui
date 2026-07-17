@@ -1,7 +1,9 @@
-@import "./styles/base.css";
+/* src/styles.css */
+
 @import "./core/motion/motion.css";
 @import "./core/interaction/interaction.css";
 @import "./components/feedback/skeleton.css";
+@import "./styles/base.css";
 
 /* ScrollArea */
 .ui-scrollarea--thin {
