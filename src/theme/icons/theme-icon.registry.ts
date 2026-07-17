@@ -1,5 +1,3 @@
-// src/theme/icons/theme-icon.registry.ts
-
 import {
   Sparkles,
   Sun,
@@ -49,3 +47,11 @@ export const THEME_ICON_REGISTRY:
     palette:
       Palette,
   };
+
+
+export function registerThemeIcon(
+  name: ThemeIconName,
+  icon: LucideIcon
+): void {
+  THEME_ICON_REGISTRY[name] = icon;
+}

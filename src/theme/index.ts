@@ -24,6 +24,9 @@ export {
   validateThemeDefinition,
 } from "./validation/theme-validation";
 
+export {
+  registerThemeIcon,
+} from "./icons";
 
 export {
   BUILT_IN_THEMES,
