@@ -154,14 +154,6 @@ export const MenuItem =
 
         setItemIndex(index);
 
-        console.log(
-          "MENU REGISTER ITEM",
-          {
-            index,
-            text: node.textContent,
-          }
-        );
-
         return () => {
           unregisterItem(node);
         };
@@ -409,17 +401,6 @@ export const MenuItem =
 
       const isFocused =
         ctx.focusedIndex === itemIndex;
-
-
-      console.log(
-        "MENU ITEM STATE",
-        {
-          text: children,
-          itemIndex,
-          focusedIndex: ctx.focusedIndex,
-          isFocused,
-        }
-      );
 
       const itemSlot =
         resolveSlot<MenuSlot>({

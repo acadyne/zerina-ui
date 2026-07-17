@@ -194,11 +194,6 @@ const id =
     (
       event: React.KeyboardEvent<HTMLDivElement>
     ) => {
-      console.log(
-        "MENU LOCAL KEY",
-        event.key,
-        document.activeElement
-      );
 
       if (
         event.key === "ArrowDown"

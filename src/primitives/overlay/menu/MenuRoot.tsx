@@ -164,15 +164,6 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
-        console.log(
-          "MENU FOCUS ITEM",
-          {
-            clamped,
-            focusedIndex,
-            targetText: target.textContent,
-          }
-        );
-
         focusedIndexRef.current =
           clamped;
 
@@ -339,15 +330,6 @@ export const MenuRoot: React.FC<MenuProps> = ({
     [
       open,
     ]
-  );
-
-
-  console.log(
-    "MENU CONTEXT RENDER",
-    {
-      focusedIndex,
-      hasFocusedItem,
-    }
   );
 
   const value =

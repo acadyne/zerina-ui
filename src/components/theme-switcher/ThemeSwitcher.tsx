@@ -117,20 +117,15 @@ export function ThemeSwitcher({
             <MenuItem
               key={item.name}
               onSelect={() => {
-                console.log(
-                  "THEME BEFORE CLOSE",
-                  document.activeElement
-                );
-
                 setTheme(item.name);
                 setOpen(false);
 
-                requestAnimationFrame(() => {
-                  console.log(
-                    "THEME AFTER CLOSE",
-                    document.activeElement
-                  );
-                });
+                // requestAnimationFrame(() => {
+                //   console.log(
+                //     "THEME AFTER CLOSE",
+                //     document.activeElement
+                //   );
+                // });
               }}
               style={{
                 display: "flex",
