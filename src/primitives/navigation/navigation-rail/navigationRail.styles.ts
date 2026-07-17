@@ -21,6 +21,7 @@ import type {
   NavigationRailSlot,
   NavigationRailVariant,
 } from "./navigationRail.types";
+import { getScaffoldLayer } from "../../../patterns/scaffold/scaffoldLayers";
 
 export const NAVIGATION_RAIL_DENSITY_MAP: Record<
   NavigationRailDensity,
@@ -87,7 +88,7 @@ export function getRootPositionStyle({
       bottom: 0,
       left: placement === "left" ? 0 : undefined,
       right: placement === "right" ? 0 : undefined,
-      zIndex: "var(--ui-layer-navigation)",
+      zIndex: getScaffoldLayer("navigation"),
     };
   }
 
@@ -96,7 +97,7 @@ export function getRootPositionStyle({
       position: "sticky",
       top: 0,
       alignSelf: "stretch",
-      zIndex: "var(--ui-layer-navigation)",
+      zIndex: getScaffoldLayer("navigation"),
     };
   }
 

@@ -32,6 +32,7 @@ import type {
 import {
   useUITheme,
 } from "../../theme";
+import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 
 function getInitials(user?: AppShellUserInfo): string {
   if (user?.initials) return user.initials;
@@ -214,7 +215,7 @@ export function AppShellHeader({
         top: 0,
         left: isContained ? 0 : undefined,
         right: isContained ? 0 : undefined,
-        zIndex: "var(--ui-layer-navigation)",
+        zIndex: getScaffoldLayer("navigation"),
         width: "100%",
         height,
         padding: "0.55rem 0.75rem",
