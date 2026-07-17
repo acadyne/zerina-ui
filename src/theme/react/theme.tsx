@@ -76,7 +76,7 @@ export const UIThemeProvider: React.FC<
     );
 
 
-  const [activeTheme, setActiveTheme] =
+  const [theme, setThemeState] =
     React.useState(
       () => system.getActiveTheme()
     );
@@ -84,6 +84,10 @@ export const UIThemeProvider: React.FC<
 
   React.useEffect(() => {
     system.applyTheme();
+
+    setThemeState(
+      system.getActiveTheme()
+    );
   }, [system]);
 
 
@@ -92,7 +96,7 @@ export const UIThemeProvider: React.FC<
       (name: string) => {
         system.setTheme(name);
 
-        setActiveTheme(
+        setThemeState(
           system.getActiveTheme()
         );
       },
@@ -103,43 +107,9 @@ export const UIThemeProvider: React.FC<
   const cycleTheme =
     React.useCallback(
       () => {
-        const themes =
-          system.getThemes();
+        system.cycleTheme();
 
-        if (!themes.length) {
-          return;
-        }
-
-
-        const current =
-          system.getActiveTheme().name;
-
-
-        const currentIndex =
-          themes.findIndex(
-            (theme) =>
-              theme.name === current
-          );
-
-
-        const next =
-          themes[
-            (currentIndex + 1) %
-              themes.length
-          ];
-
-
-        if (!next) {
-          return;
-        }
-
-
-        system.setTheme(
-          next.name
-        );
-
-
-        setActiveTheme(
+        setThemeState(
           system.getActiveTheme()
         );
       },
@@ -150,13 +120,13 @@ export const UIThemeProvider: React.FC<
   const value =
     React.useMemo(
       () => ({
-        theme: activeTheme,
+        theme,
         themes: system.getThemes(),
         setTheme,
         cycleTheme,
       }),
       [
-        activeTheme,
+        theme,
         system,
         setTheme,
         cycleTheme,
