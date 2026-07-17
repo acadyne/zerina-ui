@@ -17,6 +17,7 @@ import {
   SYSTEM_DEFAULT_TOKENS,
 } from "./system-default-tokens";
 
+
 export interface ThemeSystemOptions {
   initialTheme?: string;
 
@@ -142,6 +143,40 @@ export class ThemeSystem {
     this.applyTheme();
 
     this.persistTheme();
+  }
+
+
+  cycleTheme(): void {
+    const themes =
+      this.getThemes();
+
+
+    if (!themes.length) {
+      return;
+    }
+
+
+    const currentIndex =
+      themes.findIndex(
+        (theme) =>
+          theme.name === this.activeThemeName
+      );
+
+
+    const next =
+      themes[
+        (currentIndex + 1) % themes.length
+      ];
+
+
+    if (!next) {
+      return;
+    }
+
+
+    this.setTheme(
+      next.name
+    );
   }
 
 
