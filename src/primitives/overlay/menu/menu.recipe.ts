@@ -130,31 +130,28 @@ export const menuRecipe =
       },
 
 
-      item: {
-        background:
-          !disabled &&
-          (pressed || hovered)
-            ? "var(--ui-surface-hover)"
-            : "transparent",
+ item: {
+  background:
+    !disabled &&
+    (pressed || hovered || focusVisible)
+      ? "var(--ui-surface-hover)"
+      : "transparent",
 
+  cursor:
+    disabled
+      ? "not-allowed"
+      : "pointer",
 
-        cursor:
-          disabled
-            ? "not-allowed"
-            : "pointer",
+  opacity:
+    disabled
+      ? 0.55
+      : 1,
 
-
-        opacity:
-          disabled
-            ? 0.55
-            : 1,
-
-
-        boxShadow:
-          focusVisible
-            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
-            : "none",
-      },
+boxShadow:
+  focusVisible
+    ? "0 0 0 3px var(--ui-primary)"
+    : "none",
+},
     }),
   });
 

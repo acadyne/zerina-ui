@@ -1,5 +1,6 @@
 // src/primitives/overlay/menu/MenuRoot.tsx
 
+
 import React from "react";
 
 import {
@@ -34,6 +35,20 @@ export const MenuRoot: React.FC<MenuProps> = ({
     React.useRef<HTMLElement[]>([]);
 
 
+  const [
+    focusedIndex,
+    setFocusedIndex,
+  ] = React.useState(0);
+
+  const [
+    hasFocusedItem,
+    setHasFocusedItem,
+  ] = React.useState(false);
+
+  const focusedIndexRef =
+    React.useRef(0);
+
+
   const setAnchorNode =
     React.useCallback(
       (
@@ -48,7 +63,10 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const getItems =
     React.useCallback(
       () =>
-        itemsRef.current.filter(Boolean),
+        itemsRef.current.filter(
+          (item) =>
+            item.isConnected
+        ),
       []
     );
 
@@ -57,19 +75,37 @@ export const MenuRoot: React.FC<MenuProps> = ({
     React.useCallback(
       (
         node: HTMLElement | null
-      ) => {
-        if (!node) return;
-
-        if (
-          itemsRef.current.includes(node)
-        ) {
-          return;
+      ): number => {
+        if (!node) {
+          return -1;
         }
 
-        itemsRef.current = [
-          ...itemsRef.current,
-          node,
-        ];
+
+        const existingIndex =
+          itemsRef.current.findIndex(
+            (item) =>
+              item === node
+          );
+
+
+        if (existingIndex >= 0) {
+          return existingIndex;
+        }
+
+
+        itemsRef.current =
+          itemsRef.current.filter(
+            (item) =>
+              item.isConnected
+          );
+
+
+        itemsRef.current.push(node);
+
+
+        return (
+          itemsRef.current.length - 1
+        );
       },
       []
     );
@@ -80,7 +116,9 @@ export const MenuRoot: React.FC<MenuProps> = ({
       (
         node: HTMLElement | null
       ) => {
-        if (!node) return;
+        if (!node) {
+          return;
+        }
 
         itemsRef.current =
           itemsRef.current.filter(
@@ -104,6 +142,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
+
         const clamped =
           Math.max(
             0,
@@ -113,24 +152,46 @@ export const MenuRoot: React.FC<MenuProps> = ({
             )
           );
 
+
         const target =
           items[clamped];
+
 
         if (!target) {
           return;
         }
 
-        target.focus();
+        console.log(
+          "MENU FOCUS ITEM",
+          {
+            clamped,
+            focusedIndex,
+            targetText: target.textContent,
+          }
+        );
+
+        focusedIndexRef.current =
+          clamped;
+
+        setFocusedIndex(
+          clamped
+        );
+
+        setHasFocusedItem(
+          true
+        );
+
+        target.focus({
+          preventScroll: true,
+        });
 
         requestAnimationFrame(() => {
-          if (
-            document.activeElement !== target
-          ) {
-            target.focus();
-          }
+          setFocusedIndex(clamped);
         });
       },
-      [getItems]
+      [
+        getItems,
+      ]
     );
 
 
@@ -139,7 +200,9 @@ export const MenuRoot: React.FC<MenuProps> = ({
       () => {
         focusItemAt(0);
       },
-      [focusItemAt]
+      [
+        focusItemAt,
+      ]
     );
 
 
@@ -153,7 +216,9 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
+
         focusItemAt(
+
           items.length - 1
         );
       },
@@ -174,40 +239,39 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
+
         const active =
           document.activeElement as
           | HTMLElement
           | null;
 
 
-        const index =
+        const currentIndex =
           items.findIndex(
             (item) =>
               item === active
           );
 
-        console.log(
-          "MENU FOCUS NEXT",
-          {
-            items,
-            active: document.activeElement,
-            index,
-          }
-        );
+
+        const baseIndex =
+          currentIndex >= 0
+            ? currentIndex
+            : focusedIndexRef.current;
 
 
         const nextIndex =
-          index < 0
+          baseIndex >= items.length - 1
             ? 0
-            : Math.min(
-              index + 1,
-              items.length - 1
-            );
+            : baseIndex + 1;
 
 
-        items[nextIndex]?.focus();
+        focusItemAt(nextIndex);
       },
-      [getItems]
+      [
+        focusedIndex,
+        focusItemAt,
+        getItems,
+      ]
     );
 
 
@@ -228,46 +292,62 @@ export const MenuRoot: React.FC<MenuProps> = ({
           | null;
 
 
-        const index =
+        const currentIndex =
           items.findIndex(
             (item) =>
               item === active
           );
 
+        const baseIndex =
+          currentIndex >= 0
+            ? currentIndex
+            : focusedIndexRef.current;
+
 
         const prevIndex =
-          index < 0
+          baseIndex <= 0
             ? items.length - 1
-            : Math.max(
-              index - 1,
-              0
-            );
+            : baseIndex - 1;
 
 
-        items[prevIndex]?.focus();
+        focusItemAt(prevIndex);
       },
-      [getItems]
+      [
+        focusItemAt,
+        getItems,
+      ]
     );
 
 
   React.useEffect(
-    
     () => {
       if (!open) {
         itemsRef.current = [];
-        console.log(
-  "MENU CLOSED CLEAR ITEMS"
-);
+
+        setFocusedIndex(0);
+
+        focusedIndexRef.current = 0;
+
+        setHasFocusedItem(false);
       }
     },
-    
-    [open]
+    [
+      open,
+    ]
   );
 
 
-  const value =
-    React.useMemo<MenuContextValue>(
-      () => ({
+console.log(
+  "MENU CONTEXT RENDER",
+  {
+    focusedIndex,
+    hasFocusedItem,
+  }
+);
+
+const value =
+  React.useMemo<MenuContextValue>(
+    () => ({
         open,
 
         triggerId:
@@ -282,9 +362,19 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         onOpenChange,
 
+
         registerItem,
 
         unregisterItem,
+
+
+        focusedIndex,
+
+        setFocusedIndex,
+
+        hasFocusedItem,
+
+        setHasFocusedItem,
 
         focusFirst,
 
@@ -293,6 +383,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
         focusNext,
 
         focusPrev,
+
 
         styles,
 
@@ -303,12 +394,21 @@ export const MenuRoot: React.FC<MenuProps> = ({
         reactId,
         setAnchorNode,
         onOpenChange,
+
         registerItem,
         unregisterItem,
+
+        focusedIndex,
+        setFocusedIndex,
+
+        hasFocusedItem,
+        setHasFocusedItem,
+
         focusFirst,
         focusLast,
         focusNext,
         focusPrev,
+
         styles,
         slotProps,
       ]
@@ -316,11 +416,14 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
   return (
-    <MenuContext.Provider value={value}>
+    <MenuContext.Provider
+      value={value}
+    >
       {children}
     </MenuContext.Provider>
   );
 };
+
 
 MenuRoot.displayName =
   "MenuRoot";

@@ -25,7 +25,6 @@ import {
 } from "./menu.context";
 
 import {
-  DEFAULT_MENU_RECIPE_STYLES,
   menuRecipe,
 } from "./menu.recipe";
 
@@ -73,6 +72,7 @@ export const MenuItem =
       const ctx =
         useMenuContext();
 
+
       const {
         anchorRef,
         onOpenChange,
@@ -80,19 +80,33 @@ export const MenuItem =
         unregisterItem,
       } = ctx;
 
+
       const restoreFocusTimerRef =
-        React.useRef<number | null>(null);
+        React.useRef<number | null>(
+          null
+        );
+
 
       const itemRef =
-        React.useRef<
-          HTMLDivElement | null
-        >(null);
+        React.useRef<HTMLDivElement | null>(
+          null
+        );
+
+
+      const [
+        itemIndex,
+        setItemIndex,
+      ] =
+        React.useState(-1);
+
 
       const resolvedStyles =
         styles ?? ctx.styles;
 
+
       const resolvedSlotProps =
         slotProps ?? ctx.slotProps;
+
 
       const setRefs =
         React.useCallback(
@@ -102,14 +116,21 @@ export const MenuItem =
               | null
           ) => {
             itemRef.current = node;
-            setRef(ref, node);
+
+            setRef(
+              ref,
+              node
+            );
           },
           [ref]
         );
 
+
       React.useEffect(() => {
         return () => {
-          if (restoreFocusTimerRef.current !== null) {
+          if (
+            restoreFocusTimerRef.current !== null
+          ) {
             window.clearTimeout(
               restoreFocusTimerRef.current
             );
@@ -117,17 +138,38 @@ export const MenuItem =
         };
       }, []);
 
+
       React.useEffect(() => {
-        const node = itemRef.current;
+        const node =
+          itemRef.current;
 
-        if (!node) return;
+        if (!node) {
+          return;
+        }
 
-        registerItem(node);
+
+        const index =
+          registerItem(node);
+
+
+        setItemIndex(index);
+
+        console.log(
+          "MENU REGISTER ITEM",
+          {
+            index,
+            text: node.textContent,
+          }
+        );
 
         return () => {
           unregisterItem(node);
         };
-      }, [registerItem, unregisterItem]);
+      }, [
+        registerItem,
+        unregisterItem,
+      ]);
+
 
       const handleSelect =
         React.useCallback(
@@ -135,12 +177,17 @@ export const MenuItem =
             _event:
               UIPressEvent<HTMLElement>
           ) => {
-            if (disabled) return;
+            if (disabled) {
+              return;
+            }
+
 
             onSelect?.();
 
+
             if (closeOnSelect) {
               onOpenChange?.(false);
+
 
               if (
                 restoreFocusTimerRef.current !== null
@@ -150,9 +197,11 @@ export const MenuItem =
                 );
               }
 
+
               restoreFocusTimerRef.current =
                 window.setTimeout(() => {
                   restoreFocusTimerRef.current = null;
+
                   anchorRef.current?.focus?.();
                 }, 0);
             }
@@ -166,10 +215,7 @@ export const MenuItem =
           ]
         );
 
-      /*
-       * El foco por puntero conserva el comportamiento histórico del menú,
-       * mientras usePress sigue siendo la única fuente del estado hovered.
-       */
+
       const focusOnPointerEnter =
         React.useCallback(
           (
@@ -183,17 +229,13 @@ export const MenuItem =
           [disabled]
         );
 
+
       const preliminarySlot =
         resolveSlot<MenuSlot>({
           slot: "item",
 
-          styles:
-            resolvedStyles,
-
-          slotProps:
-            resolvedSlotProps,
-
           className,
+
           style,
 
           baseProps: {
@@ -209,10 +251,10 @@ export const MenuItem =
               "",
           },
 
-          baseStyle:
-            DEFAULT_MENU_RECIPE_STYLES
-              .item,
+        baseStyle:
+          undefined,
         });
+
 
       const {
         onPointerEnter:
@@ -249,13 +291,19 @@ export const MenuItem =
         slotOnClick,
 
         ...preliminarySlotRest
-      } = preliminarySlot as SlotElementProps;
+      } =
+        preliminarySlot as SlotElementProps;
+
 
       const press =
         usePress<HTMLDivElement>({
           disabled,
+
           nativeInteractive: false,
-          onPress: handleSelect,
+
+          onPress:
+            handleSelect,
+
 
           onPointerEnter:
             composeEventHandlers(
@@ -270,6 +318,7 @@ export const MenuItem =
               }
             ),
 
+
           onPointerLeave:
             composeEventHandlers(
               onPointerLeave,
@@ -280,11 +329,13 @@ export const MenuItem =
               }
             ),
 
+
           onPointerDown:
             composeEventHandlers(
               onPointerDown,
               slotOnPointerDown
             ),
+
 
           onPointerUp:
             composeEventHandlers(
@@ -296,6 +347,7 @@ export const MenuItem =
               }
             ),
 
+
           onPointerCancel:
             composeEventHandlers(
               onPointerCancel,
@@ -305,6 +357,7 @@ export const MenuItem =
                   false,
               }
             ),
+
 
           onLostPointerCapture:
             composeEventHandlers(
@@ -316,11 +369,13 @@ export const MenuItem =
               }
             ),
 
+
           onFocus:
             composeEventHandlers(
               onFocus,
               slotOnFocus
             ),
+
 
           onBlur:
             composeEventHandlers(
@@ -332,11 +387,13 @@ export const MenuItem =
               }
             ),
 
+
           onKeyDown:
             composeEventHandlers(
               onKeyDown,
               slotOnKeyDown
             ),
+
 
           onKeyUp:
             composeEventHandlers(
@@ -344,9 +401,25 @@ export const MenuItem =
               slotOnKeyUp
             ),
 
+
           onClick:
             slotOnClick,
         });
+
+
+      const isFocused =
+        ctx.focusedIndex === itemIndex;
+
+
+      console.log(
+        "MENU ITEM STATE",
+        {
+          text: children,
+          itemIndex,
+          focusedIndex: ctx.focusedIndex,
+          isFocused,
+        }
+      );
 
       const itemSlot =
         resolveSlot<MenuSlot>({
@@ -382,11 +455,11 @@ export const MenuItem =
               undefined,
 
             "data-focused":
-              press.state.focused ||
+              isFocused ||
               undefined,
 
             "data-focus-visible":
-              press.state.focusVisible ||
+              isFocused ||
               undefined,
 
             "data-disabled":
@@ -403,11 +476,12 @@ export const MenuItem =
                 press.state.pressed,
 
               focusVisible:
-                press.state.focusVisible,
+                isFocused,
 
               disabled,
             }).item,
         });
+
 
       return (
         <div
@@ -421,6 +495,7 @@ export const MenuItem =
       );
     }
   );
+
 
 MenuItem.displayName =
   "MenuItem";

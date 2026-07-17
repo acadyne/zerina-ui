@@ -16,33 +16,46 @@ export interface MenuContextValue {
   contentId: string;
 
   anchorRef:
-    React.RefObject<HTMLElement | null>;
+  React.RefObject<HTMLElement | null>;
 
   setAnchorNode:
-    (node: HTMLElement | null) => void;
+  (node: HTMLElement | null) => void;
 
   onOpenChange?:
-    (open: boolean) => void;
+  (open: boolean) => void;
 
 
   registerItem:
-    (node: HTMLElement | null) => void;
+  (node: HTMLElement | null) => number;
 
   unregisterItem:
-    (node: HTMLElement | null) => void;
+  (node: HTMLElement | null) => void;
 
+
+  focusedIndex:
+  number;
+
+  setFocusedIndex:
+  (index: number) => void;
+
+
+  hasFocusedItem:
+  boolean;
+
+  setHasFocusedItem:
+  (value: boolean) => void;
 
   focusFirst:
-    () => void;
+  () => void;
 
   focusLast:
-    () => void;
+  () => void;
 
   focusNext:
-    () => void;
+  () => void;
 
   focusPrev:
-    () => void;
+  () => void;
 
 
   styles?: MenuStyles;

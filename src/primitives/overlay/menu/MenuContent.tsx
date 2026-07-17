@@ -135,23 +135,31 @@ export const MenuContent =
       }, []);
 
 
-      React.useEffect(() => {
-        if (!open) {
-          return;
-        }
+  React.useEffect(() => {
+  if (!open) {
+    return;
+  }
 
-        const id =
-          window.setTimeout(() => {
-            focusFirst();
-          }, 0);
 
-        return () => {
-          window.clearTimeout(id);
-        };
-      }, [
-        focusFirst,
-        open,
-      ]);
+  if (ctx.hasFocusedItem) {
+    return;
+  }
+
+
+  const id =
+    window.setTimeout(() => {
+      focusFirst();
+    }, 0);
+
+
+  return () => {
+    window.clearTimeout(id);
+  };
+}, [
+  ctx.hasFocusedItem,
+  focusFirst,
+  open,
+]);
 
 
       const handleDismiss =
@@ -181,60 +189,65 @@ export const MenuContent =
         );
 
 
-      const handleKeyDown =
-        React.useCallback(
-          (
-            event: React.KeyboardEvent<HTMLDivElement>
-          ) => {
-            if (
-              event.key === "ArrowDown"
-            ) {
-              event.preventDefault();
+   const handleKeyDown =
+  React.useCallback(
+    (
+      event: React.KeyboardEvent<HTMLDivElement>
+    ) => {
+      console.log(
+        "MENU LOCAL KEY",
+        event.key,
+        document.activeElement
+      );
 
-              focusNext();
+      if (
+        event.key === "ArrowDown"
+      ) {
+        event.preventDefault();
 
-              return;
-            }
+        focusNext();
 
-
-            if (
-              event.key === "ArrowUp"
-            ) {
-              event.preventDefault();
-
-              focusPrev();
-
-              return;
-            }
+        return;
+      }
 
 
-            if (
-              event.key === "Home"
-            ) {
-              event.preventDefault();
+      if (
+        event.key === "ArrowUp"
+      ) {
+        event.preventDefault();
 
-              focusFirst();
+        focusPrev();
 
-              return;
-            }
+        return;
+      }
 
 
-            if (
-              event.key === "End"
-            ) {
-              event.preventDefault();
+      if (
+        event.key === "Home"
+      ) {
+        event.preventDefault();
 
-              focusLast();
-            }
-          },
-          [
-            focusFirst,
-            focusLast,
-            focusNext,
-            focusPrev,
-          ]
-        );
+        focusFirst();
 
+        return;
+      }
+
+
+      if (
+        event.key === "End"
+      ) {
+        event.preventDefault();
+
+        focusLast();
+      }
+    },
+    [
+      focusFirst,
+      focusLast,
+      focusNext,
+      focusPrev,
+    ]
+  );
 
       const variants =
         motionState.getVariants(
