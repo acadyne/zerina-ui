@@ -72,6 +72,29 @@ function validateSource(
   ];
 }
 
+function validateMetadata(
+  theme: ThemeDefinition
+): ThemeValidationDiagnostic[] {
+  const icon =
+    theme.metadata?.icon;
+
+  if (
+    icon === undefined ||
+    icon.trim().length > 0
+  ) {
+    return [];
+  }
+
+  return [
+    createDiagnostic(
+      "error",
+      "theme.metadata.icon.empty",
+      "Theme icon name cannot be empty.",
+      "metadata.icon"
+    ),
+  ];
+}
+
 
 function validateInheritance(
   theme: ThemeDefinition
@@ -124,6 +147,7 @@ export function validateThemeDefinition(
     ...validateSource(theme),
     ...validateTokens(theme),
     ...validateInheritance(theme),
+    ...validateMetadata(theme),
   ];
 
 
