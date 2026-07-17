@@ -12,13 +12,14 @@ import {
 
 import type {
   ThemeDefinition,
+  ThemeName,
 } from "../contracts/theme.types";
 
 
 export interface UIThemeProviderProps {
   children: React.ReactNode;
 
-  initialTheme?: string;
+  initialTheme?: ThemeName;
 
   persist?: boolean;
 
@@ -34,7 +35,7 @@ interface UIThemeContextValue {
   themes: ThemeDefinition[];
 
   setTheme(
-    name: string
+    name: ThemeName
   ): void;
 
   cycleTheme(): void;
@@ -78,7 +79,7 @@ export const UIThemeProvider: React.FC<
 
 
   const [theme, setThemeState] =
-    React.useState(
+    React.useState<ThemeDefinition>(
       () =>
         system.getActiveTheme()
     );
@@ -95,7 +96,7 @@ export const UIThemeProvider: React.FC<
 
   const setTheme =
     React.useCallback(
-      (name: string) => {
+      (name: ThemeName) => {
         system.setTheme(name);
 
         setThemeState(
@@ -123,8 +124,12 @@ export const UIThemeProvider: React.FC<
     React.useMemo(
       () => ({
         theme,
-        themes: system.getThemes(),
+
+        themes:
+          system.getThemes(),
+
         setTheme,
+
         cycleTheme,
       }),
       [
