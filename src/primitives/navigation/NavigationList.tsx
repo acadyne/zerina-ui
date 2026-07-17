@@ -18,9 +18,9 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  type MenuContentProps,
 } from "../overlay";
 import { Typography } from "../typography";
+import { MenuContentProps } from "../overlay/menu/menu.types";
 
 export interface NavigationItemDef {
   id: string;
