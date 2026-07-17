@@ -20,3 +20,19 @@ export function getScaffoldLayer(
 ): number {
   return SCAFFOLD_LAYERS[layer];
 }
+
+
+export const SCAFFOLD_LOCAL_LAYERS = {
+  floating: SCAFFOLD_LAYERS.floating,
+} as const;
+
+
+export type ScaffoldLocalLayerName =
+  keyof typeof SCAFFOLD_LOCAL_LAYERS;
+
+
+export function getScaffoldLocalZIndex(
+  layer: ScaffoldLocalLayerName
+): number {
+  return SCAFFOLD_LOCAL_LAYERS[layer];
+}
