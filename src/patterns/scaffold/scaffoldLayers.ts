@@ -1,14 +1,22 @@
 // src/patterns/scaffold/scaffoldLayers.ts
 
-export const SCAFFOLD_LOCAL_LAYERS = {
+export const SCAFFOLD_LAYERS = {
+  sidebar: 1000,
+
+  navigation: 1300,
+
+  navigationMobile: 1400,
+
   floating: 30,
 } as const;
 
-export type ScaffoldLocalLayerName =
-  keyof typeof SCAFFOLD_LOCAL_LAYERS;
 
-export function getScaffoldLocalZIndex(
-  layer: ScaffoldLocalLayerName
+export type ScaffoldLayerName =
+  keyof typeof SCAFFOLD_LAYERS;
+
+
+export function getScaffoldLayer(
+  layer: ScaffoldLayerName
 ): number {
-  return SCAFFOLD_LOCAL_LAYERS[layer];
+  return SCAFFOLD_LAYERS[layer];
 }
