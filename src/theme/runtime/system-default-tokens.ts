@@ -60,6 +60,13 @@ export const BASE_DARK_TOKENS: ThemeTokens = {
     sm: "0 4px 12px rgba(0,0,0,0.12)",
     md: "0 10px 28px rgba(0,0,0,0.22)",
     lg: "0 18px 48px rgba(0,0,0,0.35)",
+
+    control: "0 1px 3px rgba(0,0,0,0.25)",
+
+    action: "0 6px 14px rgba(0,0,0,0.14)",
+    actionHover: "0 8px 18px rgba(0,0,0,0.18)",
+    actionSubtleHover: "0 4px 12px rgba(0,0,0,0.08)",
+    actionOutlineHover: "0 4px 12px rgba(0,0,0,0.1)",
   },
 
   typography: {
