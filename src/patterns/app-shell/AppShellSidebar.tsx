@@ -16,6 +16,7 @@ import {
   isAppShellRouteActive,
   isAppShellRouteSelectable,
 } from "./AppShellRouteUtils";
+import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 
 export interface AppShellSidebarProps {
   viewport?: AppShellViewport;
@@ -196,7 +197,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
         height: isContained
           ? `calc(100% - ${resolvedHeaderHeight})`
           : `calc(100dvh - ${resolvedHeaderHeight})`,
-        zIndex: "var(--ui-layer-sidebar)",
+        zIndex: getScaffoldLayer("sidebar"),
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",

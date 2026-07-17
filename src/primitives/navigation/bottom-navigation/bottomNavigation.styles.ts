@@ -18,6 +18,7 @@ import type {
   BottomNavigationSlot,
   BottomNavigationVariant,
 } from "./bottomNavigation.types";
+import { getScaffoldLayer } from "../../../patterns/scaffold/scaffoldLayers";
 
 export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
   BottomNavigationDensity,
@@ -73,7 +74,7 @@ export function getRootPositionStyle(
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: "var(--ui-layer-navigation-mobile)",
+      zIndex: getScaffoldLayer("navigationMobile"),
     };
   }
 
@@ -83,7 +84,7 @@ export function getRootPositionStyle(
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: "var(--ui-layer-navigation-mobile)",
+      zIndex: getScaffoldLayer("navigationMobile"),
     };
   }
 

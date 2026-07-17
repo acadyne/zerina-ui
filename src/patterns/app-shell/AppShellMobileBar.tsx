@@ -15,6 +15,7 @@ import {
   isAppShellRouteActive,
   isAppShellRouteSelectable,
 } from "./AppShellRouteUtils";
+import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 
 export interface AppShellMobileBarProps {
   viewport?: AppShellViewport;
@@ -347,7 +348,7 @@ export function AppShellMobileBar({
         right: 0,
         bottom: 0,
 
-        zIndex: "var(--ui-layer-navigation-mobile)",
+        zIndex: getScaffoldLayer("navigationMobile"),
 
         ...style,
       }}
