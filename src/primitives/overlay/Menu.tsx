@@ -2,14 +2,12 @@
 import React from "react";
 import {
   motion,
-  type HTMLMotionProps,
 } from "framer-motion";
 import {
   DismissableLayer,
   FloatingLayer,
   Portal,
   getLayerZIndex,
-  type FloatingPlacement,
 } from "../../core/overlay";
 import {
   usePress,
@@ -26,21 +24,26 @@ import {
   resolveSlot,
   toMotionSlotProps,
   type SlotElementProps,
-  type SlotPropsMap,
-  type SlotStyleMap,
 } from "../../helpers/css";
-
-export type MenuSlot =
-  | "trigger"
-  | "dismissableLayer"
-  | "content"
-  | "item"
-  | "separator"
-  | "label";
-
-export type MenuStyles = SlotStyleMap<MenuSlot>;
-
-export type MenuSlotProps = SlotPropsMap<MenuSlot>;
+import {
+  getFloatingSide,
+  getMenuTransformOrigin,
+} from "./menu/menu.utils";
+import type {
+  MenuProps,
+  MenuTriggerProps,
+  MenuContentProps,
+  MenuItemProps,
+  MenuSeparatorProps,
+  MenuLabelProps,
+  MenuSlot,
+} from "./menu/menu.types";
+import {
+  MenuContext,
+  type MenuContextValue,
+  useMenuContext,
+  useOptionalMenuContext,
+} from "./menu/menu.context";
 
 
 type MenuRecipeVariants =
@@ -137,97 +140,6 @@ const menuRecipe = defineSlotRecipe<
 const DEFAULT_MENU_RECIPE_STYLES =
   menuRecipe({});
 
-type MenuContextValue = {
-  open: boolean;
-  triggerId: string;
-  contentId: string;
-  anchorRef: React.RefObject<HTMLElement | null>;
-  setAnchorNode: (node: HTMLElement | null) => void;
-  onOpenChange?: (open: boolean) => void;
-
-  registerItem: (node: HTMLElement | null) => void;
-  unregisterItem: (node: HTMLElement | null) => void;
-
-  focusFirst: () => void;
-  focusLast: () => void;
-  focusNext: () => void;
-  focusPrev: () => void;
-
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-};
-
-const MenuContext = React.createContext<MenuContextValue | null>(null);
-
-function useMenuContext() {
-  const ctx = React.useContext(MenuContext);
-
-  if (!ctx) {
-    throw new Error("Menu subcomponents must be used inside <Menu />");
-  }
-
-  return ctx;
-}
-
-function useOptionalMenuContext() {
-  return React.useContext(MenuContext);
-}
-
-function getFloatingSide(
-  placement: FloatingPlacement
-): "top" | "bottom" | "left" | "right" {
-  return placement.split("-")[0] as
-    | "top"
-    | "bottom"
-    | "left"
-    | "right";
-}
-
-function getMenuTransformOrigin(
-  placement: FloatingPlacement
-): React.CSSProperties["transformOrigin"] {
-  switch (placement) {
-    case "top":
-      return "bottom center";
-
-    case "top-start":
-      return "bottom left";
-
-    case "top-end":
-      return "bottom right";
-
-    case "bottom":
-      return "top center";
-
-    case "bottom-start":
-      return "top left";
-
-    case "bottom-end":
-      return "top right";
-
-    case "left":
-      return "center right";
-
-    case "left-start":
-      return "top right";
-
-    case "left-end":
-      return "bottom right";
-
-    case "right":
-      return "center left";
-
-    case "right-start":
-      return "top left";
-
-    case "right-end":
-      return "bottom left";
-
-    default:
-      return "top left";
-  }
-}
-
 type TriggerChildProps = {
   onClick?: React.MouseEventHandler<HTMLElement>;
 
@@ -245,15 +157,6 @@ type TriggerChildProps = {
   "aria-expanded"?: boolean;
   "aria-controls"?: string;
 };
-
-export interface MenuProps {
-  children?: React.ReactNode;
-  open: boolean;
-  onOpenChange?: (open: boolean) => void;
-
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
 
 export const Menu: React.FC<MenuProps> = ({
   children,
@@ -374,16 +277,6 @@ export const Menu: React.FC<MenuProps> = ({
 };
 
 Menu.displayName = "Menu";
-
-export interface MenuTriggerProps {
-  children: React.ReactElement<TriggerChildProps>;
-  asChild?: boolean;
-
-  className?: string;
-  style?: React.CSSProperties;
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
 
 export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
   (
@@ -561,39 +454,6 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
 );
 
 MenuTrigger.displayName = "MenuTrigger";
-
-export interface MenuContentProps
-  extends Omit<
-    HTMLMotionProps<"div">,
-    | "children"
-    | "ref"
-    | "style"
-    | "className"
-    | "initial"
-    | "animate"
-    | "exit"
-    | "variants"
-    | "transition"
-    | "custom"
-  > {
-  children?: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-
-  portalled?: boolean;
-  container?: Element | DocumentFragment | null;
-  placement?: FloatingPlacement;
-  offset?: number;
-  flip?: boolean;
-  shift?: boolean;
-  viewportPadding?: number;
-  closeOnEscape?: boolean;
-  closeOnPointerDownOutside?: boolean;
-  matchAnchorWidth?: boolean;
-
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
 
 export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
   (
@@ -876,20 +736,6 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
 );
 
 MenuContent.displayName = "MenuContent";
-
-export interface MenuItemProps
-  extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    "onClick"
-  > {
-  children?: React.ReactNode;
-  disabled?: boolean;
-  closeOnSelect?: boolean;
-  onSelect?: () => void;
-
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
 
 export const MenuItem =
   React.forwardRef<
@@ -1281,10 +1127,7 @@ export const MenuItem =
 MenuItem.displayName =
   "MenuItem";
 
-export interface MenuSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
+
 
 export const MenuSeparator = React.forwardRef<HTMLDivElement, MenuSeparatorProps>(
   (
@@ -1316,11 +1159,6 @@ export const MenuSeparator = React.forwardRef<HTMLDivElement, MenuSeparatorProps
 
 MenuSeparator.displayName = "MenuSeparator";
 
-export interface MenuLabelProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
-  styles?: MenuStyles;
-  slotProps?: MenuSlotProps;
-}
 
 export const MenuLabel = React.forwardRef<HTMLDivElement, MenuLabelProps>(
   (
