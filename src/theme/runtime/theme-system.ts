@@ -13,6 +13,9 @@ import {
   resolveThemeTokens,
 } from "./resolve-theme-tokens";
 
+import {
+  SYSTEM_DEFAULT_TOKENS,
+} from "./system-default-tokens";
 
 export interface ThemeSystemOptions {
   initialTheme?: string;
@@ -164,6 +167,7 @@ export class ThemeSystem {
       tokens: resolveThemeTokens({
         theme,
         themes: this.themes,
+        defaults: SYSTEM_DEFAULT_TOKENS,
       }),
     };
   }
