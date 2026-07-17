@@ -113,7 +113,22 @@ export const MenuRoot: React.FC<MenuProps> = ({
             )
           );
 
-        items[clamped]?.focus();
+        const target =
+          items[clamped];
+
+        if (!target) {
+          return;
+        }
+
+        target.focus();
+
+        requestAnimationFrame(() => {
+          if (
+            document.activeElement !== target
+          ) {
+            target.focus();
+          }
+        });
       },
       [getItems]
     );
@@ -161,8 +176,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         const active =
           document.activeElement as
-            | HTMLElement
-            | null;
+          | HTMLElement
+          | null;
 
 
         const index =
@@ -171,14 +186,23 @@ export const MenuRoot: React.FC<MenuProps> = ({
               item === active
           );
 
+        console.log(
+          "MENU FOCUS NEXT",
+          {
+            items,
+            active: document.activeElement,
+            index,
+          }
+        );
+
 
         const nextIndex =
           index < 0
             ? 0
             : Math.min(
-                index + 1,
-                items.length - 1
-              );
+              index + 1,
+              items.length - 1
+            );
 
 
         items[nextIndex]?.focus();
@@ -200,8 +224,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         const active =
           document.activeElement as
-            | HTMLElement
-            | null;
+          | HTMLElement
+          | null;
 
 
         const index =
@@ -215,9 +239,9 @@ export const MenuRoot: React.FC<MenuProps> = ({
           index < 0
             ? items.length - 1
             : Math.max(
-                index - 1,
-                0
-              );
+              index - 1,
+              0
+            );
 
 
         items[prevIndex]?.focus();
@@ -227,11 +251,16 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
   React.useEffect(
+    
     () => {
       if (!open) {
         itemsRef.current = [];
+        console.log(
+  "MENU CLOSED CLEAR ITEMS"
+);
       }
     },
+    
     [open]
   );
 

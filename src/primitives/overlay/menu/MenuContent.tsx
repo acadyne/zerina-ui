@@ -38,9 +38,6 @@ import {
 
 import {
   menuRecipe,
-} from "./menu.recipe";
-
-import {
   DEFAULT_MENU_RECIPE_STYLES,
 } from "./menu.recipe";
 
@@ -50,285 +47,414 @@ import type {
 } from "./menu.types";
 
 
-
-export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
-  (
-    {
-      children,
-      style,
-      className = "",
-      portalled = true,
-      container,
-      placement = "bottom-start",
-      offset = 8,
-      flip = true,
-      shift = true,
-      viewportPadding = 8,
-      closeOnEscape = true,
-      closeOnPointerDownOutside = true,
-      matchAnchorWidth = false,
-      styles,
-      slotProps,
-      ...rest
-    },
-    ref
-  ) => {
-    const ctx = useMenuContext();
-    const motionState = useOptionalUIMotion();
-    const contentRef = React.useRef<HTMLDivElement | null>(null);
-
-    const restoreFocusTimerRef =
-      React.useRef<number | null>(null);
-
-    const {
-      anchorRef,
-      focusFirst,
-      focusLast,
-      focusNext,
-      focusPrev,
-      onOpenChange,
-      open,
-    } = ctx;
-
-    const resolvedStyles = styles ?? ctx.styles;
-    const resolvedSlotProps = slotProps ?? ctx.slotProps;
-
-    const setRefs = React.useCallback(
-      (node: HTMLDivElement | null) => {
-        contentRef.current = node;
-        setRef(ref, node);
+export const MenuContent =
+  React.forwardRef<HTMLDivElement, MenuContentProps>(
+    (
+      {
+        children,
+        style,
+        className = "",
+        portalled = true,
+        container,
+        placement = "bottom-start",
+        offset = 8,
+        flip = true,
+        shift = true,
+        viewportPadding = 8,
+        closeOnEscape = true,
+        closeOnPointerDownOutside = true,
+        matchAnchorWidth = false,
+        styles,
+        slotProps,
+        ...rest
       },
-      [ref]
-    );
+      ref
+    ) => {
+      const ctx =
+        useMenuContext();
 
-    React.useEffect(() => {
-      return () => {
-        if (restoreFocusTimerRef.current !== null) {
-          window.clearTimeout(
-            restoreFocusTimerRef.current
-          );
-        }
-      };
-    }, []);
+      const motionState =
+        useOptionalUIMotion();
 
-    const handleDismiss = React.useCallback(() => {
-      onOpenChange?.(false);
-
-      if (restoreFocusTimerRef.current !== null) {
-        window.clearTimeout(
-          restoreFocusTimerRef.current
+      const contentRef =
+        React.useRef<HTMLDivElement | null>(
+          null
         );
-      }
 
-      restoreFocusTimerRef.current =
-        window.setTimeout(() => {
-          restoreFocusTimerRef.current = null;
-          anchorRef.current?.focus?.();
-        }, 0);
-    }, [anchorRef, onOpenChange]);
+      const restoreFocusTimerRef =
+        React.useRef<number | null>(
+          null
+        );
 
-    React.useEffect(() => {
-      if (!open) return;
 
-      const handleKeyDown = (event: KeyboardEvent) => {
-        const containerNode = contentRef.current;
-        const active = document.activeElement as Node | null;
+      const {
+        anchorRef,
+        focusFirst,
+        focusLast,
+        focusNext,
+        focusPrev,
+        onOpenChange,
+        open,
+      } = ctx;
 
-        if (
-          !containerNode ||
-          !active ||
-          !containerNode.contains(active)
-        ) {
-          return;
-        }
 
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          focusNext();
-          return;
-        }
+      const resolvedStyles =
+        styles ?? ctx.styles;
 
-        if (event.key === "ArrowUp") {
-          event.preventDefault();
-          focusPrev();
-          return;
-        }
+      const resolvedSlotProps =
+        slotProps ?? ctx.slotProps;
 
-        if (event.key === "Home") {
-          event.preventDefault();
-          focusFirst();
-          return;
-        }
 
-        if (event.key === "End") {
-          event.preventDefault();
-          focusLast();
-        }
-      };
+      const setRefs =
+        React.useCallback(
+          (
+            node: HTMLDivElement | null
+          ) => {
+            contentRef.current =
+              node;
 
-      document.addEventListener("keydown", handleKeyDown);
-
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-      };
-    }, [
-      focusFirst,
-      focusLast,
-      focusNext,
-      focusPrev,
-      open,
-    ]);
-
-    React.useEffect(() => {
-      if (!open) return;
-
-      const id = window.setTimeout(() => {
-        const active =
-          document.activeElement;
-
-        if (
-          active === anchorRef.current
-        ) {
-          focusFirst();
-        }
-      }, 0);
-
-      return () => {
-        window.clearTimeout(id);
-      };
-    }, [
-      anchorRef,
-      focusFirst,
-      open,
-    ]);
-
-    const variants = motionState.getVariants("menu", motionState.effectiveLevel);
-    const transition = motionState.getTransition(
-      motionState.effectiveLevel,
-      "slide"
-    );
-
-    const content =
-      ctx.open && ctx.anchorRef.current ? (
-        <FloatingLayer
-          anchorRef={ctx.anchorRef}
-          open={ctx.open}
-          placement={placement}
-          offset={offset}
-          flip={flip}
-          shift={shift}
-          viewportPadding={viewportPadding}
-          zIndex={getLayerZIndex("dropdown")}
-          strategy="fixed"
-          matchAnchorWidth={matchAnchorWidth}
-        >
-          {({
-            ref: floatingRef,
-            style: floatingStyle,
-            placement: resolvedPlacement,
-          }) => {
-            const side = getFloatingSide(
-              resolvedPlacement
+            setRef(
+              ref,
+              node
             );
+          },
+          [ref]
+        );
 
-            const dismissableLayerSlot =
-              resolveSlot<MenuSlot>({
-                slot: "dismissableLayer",
-                styles: resolvedStyles,
-                slotProps: resolvedSlotProps,
-                baseProps: {
-                  "data-ui-menu-dismissable-layer": "",
-                  "data-side": side,
-                  "data-placement": resolvedPlacement,
-                },
-                baseStyle: {
-                  ...floatingStyle,
-                  zIndex:
-                    getLayerZIndex("dropdown"),
-                },
-              });
 
-            const contentSlot =
-              resolveSlot<MenuSlot>({
-                slot: "content",
-                styles: resolvedStyles,
-                slotProps: resolvedSlotProps,
-                className,
-                style,
-                baseProps: {
-                  "data-ui-menu-content": "",
-                  "data-side": side,
-                  "data-placement":
-                    resolvedPlacement,
-                },
-                baseStyle: menuRecipe({
-                  transformOrigin:
-                    getMenuTransformOrigin(
-                      resolvedPlacement
-                    ),
-                }).content,
-              });
+      React.useEffect(() => {
+        return () => {
+          if (
+            restoreFocusTimerRef.current !== null
+          ) {
+            window.clearTimeout(
+              restoreFocusTimerRef.current
+            );
+          }
+        };
+      }, []);
 
-            return (
-              <DismissableLayer
-                overlayId={ctx.contentId}
-                layer={
-                  getLayerZIndex("dropdown")
-                }
-                enabled={ctx.open}
-                dismissOnEscape={closeOnEscape}
-                dismissOnPointerDownOutside={
-                  closeOnPointerDownOutside
-                }
-                onDismiss={handleDismiss}
-                className={
-                  dismissableLayerSlot.className
-                }
-                style={
-                  dismissableLayerSlot.style
-                }
-              >
-                <motion.div
-                  {...rest}
-                  {...toMotionSlotProps(
-                    contentSlot
-                  )}
-                  ref={(node) => {
-                    setRef(
-                      floatingRef,
-                      node
-                    );
 
-                    setRefs(node);
-                  }}
-                  id={ctx.contentId}
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby={
-                    ctx.triggerId
+      React.useEffect(() => {
+        if (!open) {
+          return;
+        }
+
+        const id =
+          window.setTimeout(() => {
+            focusFirst();
+          }, 0);
+
+        return () => {
+          window.clearTimeout(id);
+        };
+      }, [
+        focusFirst,
+        open,
+      ]);
+
+
+      const handleDismiss =
+        React.useCallback(
+          () => {
+            onOpenChange?.(false);
+
+            if (
+              restoreFocusTimerRef.current !== null
+            ) {
+              window.clearTimeout(
+                restoreFocusTimerRef.current
+              );
+            }
+
+            restoreFocusTimerRef.current =
+              window.setTimeout(() => {
+                restoreFocusTimerRef.current = null;
+
+                anchorRef.current?.focus?.();
+              }, 0);
+          },
+          [
+            anchorRef,
+            onOpenChange,
+          ]
+        );
+
+
+      const handleKeyDown =
+        React.useCallback(
+          (
+            event: React.KeyboardEvent<HTMLDivElement>
+          ) => {
+            if (
+              event.key === "ArrowDown"
+            ) {
+              event.preventDefault();
+
+              focusNext();
+
+              return;
+            }
+
+
+            if (
+              event.key === "ArrowUp"
+            ) {
+              event.preventDefault();
+
+              focusPrev();
+
+              return;
+            }
+
+
+            if (
+              event.key === "Home"
+            ) {
+              event.preventDefault();
+
+              focusFirst();
+
+              return;
+            }
+
+
+            if (
+              event.key === "End"
+            ) {
+              event.preventDefault();
+
+              focusLast();
+            }
+          },
+          [
+            focusFirst,
+            focusLast,
+            focusNext,
+            focusPrev,
+          ]
+        );
+
+
+      const variants =
+        motionState.getVariants(
+          "menu",
+          motionState.effectiveLevel
+        );
+
+
+      const transition =
+        motionState.getTransition(
+          motionState.effectiveLevel,
+          "slide"
+        );
+
+
+      const content =
+        ctx.open &&
+        ctx.anchorRef.current ? (
+          <FloatingLayer
+            anchorRef={
+              ctx.anchorRef
+            }
+            open={
+              ctx.open
+            }
+            placement={
+              placement
+            }
+            offset={
+              offset
+            }
+            flip={
+              flip
+            }
+            shift={
+              shift
+            }
+            viewportPadding={
+              viewportPadding
+            }
+            zIndex={
+              getLayerZIndex(
+                "dropdown"
+              )
+            }
+            strategy="fixed"
+            matchAnchorWidth={
+              matchAnchorWidth
+            }
+          >
+            {({
+              ref: floatingRef,
+              style: floatingStyle,
+              placement: resolvedPlacement,
+            }) => {
+              const side =
+                getFloatingSide(
+                  resolvedPlacement
+                );
+
+
+              const dismissableLayerSlot =
+                resolveSlot<MenuSlot>({
+                  slot:
+                    "dismissableLayer",
+
+                  styles:
+                    resolvedStyles,
+
+                  slotProps:
+                    resolvedSlotProps,
+
+                  baseProps: {
+                    "data-ui-menu-dismissable-layer":
+                      "",
+
+                    "data-side":
+                      side,
+
+                    "data-placement":
+                      resolvedPlacement,
+                  },
+
+                  baseStyle: {
+                    ...floatingStyle,
+
+                    zIndex:
+                      getLayerZIndex(
+                        "dropdown"
+                      ),
+                  },
+                });
+
+
+              const contentSlot =
+                resolveSlot<MenuSlot>({
+                  slot:
+                    "content",
+
+                  styles:
+                    resolvedStyles,
+
+                  slotProps:
+                    resolvedSlotProps,
+
+                  className,
+
+                  style,
+
+                  baseProps: {
+                    "data-ui-menu-content":
+                      "",
+
+                    "data-side":
+                      side,
+
+                    "data-placement":
+                      resolvedPlacement,
+                  },
+
+                  baseStyle:
+                    menuRecipe({
+                      transformOrigin:
+                        getMenuTransformOrigin(
+                          resolvedPlacement
+                        ),
+                    }).content,
+                });
+
+
+              return (
+                <DismissableLayer
+                  overlayId={
+                    ctx.contentId
                   }
-                  variants={variants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={transition}
+                  layer={
+                    getLayerZIndex(
+                      "dropdown"
+                    )
+                  }
+                  enabled={
+                    ctx.open
+                  }
+                  dismissOnEscape={
+                    closeOnEscape
+                  }
+                  dismissOnPointerDownOutside={
+                    closeOnPointerDownOutside
+                  }
+                  onDismiss={
+                    handleDismiss
+                  }
+                  className={
+                    dismissableLayerSlot.className
+                  }
+                  style={
+                    dismissableLayerSlot.style
+                  }
                 >
-                  {children}
-                </motion.div>
-              </DismissableLayer>
-            );
-          }}
-        </FloatingLayer>
-      ) : null;
+                  <motion.div
+                    {...rest}
+                    {...toMotionSlotProps(
+                      contentSlot
+                    )}
+                    ref={(node) => {
+                      setRef(
+                        floatingRef,
+                        node
+                      );
 
-    const animated = (
-      <MotionPresenceGroup>
-        {content}
-      </MotionPresenceGroup>
-    );
+                      setRefs(node);
+                    }}
+                    onKeyDown={
+                      handleKeyDown
+                    }
+                    id={
+                      ctx.contentId
+                    }
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby={
+                      ctx.triggerId
+                    }
+                    variants={
+                      variants
+                    }
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={
+                      transition
+                    }
+                  >
+                    {children}
+                  </motion.div>
+                </DismissableLayer>
+              );
+            }}
+          </FloatingLayer>
+        ) : null;
 
-    return portalled ? <Portal container={container}>{animated}</Portal> : animated;
-  }
-);
 
-MenuContent.displayName = "MenuContent";
+      const animated =
+        (
+          <MotionPresenceGroup>
+            {content}
+          </MotionPresenceGroup>
+        );
+
+
+      return portalled ? (
+        <Portal container={container}>
+          {animated}
+        </Portal>
+      ) : (
+        animated
+      );
+    }
+  );
+
+
+MenuContent.displayName =
+  "MenuContent";
