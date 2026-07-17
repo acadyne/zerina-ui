@@ -188,8 +188,8 @@ export class ThemeSystem {
 
     const nextTheme =
       themes[
-        (currentIndex + 1) %
-          themes.length
+      (currentIndex + 1) %
+      themes.length
       ];
 
 
@@ -312,9 +312,7 @@ export class ThemeSystem {
 
 
   private applyTokens(
-    tokens: ThemeTokens,
-
-    path: string[] = []
+    tokens: ThemeTokens
   ): void {
     if (
       typeof document === "undefined"
@@ -322,42 +320,109 @@ export class ThemeSystem {
       return;
     }
 
-
-    for (const [
-      key,
-
-      value,
-    ] of Object.entries(tokens)) {
-      const nextPath = [
-        ...path,
-
-        key,
-      ];
+    const root =
+      document.documentElement;
 
 
-      if (
-        value !== null &&
-
-        typeof value === "object"
-      ) {
-        this.applyTokens(
-          value as ThemeTokens,
-
-          nextPath
-        );
-
-        continue;
+    const set = (
+      name: string,
+      value: unknown
+    ) => {
+      if (value === undefined) {
+        return;
       }
 
-
-      document.documentElement.style.setProperty(
-        `--ui-${nextPath.join("-")}`,
-
+      root.style.setProperty(
+        `--ui-${name}`,
         String(value)
+      );
+    };
+
+
+    if (tokens.color) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(tokens.color)) {
+        set(key, value);
+      }
+    }
+
+
+    if (tokens.surface) {
+      set("bg", tokens.surface.bg);
+      set("surface", tokens.surface.surface);
+      set("surface-2", tokens.surface.surface2);
+      set("surface-3", tokens.surface.surface3);
+      set(
+        "surface-hover",
+        tokens.surface.surfaceHover
+      );
+    }
+
+
+    if (tokens.text) {
+      set("text", tokens.text.text);
+      set("text-muted", tokens.text.textMuted);
+      set("text-soft", tokens.text.textSoft);
+      set(
+        "text-inverse",
+        tokens.text.textInverse
+      );
+    }
+
+
+    if (tokens.border) {
+      set(
+        "border",
+        tokens.border.border
+      );
+
+      set(
+        "border-strong",
+        tokens.border.borderStrong
+      );
+    }
+
+
+    if (tokens.radius) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(tokens.radius)) {
+        set(
+          `radius-${key}`,
+          value
+        );
+      }
+    }
+
+
+    if (tokens.shadow) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(tokens.shadow)) {
+        set(
+          `shadow-${key}`,
+          value
+        );
+      }
+    }
+
+
+    if (tokens.interaction) {
+      set(
+        "overlay",
+        tokens.interaction.overlay
+      );
+
+      set(
+        "focus-ring",
+        tokens.interaction.focusRing
       );
     }
   }
-
 
   private getStoredTheme(): ThemeName | null {
     if (
