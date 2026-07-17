@@ -3,6 +3,10 @@
 import type React from "react";
 
 import type {
+  UIPressEvent,
+} from "../../../core/interaction";
+
+import type {
   HTMLMotionProps,
 } from "framer-motion";
 
@@ -44,26 +48,31 @@ export interface MenuProps {
 }
 
 
+export type TriggerChildProps = {
+  onClick?: React.MouseEventHandler<HTMLElement>;
+
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
+
+  onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
+
+  id?: string;
+
+  className?: string;
+
+  style?: React.CSSProperties;
+
+  "aria-haspopup"?: React.AriaAttributes["aria-haspopup"];
+
+  "aria-expanded"?: boolean;
+
+  "aria-controls"?: string;
+};
+
+
 export interface MenuTriggerProps {
-  children: React.ReactElement<{
-    onClick?: React.MouseEventHandler<HTMLElement>;
-
-    onPress?: unknown;
-
-    onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
-
-    id?: string;
-
-    className?: string;
-
-    style?: React.CSSProperties;
-
-    "aria-haspopup"?: React.AriaAttributes["aria-haspopup"];
-
-    "aria-expanded"?: boolean;
-
-    "aria-controls"?: string;
-  }>;
+  children: React.ReactElement<TriggerChildProps>;
 
   asChild?: boolean;
 
