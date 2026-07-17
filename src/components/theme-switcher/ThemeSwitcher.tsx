@@ -7,6 +7,10 @@ import {
 } from "lucide-react";
 
 import {
+  Button,
+} from "../../primitives/forms";
+
+import {
   Menu,
   MenuContent,
   MenuItem,
@@ -54,29 +58,51 @@ export function ThemeSwitcher({
       onOpenChange={setOpen}
     >
       <MenuTrigger asChild>
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
+          leftIcon={
+            <ThemeIcon size={16} />
+          }
           className={className}
           style={style}
         >
-          <ThemeIcon size={16} />
-
-          <span>
-            {label}:{" "}
-            {
-              theme.metadata?.label ??
-              theme.name
-            }
-          </span>
-        </button>
+          {label}:{" "}
+          {
+            theme.metadata?.label ??
+            theme.name
+          }
+        </Button>
       </MenuTrigger>
 
 
-      <MenuContent>
+      <MenuContent
+        placement="bottom-end"
+        style={{
+          minWidth: "220px",
+          padding: "0.4rem",
+
+          background:
+            "var(--ui-surface)",
+
+          border:
+            "1px solid var(--ui-border)",
+
+          borderRadius:
+            "var(--ui-radius-lg)",
+
+          boxShadow:
+            "var(--ui-shadow-lg)",
+        }}
+      >
         {themes.map((item) => {
           const Icon =
             item.metadata?.icon ??
             Sparkles;
+
+
+          const active =
+            item.name === theme.name;
 
 
           return (
@@ -85,6 +111,25 @@ export function ThemeSwitcher({
               onSelect={() => {
                 setTheme(item.name);
                 setOpen(false);
+              }}
+              style={{
+                display: "flex",
+
+                alignItems:
+                  "center",
+
+                gap:
+                  "0.55rem",
+
+                fontWeight:
+                  active
+                    ? 700
+                    : 500,
+
+                background:
+                  active
+                    ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
+                    : undefined,
               }}
             >
               <Icon size={16} />
