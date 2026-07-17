@@ -344,7 +344,7 @@ const buttonRecipe = defineSlotRecipe<
         cursor: disabled ? "not-allowed" : "pointer",
 
         boxShadow: focusVisible
-          ? `0 0 0 3px var(--ui-focus-ring), ${shadow}`
+          ? `0 0 0 3px var(--ui-interaction-focus-ring), ${shadow}`
           : shadow,
 
         background:

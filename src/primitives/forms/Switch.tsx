@@ -276,7 +276,7 @@ const switchRecipe =
             }`,
 
           boxShadow: focused
-            ? "0 0 0 3px var(--ui-focus-ring)"
+            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
             : "none",
 
           opacity: disabled

@@ -231,7 +231,7 @@ function getItemBorderColor({
   }
 
   if (focused) {
-    return "var(--ui-focus-ring)";
+    return "var(--ui-interaction-focus-ring)";
   }
 
   return "transparent";

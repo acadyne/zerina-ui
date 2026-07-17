@@ -429,7 +429,7 @@ export const Toast = React.forwardRef<
 
         boxShadow:
           closePress.state.focusVisible
-            ? "0 0 0 3px var(--ui-focus-ring)"
+            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
             : "none",
 
         transition:

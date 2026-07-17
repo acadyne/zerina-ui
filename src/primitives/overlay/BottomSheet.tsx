@@ -83,7 +83,7 @@ const bottomSheetRecipe =
         inset: 0,
 
         background:
-          "var(--ui-overlay)",
+          "var(--ui-interaction-overlay)",
 
         zIndex:
           getLayerZIndex(

@@ -76,13 +76,10 @@
    --ui-danger-hover: #dc2626;
    --ui-danger-contrast: #ffffff;
 
-   --ui-overlay: rgba(0, 0, 0, 0.55);
-   --ui-focus-ring: rgba(47, 140, 121, 0.35);
-
    /* =========================
      State tokens
   ========================= */
-   --ui-state-focus: var(--ui-focus-ring);
+   --ui-state-focus: var(--ui-interaction-focus-ring);
    --ui-state-focus-danger: color-mix(in srgb,
          var(--ui-danger) 22%,
          transparent);

@@ -81,7 +81,7 @@ const drawerRecipe = defineSlotRecipe<
       zIndex: getLayerZIndex(
         "modalBackdrop"
       ),
-      background: "var(--ui-overlay)",
+      background: "var(--ui-interaction-overlay)",
       pointerEvents: "auto",
     },
 
