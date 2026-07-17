@@ -10,8 +10,8 @@ import {
 } from "../validation/theme-validation";
 
 import {
-  BUILT_IN_THEMES,
-} from "../built-in/themes";
+  resolveThemeTokens,
+} from "./resolve-theme-tokens";
 
 
 export interface ThemeSystemOptions {
@@ -20,6 +20,8 @@ export interface ThemeSystemOptions {
   persist?: boolean;
 
   storageKey?: string;
+
+  themes?: ThemeDefinition[];
 }
 
 
@@ -38,7 +40,8 @@ const DEFAULT_STORAGE_KEY = "ui-theme";
 
 
 export class ThemeSystem {
-  private themes = new Map<string, ThemeDefinition>();
+  private readonly themes =
+    new Map<string, ThemeDefinition>();
 
   private activeThemeName: string;
 
@@ -50,13 +53,15 @@ export class ThemeSystem {
   constructor(
     options: ThemeSystemOptions = {}
   ) {
-    this.persist = options.persist ?? true;
+    this.persist =
+      options.persist ?? true;
 
     this.storageKey =
-      options.storageKey ?? DEFAULT_STORAGE_KEY;
+      options.storageKey ??
+      DEFAULT_STORAGE_KEY;
 
 
-    for (const theme of BUILT_IN_THEMES) {
+    for (const theme of options.themes ?? []) {
       this.registerTheme(theme);
     }
 
@@ -64,25 +69,24 @@ export class ThemeSystem {
     this.activeThemeName =
       options.initialTheme ??
       this.getStoredTheme() ??
-      BUILT_IN_THEMES[0]?.name ??
+      this.themes.keys().next().value ??
       "light";
-
-
-    this.applyActiveTheme();
   }
 
 
   registerTheme(
     theme: ThemeDefinition
   ): void {
-    const result =
+    const validation =
       validateThemeDefinition(theme);
 
 
-    if (!result.valid) {
+    if (!validation.valid) {
       throw new Error(
-        result.diagnostics
-          .map((item) => item.message)
+        validation.diagnostics
+          .map(
+            (item) => item.message
+          )
           .join("\n")
       );
     }
@@ -104,12 +108,14 @@ export class ThemeSystem {
 
   getActiveTheme(): ThemeDefinition {
     const theme =
-      this.themes.get(this.activeThemeName);
+      this.themes.get(
+        this.activeThemeName
+      );
 
 
     if (!theme) {
       throw new Error(
-        `Theme "${this.activeThemeName}" not found`
+        `Theme "${this.activeThemeName}" does not exist`
       );
     }
 
@@ -130,7 +136,7 @@ export class ThemeSystem {
 
     this.activeThemeName = name;
 
-    this.applyActiveTheme();
+    this.applyTheme();
 
     this.persistTheme();
   }
@@ -145,7 +151,7 @@ export class ThemeSystem {
 
     if (!theme) {
       throw new Error(
-        `Theme "${name}" is not registered`
+        `Theme "${name}" does not exist`
       );
     }
 
@@ -154,29 +160,19 @@ export class ThemeSystem {
       name: theme.name,
       source: theme.source,
       metadata: theme.metadata,
-      tokens: this.resolveTokens(theme),
+
+      tokens: resolveThemeTokens({
+        theme,
+        themes: this.themes,
+      }),
     };
   }
 
 
-  private resolveTokens(
-    theme: ThemeDefinition
-  ): ThemeTokens {
-    const parentTokens =
-      theme.extends
-        ? this.resolveTheme(theme.extends).tokens
-        : {};
-
-
-    return {
-      ...parentTokens,
-      ...theme.tokens,
-    };
-  }
-
-
-  private applyActiveTheme(): void {
-    if (typeof document === "undefined") {
+  applyTheme(): void {
+    if (
+      typeof document === "undefined"
+    ) {
       return;
     }
 
@@ -209,49 +205,43 @@ export class ThemeSystem {
 
   private applyTokens(
     tokens: ThemeTokens,
-    prefix = "ui"
+    path: string[] = []
   ): void {
-    if (typeof document === "undefined") {
+    if (
+      typeof document === "undefined"
+    ) {
       return;
     }
 
 
-    const root =
-      document.documentElement;
+    for (const [
+      key,
+      value,
+    ] of Object.entries(tokens)) {
+      const nextPath = [
+        ...path,
+        key,
+      ];
 
 
-    const flatten =
-      (
-        value: unknown,
-        path: string[] = []
-      ): void => {
+      if (
+        value !== null &&
+        typeof value === "object"
+      ) {
+        this.applyTokens(
+          value as ThemeTokens,
+          nextPath
+        );
 
-        if (
-          value === null ||
-          typeof value !== "object"
-        ) {
-          root.style.setProperty(
-            `--${prefix}-${path.join("-")}`,
-            String(value)
-          );
-
-          return;
-        }
+        continue;
+      }
 
 
-        for (const [
-          key,
-          child,
-        ] of Object.entries(value)) {
-          flatten(
-            child,
-            [...path, key]
-          );
-        }
-      };
-
-
-    flatten(tokens);
+      document.documentElement.style.setProperty(
+        `--ui-${nextPath.join("-")}`,
+        String(value)
+      );
+    }
   }
 
 

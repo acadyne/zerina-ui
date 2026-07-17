@@ -7,55 +7,55 @@ import type {
 
 
 function mergeTokens(
-  inherited: ThemeTokens,
-  explicit: ThemeTokens
+  base: ThemeTokens,
+  override: ThemeTokens
 ): ThemeTokens {
   return {
     color: {
-      ...inherited.color,
-      ...explicit.color,
+      ...base.color,
+      ...override.color,
     },
 
     surface: {
-      ...inherited.surface,
-      ...explicit.surface,
+      ...base.surface,
+      ...override.surface,
     },
 
     text: {
-      ...inherited.text,
-      ...explicit.text,
+      ...base.text,
+      ...override.text,
     },
 
     border: {
-      ...inherited.border,
-      ...explicit.border,
+      ...base.border,
+      ...override.border,
     },
 
     radius: {
-      ...inherited.radius,
-      ...explicit.radius,
+      ...base.radius,
+      ...override.radius,
     },
 
     shadow: {
-      ...inherited.shadow,
-      ...explicit.shadow,
+      ...base.shadow,
+      ...override.shadow,
     },
 
     typography: {
       fontSize: {
-        ...inherited.typography?.fontSize,
-        ...explicit.typography?.fontSize,
+        ...base.typography?.fontSize,
+        ...override.typography?.fontSize,
       },
 
       fontWeight: {
-        ...inherited.typography?.fontWeight,
-        ...explicit.typography?.fontWeight,
+        ...base.typography?.fontWeight,
+        ...override.typography?.fontWeight,
       },
     },
 
     extensions: {
-      ...inherited.extensions,
-      ...explicit.extensions,
+      ...base.extensions,
+      ...override.extensions,
     },
   };
 }
@@ -70,38 +70,33 @@ export interface ResolveThemeTokensOptions {
 }
 
 
-export function resolveThemeTokens(
-  options: ResolveThemeTokensOptions
-): ThemeTokens {
-  const {
-    theme,
-    themes,
-    defaults = {},
-  } = options;
-
-
-  const parentTokens =
-    theme.extends
-      ? resolveParentTokens(
-          theme.extends,
-          themes
-        )
-      : {};
-
+export function resolveThemeTokens({
+  theme,
+  themes,
+  defaults = {},
+}: ResolveThemeTokensOptions): ThemeTokens {
+  const inheritedTokens = theme.extends
+    ? resolveParentThemeTokens(
+        theme.extends,
+        themes,
+        defaults
+      )
+    : {};
 
   return mergeTokens(
     mergeTokens(
       defaults,
-      parentTokens
+      inheritedTokens
     ),
     theme.tokens ?? {}
   );
 }
 
 
-function resolveParentTokens(
+function resolveParentThemeTokens(
   parentName: string,
-  themes: Map<string, ThemeDefinition>
+  themes: Map<string, ThemeDefinition>,
+  defaults: ThemeTokens
 ): ThemeTokens {
   const parent =
     themes.get(parentName);
@@ -117,5 +112,6 @@ function resolveParentTokens(
   return resolveThemeTokens({
     theme: parent,
     themes,
+    defaults,
   });
 }
