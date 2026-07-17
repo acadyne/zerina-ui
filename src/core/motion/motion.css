@@ -1,0 +1,22 @@
+/* src/core/motion/motion.css */
+
+:root {
+  --ui-duration-instant: 1ms;
+  --ui-duration-fast: 120ms;
+  --ui-duration-normal: 180ms;
+  --ui-duration-slow: 260ms;
+  --ui-duration-slower: 360ms;
+
+  --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ui-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ui-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ui-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ui-ease-press: cubic-bezier(0.2, 0, 0, 1);
+
+  --ui-motion-distance-sm: 4px;
+  --ui-motion-distance-md: 8px;
+  --ui-motion-distance-lg: 14px;
+
+  --ui-motion-scale-subtle: 0.98;
+  --ui-motion-scale-expressive: 0.96;
+}
