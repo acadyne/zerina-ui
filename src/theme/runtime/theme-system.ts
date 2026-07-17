@@ -3,6 +3,7 @@
 import type {
   ThemeDefinition,
   ThemeTokens,
+  ThemeName,
 } from "../contracts/theme.types";
 
 import {
@@ -19,7 +20,7 @@ import {
 
 
 export interface ThemeSystemOptions {
-  initialTheme?: string;
+  initialTheme?: ThemeName;
 
   persist?: boolean;
 
@@ -30,7 +31,7 @@ export interface ThemeSystemOptions {
 
 
 export interface ResolvedTheme {
-  name: string;
+  name: ThemeName;
 
   source: ThemeDefinition["source"];
 
@@ -45,9 +46,9 @@ const DEFAULT_STORAGE_KEY = "ui-theme";
 
 export class ThemeSystem {
   private readonly themes =
-    new Map<string, ThemeDefinition>();
+    new Map<ThemeName, ThemeDefinition>();
 
-  private activeThemeName: string;
+  private activeThemeName: ThemeName;
 
   private readonly persist: boolean;
 
@@ -151,7 +152,7 @@ export class ThemeSystem {
 
 
   setTheme(
-    name: string
+    name: ThemeName
   ): void {
     if (!this.themes.has(name)) {
       throw new Error(
@@ -185,13 +186,11 @@ export class ThemeSystem {
       );
 
 
-    const nextIndex =
-      (currentIndex + 1) %
-      themes.length;
-
-
     const nextTheme =
-      themes[nextIndex];
+      themes[
+        (currentIndex + 1) %
+          themes.length
+      ];
 
 
     if (!nextTheme) {
@@ -206,7 +205,7 @@ export class ThemeSystem {
 
 
   resolveTheme(
-    name: string
+    name: ThemeName
   ): ResolvedTheme {
     const theme =
       this.themes.get(name);
@@ -221,12 +220,16 @@ export class ThemeSystem {
 
     return {
       name: theme.name,
+
       source: theme.source,
+
       metadata: theme.metadata,
 
       tokens: resolveThemeTokens({
         theme,
+
         themes: this.themes,
+
         defaults: BASE_DARK_TOKENS,
       }),
     };
@@ -269,7 +272,8 @@ export class ThemeSystem {
 
   private validateInheritanceChain(
     theme: ThemeDefinition,
-    visited = new Set<string>()
+
+    visited = new Set<ThemeName>()
   ): void {
     if (!theme.extends) {
       return;
@@ -301,6 +305,7 @@ export class ThemeSystem {
 
     this.validateInheritanceChain(
       parent,
+
       visited
     );
   }
@@ -308,6 +313,7 @@ export class ThemeSystem {
 
   private applyTokens(
     tokens: ThemeTokens,
+
     path: string[] = []
   ): void {
     if (
@@ -319,20 +325,24 @@ export class ThemeSystem {
 
     for (const [
       key,
+
       value,
     ] of Object.entries(tokens)) {
       const nextPath = [
         ...path,
+
         key,
       ];
 
 
       if (
         value !== null &&
+
         typeof value === "object"
       ) {
         this.applyTokens(
           value as ThemeTokens,
+
           nextPath
         );
 
@@ -342,15 +352,17 @@ export class ThemeSystem {
 
       document.documentElement.style.setProperty(
         `--ui-${nextPath.join("-")}`,
+
         String(value)
       );
     }
   }
 
 
-  private getStoredTheme(): string | null {
+  private getStoredTheme(): ThemeName | null {
     if (
       !this.persist ||
+
       typeof window === "undefined"
     ) {
       return null;
@@ -366,6 +378,7 @@ export class ThemeSystem {
   private persistTheme(): void {
     if (
       !this.persist ||
+
       typeof window === "undefined"
     ) {
       return;
@@ -374,6 +387,7 @@ export class ThemeSystem {
 
     window.localStorage.setItem(
       this.storageKey,
+
       this.activeThemeName
     );
   }
