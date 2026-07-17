@@ -45,6 +45,7 @@ export interface MenuProps {
   styles?: MenuStyles;
 
   slotProps?: MenuSlotProps;
+  initialFocusIndex?: number;
 }
 
 
