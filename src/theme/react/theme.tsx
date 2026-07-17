@@ -36,6 +36,8 @@ interface UIThemeContextValue {
   setTheme(
     name: string
   ): void;
+
+  cycleTheme(): void;
 }
 
 
@@ -74,49 +76,98 @@ export const UIThemeProvider: React.FC<
     );
 
 
-  React.useEffect(() => {
-    system.applyTheme();
-  }, [system]);
-
-
   const [activeTheme, setActiveTheme] =
     React.useState(
       () => system.getActiveTheme()
     );
 
 
-  const setTheme = React.useCallback(
-    (name: string) => {
-      system.setTheme(name);
+  React.useEffect(() => {
+    system.applyTheme();
+  }, [system]);
 
-      setActiveTheme(
-        system.getActiveTheme()
-      );
-    },
-    [system]
-  );
+
+  const setTheme =
+    React.useCallback(
+      (name: string) => {
+        system.setTheme(name);
+
+        setActiveTheme(
+          system.getActiveTheme()
+        );
+      },
+      [system]
+    );
+
+
+  const cycleTheme =
+    React.useCallback(
+      () => {
+        const themes =
+          system.getThemes();
+
+        if (!themes.length) {
+          return;
+        }
+
+
+        const current =
+          system.getActiveTheme().name;
+
+
+        const currentIndex =
+          themes.findIndex(
+            (theme) =>
+              theme.name === current
+          );
+
+
+        const next =
+          themes[
+            (currentIndex + 1) %
+              themes.length
+          ];
+
+
+        if (!next) {
+          return;
+        }
+
+
+        system.setTheme(
+          next.name
+        );
+
+
+        setActiveTheme(
+          system.getActiveTheme()
+        );
+      },
+      [system]
+    );
 
 
   const value =
     React.useMemo(
       () => ({
         theme: activeTheme,
-
-        themes:
-          system.getThemes(),
-
+        themes: system.getThemes(),
         setTheme,
+        cycleTheme,
       }),
       [
         activeTheme,
         system,
         setTheme,
+        cycleTheme,
       ]
     );
 
 
   return (
-    <UIThemeContext.Provider value={value}>
+    <UIThemeContext.Provider
+      value={value}
+    >
       {children}
     </UIThemeContext.Provider>
   );
