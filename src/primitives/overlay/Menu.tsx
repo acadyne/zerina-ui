@@ -230,10 +230,17 @@ function getMenuTransformOrigin(
 
 type TriggerChildProps = {
   onClick?: React.MouseEventHandler<HTMLElement>;
+
+  onPress?: (
+    event: UIPressEvent<HTMLElement>
+  ) => void;
+
   onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
+
   id?: string;
   className?: string;
   style?: React.CSSProperties;
+
   "aria-haspopup"?: React.AriaAttributes["aria-haspopup"];
   "aria-expanded"?: boolean;
   "aria-controls"?: string;
@@ -489,6 +496,11 @@ export const MenuTrigger = React.forwardRef<HTMLElement, MenuTriggerProps>(
           children.props.onClick?.(event);
           ctx.onOpenChange?.(!ctx.open);
         },
+
+        onPress: (event: UIPressEvent<HTMLElement>) => {
+          children.props.onPress?.(event);
+          ctx.onOpenChange?.(!ctx.open);
+        },
         onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
           children.props.onKeyDown?.(event);
 
@@ -666,7 +678,11 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
         const containerNode = contentRef.current;
         const active = document.activeElement as Node | null;
 
-        if (!containerNode || !active || !containerNode.contains(active)) {
+        if (
+          !containerNode ||
+          !active ||
+          !containerNode.contains(active)
+        ) {
           return;
         }
 
@@ -711,13 +727,24 @@ export const MenuContent = React.forwardRef<HTMLDivElement, MenuContentProps>(
       if (!open) return;
 
       const id = window.setTimeout(() => {
-        focusFirst();
+        const active =
+          document.activeElement;
+
+        if (
+          active === anchorRef.current
+        ) {
+          focusFirst();
+        }
       }, 0);
 
       return () => {
         window.clearTimeout(id);
       };
-    }, [focusFirst, open]);
+    }, [
+      anchorRef,
+      focusFirst,
+      open,
+    ]);
 
     const variants = motionState.getVariants("menu", motionState.effectiveLevel);
     const transition = motionState.getTransition(
