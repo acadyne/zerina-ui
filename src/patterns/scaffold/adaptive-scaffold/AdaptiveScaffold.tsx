@@ -17,7 +17,6 @@ import {
   type NavigationItemDef,
 } from "../../../primitives/navigation";
 import { Scaffold } from "../Scaffold";
-import { ScreenContent } from "../ScreenContent";
 import { TopAppBar } from "../TopAppBar";
 import type {
   AdaptiveScaffoldItem,
@@ -35,46 +34,6 @@ import {
   resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
-
-function renderContent({
-  children,
-  activeItem,
-  context,
-}: {
-  children: AdaptiveScaffoldProps["children"];
-  activeItem: AdaptiveScaffoldItem | null;
-  context: AdaptiveScaffoldRenderContext;
-}) {
-  if (typeof children === "function") {
-    return children(context);
-  }
-
-  if (children !== undefined) {
-    return children;
-  }
-
-  if (activeItem?.render) {
-    return activeItem.render(context);
-  }
-
-  if (activeItem?.content !== undefined) {
-    return activeItem.content;
-  }
-
-  return (
-    <ScreenContent centered padded>
-      <Box
-        style={{
-          color: "var(--ui-text-muted)",
-          textAlign: "center",
-          lineHeight: 1.5,
-        }}
-      >
-        AdaptiveScaffold no tiene contenido para el item activo.
-      </Box>
-    </ScreenContent>
-  );
-}
 
 function getModeContentSlot(
   mode: AdaptiveScaffoldRenderContext["mode"]
@@ -296,11 +255,10 @@ export function AdaptiveScaffold({
     </Box>
   ) : null;
 
-  const content = renderContent({
-    children,
-    activeItem,
-    context,
-  });
+  const content =
+    typeof children === "function"
+      ? children(context)
+      : children;
 
   const topLevelItems = items;
 

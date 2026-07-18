@@ -46,23 +46,9 @@ export type AdaptiveScaffoldNavigationPlacement =
 export interface AdaptiveScaffoldNavigationConfig {
   /**
    * Navegación personalizada.
-   *
-   * Ej:
-   * Tree
-   * NavigationMenu
-   * NavigationRail custom
    */
   content?: React.ReactNode;
 
-  /**
-   * Posición dentro del scaffold.
-   *
-   * Desktop/tablet:
-   *   start/end
-   *
-   * Mobile:
-   *   top/bottom
-   */
   placement?: AdaptiveScaffoldNavigationPlacement;
 }
 
@@ -105,19 +91,9 @@ export interface AdaptiveScaffoldItem {
   badge?: React.ReactNode;
   disabled?: boolean;
 
-  /**
-   * Si el item tiene hijos, por default no es seleccionable.
-   * Pon selectable=true si también debe poder seleccionarse.
-   */
   selectable?: boolean;
 
   items?: AdaptiveScaffoldItem[];
-
-  content?: React.ReactNode;
-
-  render?: (
-    context: AdaptiveScaffoldRenderContext
-  ) => React.ReactNode;
 
   meta?: Record<string, unknown>;
 }
