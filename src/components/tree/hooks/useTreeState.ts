@@ -452,7 +452,8 @@ export function useTreeState<TNode>({
         !force &&
         (currentState?.status === "loading" ||
           currentState?.status === "refreshing" ||
-          currentState?.status === "loaded")
+          currentState?.status === "loaded" ||
+          currentState?.status === "error")
       ) {
         return;
       }

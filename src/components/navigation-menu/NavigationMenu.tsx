@@ -179,8 +179,8 @@ function NavigationMenuInner<TItem>(
     onItemKeyDown,
 
     openOnHover = true,
-    hoverOpenDelay = 120,
-    hoverCloseDelay = 180,
+    hoverOpenDelay = 150,
+    hoverCloseDelay = 3000,
 
     loadOnOpen = true,
     preserveChildrenOnReload = true,
