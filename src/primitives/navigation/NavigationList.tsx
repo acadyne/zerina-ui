@@ -21,25 +21,9 @@ import {
 } from "../overlay";
 import { Typography } from "../typography";
 import { MenuContentProps } from "../overlay/menu/menu.types";
-
-export interface NavigationItemDef {
-  id: string;
-  label: React.ReactNode;
-
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
-  disabled?: boolean;
-
-  /**
-   * Si el item tiene hijos, por default actúa como toggle.
-   * Pon selectable=true si también debe disparar onSelect.
-   */
-  selectable?: boolean;
-
-  items?: NavigationItemDef[];
-
-  meta?: Record<string, unknown>;
-}
+import type {
+  NavigationNode,
+} from "../../patterns/navigation";
 
 export type NavigationListVariant =
   | "sidebar"
@@ -76,7 +60,7 @@ export type NavigationListSlotProps =
   SlotPropsMap<NavigationListSlot>;
 
 export interface NavigationListProps {
-  items: NavigationItemDef[];
+  items: NavigationNode[];
 
   activeId?: string | null;
 
@@ -88,7 +72,7 @@ export interface NavigationListProps {
   ) => void;
 
   onSelect?: (
-    item: NavigationItemDef,
+    item: NavigationNode,
     event: UIPressEvent<HTMLElement>
   ) => void;
 
@@ -132,7 +116,7 @@ export interface NavigationListProps {
 }
 
 export interface NavigationListItemProps {
-  item: NavigationItemDef;
+  item: NavigationNode;
 
   activeId?: string | null;
   activeBehavior?: NavigationListActiveBehavior;
@@ -159,7 +143,7 @@ export interface NavigationListItemProps {
   ) => void;
 
   onSelect?: (
-    item: NavigationItemDef,
+    item: NavigationNode,
     event: UIPressEvent<HTMLElement>
   ) => void;
 }
@@ -478,7 +462,7 @@ const navigationListRecipe =
   });
 
 function itemContainsId(
-  item: NavigationItemDef,
+  item: NavigationNode,
   id: string | null | undefined
 ): boolean {
   if (!id) {
@@ -490,7 +474,7 @@ function itemContainsId(
   }
 
   return Boolean(
-    item.items?.some(
+    item.children?.some(
       (child) =>
         itemContainsId(
           child,
@@ -505,7 +489,7 @@ function isItemActive({
   activeId,
   activeBehavior,
 }: {
-  item: NavigationItemDef;
+  item: NavigationNode;
   activeId?: string | null;
   activeBehavior: NavigationListActiveBehavior;
 }): boolean {
@@ -526,7 +510,7 @@ function isItemActive({
 }
 
 function isItemDirectlyActive(
-  item: NavigationItemDef,
+  item: NavigationNode,
   activeId?: string | null
 ): boolean {
   return Boolean(
@@ -536,15 +520,15 @@ function isItemDirectlyActive(
 }
 
 function hasChildren(
-  item: NavigationItemDef
+  item: NavigationNode
 ): boolean {
   return Boolean(
-    item.items?.length
+    item.children?.length
   );
 }
 
 function isSelectable(
-  item: NavigationItemDef
+  item: NavigationNode
 ): boolean {
   if (
     item.selectable !== undefined
@@ -597,7 +581,7 @@ const NavigationListItem:
     ] = React.useState(false);
 
     const children =
-      item.items ?? [];
+      item.children ?? [];
 
     const childrenExist =
       children.length > 0;
