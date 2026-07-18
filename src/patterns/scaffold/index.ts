@@ -1,6 +1,7 @@
 // src/patterns/scaffold/index.ts
 
 export * from "./TopAppBar";
+export * from "./Scaffold";
 export * from "./MobileScaffold";
 export * from "./tab-scaffold";
 export * from "./adaptive-scaffold";
