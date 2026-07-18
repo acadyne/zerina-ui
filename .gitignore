@@ -33,6 +33,7 @@ archivos_pedidos.txt
 analizar_todo.py
 analizar_commits.py
 chunk_markdown.py
+generar_contexto_md.py
 estructura_y_contenido.md
 ultimos_commits.md
 chunks
