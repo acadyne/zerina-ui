@@ -115,6 +115,7 @@ export function AdaptiveScaffold({
   tabletNavigation = "rail",
   desktopNavigation = "sidebar",
 
+  navigationSlots,
   title,
   subtitle,
 
@@ -292,6 +293,24 @@ export function AdaptiveScaffold({
 
   const contentSlot = getContentSlot(resolvedMode, styles, slotProps);
 
+  const resolvedNavigation =
+    navigationSlots?.[resolvedMode];
+
+  const navigationPlacement =
+    resolvedNavigation?.placement ??
+    (
+      resolvedMode === "mobile"
+        ? "bottom"
+        : "start"
+    );
+
+  const customNavigation =
+    resolvedNavigation?.content;
+
+  const hasCustomNavigation =
+    customNavigation !== undefined &&
+    customNavigation !== null;
+
   const appBar = showAppBar ? (
     <Box
       {...appBarSlot}
@@ -415,15 +434,25 @@ export function AdaptiveScaffold({
           viewport={viewport}
           appBar={appBar}
           bottomNavigation={
-            mobileNavigation === "bottom"
-              ? bottomNavigation
-              : undefined
+            hasCustomNavigation
+              ? navigationPlacement === "bottom"
+                ? customNavigation
+                : undefined
+              : mobileNavigation === "bottom"
+                ? bottomNavigation
+                : undefined
           }
           floating={resolveAdaptiveValue(floating, context)}
           scrollable={false}
           padded={false}
           {...mobileScaffoldProps}
         >
+          {
+            hasCustomNavigation &&
+              navigationPlacement === "top"
+              ? customNavigation
+              : null
+          }
           <Box
             {...contentSlot}
             data-ui-adaptive-scaffold-content=""
@@ -460,13 +489,126 @@ export function AdaptiveScaffold({
     resolvedMode === "desktop" &&
     desktopNavigation === "rail";
 
+  const sideNavigationPlacement =
+    navigationPlacement === "end"
+      ? "end"
+      : "start";
+
+  const customNavigationSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot:
+        resolvedMode === "tablet"
+          ? "tabletNavigation"
+          : "desktopNavigation",
+
+      styles,
+      slotProps,
+
+      baseProps: {
+        "data-ui-adaptive-scaffold-custom-navigation":
+          "",
+
+        "data-ui-adaptive-scaffold-navigation-placement":
+          sideNavigationPlacement,
+      },
+
+      baseStyle: {
+        width: cssSize(sidebarWidth),
+        minWidth: cssSize(sidebarWidth),
+        maxWidth: cssSize(sidebarWidth),
+
+        minHeight: 0,
+        overflow: "auto",
+
+        padding: "0.75rem",
+
+        boxSizing: "border-box",
+
+        borderRight:
+          sideNavigationPlacement === "start"
+            ? "1px solid var(--ui-border)"
+            : undefined,
+
+        borderLeft:
+          sideNavigationPlacement === "end"
+            ? "1px solid var(--ui-border)"
+            : undefined,
+
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
+      },
+    });
+
+  const defaultNavigationNode =
+    showTabletRail || showDesktopRail ? (
+      <Box
+        {...railSlot}
+        data-ui-adaptive-scaffold-rail=""
+      >
+        {railNavigation}
+      </Box>
+    ) : showDesktopSidebar ? (
+      <Box
+        {...sidebarSlot}
+        data-ui-adaptive-scaffold-sidebar=""
+      >
+        <NavigationList
+          items={navigationListItems}
+          activeId={currentActiveId}
+          activeBehavior="contains"
+          openActiveParents
+          {...navigationListProps}
+          onSelect={(item) => {
+            handleNavigationListSelect(item);
+          }}
+        />
+      </Box>
+    ) : null;
+
+  const customNavigationNode =
+    hasCustomNavigation ? (
+      <Box {...customNavigationSlot}>
+        {customNavigation}
+      </Box>
+    ) : null;
+
+  const navigationNode =
+    customNavigationNode ??
+    defaultNavigationNode;
+
+  const contentNode = (
+    <Box
+      {...contentSlot}
+      data-ui-adaptive-scaffold-content=""
+      data-ui-adaptive-scaffold-tablet-content={
+        resolvedMode === "tablet" || undefined
+      }
+      data-ui-adaptive-scaffold-desktop-content={
+        resolvedMode === "desktop" || undefined
+      }
+      style={{
+        flex: 1,
+        minWidth: 0,
+        minHeight: 0,
+        overflow: "hidden",
+        ...contentSlot.style,
+      }}
+    >
+      {content}
+    </Box>
+  );
+
   return (
     <Box
       {...rootSlot}
       ref={rootRef}
       data-ui-adaptive-scaffold=""
-      data-ui-adaptive-scaffold-mode={resolvedMode}
-      data-ui-adaptive-scaffold-viewport={viewport}
+      data-ui-adaptive-scaffold-mode={
+        resolvedMode
+      }
+      data-ui-adaptive-scaffold-viewport={
+        viewport
+      }
       {...rest}
       style={{
         display: "flex",
@@ -481,55 +623,20 @@ export function AdaptiveScaffold({
         {...bodySlot}
         data-ui-adaptive-scaffold-body=""
       >
-        {showTabletRail || showDesktopRail ? (
-          <Box
-            {...railSlot}
-            data-ui-adaptive-scaffold-rail=""
-          >
-            {railNavigation}
-          </Box>
-        ) : null}
+        {sideNavigationPlacement === "start"
+          ? navigationNode
+          : null}
 
-        {showDesktopSidebar ? (
-          <Box
-            {...sidebarSlot}
-            data-ui-adaptive-scaffold-sidebar=""
-          >
-            <NavigationList
-              items={navigationListItems}
-              activeId={currentActiveId}
-              activeBehavior="contains"
-              openActiveParents
-              {...navigationListProps}
-              onSelect={(item) => {
-                handleNavigationListSelect(item);
-              }}
-            />
-          </Box>
-        ) : null}
+        {contentNode}
 
-        <Box
-          {...contentSlot}
-          data-ui-adaptive-scaffold-content=""
-          data-ui-adaptive-scaffold-tablet-content={
-            resolvedMode === "tablet" || undefined
-          }
-          data-ui-adaptive-scaffold-desktop-content={
-            resolvedMode === "desktop" || undefined
-          }
-          style={{
-            flex: 1,
-            minWidth: 0,
-            minHeight: 0,
-            overflow: "hidden",
-            ...contentSlot.style,
-          }}
-        >
-          {content}
-        </Box>
+        {sideNavigationPlacement === "end"
+          ? navigationNode
+          : null}
       </Box>
 
-      {showTabletBottom ? bottomNavigation : null}
+      {showTabletBottom
+        ? bottomNavigation
+        : null}
     </Box>
   );
 }

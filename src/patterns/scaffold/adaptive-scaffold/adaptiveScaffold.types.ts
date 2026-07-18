@@ -11,7 +11,6 @@ import type {
 } from "../../../core/viewport";
 import type { BottomNavigationProps } from "../../../primitives/navigation/bottom-navigation";
 import type {
-  NavigationItemDef,
   NavigationListProps,
 } from "../../../primitives/navigation/NavigationList";
 import type { NavigationRailProps } from "../../../primitives/navigation/navigation-rail";
@@ -37,12 +36,56 @@ export type AdaptiveScaffoldDesktopNavigation =
   | "rail"
   | "none";
 
+export type AdaptiveScaffoldNavigationPlacement =
+  | "start"
+  | "end"
+  | "top"
+  | "bottom";
+
+
+export interface AdaptiveScaffoldNavigationConfig {
+  /**
+   * Navegación personalizada.
+   *
+   * Ej:
+   * Tree
+   * NavigationMenu
+   * NavigationRail custom
+   */
+  content?: React.ReactNode;
+
+  /**
+   * Posición dentro del scaffold.
+   *
+   * Desktop/tablet:
+   *   start/end
+   *
+   * Mobile:
+   *   top/bottom
+   */
+  placement?: AdaptiveScaffoldNavigationPlacement;
+}
+
+
+export interface AdaptiveScaffoldNavigationSlots {
+  desktop?: AdaptiveScaffoldNavigationConfig;
+
+  tablet?: AdaptiveScaffoldNavigationConfig;
+
+  mobile?: AdaptiveScaffoldNavigationConfig;
+}
+
 export type AdaptiveScaffoldSlot =
   | "root"
   | "appBar"
   | "body"
   | "sidebar"
   | "rail"
+
+  | "mobileNavigation"
+  | "tabletNavigation"
+  | "desktopNavigation"
+
   | "content"
   | "mobileContent"
   | "tabletContent"
@@ -93,10 +136,10 @@ export interface AdaptiveScaffoldProps
     "children" | "defaultValue" | "title"
   > {
   children?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   viewport?: ScaffoldViewport;
 
@@ -123,35 +166,42 @@ export interface AdaptiveScaffoldProps
   tabletNavigation?: AdaptiveScaffoldTabletNavigation;
   desktopNavigation?: AdaptiveScaffoldDesktopNavigation;
 
+  /**
+   * Navegación personalizada por viewport.
+   *
+   * Si existe reemplaza la navegación default.
+   */
+  navigationSlots?: AdaptiveScaffoldNavigationSlots;
+
   title?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   subtitle?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   leading?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   actions?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   floating?:
-    | React.ReactNode
-    | ((
-        context: AdaptiveScaffoldRenderContext
-      ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
   showAppBar?: boolean;
 
