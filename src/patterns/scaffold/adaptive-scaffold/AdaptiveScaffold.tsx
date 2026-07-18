@@ -138,7 +138,7 @@ export function AdaptiveScaffold({
   ...rest
 }: AdaptiveScaffoldProps) {
   const viewportInfo = useOptionalUIViewport();
-  const [rootRef, rootSize] = useElementSize<HTMLDivElement>();
+  const [, rootSize] = useElementSize<HTMLDivElement>();
 
   const fallbackItem = React.useMemo(
     () => getFirstSelectableAdaptiveScaffoldItem(items),
@@ -386,59 +386,51 @@ export function AdaptiveScaffold({
 
   if (resolvedMode === "mobile") {
     return (
-      <Box
-        ref={rootRef}
-        data-ui-adaptive-scaffold=""
-        data-ui-adaptive-scaffold-mode={resolvedMode}
-        data-ui-adaptive-scaffold-viewport={viewport}
-        {...rest}
-      >
-        <Scaffold
-          viewport={viewport}
-          appBar={appBar}
-          footer={
-            hasCustomNavigation
-              ? navigationPlacement === "bottom"
-                ? customNavigation
-                : undefined
-              : mobileNavigation === "bottom"
-                ? bottomNavigation
-                : undefined
-          }
-          floating={
-            resolveAdaptiveValue(
-              floating,
-              context
-            )
-          }
-          scrollable={false}
-          {...scaffoldProps}
-        >
-          {
-            hasCustomNavigation &&
-              navigationPlacement === "top"
+      <Scaffold
+        viewport={viewport}
+        appBar={appBar}
+        footer={
+          hasCustomNavigation
+            ? navigationPlacement === "bottom"
               ? customNavigation
-              : null
-          }
+              : undefined
+            : mobileNavigation === "bottom"
+              ? bottomNavigation
+              : undefined
+        }
+        floating={
+          resolveAdaptiveValue(
+            floating,
+            context
+          )
+        }
+        scrollable={false}
+        {...scaffoldProps}
+      >
+        {
+          hasCustomNavigation &&
+            navigationPlacement === "top"
+            ? customNavigation
+            : null
+        }
 
-          <Box
-            {...contentSlot}
-            data-ui-adaptive-scaffold-content=""
-            data-ui-adaptive-scaffold-mobile-content=""
-            style={{
-              width: "100%",
-              height: "100%",
-              minWidth: 0,
-              minHeight: 0,
-              overflow: "hidden",
-              ...contentSlot.style,
-            }}
-          >
-            {content}
-          </Box>
+        <Box
+          {...contentSlot}
+          data-ui-adaptive-scaffold-content=""
+          data-ui-adaptive-scaffold-mobile-content=""
+          style={{
+            width: "100%",
+            height: "100%",
+            minWidth: 0,
+            minHeight: 0,
+            overflow: "hidden",
+            ...contentSlot.style,
+          }}
+        >
+          {content}
+        </Box>
 
-        </Scaffold>
-      </Box>
+      </Scaffold>
     );
   }
 

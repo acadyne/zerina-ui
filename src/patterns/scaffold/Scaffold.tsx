@@ -56,6 +56,11 @@ export function Scaffold({
       slot: "appBar",
       styles,
       slotProps,
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+      },
     });
 
 
@@ -88,6 +93,12 @@ export function Scaffold({
       slot: "floating",
       styles,
       slotProps,
+      baseStyle: {
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 30,
+      },
     });
 
 
@@ -96,6 +107,11 @@ export function Scaffold({
       slot: "footer",
       styles,
       slotProps,
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+      },
     });
 
 
@@ -109,10 +125,7 @@ export function Scaffold({
         rootSlot.className
       }
 
-      style={{
-        ...rootSlot.style,
-        ...style,
-      }}
+      style={rootSlot.style}
 
       fullHeight={
         viewport === "window"
@@ -140,6 +153,10 @@ export function Scaffold({
             <Screen.Scroll
               {...scrollProps}
               {...scrollSlot}
+              style={{
+                minHeight: 0,
+                ...scrollSlot.style,
+              }}
             >
               <Box
                 {...contentSlot}
@@ -153,7 +170,6 @@ export function Scaffold({
             <Box
               {...contentSlot}
               style={{
-                height: "100%",
                 minWidth: 0,
                 minHeight: 0,
                 ...contentSlot.style,
@@ -173,7 +189,13 @@ export function Scaffold({
           <Box
             {...floatingSlot}
           >
-            {floating}
+            <Box
+              style={{
+                pointerEvents: "auto",
+              }}
+            >
+              {floating}
+            </Box>
           </Box>
         ) : null
       }
