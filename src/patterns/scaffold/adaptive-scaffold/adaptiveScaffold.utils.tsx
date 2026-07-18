@@ -1,66 +1,92 @@
-// src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.utils.tsx
 import React from "react";
+
 import {
   resolveUIViewportKind,
   type UIViewportBreakpoints,
   type UIViewportKind,
   type UIViewportMode,
 } from "../../../core/viewport";
-import type { NavigationItemDef } from "../../../primitives/navigation/NavigationList";
+
 import type {
-  AdaptiveScaffoldItem,
   AdaptiveScaffoldRenderContext,
 } from "./adaptiveScaffold.types";
 
-export function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
+import type {
+  NavigationNode,
+} from "../../navigation";
+
+
+export function cssSize(
+  value: number | string
+): string {
+  return typeof value === "number"
+    ? `${value}px`
+    : value;
 }
 
-export function isAdaptiveScaffoldItemSelectable(
-  item: AdaptiveScaffoldItem
+
+export function isNavigationNodeSelectable(
+  node: NavigationNode
 ): boolean {
-  if (item.disabled) return false;
-  if (item.selectable !== undefined) return item.selectable;
+  if (node.disabled) return false;
 
-  return !item.items?.length;
+  if (node.selectable !== undefined) {
+    return node.selectable;
+  }
+
+  return !node.children?.length;
 }
 
-export function flattenAdaptiveScaffoldItems(
-  items: AdaptiveScaffoldItem[]
-): AdaptiveScaffoldItem[] {
-  return items.flatMap((item) => [
-    item,
-    ...flattenAdaptiveScaffoldItems(item.items ?? []),
+
+export function flattenNavigationNodes(
+  nodes: NavigationNode[]
+): NavigationNode[] {
+  return nodes.flatMap((node) => [
+    node,
+    ...flattenNavigationNodes(
+      node.children ?? []
+    ),
   ]);
 }
 
-export function findAdaptiveScaffoldItem(
-  items: AdaptiveScaffoldItem[],
+
+export function findNavigationNode(
+  nodes: NavigationNode[],
   id: string | null | undefined
-): AdaptiveScaffoldItem | null {
+): NavigationNode | null {
   if (!id) return null;
 
-  for (const item of items) {
-    if (item.id === id) return item;
+  for (const node of nodes) {
+    if (node.id === id) {
+      return node;
+    }
 
-    const child = findAdaptiveScaffoldItem(item.items ?? [], id);
-    if (child) return child;
+    const child = findNavigationNode(
+      node.children ?? [],
+      id
+    );
+
+    if (child) {
+      return child;
+    }
   }
 
   return null;
 }
 
-export function getFirstSelectableAdaptiveScaffoldItem(
-  items: AdaptiveScaffoldItem[]
-): AdaptiveScaffoldItem | null {
-  for (const item of flattenAdaptiveScaffoldItems(items)) {
-    if (isAdaptiveScaffoldItemSelectable(item)) {
-      return item;
+
+export function getFirstSelectableNavigationNode(
+  nodes: NavigationNode[]
+): NavigationNode | null {
+  for (const node of flattenNavigationNodes(nodes)) {
+    if (isNavigationNodeSelectable(node)) {
+      return node;
     }
   }
 
-  return items[0] ?? null;
+  return nodes[0] ?? null;
 }
+
 
 export function resolveAdaptiveScaffoldMode({
   mode,
@@ -81,45 +107,21 @@ export function resolveAdaptiveScaffoldMode({
   });
 }
 
+
 export function resolveAdaptiveValue(
   value:
     | React.ReactNode
-    | ((context: AdaptiveScaffoldRenderContext) => React.ReactNode)
+    | ((
+      context: AdaptiveScaffoldRenderContext
+    ) => React.ReactNode)
     | undefined,
+
   context: AdaptiveScaffoldRenderContext
 ): React.ReactNode {
+
   if (typeof value === "function") {
     return value(context);
   }
 
   return value;
-}
-
-export function adaptiveItemToNavigationItem(
-  item: AdaptiveScaffoldItem
-): NavigationItemDef {
-  return {
-    id: item.id,
-    label: item.label,
-    icon: item.icon,
-    badge: item.badge,
-    disabled: item.disabled,
-    selectable: item.selectable,
-    items: item.items?.map(adaptiveItemToNavigationItem),
-    meta: {
-      adaptiveItem: item,
-    },
-  };
-}
-
-export function navigationItemToAdaptiveItem(
-  item: NavigationItemDef
-): AdaptiveScaffoldItem | null {
-  const adaptiveItem = item.meta?.adaptiveItem;
-
-  if (!adaptiveItem || typeof adaptiveItem !== "object") {
-    return null;
-  }
-
-  return adaptiveItem as AdaptiveScaffoldItem;
 }

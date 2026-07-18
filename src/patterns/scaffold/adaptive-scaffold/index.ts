@@ -15,7 +15,6 @@ export type {
   AdaptiveScaffoldStyles,
   AdaptiveScaffoldSlotProps,
 
-  AdaptiveScaffoldItem,
   AdaptiveScaffoldRenderContext,
   AdaptiveScaffoldProps,
 

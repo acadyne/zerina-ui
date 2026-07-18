@@ -19,22 +19,22 @@ import {
 import { Scaffold } from "../Scaffold";
 import { TopAppBar } from "../TopAppBar";
 import type {
-  AdaptiveScaffoldItem,
   AdaptiveScaffoldProps,
   AdaptiveScaffoldRenderContext,
   AdaptiveScaffoldSlot,
 } from "./adaptiveScaffold.types";
+
+import type {
+  NavigationNode,
+} from "../../navigation";
 import {
-  adaptiveItemToNavigationItem,
   cssSize,
-  findAdaptiveScaffoldItem,
-  getFirstSelectableAdaptiveScaffoldItem,
-  isAdaptiveScaffoldItemSelectable,
-  navigationItemToAdaptiveItem,
+  findNavigationNode,
+  getFirstSelectableNavigationNode,
+  isNavigationNodeSelectable,
   resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
-
 function getModeContentSlot(
   mode: AdaptiveScaffoldRenderContext["mode"]
 ): AdaptiveScaffoldSlot {
@@ -100,7 +100,7 @@ export function AdaptiveScaffold({
   const [, rootSize] = useElementSize<HTMLDivElement>();
 
   const fallbackItem = React.useMemo(
-    () => getFirstSelectableAdaptiveScaffoldItem(items),
+    () => getFirstSelectableNavigationNode(items),
     [items]
   );
 
@@ -119,7 +119,7 @@ export function AdaptiveScaffold({
     : internalActiveId;
 
   const activeItem = React.useMemo(
-    () => findAdaptiveScaffoldItem(items, currentActiveId),
+    () => findNavigationNode(items, currentActiveId),
     [currentActiveId, items]
   );
 
@@ -137,8 +137,8 @@ export function AdaptiveScaffold({
   });
 
   const setActiveItem = React.useCallback(
-    (item: AdaptiveScaffoldItem) => {
-      if (!isAdaptiveScaffoldItemSelectable(item)) return;
+    (item: NavigationNode) => {
+      if (!isNavigationNodeSelectable(item)) return;
 
       if (!isControlled) {
         setInternalActiveId(item.id);
@@ -151,7 +151,7 @@ export function AdaptiveScaffold({
 
   const setActiveId = React.useCallback(
     (nextId: string) => {
-      const item = findAdaptiveScaffoldItem(items, nextId);
+      const item = findNavigationNode(items, nextId);
       if (!item) return;
 
       setActiveItem(item);
@@ -285,7 +285,7 @@ export function AdaptiveScaffold({
             badge={item.badge}
             disabled={
               item.disabled ||
-              !isAdaptiveScaffoldItemSelectable(item)
+              !isNavigationNodeSelectable(item)
             }
           >
             {item.label}
@@ -318,7 +318,7 @@ export function AdaptiveScaffold({
             badge={item.badge}
             disabled={
               item.disabled ||
-              !isAdaptiveScaffoldItemSelectable(item)
+              !isNavigationNodeSelectable(item)
             }
           >
             {item.label}
@@ -328,16 +328,13 @@ export function AdaptiveScaffold({
     ) : null;
 
   const navigationListItems = React.useMemo(
-    () => items.map(adaptiveItemToNavigationItem),
+    () => items,
     [items]
   );
 
   const handleNavigationListSelect = React.useCallback(
-    (item: NavigationItemDef) => {
-      const adaptiveItem = navigationItemToAdaptiveItem(item);
-      if (!adaptiveItem) return;
-
-      setActiveItem(adaptiveItem);
+    (item: NavigationNode) => {
+      setActiveItem(item);
     },
     [setActiveItem]
   );
