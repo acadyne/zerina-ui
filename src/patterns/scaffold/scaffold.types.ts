@@ -39,9 +39,10 @@ export type ScaffoldSlotProps =
 export interface ScaffoldProps
   extends Omit<
     React.HTMLAttributes<HTMLDivElement>,
-    "children"
+    | "children"
+    | "title"
   > {
-
+    
   children?: React.ReactNode;
 
 

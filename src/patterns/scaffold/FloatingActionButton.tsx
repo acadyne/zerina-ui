@@ -52,7 +52,7 @@ export interface FloatingActionButtonProps
 
   /**
    * inline:
-   *   No posiciona absolutamente. Ideal para MobileScaffold.floating,
+   *   No posiciona absolutamente. Ideal para Scaffold.floating,
    *   porque el scaffold ya controla la posición.
    *
    * bottom-*:

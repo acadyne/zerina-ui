@@ -14,9 +14,9 @@ import type {
 } from "../../navigation-stack";
 import type { BackButtonProps } from "../BackButton";
 import type {
-  MobileScaffoldProps,
+  ScaffoldProps,
   ScaffoldViewport,
-} from "../MobileScaffold";
+} from "../Scaffold";
 import type { TopAppBarProps } from "../TopAppBar";
 
 export type TabScaffoldHeaderValue =
@@ -111,15 +111,14 @@ type TabScaffoldEntriesChangeHandler = (
 
 interface TabScaffoldBaseProps
   extends Omit<
-    MobileScaffoldProps,
+    ScaffoldProps,
     | "children"
     | "viewport"
     | "appBar"
-    | "bottomBar"
-    | "bottomNavigation"
+    | "footer"
     | "floating"
-    | "title"
   > {
+    
   tabs: TabScaffoldTab[];
   screens?: TabScaffoldScreen[];
 

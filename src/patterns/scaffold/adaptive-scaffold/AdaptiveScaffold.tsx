@@ -132,10 +132,6 @@ export function AdaptiveScaffold({
   navigationListProps,
 
   sidebarWidth = 284,
-
-  className = "",
-  style,
-
   styles,
   slotProps,
 
@@ -222,33 +218,6 @@ export function AdaptiveScaffold({
 
   const resolvedSubtitle = resolveAdaptiveValue(subtitle, context);
 
-  const rootSlot = resolveSlot({
-    slot: "root",
-    styles,
-    slotProps,
-    className,
-    baseStyle: {
-      width: "100%",
-      height: viewport === "contained" ? "100%" : "100dvh",
-      minHeight: viewport === "contained" ? 0 : "100dvh",
-      minWidth: 0,
-      overflow: "hidden",
-      background: "var(--ui-bg)",
-      color: "var(--ui-text)",
-    },
-  });
-
-  const appBarSlot = resolveSlot({
-    slot: "appBar",
-    styles,
-    slotProps,
-    baseStyle: {
-      width: "100%",
-      minWidth: 0,
-      flexShrink: 0,
-    },
-  });
-
   const bodySlot = resolveSlot({
     slot: "body",
     styles,
@@ -313,7 +282,6 @@ export function AdaptiveScaffold({
 
   const appBar = showAppBar ? (
     <Box
-      {...appBarSlot}
       data-ui-adaptive-scaffold-app-bar=""
     >
       <TopAppBar
@@ -419,16 +387,11 @@ export function AdaptiveScaffold({
   if (resolvedMode === "mobile") {
     return (
       <Box
-        {...rootSlot}
         ref={rootRef}
         data-ui-adaptive-scaffold=""
         data-ui-adaptive-scaffold-mode={resolvedMode}
         data-ui-adaptive-scaffold-viewport={viewport}
         {...rest}
-        style={{
-          ...rootSlot.style,
-          ...style,
-        }}
       >
         <Scaffold
           viewport={viewport}
@@ -605,26 +568,28 @@ export function AdaptiveScaffold({
   );
 
   return (
-    <Box
-      {...rootSlot}
-      ref={rootRef}
-      data-ui-adaptive-scaffold=""
-      data-ui-adaptive-scaffold-mode={
-        resolvedMode
-      }
-      data-ui-adaptive-scaffold-viewport={
-        viewport
-      }
-      {...rest}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        ...rootSlot.style,
-        ...style,
-      }}
-    >
-      {appBar}
+    <Scaffold
+      viewport={viewport}
 
+      appBar={appBar}
+
+      footer={
+        showTabletBottom
+          ? bottomNavigation
+          : undefined
+      }
+
+      floating={
+        resolveAdaptiveValue(
+          floating,
+          context
+        )
+      }
+
+      scrollable={false}
+
+      {...scaffoldProps}
+    >
       <Box
         {...bodySlot}
         data-ui-adaptive-scaffold-body=""
@@ -639,11 +604,7 @@ export function AdaptiveScaffold({
           ? navigationNode
           : null}
       </Box>
-
-      {showTabletBottom
-        ? bottomNavigation
-        : null}
-    </Box>
+    </Scaffold>
   );
 }
 

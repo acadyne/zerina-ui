@@ -11,7 +11,7 @@ import {
   type NavigationStackTransitionDirection,
 } from "../../navigation-stack";
 import { BackButton } from "../BackButton";
-import { MobileScaffold } from "../MobileScaffold";
+import { Scaffold } from "../Scaffold";
 import { TopAppBar } from "../TopAppBar";
 import { TabScaffoldContext } from "./TabScaffoldContext";
 import type {
@@ -70,7 +70,6 @@ export function TabScaffold(
     fallback,
 
     scrollable = false,
-    padded = false,
 
     styles,
     slotProps,
@@ -78,7 +77,7 @@ export function TabScaffold(
     className = "",
     style,
 
-    ...mobileScaffoldProps
+    ...scaffoldProps
   } = props;
 
   const rootSlot = resolveSlot({
@@ -480,34 +479,39 @@ export function TabScaffold(
 
   if (tabs.length === 0 || !initialTab) {
     return (
-      <MobileScaffold
+      <Scaffold
         viewport={viewport}
+
         scrollable={scrollable}
-        padded={padded}
+
         appBar={appBar}
-        bottomNavigation={bottomNavigation}
+
+        footer={bottomNavigation}
+
         floating={floatingNode}
+
         {...rootSlot}
+
         data-ui-tab-scaffold=""
         data-ui-tab-scaffold-active-tab={activeTab}
         data-ui-tab-scaffold-can-go-back={
           canGoBack || undefined
         }
-        {...mobileScaffoldProps}
+
+        {...scaffoldProps}
       >
         {fallback ?? renderTabScaffoldFallback()}
-      </MobileScaffold>
+      </Scaffold>
     );
   }
 
   return (
     <TabScaffoldContext.Provider value={contextValue}>
-      <MobileScaffold
+      <Scaffold
         viewport={viewport}
         scrollable={scrollable}
-        padded={padded}
         appBar={appBar}
-        bottomNavigation={bottomNavigation}
+        footer={bottomNavigation}
         floating={floatingNode}
         {...rootSlot}
         data-ui-tab-scaffold=""
@@ -515,7 +519,7 @@ export function TabScaffold(
         data-ui-tab-scaffold-can-go-back={
           canGoBack || undefined
         }
-        {...mobileScaffoldProps}
+        {...scaffoldProps}
       >
         <Box
           {...stackSlot}
@@ -566,7 +570,7 @@ export function TabScaffold(
             ))}
           </NavigationStack>
         </Box>
-      </MobileScaffold>
+      </Scaffold>
     </TabScaffoldContext.Provider>
   );
 }
