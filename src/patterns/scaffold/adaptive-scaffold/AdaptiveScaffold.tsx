@@ -16,7 +16,7 @@ import {
   NavigationRail,
   type NavigationItemDef,
 } from "../../../primitives/navigation";
-import { MobileScaffold } from "../MobileScaffold";
+import { Scaffold } from "../Scaffold";
 import { ScreenContent } from "../ScreenContent";
 import { TopAppBar } from "../TopAppBar";
 import type {
@@ -126,7 +126,7 @@ export function AdaptiveScaffold({
   showAppBar = true,
 
   topAppBarProps,
-  mobileScaffoldProps,
+  scaffoldProps,
   bottomNavigationProps,
   navigationRailProps,
   navigationListProps,
@@ -430,10 +430,10 @@ export function AdaptiveScaffold({
           ...style,
         }}
       >
-        <MobileScaffold
+        <Scaffold
           viewport={viewport}
           appBar={appBar}
-          bottomNavigation={
+          footer={
             hasCustomNavigation
               ? navigationPlacement === "bottom"
                 ? customNavigation
@@ -442,10 +442,14 @@ export function AdaptiveScaffold({
                 ? bottomNavigation
                 : undefined
           }
-          floating={resolveAdaptiveValue(floating, context)}
+          floating={
+            resolveAdaptiveValue(
+              floating,
+              context
+            )
+          }
           scrollable={false}
-          padded={false}
-          {...mobileScaffoldProps}
+          {...scaffoldProps}
         >
           {
             hasCustomNavigation &&
@@ -453,6 +457,7 @@ export function AdaptiveScaffold({
               ? customNavigation
               : null
           }
+
           <Box
             {...contentSlot}
             data-ui-adaptive-scaffold-content=""
@@ -468,7 +473,8 @@ export function AdaptiveScaffold({
           >
             {content}
           </Box>
-        </MobileScaffold>
+
+        </Scaffold>
       </Box>
     );
   }

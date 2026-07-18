@@ -15,9 +15,9 @@ import type {
 } from "../../../primitives/navigation/NavigationList";
 import type { NavigationRailProps } from "../../../primitives/navigation/navigation-rail";
 import type {
-  MobileScaffoldProps,
+  ScaffoldProps,
   ScaffoldViewport,
-} from "../MobileScaffold";
+} from "../Scaffold";
 import type { TopAppBarProps } from "../TopAppBar";
 
 export type AdaptiveScaffoldMode = UIViewportMode;
@@ -210,15 +210,15 @@ export interface AdaptiveScaffoldProps
     "title" | "subtitle" | "leading" | "actions"
   >;
 
-  mobileScaffoldProps?: Omit<
-    MobileScaffoldProps,
-    | "children"
-    | "viewport"
-    | "appBar"
-    | "bottomNavigation"
-    | "bottomBar"
-    | "floating"
-  >;
+  
+scaffoldProps?: Omit<
+  ScaffoldProps,
+  | "children"
+  | "viewport"
+  | "appBar"
+  | "footer"
+  | "floating"
+>
 
   bottomNavigationProps?: Omit<
     BottomNavigationProps,

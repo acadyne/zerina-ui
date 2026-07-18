@@ -2,7 +2,6 @@
 
 export * from "./TopAppBar";
 export * from "./Scaffold";
-export * from "./MobileScaffold";
 export * from "./tab-scaffold";
 export * from "./adaptive-scaffold";
 export * from "./BackButton";

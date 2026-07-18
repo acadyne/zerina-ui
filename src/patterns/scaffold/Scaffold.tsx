@@ -196,3 +196,12 @@ export function Scaffold({
 
 Scaffold.displayName =
   "Scaffold";
+
+
+export type {
+  ScaffoldProps,
+  ScaffoldSlot,
+  ScaffoldStyles,
+  ScaffoldSlotProps,
+  ScaffoldViewport,
+} from "./scaffold.types";
