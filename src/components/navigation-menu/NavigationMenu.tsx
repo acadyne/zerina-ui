@@ -194,8 +194,10 @@ function NavigationMenuInner<TItem>(
 
     renderItemIcon,
     renderIndicator,
-    renderItemContent,
     renderLoading,
+    renderItemLeading,
+    renderItemLabel,
+    renderItemTrailing,
     renderEmpty,
     renderError,
 
@@ -996,8 +998,16 @@ function NavigationMenuInner<TItem>(
                 renderIndicator={
                   renderIndicator
                 }
-                renderItemContent={
-                  renderItemContent
+                renderItemLeading={
+                  renderItemLeading
+                }
+
+                renderItemLabel={
+                  renderItemLabel
+                }
+
+                renderItemTrailing={
+                  renderItemTrailing
                 }
                 renderLoading={
                   renderLoading

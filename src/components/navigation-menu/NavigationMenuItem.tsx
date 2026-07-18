@@ -56,7 +56,15 @@ export interface NavigationMenuItemProps<TItem> {
     }
   ) => React.ReactNode;
 
-  renderItemContent?: (
+  renderItemLeading?: (
+    context: NavigationMenuItemRenderContext<TItem>
+  ) => React.ReactNode;
+
+  renderItemLabel?: (
+    context: NavigationMenuItemRenderContext<TItem>
+  ) => React.ReactNode;
+
+  renderItemTrailing?: (
     context: NavigationMenuItemRenderContext<TItem>
   ) => React.ReactNode;
 
@@ -106,7 +114,9 @@ export function NavigationMenuItem<TItem>({
 
   renderItemIcon,
   renderIndicator,
-  renderItemContent,
+  renderItemLeading,
+  renderItemLabel,
+  renderItemTrailing,
   renderLoading,
   renderEmpty,
   renderError,
@@ -605,8 +615,21 @@ export function NavigationMenuItem<TItem>({
 
   const icon = renderItemIcon?.(renderContext);
 
-  const customContent =
-    renderItemContent?.(renderContext);
+  const leading =
+    renderItemLeading?.(
+      renderContext
+    );
+
+  const label =
+    renderItemLabel?.(
+      renderContext
+    ) ??
+    getItemLabel(item);
+
+  const trailing =
+    renderItemTrailing?.(
+      renderContext
+    );
 
   const loadingContent =
     renderLoading?.(renderContext) ??
@@ -671,21 +694,30 @@ export function NavigationMenuItem<TItem>({
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
       >
-        {customContent ?? (
-          <>
-            <span {...contentSlot}>
-              {icon !== undefined ? (
-                <span {...iconSlot}>{icon}</span>
-              ) : null}
 
-              <span {...labelSlot}>
-                {getItemLabel(item)}
+        <>
+          <span {...contentSlot}>
+
+            {leading}
+
+            {icon !== undefined ? (
+              <span {...iconSlot}>
+                {icon}
               </span>
+            ) : null}
+
+
+            <span {...labelSlot}>
+              {label}
             </span>
 
-            {indicator}
-          </>
-        )}
+          </span>
+
+
+          {trailing ?? indicator}
+
+        </>
+
       </button>
 
       {branch ? (
@@ -752,10 +784,25 @@ export function NavigationMenuItem<TItem>({
                   onItemKeyDown={onItemKeyDown}
                   onInternalKeyDown={onInternalKeyDown}
                   renderItemIcon={renderItemIcon}
+
+                  renderItemLeading={
+                    renderItemLeading
+                  }
+
+                  renderItemLabel={
+                    renderItemLabel
+                  }
+
+                  renderItemTrailing={
+                    renderItemTrailing
+                  }
+
                   renderIndicator={renderIndicator}
-                  renderItemContent={renderItemContent}
+
                   renderLoading={renderLoading}
+
                   renderEmpty={renderEmpty}
+
                   renderError={renderError}
                   styles={styles}
                   slotProps={slotProps}

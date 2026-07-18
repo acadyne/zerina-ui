@@ -120,10 +120,10 @@ export interface NavigationMenuIndicatorRenderContext<TItem>
 }
 
 export interface NavigationMenuLoadingRenderContext<TItem>
-  extends NavigationMenuItemRenderContext<TItem> {}
+  extends NavigationMenuItemRenderContext<TItem> { }
 
 export interface NavigationMenuEmptyRenderContext<TItem>
-  extends NavigationMenuItemRenderContext<TItem> {}
+  extends NavigationMenuItemRenderContext<TItem> { }
 
 export interface NavigationMenuErrorRenderContext<TItem>
   extends NavigationMenuItemRenderContext<TItem> {
@@ -466,10 +466,15 @@ export interface NavigationMenuProps<TItem>
     context: NavigationMenuIndicatorRenderContext<TItem>
   ) => ReactNode;
 
-  /**
-   * Reemplaza el contenido interior del elemento.
-   */
-  renderItemContent?: (
+  renderItemLeading?: (
+    context: NavigationMenuItemRenderContext<TItem>
+  ) => ReactNode;
+
+  renderItemLabel?: (
+    context: NavigationMenuItemRenderContext<TItem>
+  ) => ReactNode;
+
+  renderItemTrailing?: (
     context: NavigationMenuItemRenderContext<TItem>
   ) => ReactNode;
 
