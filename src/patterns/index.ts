@@ -16,7 +16,6 @@ export * from "./ConfirmDialog";
 export * from "./FormDialog";
 export * from "./ActionDialog";
 export * from "./TargetFormDialog";
-export * from "./app-shell";
 export * from "./settings";
 export * from "./actions";
 export * from "./navigation-stack";
