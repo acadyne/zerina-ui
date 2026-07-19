@@ -18,8 +18,6 @@ export type {
   AdaptiveScaffoldRenderContext,
   AdaptiveScaffoldProps,
 
-  AdaptiveScaffoldNavigationRenderOptions,
-  AdaptiveScaffoldNavigationListOptions,
 } from "./adaptiveScaffold.types";
 
 

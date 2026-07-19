@@ -95,7 +95,7 @@ export function AdaptiveScaffold<
   navigationRailProps,
   navigationListProps,
 
-  sidebarWidth = 284,
+  navigationWidth = 284,
   styles,
   slotProps,
 
@@ -204,9 +204,9 @@ export function AdaptiveScaffold<
     styles,
     slotProps,
     baseStyle: {
-      width: cssSize(sidebarWidth),
-      minWidth: cssSize(sidebarWidth),
-      maxWidth: cssSize(sidebarWidth),
+      width: cssSize(navigationWidth),
+      minWidth: cssSize(navigationWidth),
+      maxWidth: cssSize(navigationWidth),
       minHeight: 0,
       overflow: "auto",
       padding: "0.75rem",
@@ -269,7 +269,6 @@ export function AdaptiveScaffold<
       ? children(context)
       : children;
 
-  const topLevelItems = items;
 
   const bottomNavigation =
     mobileNavigation === "bottom" || tabletNavigation === "bottom" ? (
@@ -286,7 +285,7 @@ export function AdaptiveScaffold<
           setActiveId(next);
         }}
       >
-        {topLevelItems.map((item) => (
+        {items.map((item) => (
           <BottomNavigation.Item
             key={item.id}
             value={item.id}
@@ -319,7 +318,7 @@ export function AdaptiveScaffold<
           setActiveId(next);
         }}
       >
-        {topLevelItems.map((item) => (
+        {items.map((item) => (
           <NavigationRail.Item
             key={item.id}
             value={item.id}
@@ -335,11 +334,6 @@ export function AdaptiveScaffold<
         ))}
       </NavigationRail>
     ) : null;
-
-  const navigationListItems = React.useMemo(
-    () => items,
-    [items]
-  );
 
   const handleNavigationListSelect = React.useCallback(
     (
@@ -442,9 +436,9 @@ export function AdaptiveScaffold<
       },
 
       baseStyle: {
-        width: cssSize(sidebarWidth),
-        minWidth: cssSize(sidebarWidth),
-        maxWidth: cssSize(sidebarWidth),
+        width: cssSize(navigationWidth),
+        minWidth: cssSize(navigationWidth),
+        maxWidth: cssSize(navigationWidth),
 
         minHeight: 0,
         overflow: "auto",
@@ -482,7 +476,7 @@ export function AdaptiveScaffold<
         data-ui-adaptive-scaffold-sidebar=""
       >
         <NavigationList
-          items={navigationListItems}
+          items={items}
           activeId={currentActiveId}
           activeBehavior="contains"
           openActiveParents

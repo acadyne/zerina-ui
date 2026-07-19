@@ -233,7 +233,12 @@ export interface AdaptiveScaffoldProps<
     | "onSelect"
   >;
 
-  sidebarWidth?: number | string;
+  /**
+ * Ancho de la navegación lateral
+ * cuando la estrategia usa rail/sidebar
+ * o navegación personalizada lateral.
+ */
+  navigationWidth?: number | string;
 
 
   className?: string;
@@ -244,23 +249,4 @@ export interface AdaptiveScaffoldProps<
   styles?: AdaptiveScaffoldStyles;
 
   slotProps?: AdaptiveScaffoldSlotProps;
-}
-
-
-export interface AdaptiveScaffoldNavigationRenderOptions<
-  TMeta = unknown
-> {
-  activeId: string;
-
-  items: NavigationNode<TMeta>[];
-
-  onSelect: (
-    item: NavigationNode<TMeta>
-  ) => void;
-}
-
-export interface AdaptiveScaffoldNavigationListOptions<
-  TMeta = unknown
-> {
-  items: NavigationNode<TMeta>[];
 }
