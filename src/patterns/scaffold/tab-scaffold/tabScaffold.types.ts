@@ -21,9 +21,7 @@ import type { TopAppBarProps } from "../TopAppBar";
 
 export type TabScaffoldHeaderValue =
   | React.ReactNode
-  | ((
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode);
+  | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
 export type TabScaffoldSlot =
   | "root"
@@ -39,30 +37,37 @@ export type TabScaffoldStyles =
 export type TabScaffoldSlotProps =
   SlotPropsMap<TabScaffoldSlot>;
 
+/**
+ * Descriptor de una sección raíz visible en la navegación
+ * inferior de TabScaffold.
+ *
+ * No representa una pantalla renderizable.
+ *
+ * El contenido asociado debe declararse por separado mediante
+ * TabScaffoldScreen, usando el mismo identificador:
+ *
+ * tab.value === screen.name
+ */
+export interface TabScaffoldTab {
+  value: string;
+
+  label?: React.ReactNode;
+  icon?: React.ReactNode;
+  badge?: React.ReactNode;
+
+  disabled?: boolean;
+}
 
 /**
- * Pantalla renderizable dentro de TabScaffold.
+ * Pantalla renderizable dentro del NavigationStack de TabScaffold.
  *
- * IMPORTANTE:
+ * No es un NavigationNode ni un descriptor visual de tab.
  *
- * No es un NavigationNode.
+ * Puede representar:
  *
- * NavigationNode:
- *   representa un elemento navegable
- *   dentro de una estructura de navegación.
- *
- * TabScaffoldScreen:
- *   representa contenido asociado
- *   a una entrada del NavigationStack.
- *
- * Este modelo puede contener:
- *
- * - component
- * - render
- * - element
- *
- * porque su responsabilidad es renderizar
- * contenido, no describir navegación global.
+ * - la pantalla raíz de un tab
+ * - una pantalla secundaria
+ * - una pantalla profunda del stack
  */
 export interface TabScaffoldScreen {
   name: string;
@@ -79,17 +84,6 @@ export interface TabScaffoldScreen {
   ) => React.ReactNode;
 
   element?: React.ReactNode;
-}
-
-export interface TabScaffoldTab
-  extends Omit<TabScaffoldScreen, "name"> {
-  value: string;
-
-  label?: React.ReactNode;
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
-
-  disabled?: boolean;
 }
 
 export interface TabScaffoldContextValue {
@@ -143,9 +137,21 @@ interface TabScaffoldBaseProps
     | "footer"
     | "floating"
   > {
-    
+  /**
+   * Secciones raíz visibles en BottomNavigation.
+   *
+   * Cada tab habilitado debe tener una pantalla registrada
+   * en screens con el mismo identificador.
+   */
   tabs: TabScaffoldTab[];
-  screens?: TabScaffoldScreen[];
+
+  /**
+   * Registro completo de pantallas.
+   *
+   * Incluye tanto las pantallas raíz de los tabs como las
+   * pantallas secundarias que pueden abrirse mediante el stack.
+   */
+  screens: TabScaffoldScreen[];
 
   viewport?: ScaffoldViewport;
 
@@ -161,22 +167,16 @@ interface TabScaffoldBaseProps
   subtitle?: TabScaffoldHeaderValue;
 
   rootLeading?:
-  | React.ReactNode
-  | ((
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode);
+    | React.ReactNode
+    | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   actions?:
-  | React.ReactNode
-  | ((
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode);
+    | React.ReactNode
+    | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   floating?:
-  | React.ReactNode
-  | ((
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode);
+    | React.ReactNode
+    | ((context: TabScaffoldRenderContext) => React.ReactNode);
 
   backIcon?: React.ReactNode;
   backAriaLabel?: string;

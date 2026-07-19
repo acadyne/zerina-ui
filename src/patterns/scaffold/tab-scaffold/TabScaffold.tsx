@@ -7,7 +7,6 @@ import {
   NavigationStack,
   type NavigationStackEntry,
   type NavigationStackParams,
-  type NavigationStackScreenRenderProps,
   type NavigationStackTransitionDirection,
 } from "../../navigation-stack";
 import { BackButton } from "../BackButton";
@@ -34,7 +33,7 @@ export function TabScaffold(
 ) {
   const {
     tabs,
-    screens = [],
+    screens,
 
     viewport = "window",
 
@@ -360,7 +359,6 @@ export function TabScaffold(
   const activeMeta = getTabScaffoldScreenMeta({
     currentName: current?.name,
     activeTab,
-    tabs,
     screens,
   });
 
@@ -529,9 +527,7 @@ export function TabScaffold(
             initialName={initialTab}
             initialParams={initialParams}
             entries={stackEntries}
-            transitionDirection={
-              stackTransitionDirection
-            }
+            transitionDirection={stackTransitionDirection}
             onEntriesChange={setEntries}
             animation={animation}
             fallback={fallback}
@@ -549,16 +545,6 @@ export function TabScaffold(
               },
             }}
           >
-            {tabs.map((tab) => (
-              <NavigationStack.Screen
-                key={tab.value}
-                name={tab.value}
-                component={tab.component}
-                render={tab.render}
-                element={tab.element}
-              />
-            ))}
-
             {screens.map((screen) => (
               <NavigationStack.Screen
                 key={screen.name}

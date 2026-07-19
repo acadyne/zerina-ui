@@ -53,11 +53,20 @@ export function getInitialTab(
   tabs: TabScaffoldTab[],
   initialTab?: string
 ): string {
-  if (initialTab && tabs.some((tab) => tab.value === initialTab)) {
-    return initialTab;
+  if (initialTab) {
+    const requestedTab = tabs.find(
+      (tab) => tab.value === initialTab
+    );
+
+    if (requestedTab && !requestedTab.disabled) {
+      return requestedTab.value;
+    }
   }
 
-  return tabs[0]?.value ?? "";
+  return (
+    tabs.find((tab) => !tab.disabled)?.value ??
+    ""
+  );
 }
 
 export function getActiveTab({
@@ -71,7 +80,14 @@ export function getActiveTab({
 }): string {
   const root = entries[0];
 
-  if (root && tabs.some((tab) => tab.value === root.name)) {
+  if (
+    root &&
+    tabs.some(
+      (tab) =>
+        tab.value === root.name &&
+        !tab.disabled
+    )
+  ) {
     return root.name;
   }
 
@@ -81,23 +97,28 @@ export function getActiveTab({
 export function getTabScaffoldScreenMeta({
   currentName,
   activeTab,
-  tabs,
   screens,
 }: {
   currentName?: string | null;
   activeTab: string;
-  tabs: TabScaffoldTab[];
   screens: TabScaffoldScreen[];
-}): TabScaffoldScreen | TabScaffoldTab | null {
-  if (!currentName) return null;
+}): TabScaffoldScreen | null {
+  if (currentName) {
+    const currentScreen = screens.find(
+      (screen) => screen.name === currentName
+    );
 
-  const tab = tabs.find((item) => item.value === currentName);
-  if (tab) return tab;
+    if (currentScreen) {
+      return currentScreen;
+    }
+  }
 
-  const screen = screens.find((item) => item.name === currentName);
-  if (screen) return screen;
-
-  return tabs.find((item) => item.value === activeTab) ?? null;
+  return (
+    screens.find(
+      (screen) => screen.name === activeTab
+    ) ??
+    null
+  );
 }
 
 export function renderTabScaffoldFallback() {
@@ -113,7 +134,7 @@ export function renderTabScaffoldFallback() {
         textAlign: "center",
       }}
     >
-      TabScaffold necesita al menos un tab.
+      TabScaffold necesita al menos un tab habilitado.
     </Box>
   );
 }
