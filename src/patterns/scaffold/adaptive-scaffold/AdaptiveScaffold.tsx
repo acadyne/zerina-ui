@@ -28,12 +28,15 @@ import type {
 } from "../../navigation";
 import {
   cssSize,
-  findNavigationNode,
-  getFirstSelectableNavigationNode,
-  isNavigationNodeSelectable,
   resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
+
+import {
+  findNavigationNode,
+  getFirstSelectableNavigationNode,
+  isNavigationNodeSelectable,
+} from "../../navigation";
 function getModeContentSlot(
   mode: AdaptiveScaffoldRenderContext["mode"]
 ): AdaptiveScaffoldSlot {
