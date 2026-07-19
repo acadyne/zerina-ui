@@ -6,65 +6,53 @@ import { Box } from "../../primitives/layout";
 import { BottomNavigation } from "../../primitives/navigation";
 import { RecursiveFloatingMenuLayer } from "../../primitives/navigation/RecursiveFloatingMenuLayer";
 import type {
-  AppShellProcessedRoute,
+  NavigationNode,
+} from "../navigation";
+import type {
   AppShellViewport,
 } from "./AppShell.types";
 import {
-  appShellRouteContainsActive,
-  getAppShellRouteChildren,
-  isAppShellRouteActive,
-  isAppShellRouteSelectable,
-} from "./AppShellRouteUtils";
+  isNavigationNodeSelectable,
+} from "../navigation";
 import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 
 export interface AppShellMobileBarProps {
   viewport?: AppShellViewport;
 
-  routes: AppShellProcessedRoute[];
+  items: NavigationNode[];
 
-  activePath?: string;
+  activeId?: string | null;
+
   height?: number;
 
-  onNavigate?: (
-    route: AppShellProcessedRoute
+  onSelect?: (
+    item: NavigationNode
   ) => void;
 
   className?: string;
   style?: React.CSSProperties;
 }
 
-function getRouteIcon(
-  route: AppShellProcessedRoute
+function getNavigationIcon(
+  item: NavigationNode
 ): React.ReactNode {
   return (
-    route.icon ??
-    route.emoji ??
+    item.icon ??
     "•"
-  );
-}
-
-function getActiveRootRouteId(
-  routes: AppShellProcessedRoute[],
-  activePath: string
-): string | null {
-  return (
-    routes.find((route) =>
-      appShellRouteContainsActive(
-        route,
-        {
-          activePath,
-        }
-      )
-    )?.id ?? null
   );
 }
 
 export function AppShellMobileBar({
   viewport = "window",
-  routes,
-  activePath = "/",
+
+  items,
+
+  activeId,
+
   height = 68,
-  onNavigate,
+
+  onSelect,
+
   className = "",
   style,
 }: AppShellMobileBarProps) {
@@ -74,8 +62,8 @@ export function AppShellMobileBar({
     );
 
   const [
-    openRouteId,
-    setOpenRouteId,
+    openItemId,
+    setOpenItemId,
   ] =
     React.useState<string | null>(
       null
@@ -90,32 +78,19 @@ export function AppShellMobileBar({
   const isContained =
     viewport === "contained";
 
-  const openRoute =
+  const openItem =
     React.useMemo(() => {
       return (
-        routes.find(
-          (route) =>
-            route.id ===
-            openRouteId
+        items.find(
+          (item) =>
+            item.id ===
+            openItemId
         ) ?? null
       );
     }, [
-      routes,
-      openRouteId,
+      items,
+      openItemId,
     ]);
-
-  const activeRootRouteId =
-    React.useMemo(
-      () =>
-        getActiveRootRouteId(
-          routes,
-          activePath
-        ),
-      [
-        activePath,
-        routes,
-      ]
-    );
 
   const updateAnchor =
     React.useCallback(
@@ -144,47 +119,45 @@ export function AppShellMobileBar({
   const handleRootPress =
     React.useCallback(
       (
-        route: AppShellProcessedRoute,
+        item: NavigationNode,
         event: UIPressEvent<HTMLElement>
       ): void => {
-        if (route.disabled) {
+        if (item.disabled) {
           return;
         }
 
         updateAnchor(event);
 
         const children =
-          getAppShellRouteChildren(
-            route
-          );
+          item.children ?? [];
 
         if (
           children.length > 0
         ) {
           event.preventDefault();
 
-          setOpenRouteId(
+          setOpenItemId(
             (current) =>
-              current === route.id
+              current === item.id
                 ? null
-                : route.id
+                : item.id
           );
 
           return;
         }
 
-        setOpenRouteId(null);
+        setOpenItemId(null);
 
         if (
-          isAppShellRouteSelectable(
-            route
+          isNavigationNodeSelectable(
+            item
           )
         ) {
-          onNavigate?.(route);
+          onSelect?.(item);
         }
       },
       [
-        onNavigate,
+        onSelect,
         updateAnchor,
       ]
     );
@@ -192,52 +165,42 @@ export function AppShellMobileBar({
   const renderMobileMenuItem =
     React.useCallback(
       (
-        route: AppShellProcessedRoute
+        item: NavigationNode
       ) => {
         const active =
-          isAppShellRouteActive(
-            activePath,
-            route
-          );
+          activeId === item.id;
 
         const iconContent =
-          getRouteIcon(route);
+          getNavigationIcon(item);
 
         return (
           <button
-            key={route.id}
+            key={item.id}
             type="button"
             disabled={
-              route.disabled
+              item.disabled
             }
             onClick={() => {
               const children =
-                getAppShellRouteChildren(
-                  route
-                );
+                item.children ?? [];
 
               if (
-                children.length >
-                0
+                children.length > 0
               ) {
                 return;
               }
 
               if (
-                !isAppShellRouteSelectable(
-                  route
+                !isNavigationNodeSelectable(
+                  item
                 )
               ) {
                 return;
               }
 
-              setOpenRouteId(
-                null
-              );
+              setOpenItemId(null);
 
-              onNavigate?.(
-                route
-              );
+              onSelect?.(item);
             }}
             style={{
               width: "100%",
@@ -268,12 +231,12 @@ export function AppShellMobileBar({
                 : "var(--ui-text-muted)",
 
               cursor:
-                route.disabled
+                item.disabled
                   ? "not-allowed"
                   : "pointer",
 
               opacity:
-                route.disabled
+                item.disabled
                   ? "var(--ui-state-disabled-opacity)"
                   : 1,
 
@@ -321,14 +284,14 @@ export function AppShellMobileBar({
                     : 700,
               }}
             >
-              {route.name}
+              {item.label}
             </span>
           </button>
         );
       },
       [
-        activePath,
-        onNavigate,
+        activeId,
+        onSelect,
       ]
     );
 
@@ -348,7 +311,9 @@ export function AppShellMobileBar({
         right: 0,
         bottom: 0,
 
-        zIndex: getScaffoldLayer("navigationMobile"),
+        zIndex: getScaffoldLayer(
+          "navigationMobile"
+        ),
 
         ...style,
       }}
@@ -367,38 +332,35 @@ export function AppShellMobileBar({
           translucent
           height={height}
           value={
-            activeRootRouteId
+            activeId ?? ""
           }
         >
-          {routes.map(
-            (route) => {
+          {items.map(
+            (item) => {
               const children =
-                getAppShellRouteChildren(
-                  route
-                );
+                item.children ?? [];
 
               const hasChildren =
-                children.length >
-                0;
+                children.length > 0;
 
               return (
                 <BottomNavigation.Item
                   key={
-                    route.id
+                    item.id
                   }
                   value={
-                    route.id
+                    item.id
                   }
                   icon={
-                    getRouteIcon(
-                      route
+                    getNavigationIcon(
+                      item
                     )
                   }
                   badge={
-                    route.badge
+                    item.badge
                   }
                   disabled={
-                    route.disabled
+                    item.disabled
                   }
                   aria-haspopup={
                     hasChildren
@@ -407,20 +369,20 @@ export function AppShellMobileBar({
                   }
                   aria-expanded={
                     hasChildren
-                      ? openRouteId ===
-                      route.id
+                      ? openItemId ===
+                      item.id
                       : undefined
                   }
                   onPress={(
                     event
                   ) => {
                     handleRootPress(
-                      route,
+                      item,
                       event
                     );
                   }}
                 >
-                  {route.name}
+                  {item.label}
                 </BottomNavigation.Item>
               );
             }
@@ -428,11 +390,13 @@ export function AppShellMobileBar({
         </BottomNavigation>
 
         <RecursiveFloatingMenuLayer
-          open={Boolean(
-            openRoute
-              ?.subroutes
-              ?.length
-          )}
+          open={
+            Boolean(
+              openItem
+                ?.children
+                ?.length
+            )
+          }
           level={1}
           anchorX={
             anchorX
@@ -442,7 +406,7 @@ export function AppShellMobileBar({
           }
           direction="up"
           onDismiss={() =>
-            setOpenRouteId(
+            setOpenItemId(
               null
             )
           }
@@ -450,8 +414,8 @@ export function AppShellMobileBar({
             minWidth: 220,
           }}
         >
-          {openRoute
-            ?.subroutes
+          {openItem
+            ?.children
             ?.map(
               renderMobileMenuItem
             )}

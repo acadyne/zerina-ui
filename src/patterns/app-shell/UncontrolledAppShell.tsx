@@ -1,118 +1,173 @@
+// src/patterns/app-shell/UncontrolledAppShell.tsx
 import React from "react";
 import type {
   AppShellCommonProps,
-  AppShellProcessedRoute,
-  AppShellRouteRenderer,
 } from "./AppShell.types";
-import {
-  findAppShellRouteById,
-  findFirstRenderableRoute,
-  processAppShellRoutes,
-} from "./AppShellRouteUtils";
+import type {
+  NavigationNode,
+} from "../navigation";
 import { AppShell } from "./AppShell";
 
-export interface UncontrolledAppShellProps extends AppShellCommonProps {
-  defaultRouteId?: string;
-  renderRoute?: AppShellRouteRenderer;
+export interface UncontrolledAppShellProps
+  extends AppShellCommonProps {
+  defaultActiveId?: string;
+
+  renderNode?: (
+    context: {
+      node: NavigationNode;
+      activePath: string;
+    }
+  ) => React.ReactNode;
+
   fallback?: React.ReactNode;
 }
 
-function renderRouteContent(route: AppShellProcessedRoute): React.ReactNode {
-  if (route.element) {
-    return route.element;
+function renderNavigationNodeContent(
+  node: NavigationNode
+): React.ReactNode {
+  const meta =
+    node.meta;
+
+  if (
+    !meta ||
+    typeof meta !== "object"
+  ) {
+    return null;
   }
 
-  if (route.component) {
-    const Component = route.component;
-    return <Component />;
+  if (
+    "element" in meta &&
+    meta.element
+  ) {
+    return meta.element as React.ReactNode;
+  }
+
+  if (
+    "component" in meta &&
+    meta.component
+  ) {
+    const Component =
+      meta.component as React.ComponentType<
+        Record<never, never>
+      >;
+
+    return (
+      <Component />
+    );
   }
 
   return null;
 }
 
 export function UncontrolledAppShell({
-  routes,
-  defaultRouteId,
-  renderRoute,
+  navigation,
+  defaultActiveId,
+  renderNode,
   fallback,
-  activeRouteId: controlledActiveRouteId,
+  activeRouteId: controlledActiveId,
   ...rest
 }: UncontrolledAppShellProps) {
-  const processedRoutes = React.useMemo(
-    () => processAppShellRoutes(routes),
-    [routes]
+  const firstNode =
+    React.useMemo(
+      () =>
+        navigation.find(
+          (node) =>
+            Boolean(
+              node.meta &&
+              typeof node.meta === "object" &&
+              (
+                "component" in node.meta ||
+                "element" in node.meta
+              )
+            )
+        ) ?? navigation[0] ?? null,
+      [
+        navigation,
+      ]
+    );
+
+  const [
+    internalActiveId,
+    setInternalActiveId,
+  ] =
+    React.useState<string | null>(
+      () =>
+        defaultActiveId ??
+        firstNode?.id ??
+        null
+    );
+
+  const activeId =
+    controlledActiveId ??
+    internalActiveId;
+
+  const activeNode =
+    React.useMemo(
+      () =>
+        navigation.find(
+          (node) =>
+            node.id === activeId
+        ) ??
+        firstNode,
+      [
+        activeId,
+        firstNode,
+        navigation,
+      ]
+    );
+
+  const activePath =
+    typeof activeNode?.meta === "object" &&
+    activeNode.meta !== null &&
+    "path" in activeNode.meta
+      ? String(activeNode.meta.path)
+      : "/";
+
+  const handleNavigate = React.useCallback(
+    (
+      node: NavigationNode
+    ) => {
+      if (!node.id) {
+        return;
+      }
+
+      setInternalActiveId(
+        node.id
+      );
+    },
+    []
   );
 
-  const firstRoute = React.useMemo(
-    () => findFirstRenderableRoute(processedRoutes),
-    [processedRoutes]
-  );
-
-  const [internalActiveRouteId, setInternalActiveRouteId] = React.useState<
-    string | null
-  >(() => defaultRouteId ?? firstRoute?.id ?? null);
-
-  React.useEffect(() => {
-    if (controlledActiveRouteId !== undefined) {
-      return;
-    }
-
-    const internalRoute =
-      findAppShellRouteById(
-        processedRoutes,
-        internalActiveRouteId
-      );
-
-    const nextActiveRouteId =
-      internalRoute?.id ??
-      firstRoute?.id ??
-      null;
-
-    if (
-      nextActiveRouteId !==
-      internalActiveRouteId
-    ) {
-      setInternalActiveRouteId(
-        nextActiveRouteId
-      );
-    }
-  }, [
-    controlledActiveRouteId,
-    firstRoute?.id,
-    internalActiveRouteId,
-    processedRoutes,
-  ]);
-
-  const activeRouteId = controlledActiveRouteId ?? internalActiveRouteId;
-
-  const activeRoute = React.useMemo(() => {
-    return findAppShellRouteById(processedRoutes, activeRouteId) ?? firstRoute;
-  }, [activeRouteId, firstRoute, processedRoutes]);
-
-  const activePath = activeRoute?.path ?? "/";
-
-  const handleNavigate = React.useCallback((route: AppShellProcessedRoute) => {
-    if (!route.component && !route.element) return;
-    setInternalActiveRouteId(route.id);
-  }, []);
-
-  const content = activeRoute
-    ? renderRoute
-      ? renderRoute({ route: activeRoute, activePath })
-      : renderRouteContent(activeRoute)
-    : fallback;
+  const content =
+    activeNode
+      ? renderNode
+        ? renderNode({
+          node: activeNode,
+          activePath,
+        })
+        : renderNavigationNodeContent(
+          activeNode
+        )
+      : fallback;
 
   return (
     <AppShell
       {...rest}
-      routes={routes}
+      navigation={navigation}
       activePath={activePath}
-      activeRouteId={activeRoute?.id ?? null}
+      activeRouteId={
+        activeNode?.id ?? null
+      }
       onNavigate={handleNavigate}
     >
-      {content ?? fallback ?? null}
+      {
+        content ??
+        fallback ??
+        null
+      }
     </AppShell>
   );
 }
 
-UncontrolledAppShell.displayName = "UncontrolledAppShell";
+UncontrolledAppShell.displayName =
+  "UncontrolledAppShell";

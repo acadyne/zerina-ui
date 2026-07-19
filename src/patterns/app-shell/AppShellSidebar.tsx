@@ -8,30 +8,21 @@ import {
 import type {
   NavigationNode,
 } from "../navigation";
+import {
+  isNavigationNodeSelectable,
+} from "../navigation";
 import type {
-  AppShellProcessedRoute,
   AppShellViewport,
 } from "./AppShell.types";
-import {
-  flattenAppShellRoutes,
-  getAppShellRouteChildren,
-  getAppShellRouteId,
-  isAppShellRouteActive,
-  isAppShellRouteSelectable,
-} from "./AppShellRouteUtils";
 import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
-type AppShellNavigationNode =
-  NavigationNode<{
-    route: AppShellProcessedRoute;
-  }>;
+
 
 export interface AppShellSidebarProps {
   viewport?: AppShellViewport;
 
-  routes: AppShellProcessedRoute[];
+  items: NavigationNode[];
 
-  activeRouteId?: string | null;
-  activePath?: string;
+  activeId?: string | null;
 
   collapsed?: boolean;
 
@@ -53,8 +44,9 @@ export interface AppShellSidebarProps {
   openRouteIds?: string[];
   onOpenRouteIdsChange?: (ids: string[]) => void;
 
-  onNavigate?: (route: AppShellProcessedRoute) => void;
-  onRouteSelect?: (route: AppShellProcessedRoute) => void;
+  onSelect?: (
+    item: NavigationNode
+  ) => void;
 
   className?: string;
   style?: React.CSSProperties;
@@ -65,74 +57,10 @@ function toCssSize(value: number | string | undefined, fallback: string): string
   return typeof value === "number" ? `${value}px` : value;
 }
 
-function getActiveNavigationId({
-  routes,
-  activeRouteId,
-  activePath,
-}: {
-  routes: AppShellProcessedRoute[];
-  activeRouteId?: string | null;
-  activePath?: string;
-}): string | null {
-  if (activeRouteId) {
-    return activeRouteId;
-  }
-
-  if (!activePath) {
-    return null;
-  }
-
-  const activeRoutes = flattenAppShellRoutes(routes)
-    .filter((route) => isAppShellRouteActive(activePath, route))
-    .sort((a, b) => b.depth - a.depth);
-
-  return activeRoutes[0]?.id ?? null;
-}
-
-function routeToNavigationNode(
-  route: AppShellProcessedRoute
-): AppShellNavigationNode {
-  const children =
-    getAppShellRouteChildren(route);
-
-  const hasChildren =
-    children.length > 0;
-
-  return {
-    id: getAppShellRouteId(route),
-
-    label: route.name,
-
-    icon:
-      route.icon ??
-      route.emoji ??
-      "•",
-
-    badge: route.badge,
-
-    disabled: route.disabled,
-
-    selectable:
-      hasChildren
-        ? false
-        : isAppShellRouteSelectable(route),
-
-    children:
-      hasChildren
-        ? children.map(routeToNavigationNode)
-        : undefined,
-
-    meta: {
-      route,
-    },
-  };
-}
-
 export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   viewport = "window",
-  routes,
-  activeRouteId,
-  activePath,
+  items,
+  activeId,
   collapsed = false,
 
   width,
@@ -146,8 +74,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   openRouteIds,
   onOpenRouteIdsChange,
 
-  onNavigate,
-  onRouteSelect,
+  onSelect,
 
   className = "",
   style,
@@ -172,41 +99,22 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
         : resolvedExpandedWidth;
 
   const isContained = viewport === "contained";
-  const items = React.useMemo(() => {
-    return routes.map(routeToNavigationNode);
-  }, [routes]);
 
-  const activeId = React.useMemo(
-    () =>
-      getActiveNavigationId({
-        routes,
-        activeRouteId,
-        activePath,
-      }),
-    [activePath, activeRouteId, routes]
+  const handleSelect = React.useCallback(
+    (
+      item: NavigationNode
+    ) => {
+      if (!isNavigationNodeSelectable(item)) {
+        return;
+      }
+
+      onSelect?.(item);
+    },
+    [
+      onSelect,
+    ]
   );
 
-const handleSelect = React.useCallback(
-  (item: AppShellNavigationNode) => {
-    const route =
-      item.meta?.route;
-
-    if (!route) {
-      return;
-    }
-
-    if (!isAppShellRouteSelectable(route)) {
-      return;
-    }
-
-    onNavigate?.(route);
-    onRouteSelect?.(route);
-  },
-  [
-    onNavigate,
-    onRouteSelect,
-  ]
-);
   return (
     <Box
       as="aside"

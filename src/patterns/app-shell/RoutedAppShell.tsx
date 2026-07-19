@@ -1,7 +1,9 @@
 // src/patterns/app-shell/RoutedAppShell.tsx
 import React from "react";
 import { AppShell, type AppShellProps } from "./AppShell";
-import type { AppShellProcessedRoute } from "./AppShell.types";
+import type {
+  NavigationNode,
+} from "../navigation";
 
 export interface RoutedAppShellProps
   extends Omit<AppShellProps, "children" | "onNavigate"> {
@@ -21,13 +23,18 @@ export interface RoutedAppShellProps
    * tanstack/router:
    * navigate={(path) => router.navigate({ to: path })}
    */
-  navigate?: (path: string, route: AppShellProcessedRoute) => void;
+  navigate?: (
+    path: string,
+    node: NavigationNode
+  ) => void;
 
   /**
-   * Callback adicional cuando se selecciona una ruta.
+   * Callback adicional cuando se selecciona un nodo.
    * No reemplaza a navigate; se ejecutan ambos.
    */
-  onNavigate?: (route: AppShellProcessedRoute) => void;
+  onNavigate?: (
+    node: NavigationNode
+  ) => void;
 }
 
 export function RoutedAppShell({
@@ -37,21 +44,40 @@ export function RoutedAppShell({
   ...shellProps
 }: RoutedAppShellProps) {
   const handleNavigate = React.useCallback(
-    (route: AppShellProcessedRoute) => {
-      onNavigate?.(route);
+    (
+      node: NavigationNode
+    ) => {
+      onNavigate?.(node);
 
-      if (route.path) {
-        navigate?.(route.path, route);
+      const path =
+        typeof node.meta === "object" &&
+        node.meta !== null &&
+        "path" in node.meta
+          ? String(node.meta.path)
+          : undefined;
+
+      if (path) {
+        navigate?.(
+          path,
+          node
+        );
       }
     },
-    [navigate, onNavigate]
+    [
+      navigate,
+      onNavigate,
+    ]
   );
 
   return (
-    <AppShell {...shellProps} onNavigate={handleNavigate}>
+    <AppShell
+      {...shellProps}
+      onNavigate={handleNavigate}
+    >
       {children}
     </AppShell>
   );
 }
 
-RoutedAppShell.displayName = "RoutedAppShell";
+RoutedAppShell.displayName =
+  "RoutedAppShell";

@@ -1,41 +1,21 @@
 // src/patterns/app-shell/AppShell.types.ts
 import React from "react";
-import type { SlotPropsMap, SlotStyleMap } from "../../helpers/css";
+import type {
+  SlotPropsMap,
+  SlotStyleMap,
+} from "../../helpers/css";
+import type {
+  NavigationNode,
+} from "../navigation";
 
-export type AppShellRouteId = string;
+export type AppShellMobileMode =
+  | "auto"
+  | "mobile"
+  | "desktop";
 
-export interface AppShellRoute {
-  id?: AppShellRouteId;
-  path: string;
-  name: string;
-
-  emoji?: string;
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
-
-  disabled?: boolean;
-  readonly?: boolean;
-
-  component?: React.ComponentType<Record<never, never>>;
-  element?: React.ReactNode;
-
-  subroutes?: AppShellRoute[];
-
-  meta?: Record<string, unknown>;
-}
-
-export interface AppShellProcessedRoute extends AppShellRoute {
-  id: AppShellRouteId;
-  path: string;
-  fullPath: string;
-  depth: number;
-  parentIds: AppShellRouteId[];
-  subroutes?: AppShellProcessedRoute[];
-}
-
-export type AppShellMobileMode = "auto" | "mobile" | "desktop";
-
-export type AppShellViewport = "window" | "contained";
+export type AppShellViewport =
+  | "window"
+  | "contained";
 
 export type AppShellSlot =
   | "root"
@@ -45,9 +25,11 @@ export type AppShellSlot =
   | "contentPanel"
   | "mobileBar";
 
-export type AppShellStyles = SlotStyleMap<AppShellSlot>;
+export type AppShellStyles =
+  SlotStyleMap<AppShellSlot>;
 
-export type AppShellSlotProps = SlotPropsMap<AppShellSlot>;
+export type AppShellSlotProps =
+  SlotPropsMap<AppShellSlot>;
 
 export interface AppShellUserInfo {
   name?: React.ReactNode;
@@ -62,13 +44,8 @@ export interface AppShellBrand {
   logo?: React.ReactNode;
 }
 
-export interface AppShellNavigationPayload {
-  route: AppShellProcessedRoute;
-  path: string;
-}
-
 export interface AppShellCommonProps {
-  routes: AppShellRoute[];
+  navigation: NavigationNode[];
 
   /**
    * window:
@@ -102,43 +79,53 @@ export interface AppShellCommonProps {
   activeRouteId?: string | null;
 
   collapsed?: boolean;
-  onCollapsedChange?: (collapsed: boolean) => void;
+  onCollapsedChange?: (
+    collapsed: boolean
+  ) => void;
 
   mobileMode?: AppShellMobileMode;
-  onMobileModeChange?: (mode: AppShellMobileMode) => void;
+
+  onMobileModeChange?: (
+    mode: AppShellMobileMode
+  ) => void;
 
   openRouteIds?: string[];
-  onOpenRouteIdsChange?: (ids: string[]) => void;
+
+  onOpenRouteIdsChange?: (
+    ids: string[]
+  ) => void;
 
   sidebarExpandedWidth?: number | string;
+
   sidebarCollapsedWidth?: number | string;
+
   headerHeight?: number | string;
+
   mobileBarHeight?: number;
 
   defaultCollapsed?: boolean;
+
   defaultMobileMode?: AppShellMobileMode;
+
   defaultOpenRouteIds?: string[];
 
   showThemeButton?: boolean;
+
   showMobileModeButton?: boolean;
+
   showCollapseButton?: boolean;
+
   showUserMenu?: boolean;
 
   logoutLabel?: React.ReactNode;
+
   onLogout?: () => void | Promise<void>;
 
   className?: string;
+
   style?: React.CSSProperties;
 
   styles?: AppShellStyles;
+
   slotProps?: AppShellSlotProps;
 }
-
-export interface AppShellRenderRouteContext {
-  route: AppShellProcessedRoute;
-  activePath: string;
-}
-
-export type AppShellRouteRenderer = (
-  context: AppShellRenderRouteContext
-) => React.ReactNode;

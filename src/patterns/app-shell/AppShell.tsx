@@ -4,10 +4,11 @@ import { cssSize, resolveSlot } from "../../helpers/css";
 import { Box } from "../../primitives/layout";
 import type {
   AppShellCommonProps,
-  AppShellProcessedRoute,
   AppShellSlot,
 } from "./AppShell.types";
-import { processAppShellRoutes } from "./AppShellRouteUtils";
+import type {
+  NavigationNode,
+} from "../navigation";
 import { useAppShellState } from "./useAppShellState";
 import { AppShellHeader } from "./AppShellHeader";
 import { AppShellSidebar } from "./AppShellSidebar";
@@ -23,11 +24,13 @@ export interface AppShellProps extends AppShellCommonProps {
    * En UncontrolledAppShell cambia la vista interna.
    * En RoutedAppShell puede llamar al navigate del router externo.
    */
-  onNavigate?: (route: AppShellProcessedRoute) => void;
+  onNavigate?: (
+    node: NavigationNode
+  ) => void;
 }
 
 export function AppShell({
-  routes,
+  navigation,
   children,
 
   viewport = "window",
@@ -78,11 +81,6 @@ export function AppShell({
 }: AppShellProps) {
   const isContained = viewport === "contained";
 
-  const processedRoutes = React.useMemo(
-    () => processAppShellRoutes(routes),
-    [routes]
-  );
-
   const shell = useAppShellState({
     collapsed,
     defaultCollapsed,
@@ -108,11 +106,15 @@ export function AppShell({
 
   const resolvedActiveRouteId = activeRouteId ?? activePath;
 
-  const handleSidebarRouteSelect = React.useCallback(
-    (route: AppShellProcessedRoute) => {
-      onNavigate?.(route);
+  const handleSidebarNodeSelect = React.useCallback(
+    (
+      node: NavigationNode
+    ) => {
+      onNavigate?.(node);
     },
-    [onNavigate]
+    [
+      onNavigate,
+    ]
   );
 
   const rootSlot = resolveSlot<AppShellSlot>({
@@ -196,16 +198,15 @@ export function AppShell({
       {!shell.isMobile ? (
         <AppShellSidebar
           viewport={viewport}
-          routes={processedRoutes}
-          activeRouteId={resolvedActiveRouteId}
-          activePath={activePath}
+          items={navigation}
+          activeId={resolvedActiveRouteId}
           collapsed={shell.collapsed}
           sidebarExpandedWidth={sidebarExpandedWidth}
           sidebarCollapsedWidth={sidebarCollapsedWidth}
           headerHeight={resolvedHeaderHeight}
           openRouteIds={openRouteIds}
           onOpenRouteIdsChange={onOpenRouteIdsChange}
-          onRouteSelect={handleSidebarRouteSelect}
+          onSelect={handleSidebarNodeSelect}
           className={sidebarSlot.className}
           style={sidebarSlot.style}
         />
@@ -234,10 +235,10 @@ export function AppShell({
       {shell.isMobile ? (
         <AppShellMobileBar
           viewport={viewport}
-          routes={processedRoutes}
-          activePath={activePath}
+          items={navigation}
+          activeId={resolvedActiveRouteId}
           height={mobileBarHeight}
-          onNavigate={onNavigate}
+          onSelect={handleSidebarNodeSelect}
           className={mobileBarSlot.className}
           style={mobileBarSlot.style}
         />
