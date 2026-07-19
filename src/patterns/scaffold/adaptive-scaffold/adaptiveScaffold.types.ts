@@ -91,14 +91,16 @@ export type AdaptiveScaffoldSlotProps =
   SlotPropsMap<AdaptiveScaffoldSlot>;
 
 
-export interface AdaptiveScaffoldRenderContext {
+export interface AdaptiveScaffoldRenderContext<
+  TMeta = unknown
+> {
   mode: AdaptiveScaffoldResolvedMode;
 
   activeId: string;
 
-  activeItem: NavigationNode | null;
+  activeItem: NavigationNode<TMeta> | null;
 
-  items: NavigationNode[];
+  items: NavigationNode<TMeta>[];
 
   setActiveId: (
     id: string
@@ -106,18 +108,19 @@ export interface AdaptiveScaffoldRenderContext {
 }
 
 
-export interface AdaptiveScaffoldProps
+export interface AdaptiveScaffoldProps<
+  TMeta = unknown
+>
   extends Omit<
     React.HTMLAttributes<HTMLDivElement>,
     "children" | "defaultValue" | "title"
   > {
 
   children?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
-
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext<TMeta>
+  ) => React.ReactNode);
 
   viewport?: ScaffoldViewport;
 
@@ -125,7 +128,7 @@ export interface AdaptiveScaffoldProps
   mode?: AdaptiveScaffoldMode;
 
 
-  items: NavigationNode[];
+  items: NavigationNode<TMeta>[];
 
 
   activeId?: string | null;
@@ -133,10 +136,10 @@ export interface AdaptiveScaffoldProps
   defaultActiveId?: string | null;
 
 
-  onActiveIdChange?: (
-    id: string,
-    item: NavigationNode
-  ) => void;
+onActiveIdChange?: (
+  id: string,
+  item: NavigationNode<TMeta>
+) => void;
 
 
   mobileNavigation?: AdaptiveScaffoldMobileNavigation;
@@ -150,38 +153,38 @@ export interface AdaptiveScaffoldProps
 
 
   title?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
 
   subtitle?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
 
   leading?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
 
   actions?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
 
   floating?:
-    | React.ReactNode
-    | ((
-      context: AdaptiveScaffoldRenderContext
-    ) => React.ReactNode);
+  | React.ReactNode
+  | ((
+    context: AdaptiveScaffoldRenderContext
+  ) => React.ReactNode);
 
 
   showAppBar?: boolean;
@@ -243,17 +246,20 @@ export interface AdaptiveScaffoldProps
 }
 
 
-export interface AdaptiveScaffoldNavigationRenderOptions {
+export interface AdaptiveScaffoldNavigationRenderOptions<
+  TMeta = unknown
+> {
   activeId: string;
 
-  items: NavigationNode[];
+  items: NavigationNode<TMeta>[];
 
   onSelect: (
-    item: NavigationNode
+    item: NavigationNode<TMeta>
   ) => void;
 }
 
-
-export interface AdaptiveScaffoldNavigationListOptions {
-  items: NavigationNode[];
+export interface AdaptiveScaffoldNavigationListOptions<
+  TMeta = unknown
+> {
+  items: NavigationNode<TMeta>[];
 }

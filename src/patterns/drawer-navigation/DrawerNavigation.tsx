@@ -35,12 +35,14 @@ export type DrawerNavigationStyles =
 export type DrawerNavigationSlotProps =
   SlotPropsMap<DrawerNavigationSlot>;
 
-export interface DrawerNavigationProps
+export interface DrawerNavigationProps<
+  TMeta = unknown
+>
   extends Omit<
     DrawerProps,
     "children" | "className" | "style"
   > {
-  items: NavigationNode[];
+  items: NavigationNode<TMeta>[];
 
   activeId?: string | null;
 
@@ -52,7 +54,7 @@ export interface DrawerNavigationProps
   ) => void;
 
   onSelect?: (
-    item: NavigationNode,
+    item: NavigationNode<TMeta>,
     event: UIPressEvent<HTMLElement>
   ) => void;
 
@@ -88,47 +90,46 @@ export interface DrawerNavigationProps
   slotProps?: DrawerNavigationSlotProps;
 }
 
-export const DrawerNavigation:
-  React.FC<DrawerNavigationProps> = ({
-    items,
-    activeId,
+export function DrawerNavigation<TMeta = unknown>({
+  items,
+  activeId,
 
-    openIds,
-    defaultOpenIds,
-    onOpenIdsChange,
+  openIds,
+  defaultOpenIds,
+  onOpenIdsChange,
 
-    onSelect,
-    closeOnSelect = true,
+  onSelect,
+  closeOnSelect = true,
 
-    openActiveParents = true,
-    activeBehavior = "contains",
-    indentSize = 14,
+  openActiveParents = true,
+  activeBehavior = "contains",
+  indentSize = 14,
 
-    navigationLabel =
-      "Navegación principal",
+  navigationLabel =
+    "Navegación principal",
 
-    footer,
+  footer,
 
-    className = "",
-    style,
+  className = "",
+  style,
 
-    styles,
-    slotProps,
+  styles,
+  slotProps,
 
-    open,
-    onOpenChange,
+  open,
+  onOpenChange,
 
-    placement = "left",
-    size = "min(340px, 92vw)",
-    title = "Menú",
-    description,
+  placement = "left",
+  size = "min(340px, 92vw)",
+  title = "Menú",
+  description,
 
-    ...drawerProps
-  }) => {
+  ...drawerProps
+}: DrawerNavigationProps<TMeta>) {
     const handleSelect =
       React.useCallback(
         (
-          item: NavigationNode,
+          item: NavigationNode<TMeta>,
           event: UIPressEvent<HTMLElement>
         ): void => {
           onSelect?.(item, event);

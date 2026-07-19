@@ -3,8 +3,10 @@ import type {
 } from "./navigation.types";
 
 
-export function isNavigationNodeSelectable(
-  node: NavigationNode
+export function isNavigationNodeSelectable<
+  TMeta = unknown
+>(
+  node: NavigationNode<TMeta>
 ): boolean {
   if (node.disabled) {
     return false;
@@ -18,9 +20,11 @@ export function isNavigationNodeSelectable(
 }
 
 
-export function flattenNavigationNodes(
-  nodes: NavigationNode[]
-): NavigationNode[] {
+export function flattenNavigationNodes<
+  TMeta = unknown
+>(
+  nodes: NavigationNode<TMeta>[]
+): NavigationNode<TMeta>[] {
   return nodes.flatMap((node) => [
     node,
     ...flattenNavigationNodes(
@@ -30,10 +34,12 @@ export function flattenNavigationNodes(
 }
 
 
-export function findNavigationNode(
-  nodes: NavigationNode[],
+export function findNavigationNode<
+  TMeta = unknown
+>(
+  nodes: NavigationNode<TMeta>[],
   id: string | null | undefined
-): NavigationNode | null {
+): NavigationNode<TMeta> | null {
   if (!id) {
     return null;
   }
@@ -58,9 +64,11 @@ export function findNavigationNode(
 }
 
 
-export function getFirstSelectableNavigationNode(
-  nodes: NavigationNode[]
-): NavigationNode | null {
+export function getFirstSelectableNavigationNode<
+  TMeta = unknown
+>(
+  nodes: NavigationNode<TMeta>[]
+): NavigationNode<TMeta> | null {
   for (const node of flattenNavigationNodes(nodes)) {
     if (isNavigationNodeSelectable(node)) {
       return node;
