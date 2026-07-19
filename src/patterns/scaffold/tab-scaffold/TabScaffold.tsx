@@ -435,7 +435,23 @@ export function TabScaffold(
       density="comfortable"
       {...bottomNavigationProps}
       value={activeTab}
-      onValueChange={contextValue.resetToTab}
+      onValueChange={(
+        nextTab,
+        _event,
+        selection
+      ) => {
+        if (
+          selection.reason ===
+          "reselect"
+        ) {
+          contextValue.popToRoot();
+          return;
+        }
+
+        contextValue.resetToTab(
+          nextTab
+        );
+      }}
     >
       {tabs.map((tab) => (
         <BottomNavigation.Item

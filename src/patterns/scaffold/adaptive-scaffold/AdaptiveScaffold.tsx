@@ -281,8 +281,17 @@ export function AdaptiveScaffold<
         density="comfortable"
         {...bottomNavigationProps}
         value={currentActiveId}
-        onValueChange={(next) => {
-          setActiveId(next);
+        onValueChange={(
+          next,
+          _event,
+          selection
+        ) => {
+          if (
+            selection.reason ===
+            "change"
+          ) {
+            setActiveId(next);
+          }
         }}
       >
         {items.map((item) => (

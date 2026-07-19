@@ -89,10 +89,20 @@ export interface BottomNavigationProps
   value?: string | null;
   defaultValue?: string | null;
 
-  onValueChange?: (
-    value: string,
-    event: UIPressEvent<HTMLElement>
-  ) => void;
+
+  /**
+ * Se ejecuta cada vez que el usuario selecciona un destino.
+ *
+ * `context.reason` distingue entre:
+ *
+ * - "change": se seleccionó un valor diferente
+ * - "reselect": se volvió a seleccionar el valor activo
+ */
+onValueChange?: (
+  value: string,
+  event: UIPressEvent<HTMLElement>,
+  context: BottomNavigationSelectionContext
+) => void;
 
   height?: number | string;
   position?: BottomNavigationPosition;
@@ -157,4 +167,14 @@ export interface BottomNavigationItemProps
 
   className?: string;
   style?: React.CSSProperties;
+}
+
+export type BottomNavigationSelectionReason =
+  | "change"
+  | "reselect";
+
+export interface BottomNavigationSelectionContext {
+  value: string;
+  previousValue: string | null;
+  reason: BottomNavigationSelectionReason;
 }

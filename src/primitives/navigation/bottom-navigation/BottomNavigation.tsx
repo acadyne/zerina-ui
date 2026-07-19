@@ -83,17 +83,26 @@ const BottomNavigationRoot = React.forwardRef<
         nextValue: string,
         event: UIPressEvent<HTMLElement>
       ): void => {
-        if (currentValue === nextValue) {
-          return;
-        }
+        const reason =
+          currentValue === nextValue
+            ? "reselect"
+            : "change";
 
-        if (!isControlled) {
+        if (
+          reason === "change" &&
+          !isControlled
+        ) {
           setInternalValue(nextValue);
         }
 
         onValueChange?.(
           nextValue,
-          event
+          event,
+          {
+            value: nextValue,
+            previousValue: currentValue,
+            reason,
+          }
         );
       },
       [
