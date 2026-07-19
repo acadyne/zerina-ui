@@ -1,13 +1,21 @@
 // src/patterns/app-shell/UncontrolledAppShell.tsx
 import React from "react";
+
 import type {
   AppShellCommonProps,
 } from "./AppShell.types";
+
 import type {
+  NavigationContentMeta,
   NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
+
 import { AppShell } from "./AppShell";
+
+type UncontrolledAppShellNavigationMeta =
+  NavigationLinkMeta &
+  NavigationContentMeta;
 
 export interface UncontrolledAppShellProps
   extends AppShellCommonProps {
@@ -15,8 +23,8 @@ export interface UncontrolledAppShellProps
 
   renderNode?: (
     context: {
-      node: NavigationNode<NavigationLinkMeta>;
-      activePath: string;
+      node: NavigationNode<UncontrolledAppShellNavigationMeta>;
+      activeId: string | null;
     }
   ) => React.ReactNode;
 
@@ -24,7 +32,7 @@ export interface UncontrolledAppShellProps
 }
 
 function renderNavigationNodeContent(
-  node: NavigationNode<NavigationLinkMeta>
+  node: NavigationNode<UncontrolledAppShellNavigationMeta>
 ): React.ReactNode {
   const meta =
     node.meta;
@@ -65,7 +73,7 @@ export function UncontrolledAppShell({
   defaultActiveId,
   renderNode,
   fallback,
-  activeRouteId: controlledActiveId,
+  activeId: controlledActiveId,
   ...rest
 }: UncontrolledAppShellProps) {
   const firstNode =
@@ -117,13 +125,9 @@ export function UncontrolledAppShell({
       ]
     );
 
-  const activePath =
-    activeNode?.meta?.href ??
-    "/";
-
   const handleNavigate = React.useCallback(
     (
-      node: NavigationNode<NavigationLinkMeta>
+      node: NavigationNode<UncontrolledAppShellNavigationMeta>
     ) => {
       if (!node.id) {
         return;
@@ -141,7 +145,7 @@ export function UncontrolledAppShell({
       ? renderNode
         ? renderNode({
           node: activeNode,
-          activePath,
+          activeId,
         })
         : renderNavigationNodeContent(
           activeNode
@@ -152,10 +156,7 @@ export function UncontrolledAppShell({
     <AppShell
       {...rest}
       navigation={navigation}
-      activePath={activePath}
-      activeRouteId={
-        activeNode?.id ?? null
-      }
+      activeId={activeId}
       onNavigate={handleNavigate}
     >
       {

@@ -16,9 +16,11 @@ export interface UseAppShellStateOptions {
   defaultOpenRouteIds?: string[];
   onOpenRouteIdsChange?: (ids: string[]) => void;
 
-  activeRouteId?: string | null;
-  defaultActiveRouteId?: string | null;
-  onActiveRouteIdChange?: (id: string | null) => void;
+  activeId?: string | null;
+  defaultActiveId?: string | null;
+  onActiveIdChange?: (
+    id: string | null
+  ) => void;
 }
 
 export interface UseAppShellStateResult {
@@ -36,8 +38,10 @@ export interface UseAppShellStateResult {
   setOpenRouteIds: (ids: string[]) => void;
   toggleOpenRouteId: (id: string) => void;
 
-  activeRouteId: string | null;
-  setActiveRouteId: (id: string | null) => void;
+  activeId: string | null;
+  setActiveId: (
+    id: string | null
+  ) => void;
 }
 
 function resolveIsMobile(options: {
@@ -70,9 +74,9 @@ export function useAppShellState(
     defaultOpenRouteIds = [],
     onOpenRouteIdsChange,
 
-    activeRouteId: controlledActiveRouteId,
-    defaultActiveRouteId = null,
-    onActiveRouteIdChange,
+    activeId: controlledActiveId,
+    defaultActiveId = null,
+    onActiveIdChange,
   } = options;
 
   const [internalCollapsed, setInternalCollapsed] =
@@ -84,13 +88,17 @@ export function useAppShellState(
   const [internalOpenRouteIds, setInternalOpenRouteIds] =
     React.useState<string[]>(defaultOpenRouteIds);
 
-  const [internalActiveRouteId, setInternalActiveRouteId] =
-    React.useState<string | null>(defaultActiveRouteId);
+  const [internalActiveId, setInternalActiveId] =
+    React.useState<string | null>(
+      defaultActiveId
+    );
 
   const collapsed = controlledCollapsed ?? internalCollapsed;
   const mobileMode = controlledMobileMode ?? internalMobileMode;
   const openRouteIds = controlledOpenRouteIds ?? internalOpenRouteIds;
-  const activeRouteId = controlledActiveRouteId ?? internalActiveRouteId;
+  const activeId =
+    controlledActiveId ??
+    internalActiveId;
 
   const isMobile = resolveIsMobile({
     mobileMode,
@@ -149,15 +157,20 @@ export function useAppShellState(
     [openRouteIds, setOpenRouteIds]
   );
 
-  const setActiveRouteId = React.useCallback(
-    (next: string | null) => {
-      if (controlledActiveRouteId === undefined) {
-        setInternalActiveRouteId(next);
+  const setActiveId = React.useCallback(
+    (
+      next: string | null
+    ) => {
+      if (controlledActiveId === undefined) {
+        setInternalActiveId(next);
       }
 
-      onActiveRouteIdChange?.(next);
+      onActiveIdChange?.(next);
     },
-    [controlledActiveRouteId, onActiveRouteIdChange]
+    [
+      controlledActiveId,
+      onActiveIdChange,
+    ]
   );
 
   return {
@@ -175,7 +188,7 @@ export function useAppShellState(
     setOpenRouteIds,
     toggleOpenRouteId,
 
-    activeRouteId,
-    setActiveRouteId,
+    activeId,
+    setActiveId,
   };
 }

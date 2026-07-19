@@ -29,3 +29,11 @@ export interface NavigationNode<
 
   meta?: TMeta;
 }
+
+export interface NavigationContentMeta {
+  element?: React.ReactNode;
+
+  component?: React.ComponentType<
+    Record<never, never>
+  >;
+}

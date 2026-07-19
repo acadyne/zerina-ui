@@ -1,82 +1,153 @@
 // src/patterns/app-shell/RoutedAppShell.tsx
+
 import React from "react";
-import { AppShell, type AppShellProps } from "./AppShell";
+
+import {
+  AppShell,
+  type AppShellProps,
+} from "./AppShell";
+
 import type {
   NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 
+
 export interface RoutedAppShellProps
-  extends Omit<AppShellProps, "children" | "onNavigate"> {
+  extends Omit<
+    AppShellProps,
+    "children" | "onNavigate"
+  > {
+
   children?: React.ReactNode;
 
+
   /**
-   * Función de navegación externa.
+   * Navegación externa.
    *
-   * Ejemplos:
+   * RoutedAppShell es el límite entre:
    *
-   * wouter:
-   * navigate={(path) => navigate(path)}
+   * NavigationNode
+   *        |
+   *        v
+   * Router externo
    *
-   * react-router:
-   * navigate={(path) => routerNavigate(path)}
+   * El router puede ser:
+   * - react-router
+   * - wouter
+   * - tanstack router
+   * - next/router
+   * - cualquier implementación externa
    *
-   * tanstack/router:
-   * navigate={(path) => router.navigate({ to: path })}
+   * AppShell NO conoce routers.
    */
   navigate?: (
     href: string,
     node: NavigationNode<NavigationLinkMeta>
   ) => void;
 
+
   /**
-   * Callback adicional cuando se selecciona un nodo.
-   * No reemplaza a navigate; se ejecutan ambos.
+   * Callback adicional cuando un nodo navegable
+   * es seleccionado.
+   *
+   * No reemplaza navigate.
+   *
+   * Ambos pueden ejecutarse:
+   *
+   * onNavigate(node)
+   *        +
+   * navigate(node.meta.href)
    */
   onNavigate?: (
     node: NavigationNode<NavigationLinkMeta>
   ) => void;
 }
 
+
+/**
+ * Wrapper de navegación externa para AppShell.
+ *
+ * Responsabilidades:
+ *
+ * leer NavigationLinkMeta.href
+ * llamar al router externo
+ * notificar selección
+ *
+ * No hace:
+ *
+ * resolver activeId
+ * conocer activePath
+ * transformar routes
+ * crear NavigationNode
+ *
+ * El estado activo pertenece a AppShell.
+ * El router pertenece al consumidor.
+ */
 export function RoutedAppShell({
   children,
+
   navigate,
+
   onNavigate,
+
   ...shellProps
+
 }: RoutedAppShellProps) {
-  const handleNavigate = React.useCallback(
-    (
-      node: NavigationNode<NavigationLinkMeta>
-    ) => {
-      onNavigate?.(
-        node
-      );
 
-      const href =
-        node.meta?.href;
+  const handleNavigate =
+    React.useCallback(
+      (
+        node: NavigationNode<NavigationLinkMeta>
+      ) => {
 
-      if (href) {
-        navigate?.(
-          href,
+        onNavigate?.(
           node
         );
-      }
-    },
-    [
-      navigate,
-      onNavigate,
-    ]
-  );
+
+
+        /**
+         * El destino externo vive en metadata.
+         *
+         * No usamos:
+         *
+         * node.path
+         * node.route
+         *
+         */
+        const href =
+          node.meta?.href;
+
+
+        if (href) {
+
+          navigate?.(
+            href,
+            node
+          );
+
+        }
+
+      },
+      [
+        navigate,
+        onNavigate,
+      ]
+    );
+
 
   return (
     <AppShell
       {...shellProps}
-      onNavigate={handleNavigate}
+      onNavigate={
+        handleNavigate
+      }
     >
       {children}
     </AppShell>
   );
 }
+
 
 RoutedAppShell.displayName =
   "RoutedAppShell";

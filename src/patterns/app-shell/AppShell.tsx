@@ -43,9 +43,7 @@ export function AppShell({
   headerCenter,
   headerEnd,
 
-  activePath = "/",
-  activeRouteId,
-
+  activeId,
   collapsed,
   onCollapsedChange,
 
@@ -95,7 +93,7 @@ export function AppShell({
     defaultOpenRouteIds,
     onOpenRouteIdsChange,
 
-    activeRouteId,
+    activeId,
   });
 
   const sidebarWidth = shell.collapsed
@@ -104,8 +102,6 @@ export function AppShell({
 
   const resolvedHeaderHeight = cssSize(headerHeight);
   const resolvedSidebarWidth = cssSize(sidebarWidth);
-
-  const resolvedActiveRouteId = activeRouteId ?? activePath;
 
   const handleSidebarNodeSelect = React.useCallback(
     (
@@ -200,7 +196,7 @@ export function AppShell({
         <AppShellSidebar
           viewport={viewport}
           items={navigation}
-          activeId={resolvedActiveRouteId}
+          activeId={activeId}
           collapsed={shell.collapsed}
           sidebarExpandedWidth={sidebarExpandedWidth}
           sidebarCollapsedWidth={sidebarCollapsedWidth}
@@ -237,7 +233,7 @@ export function AppShell({
         <AppShellMobileBar
           viewport={viewport}
           items={navigation}
-          activeId={resolvedActiveRouteId}
+          activeId={activeId}
           height={mobileBarHeight}
           onSelect={handleSidebarNodeSelect}
           className={mobileBarSlot.className}

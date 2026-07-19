@@ -78,8 +78,7 @@ export interface AppShellCommonProps {
    */
   headerEnd?: React.ReactNode;
 
-  activePath?: string;
-  activeRouteId?: string | null;
+  activeId?: string | null;
 
   collapsed?: boolean;
   onCollapsedChange?: (
