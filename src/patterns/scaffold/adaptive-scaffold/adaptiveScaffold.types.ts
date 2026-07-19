@@ -1,3 +1,5 @@
+// src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.types.ts
+
 import React from "react";
 import type {
   SlotPropsMap,

@@ -42,8 +42,11 @@ export interface AppShellSidebarProps {
 
   headerHeight?: number | string;
 
-  openRouteIds?: string[];
-  onOpenRouteIdsChange?: (ids: string[]) => void;
+  openIds?: string[];
+
+  onOpenIdsChange?: (
+    ids: string[]
+  ) => void;
 
   onSelect?: (
     item: NavigationNode<NavigationLinkMeta>
@@ -72,8 +75,8 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
 
   headerHeight = 64,
 
-  openRouteIds,
-  onOpenRouteIdsChange,
+  openIds,
+  onOpenIdsChange,
 
   onSelect,
 
@@ -148,8 +151,8 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
       <NavigationList
         items={items}
         activeId={activeId}
-        openIds={openRouteIds}
-        onOpenIdsChange={onOpenRouteIdsChange}
+        openIds={openIds}
+        onOpenIdsChange={onOpenIdsChange}
         collapsed={collapsed}
         collapsedBehavior="flyout"
         activeBehavior="contains"

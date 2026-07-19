@@ -27,7 +27,7 @@ export type AppShellSlot =
   | "mobileBar";
 
 
-  
+
 export type AppShellStyles =
   SlotStyleMap<AppShellSlot>;
 
@@ -91,9 +91,9 @@ export interface AppShellCommonProps {
     mode: AppShellMobileMode
   ) => void;
 
-  openRouteIds?: string[];
+  openIds?: string[];
 
-  onOpenRouteIdsChange?: (
+  onOpenIdsChange?: (
     ids: string[]
   ) => void;
 
@@ -109,7 +109,7 @@ export interface AppShellCommonProps {
 
   defaultMobileMode?: AppShellMobileMode;
 
-  defaultOpenRouteIds?: string[];
+  defaultOpenIds?: string[];
 
   showThemeButton?: boolean;
 

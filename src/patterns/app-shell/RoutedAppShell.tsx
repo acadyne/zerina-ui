@@ -13,6 +13,66 @@ import type {
 } from "../navigation";
 
 
+/**
+ * RoutedAppShell
+ *
+ * Adaptador entre AppShell y un router externo.
+ *
+ * IMPORTANTE:
+ *
+ * AppShell NO conoce routers.
+ *
+ * AppShell solamente trabaja con:
+ *
+ * NavigationNode
+ *        |
+ *        v
+ * selección de navegación
+ *
+ *
+ * RoutedAppShell agrega la integración externa:
+ *
+ * NavigationNode
+ *        |
+ *        v
+ * NavigationLinkMeta.href
+ *        |
+ *        v
+ * router del consumidor
+ *
+ *
+ * Ejemplos de routers compatibles:
+ *
+ * - react-router
+ * - wouter
+ * - TanStack Router
+ * - Next Router
+ * - cualquier implementación propia
+ *
+ *
+ * Este componente existe para evitar que:
+ *
+ * ❌ AppShell conozca URLs
+ * ❌ NavigationNode conozca routers
+ * ❌ Navigation primitives conozcan navegación externa
+ *
+ *
+ * La separación queda:
+ *
+ * NavigationNode
+ *      =
+ *      modelo seleccionable
+ *
+ *
+ * NavigationLinkMeta
+ *      =
+ *      metadata opcional de destino
+ *
+ *
+ * RoutedAppShell
+ *      =
+ *      puente hacia router externo
+ */
 export interface RoutedAppShellProps
   extends Omit<
     AppShellProps,
@@ -23,23 +83,29 @@ export interface RoutedAppShellProps
 
 
   /**
-   * Navegación externa.
+   * Ejecuta navegación externa.
    *
-   * RoutedAppShell es el límite entre:
+   * Recibe:
    *
-   * NavigationNode
-   *        |
-   *        v
-   * Router externo
+   * href:
+   *   destino definido en NavigationLinkMeta.
    *
-   * El router puede ser:
-   * - react-router
-   * - wouter
-   * - tanstack router
-   * - next/router
-   * - cualquier implementación externa
+   * node:
+   *   nodo completo seleccionado.
    *
-   * AppShell NO conoce routers.
+   *
+   * Ejemplos:
+   *
+   * react-router:
+   *
+   * navigate={(href) => router.navigate(href)}
+   *
+   *
+   * TanStack Router:
+   *
+   * navigate={(href) =>
+   *   router.navigate({ to: href })
+   * }
    */
   navigate?: (
     href: string,
@@ -48,16 +114,23 @@ export interface RoutedAppShellProps
 
 
   /**
-   * Callback adicional cuando un nodo navegable
-   * es seleccionado.
+   * Callback adicional al seleccionar un nodo.
    *
    * No reemplaza navigate.
    *
-   * Ambos pueden ejecutarse:
+   * Orden:
    *
-   * onNavigate(node)
-   *        +
-   * navigate(node.meta.href)
+   * 1. onNavigate(node)
+   *
+   * 2. navigate(node.meta.href)
+   *
+   *
+   * Permite:
+   *
+   * - analytics
+   * - permisos
+   * - side effects
+   * - sincronización externa
    */
   onNavigate?: (
     node: NavigationNode<NavigationLinkMeta>
@@ -66,22 +139,34 @@ export interface RoutedAppShellProps
 
 
 /**
- * Wrapper de navegación externa para AppShell.
+ * Wrapper de navegación externa.
  *
- * Responsabilidades:
+ * RESPONSABILIDADES:
  *
- * leer NavigationLinkMeta.href
- * llamar al router externo
- * notificar selección
+ *  leer NavigationLinkMeta.href
  *
- * No hace:
+ *  notificar selección de nodo
+ *
+ *  delegar navegación al consumidor
+ *
+ *
+ * NO RESPONSABILIDADES:
  *
  * resolver activeId
+ *
+ * mantener estado seleccionado
+ *
  * conocer activePath
- * transformar routes
- * crear NavigationNode
+ *
+ * conocer URLs internas del framework
+ *
+ * transformar routes en NavigationNode
+ *
+ * crear modelos alternativos como AppShellRoute
+ *
  *
  * El estado activo pertenece a AppShell.
+ *
  * El router pertenece al consumidor.
  */
 export function RoutedAppShell({
@@ -95,11 +180,13 @@ export function RoutedAppShell({
 
 }: RoutedAppShellProps) {
 
+
   const handleNavigate =
     React.useCallback(
       (
         node: NavigationNode<NavigationLinkMeta>
       ) => {
+
 
         onNavigate?.(
           node
@@ -107,13 +194,24 @@ export function RoutedAppShell({
 
 
         /**
-         * El destino externo vive en metadata.
+         * El destino externo pertenece
+         * exclusivamente a NavigationLinkMeta.
          *
-         * No usamos:
+         * Contrato válido:
+         *
+         * node.meta.href
+         *
+         *
+         * Contratos eliminados:
          *
          * node.path
          * node.route
+         * node.component
+         * node.element
          *
+         *
+         * NavigationNode no representa una ruta.
+         * Representa un nodo seleccionable.
          */
         const href =
           node.meta?.href;
@@ -137,14 +235,19 @@ export function RoutedAppShell({
 
 
   return (
+
     <AppShell
       {...shellProps}
+
       onNavigate={
         handleNavigate
       }
     >
+
       {children}
+
     </AppShell>
+
   );
 }
 

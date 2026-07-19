@@ -1,3 +1,5 @@
+// src/patterns/scaffold/adaptive-scaffold/adaptiveScaffold.utils.tsx
+
 import React from "react";
 
 import {
@@ -11,9 +13,6 @@ import type {
   AdaptiveScaffoldRenderContext,
 } from "./adaptiveScaffold.types";
 
-import type {
-  NavigationNode,
-} from "../../navigation";
 
 
 export function cssSize(

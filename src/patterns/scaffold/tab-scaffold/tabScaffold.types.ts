@@ -39,6 +39,31 @@ export type TabScaffoldStyles =
 export type TabScaffoldSlotProps =
   SlotPropsMap<TabScaffoldSlot>;
 
+
+/**
+ * Pantalla renderizable dentro de TabScaffold.
+ *
+ * IMPORTANTE:
+ *
+ * No es un NavigationNode.
+ *
+ * NavigationNode:
+ *   representa un elemento navegable
+ *   dentro de una estructura de navegación.
+ *
+ * TabScaffoldScreen:
+ *   representa contenido asociado
+ *   a una entrada del NavigationStack.
+ *
+ * Este modelo puede contener:
+ *
+ * - component
+ * - render
+ * - element
+ *
+ * porque su responsabilidad es renderizar
+ * contenido, no describir navegación global.
+ */
 export interface TabScaffoldScreen {
   name: string;
 

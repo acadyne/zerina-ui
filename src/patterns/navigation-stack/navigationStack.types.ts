@@ -62,6 +62,21 @@ export interface NavigationStackContextValue
   ) => void;
 }
 
+/**
+ * Entrada activa del stack.
+ *
+ * IMPORTANTE:
+ *
+ * No representa una ruta URL.
+ *
+ * No contiene:
+ * - href
+ * - path
+ * - router externo
+ *
+ * Representa una pantalla dentro
+ * del historial interno de NavigationStack.
+ */
 export interface NavigationStackScreenRenderProps<
   TParams extends NavigationStackParams = NavigationStackParams,
 > {
