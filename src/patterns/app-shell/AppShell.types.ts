@@ -5,6 +5,7 @@ import type {
   SlotStyleMap,
 } from "../../helpers/css";
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 
@@ -25,6 +26,8 @@ export type AppShellSlot =
   | "contentPanel"
   | "mobileBar";
 
+
+  
 export type AppShellStyles =
   SlotStyleMap<AppShellSlot>;
 
@@ -45,7 +48,7 @@ export interface AppShellBrand {
 }
 
 export interface AppShellCommonProps {
-  navigation: NavigationNode[];
+  navigation: NavigationNode<NavigationLinkMeta>[];
 
   /**
    * window:

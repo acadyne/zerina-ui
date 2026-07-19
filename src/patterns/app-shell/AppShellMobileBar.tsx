@@ -6,6 +6,7 @@ import { Box } from "../../primitives/layout";
 import { BottomNavigation } from "../../primitives/navigation";
 import { RecursiveFloatingMenuLayer } from "../../primitives/navigation/RecursiveFloatingMenuLayer";
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 import type {
@@ -19,14 +20,14 @@ import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 export interface AppShellMobileBarProps {
   viewport?: AppShellViewport;
 
-  items: NavigationNode[];
+  items: NavigationNode<NavigationLinkMeta>[];
 
   activeId?: string | null;
 
   height?: number;
 
   onSelect?: (
-    item: NavigationNode
+    item: NavigationNode<NavigationLinkMeta>
   ) => void;
 
   className?: string;
@@ -34,7 +35,7 @@ export interface AppShellMobileBarProps {
 }
 
 function getNavigationIcon(
-  item: NavigationNode
+  item: NavigationNode<NavigationLinkMeta>
 ): React.ReactNode {
   return (
     item.icon ??
@@ -119,7 +120,7 @@ export function AppShellMobileBar({
   const handleRootPress =
     React.useCallback(
       (
-        item: NavigationNode,
+        item: NavigationNode<NavigationLinkMeta>,
         event: UIPressEvent<HTMLElement>
       ): void => {
         if (item.disabled) {
@@ -165,7 +166,7 @@ export function AppShellMobileBar({
   const renderMobileMenuItem =
     React.useCallback(
       (
-        item: NavigationNode
+        item: NavigationNode<NavigationLinkMeta>
       ) => {
         const active =
           activeId === item.id;

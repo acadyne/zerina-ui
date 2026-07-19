@@ -1,8 +1,11 @@
+// src/patterns/scaffold/adaptive-scaffold/routedAdaptiveScaffold.types.ts
+
 import type {
     AdaptiveScaffoldProps,
 } from "./adaptiveScaffold.types";
 
 import type {
+    NavigationLinkMeta,
     NavigationNode,
 } from "../../navigation";
 
@@ -13,16 +16,16 @@ export interface RoutedAdaptiveScaffoldProps
         "items" | "activeId" | "onActiveIdChange"
     > {
 
-    items: NavigationNode[];
+    items: NavigationNode<NavigationLinkMeta>[];
 
     activeId?: string | null;
 
     navigate?: (
-        path: string,
-        item: NavigationNode
+        href: string,
+        item: NavigationNode<NavigationLinkMeta>
     ) => void;
 
     onItemChange?: (
-        item: NavigationNode
+        item: NavigationNode<NavigationLinkMeta>
     ) => void;
 }

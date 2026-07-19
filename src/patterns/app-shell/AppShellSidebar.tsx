@@ -6,6 +6,7 @@ import {
 } from "../../primitives/navigation";
 
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 import {
@@ -20,7 +21,7 @@ import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
 export interface AppShellSidebarProps {
   viewport?: AppShellViewport;
 
-  items: NavigationNode[];
+  items: NavigationNode<NavigationLinkMeta>[];
 
   activeId?: string | null;
 
@@ -45,7 +46,7 @@ export interface AppShellSidebarProps {
   onOpenRouteIdsChange?: (ids: string[]) => void;
 
   onSelect?: (
-    item: NavigationNode
+    item: NavigationNode<NavigationLinkMeta>
   ) => void;
 
   className?: string;
@@ -102,7 +103,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
 
   const handleSelect = React.useCallback(
     (
-      item: NavigationNode
+      item: NavigationNode<NavigationLinkMeta>
     ) => {
       if (!isNavigationNodeSelectable(item)) {
         return;

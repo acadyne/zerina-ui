@@ -4,6 +4,7 @@ import type {
   AppShellCommonProps,
 } from "./AppShell.types";
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 import { AppShell } from "./AppShell";
@@ -14,7 +15,7 @@ export interface UncontrolledAppShellProps
 
   renderNode?: (
     context: {
-      node: NavigationNode;
+      node: NavigationNode<NavigationLinkMeta>;
       activePath: string;
     }
   ) => React.ReactNode;
@@ -23,7 +24,7 @@ export interface UncontrolledAppShellProps
 }
 
 function renderNavigationNodeContent(
-  node: NavigationNode
+  node: NavigationNode<NavigationLinkMeta>
 ): React.ReactNode {
   const meta =
     node.meta;
@@ -117,15 +118,12 @@ export function UncontrolledAppShell({
     );
 
   const activePath =
-    typeof activeNode?.meta === "object" &&
-    activeNode.meta !== null &&
-    "path" in activeNode.meta
-      ? String(activeNode.meta.path)
-      : "/";
+    activeNode?.meta?.href ??
+    "/";
 
   const handleNavigate = React.useCallback(
     (
-      node: NavigationNode
+      node: NavigationNode<NavigationLinkMeta>
     ) => {
       if (!node.id) {
         return;

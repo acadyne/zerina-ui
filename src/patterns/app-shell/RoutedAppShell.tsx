@@ -2,6 +2,7 @@
 import React from "react";
 import { AppShell, type AppShellProps } from "./AppShell";
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 
@@ -24,8 +25,8 @@ export interface RoutedAppShellProps
    * navigate={(path) => router.navigate({ to: path })}
    */
   navigate?: (
-    path: string,
-    node: NavigationNode
+    href: string,
+    node: NavigationNode<NavigationLinkMeta>
   ) => void;
 
   /**
@@ -33,7 +34,7 @@ export interface RoutedAppShellProps
    * No reemplaza a navigate; se ejecutan ambos.
    */
   onNavigate?: (
-    node: NavigationNode
+    node: NavigationNode<NavigationLinkMeta>
   ) => void;
 }
 
@@ -45,20 +46,18 @@ export function RoutedAppShell({
 }: RoutedAppShellProps) {
   const handleNavigate = React.useCallback(
     (
-      node: NavigationNode
+      node: NavigationNode<NavigationLinkMeta>
     ) => {
-      onNavigate?.(node);
+      onNavigate?.(
+        node
+      );
 
-      const path =
-        typeof node.meta === "object" &&
-        node.meta !== null &&
-        "path" in node.meta
-          ? String(node.meta.path)
-          : undefined;
+      const href =
+        node.meta?.href;
 
-      if (path) {
+      if (href) {
         navigate?.(
-          path,
+          href,
           node
         );
       }

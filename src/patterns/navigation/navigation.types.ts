@@ -3,8 +3,12 @@ import React from "react";
 
 export type NavigationNodeId = string;
 
+export interface NavigationLinkMeta {
+  href?: string;
+}
+
 export interface NavigationNode<
-  TMeta = Record<string, unknown>
+  TMeta = unknown
 > {
   id: NavigationNodeId;
 
@@ -15,7 +19,7 @@ export interface NavigationNode<
 
   disabled?: boolean;
 
-    /**
+  /**
    * Si tiene hijos, por defecto funciona como grupo.
    * selectable=true permite seleccionar también el nodo padre.
    */

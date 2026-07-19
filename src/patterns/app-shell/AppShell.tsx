@@ -7,6 +7,7 @@ import type {
   AppShellSlot,
 } from "./AppShell.types";
 import type {
+  NavigationLinkMeta,
   NavigationNode,
 } from "../navigation";
 import { useAppShellState } from "./useAppShellState";
@@ -25,7 +26,7 @@ export interface AppShellProps extends AppShellCommonProps {
    * En RoutedAppShell puede llamar al navigate del router externo.
    */
   onNavigate?: (
-    node: NavigationNode
+    node: NavigationNode<NavigationLinkMeta>
   ) => void;
 }
 
@@ -108,7 +109,7 @@ export function AppShell({
 
   const handleSidebarNodeSelect = React.useCallback(
     (
-      node: NavigationNode
+      node: NavigationNode<NavigationLinkMeta>
     ) => {
       onNavigate?.(node);
     },

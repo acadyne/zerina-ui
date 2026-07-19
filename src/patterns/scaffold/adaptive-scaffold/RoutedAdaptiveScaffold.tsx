@@ -1,3 +1,4 @@
+// src/patterns/scaffold/adaptive-scaffold/RoutedAdaptiveScaffold.tsx
 import React from "react";
 
 import {
@@ -9,6 +10,7 @@ import type {
 } from "./routedAdaptiveScaffold.types";
 
 import type {
+    NavigationLinkMeta,
     NavigationNode,
 } from "../../navigation";
 
@@ -49,17 +51,13 @@ export function RoutedAdaptiveScaffold({
                 );
 
 
-                const path =
-                    typeof item.meta === "object" &&
-                    item.meta !== null &&
-                    "path" in item.meta
-                        ? String(item.meta.path)
-                        : undefined;
+                const href =
+                    item.meta?.href;
 
 
-                if (path) {
+                if (href) {
                     navigate?.(
-                        path,
+                        href,
                         item
                     );
                 }
