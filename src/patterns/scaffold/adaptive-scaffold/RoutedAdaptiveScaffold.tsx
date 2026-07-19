@@ -8,55 +8,23 @@ import type {
     RoutedAdaptiveScaffoldProps,
 } from "./routedAdaptiveScaffold.types";
 
-import {
-    findRouteById,
-    findRouteByPath,
-    routeToNavigationNode,
-} from "./routedAdaptiveScaffold.utils";
+import type {
+    NavigationNode,
+} from "../../navigation";
 
 
 export function RoutedAdaptiveScaffold({
-    routes,
+    items,
 
-    activePath,
+    activeId,
 
     navigate,
 
-    onRouteChange,
+    onItemChange,
 
     ...props
 
 }: RoutedAdaptiveScaffoldProps) {
-
-    const items =
-        React.useMemo(
-            () =>
-                routes.map(
-                    routeToNavigationNode
-                ),
-            [routes]
-        );
-
-
-    const activeRoute =
-        React.useMemo(
-            () =>
-                findRouteByPath(
-                    routes,
-                    activePath
-                ),
-            [
-                routes,
-                activePath,
-            ]
-        );
-
-
-    const activeId =
-        activeRoute?.id ??
-        activeRoute?.path ??
-        null;
-
 
     const handleChange =
         React.useCallback(
@@ -64,32 +32,42 @@ export function RoutedAdaptiveScaffold({
                 id: string
             ) => {
 
-                const route =
-                    findRouteById(
-                        routes,
-                        id
+                const item =
+                    items.find(
+                        (node) =>
+                            node.id === id
                     );
 
 
-                if (!route) {
+                if (!item) {
                     return;
                 }
 
 
-                onRouteChange?.(
-                    route
+                onItemChange?.(
+                    item
                 );
 
 
-                navigate?.(
-                    route.path,
-                    route
-                );
+                const path =
+                    typeof item.meta === "object" &&
+                    item.meta !== null &&
+                    "path" in item.meta
+                        ? String(item.meta.path)
+                        : undefined;
+
+
+                if (path) {
+                    navigate?.(
+                        path,
+                        item
+                    );
+                }
             },
             [
+                items,
                 navigate,
-                onRouteChange,
-                routes,
+                onItemChange,
             ]
         );
 

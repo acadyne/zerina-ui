@@ -1,27 +1,10 @@
-import React from "react";
-
 import type {
     AdaptiveScaffoldProps,
 } from "./adaptiveScaffold.types";
 
-
-export interface AdaptiveScaffoldRoute {
-    id?: string;
-
-    path: string;
-
-    label: React.ReactNode;
-
-    icon?: React.ReactNode;
-
-    badge?: React.ReactNode;
-
-    disabled?: boolean;
-
-    children?: AdaptiveScaffoldRoute[];
-
-    meta?: Record<string, unknown>;
-}
+import type {
+    NavigationNode,
+} from "../../navigation";
 
 
 export interface RoutedAdaptiveScaffoldProps
@@ -30,16 +13,16 @@ export interface RoutedAdaptiveScaffoldProps
         "items" | "activeId" | "onActiveIdChange"
     > {
 
-    routes: AdaptiveScaffoldRoute[];
+    items: NavigationNode[];
 
-    activePath?: string;
+    activeId?: string | null;
 
     navigate?: (
         path: string,
-        route: AdaptiveScaffoldRoute
+        item: NavigationNode
     ) => void;
 
-    onRouteChange?: (
-        route: AdaptiveScaffoldRoute
+    onItemChange?: (
+        item: NavigationNode
     ) => void;
 }

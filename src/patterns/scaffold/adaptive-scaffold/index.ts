@@ -24,7 +24,6 @@ export type {
 
 
 export type {
-  AdaptiveScaffoldRoute,
   RoutedAdaptiveScaffoldProps,
 } from "./routedAdaptiveScaffold.types";
 
