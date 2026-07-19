@@ -14,7 +14,6 @@ import {
   BottomNavigation,
   NavigationList,
   NavigationRail,
-  type NavigationItemDef,
 } from "../../../primitives/navigation";
 import { Scaffold } from "../Scaffold";
 import { TopAppBar } from "../TopAppBar";

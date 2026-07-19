@@ -3,8 +3,11 @@ import React from "react";
 import { Box } from "../../primitives/layout";
 import {
   NavigationList,
-  type NavigationItemDef,
 } from "../../primitives/navigation";
+
+import type {
+  NavigationNode,
+} from "../navigation";
 import type {
   AppShellProcessedRoute,
   AppShellViewport,
@@ -82,36 +85,43 @@ function getActiveNavigationId({
   return activeRoutes[0]?.id ?? null;
 }
 
-function routeToNavigationItem(
+function routeToNavigationNode(
   route: AppShellProcessedRoute
-): NavigationItemDef {
-  const children = getAppShellRouteChildren(route);
-  const routeHasChildren = children.length > 0;
+): NavigationNode {
+  const children =
+    getAppShellRouteChildren(route);
+
+  const hasChildren =
+    children.length > 0;
 
   return {
     id: getAppShellRouteId(route),
+
     label: route.name,
-    icon: route.icon ?? route.emoji ?? "•",
+
+    icon:
+      route.icon ??
+      route.emoji ??
+      "•",
+
     badge: route.badge,
+
     disabled: route.disabled,
-    selectable: routeHasChildren ? false : isAppShellRouteSelectable(route),
-    items: routeHasChildren ? children.map(routeToNavigationItem) : undefined,
+
+    selectable:
+      hasChildren
+        ? false
+        : isAppShellRouteSelectable(route),
+
+    children:
+      hasChildren
+        ? children.map(routeToNavigationNode)
+        : undefined,
+
     meta: {
       route,
     },
   };
-}
-
-function getRouteFromNavigationItem(
-  item: NavigationItemDef
-): AppShellProcessedRoute | null {
-  const route = item.meta?.route;
-
-  if (!route || typeof route !== "object") {
-    return null;
-  }
-
-  return route as AppShellProcessedRoute;
 }
 
 export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
@@ -159,7 +169,7 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
 
   const isContained = viewport === "contained";
   const items = React.useMemo(() => {
-    return routes.map(routeToNavigationItem);
+    return routes.map(routeToNavigationNode);
   }, [routes]);
 
   const activeId = React.useMemo(
@@ -173,16 +183,28 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
   );
 
   const handleSelect = React.useCallback(
-    (item: NavigationItemDef) => {
-      const route = getRouteFromNavigationItem(item);
+    (item: NavigationNode) => {
+      const route =
+        item.meta?.route;
 
-      if (!route) return;
-      if (!isAppShellRouteSelectable(route)) return;
+      if (!route || typeof route !== "object") {
+        return;
+      }
 
-      onNavigate?.(route);
-      onRouteSelect?.(route);
+      const processedRoute =
+        route as AppShellProcessedRoute;
+
+      if (!isAppShellRouteSelectable(processedRoute)) {
+        return;
+      }
+
+      onNavigate?.(processedRoute);
+      onRouteSelect?.(processedRoute);
     },
-    [onNavigate, onRouteSelect]
+    [
+      onNavigate,
+      onRouteSelect,
+    ]
   );
 
   return (

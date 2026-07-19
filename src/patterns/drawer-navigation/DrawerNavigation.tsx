@@ -9,9 +9,12 @@ import {
 import { Box } from "../../primitives/layout";
 import {
   NavigationList,
-  type NavigationItemDef,
   type NavigationListActiveBehavior,
 } from "../../primitives/navigation";
+
+import type {
+  NavigationNode,
+} from "../navigation";
 import {
   Drawer,
   DrawerBody,
@@ -37,7 +40,7 @@ export interface DrawerNavigationProps
     DrawerProps,
     "children" | "className" | "style"
   > {
-  items: NavigationItemDef[];
+  items: NavigationNode[];
 
   activeId?: string | null;
 
@@ -49,7 +52,7 @@ export interface DrawerNavigationProps
   ) => void;
 
   onSelect?: (
-    item: NavigationItemDef,
+    item: NavigationNode,
     event: UIPressEvent<HTMLElement>
   ) => void;
 
@@ -125,7 +128,7 @@ export const DrawerNavigation:
     const handleSelect =
       React.useCallback(
         (
-          item: NavigationItemDef,
+          item: NavigationNode,
           event: UIPressEvent<HTMLElement>
         ): void => {
           onSelect?.(item, event);
