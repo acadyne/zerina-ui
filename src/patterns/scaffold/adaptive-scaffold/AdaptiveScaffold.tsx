@@ -37,8 +37,9 @@ import {
   getFirstSelectableNavigationNode,
   isNavigationNodeSelectable,
 } from "../../navigation";
-function getModeContentSlot(
-  mode: AdaptiveScaffoldRenderContext["mode"]
+
+function getModeContentSlot<TMeta = unknown>(
+  mode: AdaptiveScaffoldRenderContext<TMeta>["mode"]
 ): AdaptiveScaffoldSlot {
   if (mode === "mobile") return "mobileContent";
   if (mode === "tablet") return "tabletContent";
@@ -46,10 +47,10 @@ function getModeContentSlot(
   return "desktopContent";
 }
 
-function getContentSlot(
-  mode: AdaptiveScaffoldRenderContext["mode"],
-  styles: AdaptiveScaffoldProps["styles"],
-  slotProps: AdaptiveScaffoldProps["slotProps"]
+function getContentSlot<TMeta = unknown>(
+  mode: AdaptiveScaffoldRenderContext<TMeta>["mode"],
+  styles: AdaptiveScaffoldProps<TMeta>["styles"],
+  slotProps: AdaptiveScaffoldProps<TMeta>["slotProps"]
 ) {
   const modeSlot = getModeContentSlot(mode);
 
@@ -60,7 +61,9 @@ function getContentSlot(
   });
 }
 
-export function AdaptiveScaffold({
+export function AdaptiveScaffold<
+  TMeta = unknown
+>({
   children,
 
   viewport = "window",
@@ -97,7 +100,7 @@ export function AdaptiveScaffold({
   slotProps,
 
   ...rest
-}: AdaptiveScaffoldProps) {
+}: AdaptiveScaffoldProps<TMeta>) {
   const viewportInfo = useOptionalUIViewport();
   const [, rootSize] = useElementSize<HTMLDivElement>();
 
@@ -139,7 +142,9 @@ export function AdaptiveScaffold({
   });
 
   const setActiveItem = React.useCallback(
-    (item: NavigationNode) => {
+    (
+      item: NavigationNode<TMeta>
+    ) => {
       if (!isNavigationNodeSelectable(item)) return;
 
       if (!isControlled) {
@@ -161,7 +166,9 @@ export function AdaptiveScaffold({
     [items, setActiveItem]
   );
 
-  const context = React.useMemo<AdaptiveScaffoldRenderContext>(
+  const context = React.useMemo<
+    AdaptiveScaffoldRenderContext<TMeta>
+  >(
     () => ({
       mode: resolvedMode,
       activeId: currentActiveId,
@@ -335,10 +342,14 @@ export function AdaptiveScaffold({
   );
 
   const handleNavigationListSelect = React.useCallback(
-    (item: NavigationNode) => {
+    (
+      item: NavigationNode<TMeta>
+    ) => {
       setActiveItem(item);
     },
-    [setActiveItem]
+    [
+      setActiveItem,
+    ]
   );
 
   if (resolvedMode === "mobile") {

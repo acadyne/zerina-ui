@@ -44,15 +44,17 @@ export function resolveAdaptiveScaffoldMode({
 }
 
 
-export function resolveAdaptiveValue(
+export function resolveAdaptiveValue<
+  TMeta = unknown
+>(
   value:
     | React.ReactNode
     | ((
-      context: AdaptiveScaffoldRenderContext
+      context: AdaptiveScaffoldRenderContext<TMeta>
     ) => React.ReactNode)
     | undefined,
 
-  context: AdaptiveScaffoldRenderContext
+  context: AdaptiveScaffoldRenderContext<TMeta>
 ): React.ReactNode {
 
   if (typeof value === "function") {

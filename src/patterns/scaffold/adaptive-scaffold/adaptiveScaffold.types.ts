@@ -136,10 +136,10 @@ export interface AdaptiveScaffoldProps<
   defaultActiveId?: string | null;
 
 
-onActiveIdChange?: (
-  id: string,
-  item: NavigationNode<TMeta>
-) => void;
+  onActiveIdChange?: (
+    id: string,
+    item: NavigationNode<TMeta>
+  ) => void;
 
 
   mobileNavigation?: AdaptiveScaffoldMobileNavigation;
@@ -155,35 +155,35 @@ onActiveIdChange?: (
   title?:
   | React.ReactNode
   | ((
-    context: AdaptiveScaffoldRenderContext
+    context: AdaptiveScaffoldRenderContext<TMeta>
   ) => React.ReactNode);
 
 
   subtitle?:
   | React.ReactNode
   | ((
-    context: AdaptiveScaffoldRenderContext
+    context: AdaptiveScaffoldRenderContext<TMeta>
   ) => React.ReactNode);
 
 
   leading?:
   | React.ReactNode
   | ((
-    context: AdaptiveScaffoldRenderContext
+    context: AdaptiveScaffoldRenderContext<TMeta>
   ) => React.ReactNode);
 
 
   actions?:
   | React.ReactNode
   | ((
-    context: AdaptiveScaffoldRenderContext
+    context: AdaptiveScaffoldRenderContext<TMeta>
   ) => React.ReactNode);
 
 
   floating?:
   | React.ReactNode
   | ((
-    context: AdaptiveScaffoldRenderContext
+    context: AdaptiveScaffoldRenderContext<TMeta>
   ) => React.ReactNode);
 
 
@@ -225,12 +225,11 @@ onActiveIdChange?: (
 
 
   navigationListProps?: Omit<
-    NavigationListProps,
+    NavigationListProps<TMeta>,
     "items"
     | "activeId"
     | "onSelect"
   >;
-
 
   sidebarWidth?: number | string;
 
