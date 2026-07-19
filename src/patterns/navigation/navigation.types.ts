@@ -1,8 +1,11 @@
+// src/patterns/navigation/navigation.types.ts
 import React from "react";
 
 export type NavigationNodeId = string;
 
-export interface NavigationNode {
+export interface NavigationNode<
+  TMeta = Record<string, unknown>
+> {
   id: NavigationNodeId;
 
   label: React.ReactNode;
@@ -12,13 +15,13 @@ export interface NavigationNode {
 
   disabled?: boolean;
 
-  /**
+    /**
    * Si tiene hijos, por defecto funciona como grupo.
    * selectable=true permite seleccionar también el nodo padre.
    */
   selectable?: boolean;
 
-  children?: NavigationNode[];
+  children?: NavigationNode<TMeta>[];
 
-  meta?: Record<string, unknown>;
+  meta?: TMeta;
 }

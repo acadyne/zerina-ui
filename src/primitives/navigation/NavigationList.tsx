@@ -59,8 +59,10 @@ export type NavigationListStyles =
 export type NavigationListSlotProps =
   SlotPropsMap<NavigationListSlot>;
 
-export interface NavigationListProps {
-  items: NavigationNode[];
+export interface NavigationListProps<
+  TMeta = Record<string, unknown>
+> {
+  items: NavigationNode<TMeta>[];
 
   activeId?: string | null;
 
@@ -72,7 +74,7 @@ export interface NavigationListProps {
   ) => void;
 
   onSelect?: (
-    item: NavigationNode,
+    item: NavigationNode<TMeta>,
     event: UIPressEvent<HTMLElement>
   ) => void;
 
@@ -115,8 +117,10 @@ export interface NavigationListProps {
   slotProps?: NavigationListSlotProps;
 }
 
-export interface NavigationListItemProps {
-  item: NavigationNode;
+export interface NavigationListItemProps<
+  TMeta = Record<string, unknown>
+> {
+  item: NavigationNode<TMeta>;
 
   activeId?: string | null;
   activeBehavior?: NavigationListActiveBehavior;
@@ -143,16 +147,21 @@ export interface NavigationListItemProps {
   ) => void;
 
   onSelect?: (
-    item: NavigationNode,
+    item: NavigationNode<TMeta>,
     event: UIPressEvent<HTMLElement>
   ) => void;
 }
 
-type NavigationListComponent =
-  React.FC<NavigationListProps> & {
-    Item:
-      React.FC<NavigationListItemProps>;
-  };
+type NavigationListComponent = {
+  <TMeta = Record<string, unknown>>(
+    props: NavigationListProps<TMeta>
+  ): React.ReactNode;
+
+  Item:
+    React.FC<NavigationListItemProps>;
+
+  displayName?: string;
+};
 
 type NavigationListRecipeVariants = {
   variant: NavigationListVariant;
@@ -461,8 +470,9 @@ const navigationListRecipe =
     },
   });
 
-function itemContainsId(
-  item: NavigationNode,
+
+  function itemContainsId<TMeta>(
+  item: NavigationNode<TMeta>,
   id: string | null | undefined
 ): boolean {
   if (!id) {
@@ -484,12 +494,12 @@ function itemContainsId(
   );
 }
 
-function isItemActive({
+function isItemActive<TMeta>({
   item,
   activeId,
   activeBehavior,
 }: {
-  item: NavigationNode;
+  item: NavigationNode<TMeta>;
   activeId?: string | null;
   activeBehavior: NavigationListActiveBehavior;
 }): boolean {
@@ -509,26 +519,27 @@ function isItemActive({
   );
 }
 
-function isItemDirectlyActive(
-  item: NavigationNode,
+
+function isItemDirectlyActive<TMeta>(
+  item: NavigationNode<TMeta>,
   activeId?: string | null
 ): boolean {
   return Boolean(
     activeId &&
-      item.id === activeId
+    item.id === activeId
   );
 }
 
-function hasChildren(
-  item: NavigationNode
+function hasChildren<TMeta>(
+  item: NavigationNode<TMeta>
 ): boolean {
   return Boolean(
     item.children?.length
   );
 }
 
-function isSelectable(
-  item: NavigationNode
+function isSelectable<TMeta>(
+  item: NavigationNode<TMeta>
 ): boolean {
   if (
     item.selectable !== undefined
@@ -545,36 +556,40 @@ function getChevron(
   return open ? "⌄" : "›";
 }
 
-const NavigationListItem:
-  React.FC<NavigationListItemProps> = ({
-    item,
 
-    activeId,
-    activeBehavior = "contains",
+const NavigationListItem =
+  <TMeta = Record<string, unknown>>(
+    {
+      item,
 
-    openIds,
-    openActiveParents,
+      activeId,
+      activeBehavior = "contains",
 
-    depth = 0,
-    collapsed = false,
+      openIds,
+      openActiveParents,
 
-    collapsedBehavior =
+      depth = 0,
+      collapsed = false,
+
+      collapsedBehavior =
       "icons-only",
 
-    flyoutPlacement =
+      flyoutPlacement =
       "right-start",
 
-    flyoutOffset = 10,
+      flyoutOffset = 10,
 
-    indentSize = 14,
-    variant = "sidebar",
+      indentSize = 14,
+      variant = "sidebar",
 
-    styles,
-    slotProps,
+      styles,
+      slotProps,
 
-    onToggle,
-    onSelect,
-  }) => {
+      onToggle,
+      onSelect,
+    }: NavigationListItemProps<TMeta>
+  ) => {
+
     const [
       flyoutOpen,
       setFlyoutOpen,
@@ -603,7 +618,7 @@ const NavigationListItem:
       collapsed &&
       childrenExist &&
       collapsedBehavior ===
-        "flyout";
+      "flyout";
 
     const open =
       childrenExist &&
@@ -645,7 +660,7 @@ const NavigationListItem:
             childrenExist &&
             collapsed &&
             collapsedBehavior ===
-              "icons-only"
+            "icons-only"
           ) {
             return;
           }
@@ -670,7 +685,7 @@ const NavigationListItem:
 
     const paddingLeft =
       collapsed ||
-      variant === "inline"
+        variant === "inline"
         ? "0.65rem"
         : `${0.65 + depth * (indentSize / 16)}rem`;
 
@@ -852,10 +867,10 @@ const NavigationListItem:
         aria-expanded={
           childrenExist
             ? (
-                usesCollapsedFlyout
-                  ? flyoutOpen
-                  : open
-              )
+              usesCollapsedFlyout
+                ? flyoutOpen
+                : open
+            )
             : undefined
         }
         aria-disabled={
@@ -901,16 +916,16 @@ const NavigationListItem:
                   ...(
                     active
                       ? [
-                          "activeItem",
-                        ] as const
+                        "activeItem",
+                      ] as const
                       : []
                   ),
 
                   ...(
                     directlyActive
                       ? [
-                          "directActiveItem",
-                        ] as const
+                        "directActiveItem",
+                      ] as const
                       : []
                   ),
                 ],
@@ -1105,7 +1120,7 @@ const NavigationListItem:
         {collapsedWrappedButton}
 
         {childrenExist &&
-        open ? (
+          open ? (
           <Box
             {...groupSlot}
             role="group"
@@ -1173,7 +1188,7 @@ NavigationListItem.displayName =
   "NavigationList.Item";
 
 export const NavigationList =
-  (({
+  (<TMeta = Record<string, unknown>>({
     items,
 
     activeId,
@@ -1189,10 +1204,10 @@ export const NavigationList =
     collapsed = false,
 
     collapsedBehavior =
-      "icons-only",
+    "icons-only",
 
     flyoutPlacement =
-      "right-start",
+    "right-start",
 
     flyoutOffset = 10,
 
@@ -1201,17 +1216,17 @@ export const NavigationList =
     openActiveParents = true,
 
     activeBehavior =
-      "contains",
+    "contains",
 
     ariaLabel =
-      "Navegación",
+    "Navegación",
 
     className = "",
     style,
 
     styles,
     slotProps,
-  }: NavigationListProps) => {
+  }: NavigationListProps<TMeta>) => {
     const isControlled =
       openIds !== undefined;
 

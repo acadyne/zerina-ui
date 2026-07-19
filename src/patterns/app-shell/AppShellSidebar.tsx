@@ -20,6 +20,10 @@ import {
   isAppShellRouteSelectable,
 } from "./AppShellRouteUtils";
 import { getScaffoldLayer } from "../scaffold/scaffoldLayers";
+type AppShellNavigationNode =
+  NavigationNode<{
+    route: AppShellProcessedRoute;
+  }>;
 
 export interface AppShellSidebarProps {
   viewport?: AppShellViewport;
@@ -87,7 +91,7 @@ function getActiveNavigationId({
 
 function routeToNavigationNode(
   route: AppShellProcessedRoute
-): NavigationNode {
+): AppShellNavigationNode {
   const children =
     getAppShellRouteChildren(route);
 
@@ -182,31 +186,27 @@ export const AppShellSidebar: React.FC<AppShellSidebarProps> = ({
     [activePath, activeRouteId, routes]
   );
 
-  const handleSelect = React.useCallback(
-    (item: NavigationNode) => {
-      const route =
-        item.meta?.route;
+const handleSelect = React.useCallback(
+  (item: AppShellNavigationNode) => {
+    const route =
+      item.meta?.route;
 
-      if (!route || typeof route !== "object") {
-        return;
-      }
+    if (!route) {
+      return;
+    }
 
-      const processedRoute =
-        route as AppShellProcessedRoute;
+    if (!isAppShellRouteSelectable(route)) {
+      return;
+    }
 
-      if (!isAppShellRouteSelectable(processedRoute)) {
-        return;
-      }
-
-      onNavigate?.(processedRoute);
-      onRouteSelect?.(processedRoute);
-    },
-    [
-      onNavigate,
-      onRouteSelect,
-    ]
-  );
-
+    onNavigate?.(route);
+    onRouteSelect?.(route);
+  },
+  [
+    onNavigate,
+    onRouteSelect,
+  ]
+);
   return (
     <Box
       as="aside"
