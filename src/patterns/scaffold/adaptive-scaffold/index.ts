@@ -22,4 +22,13 @@ export type {
   AdaptiveScaffoldNavigationListOptions,
 } from "./adaptiveScaffold.types";
 
+
+export type {
+  AdaptiveScaffoldRoute,
+  RoutedAdaptiveScaffoldProps,
+} from "./routedAdaptiveScaffold.types";
+
+
 export * from "./AdaptiveScaffold";
+
+export * from "./RoutedAdaptiveScaffold";
