@@ -93,21 +93,26 @@ const NavigationRailRoot = React.forwardRef<
         nextValue: string,
         event: UIPressEvent<HTMLElement>
       ): void => {
-        if (
+        const reason =
           currentValue === nextValue
-        ) {
-          return;
-        }
+            ? "reselect"
+            : "change";
 
-        if (!isControlled) {
-          setInternalValue(
-            nextValue
-          );
+        if (
+          reason === "change" &&
+          !isControlled
+        ) {
+          setInternalValue(nextValue);
         }
 
         onValueChange?.(
           nextValue,
-          event
+          event,
+          {
+            value: nextValue,
+            previousValue: currentValue,
+            reason,
+          }
         );
       },
       [

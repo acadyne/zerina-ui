@@ -323,8 +323,17 @@ export function AdaptiveScaffold<
         badgePlacement="top-end"
         {...navigationRailProps}
         value={currentActiveId}
-        onValueChange={(next) => {
-          setActiveId(next);
+        onValueChange={(
+          next,
+          _event,
+          selection
+        ) => {
+          if (
+            selection.reason ===
+            "change"
+          ) {
+            setActiveId(next);
+          }
         }}
       >
         {items.map((item) => (

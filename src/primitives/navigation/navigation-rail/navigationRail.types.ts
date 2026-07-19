@@ -98,9 +98,18 @@ export interface NavigationRailProps
   value?: string | null;
   defaultValue?: string | null;
 
+  /**
+   * Se ejecuta cuando el usuario selecciona un destino.
+   *
+   * `context.reason` distingue entre:
+   *
+   * - "change": se seleccionó un destino diferente
+   * - "reselect": se volvió a seleccionar el destino activo
+   */
   onValueChange?: (
     value: string,
-    event: UIPressEvent<HTMLElement>
+    event: UIPressEvent<HTMLElement>,
+    context: NavigationRailSelectionContext
   ) => void;
 
   width?: number | string;
@@ -171,4 +180,15 @@ export interface NavigationRailItemProps
 
   className?: string;
   style?: React.CSSProperties;
+}
+
+
+export type NavigationRailSelectionReason =
+  | "change"
+  | "reselect";
+
+export interface NavigationRailSelectionContext {
+  value: string;
+  previousValue: string | null;
+  reason: NavigationRailSelectionReason;
 }
