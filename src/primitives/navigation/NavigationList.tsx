@@ -60,8 +60,8 @@ export type NavigationListSlotProps =
   SlotPropsMap<NavigationListSlot>;
 
 export interface NavigationListProps<
-  TMeta = Record<string, unknown>
-> {
+  TMeta = unknown
+>{
   items: NavigationNode<TMeta>[];
 
   activeId?: string | null;
@@ -118,7 +118,7 @@ export interface NavigationListProps<
 }
 
 export interface NavigationListItemProps<
-  TMeta = Record<string, unknown>
+  TMeta = unknown
 > {
   item: NavigationNode<TMeta>;
 
@@ -153,7 +153,7 @@ export interface NavigationListItemProps<
 }
 
 type NavigationListComponent = {
-  <TMeta = Record<string, unknown>>(
+  <TMeta = unknown>(
     props: NavigationListProps<TMeta>
   ): React.ReactNode;
 
