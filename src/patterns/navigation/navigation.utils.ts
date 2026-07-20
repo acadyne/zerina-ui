@@ -75,5 +75,5 @@ export function getFirstSelectableNavigationNode<
     }
   }
 
-  return nodes[0] ?? null;
+  return null;
 }

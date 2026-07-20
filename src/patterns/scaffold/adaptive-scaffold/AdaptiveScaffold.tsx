@@ -119,10 +119,30 @@ export function AdaptiveScaffold<
     initialActiveIdRef.current
   );
 
-  const currentActiveId = isControlled
-    ? activeId ?? fallbackItem?.id ?? ""
-    : internalActiveId;
+  const internalActiveItem = React.useMemo(
+    () =>
+      findNavigationNode(
+        items,
+        internalActiveId
+      ),
+    [
+      internalActiveId,
+      items,
+    ]
+  );
 
+  const resolvedInternalActiveId =
+    internalActiveItem &&
+      isNavigationNodeSelectable(
+        internalActiveItem
+      )
+      ? internalActiveId
+      : fallbackItem?.id ?? "";
+
+const currentActiveId = isControlled
+  ? activeId ?? fallbackItem?.id ?? ""
+  : resolvedInternalActiveId;
+  
   const activeItem = React.useMemo(
     () => findNavigationNode(items, currentActiveId),
     [currentActiveId, items]
