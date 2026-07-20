@@ -216,7 +216,14 @@ export function TreeItem<TNode>({
         ? !selected
         : true;
 
-    tree.select(nodeId);
+    if (
+      selectionMode === "multiple" &&
+      selected
+    ) {
+      tree.deselect(nodeId);
+    } else {
+      tree.select(nodeId);
+    }
 
     onNodeSelectionChange?.({
       node,

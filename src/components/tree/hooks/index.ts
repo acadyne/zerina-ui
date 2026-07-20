@@ -1,2 +1,2 @@
-// src/components/transformable-surface/hooks/index.ts
+// src/components/tree/hooks/index.ts
 export { useTreeState } from "./useTreeState";

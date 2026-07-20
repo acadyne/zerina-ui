@@ -23,7 +23,6 @@ import type {
   TreeSlot,
 } from "./tree.types";
 import {
-  getFirstVisibleTreeChild,
   getFirstVisibleTreeNode,
   getLastVisibleTreeNode,
   getNextVisibleTreeNode,
@@ -109,6 +108,18 @@ function TreeInner<TNode>(
     loadOnExpand,
     preserveChildrenOnReload,
   });
+
+  const focusableVisibleNodes = useMemo(
+    () =>
+      tree.visibleNodes.filter(
+        (entry) =>
+          !tree.isDisabled(entry.nodeId)
+      ),
+    [
+      tree.visibleNodes,
+      tree.isDisabled,
+    ]
+  );
 
   const itemRefs = useRef(
     new Map<TreeNodeId, HTMLDivElement>()
@@ -203,7 +214,14 @@ function TreeInner<TNode>(
           ? !currentlySelected
           : true;
 
-      tree.select(nodeId);
+      if (
+        selectionMode === "multiple" &&
+        currentlySelected
+      ) {
+        tree.deselect(nodeId);
+      } else {
+        tree.select(nodeId);
+      }
 
       notifySelectionChange(
         node,
@@ -279,7 +297,7 @@ function TreeInner<TNode>(
 
           const nextNode =
             getNextVisibleTreeNode(
-              tree.visibleNodes,
+              focusableVisibleNodes,
               nodeId
             );
 
@@ -295,7 +313,7 @@ function TreeInner<TNode>(
 
           const previousNode =
             getPreviousVisibleTreeNode(
-              tree.visibleNodes,
+              focusableVisibleNodes,
               nodeId
             );
 
@@ -311,7 +329,7 @@ function TreeInner<TNode>(
 
           const firstNode =
             getFirstVisibleTreeNode(
-              tree.visibleNodes
+              focusableVisibleNodes
             );
 
           if (firstNode) {
@@ -326,7 +344,7 @@ function TreeInner<TNode>(
 
           const lastNode =
             getLastVisibleTreeNode(
-              tree.visibleNodes
+              focusableVisibleNodes
             );
 
           if (lastNode) {
@@ -356,9 +374,10 @@ function TreeInner<TNode>(
           }
 
           const firstChild =
-            getFirstVisibleTreeChild(
-              tree.visibleNodes,
-              nodeId
+            tree.visibleNodes.find(
+              (entry) =>
+                entry.parentId === nodeId &&
+                !tree.isDisabled(entry.nodeId)
             );
 
           if (firstChild) {
@@ -414,6 +433,7 @@ function TreeInner<TNode>(
     },
     [
       activateNode,
+      focusableVisibleNodes,
       isNodeBranch,
       moveFocus,
       notifyExpansionChange,

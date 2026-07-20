@@ -1,3 +1,6 @@
+
+// src/components/tree/hooks/useTreeState.ts
+
 import {
   useCallback,
   useEffect,
@@ -19,7 +22,6 @@ import {
   createTreeNodeIdSet,
   isAbortError,
   removeTreeNodeId,
-  toggleTreeSelection,
   type TreeIndexedNode,
   type TreeVisibleNode,
 } from "../tree.utils";
@@ -605,6 +607,60 @@ export function useTreeState<TNode>({
     [performLoad]
   );
 
+  useEffect(() => {
+    if (!loadOnExpand) {
+      return;
+    }
+
+    for (const nodeId of expandedIds) {
+      const indexedNode =
+        nodeIndex.get(nodeId);
+
+      if (!indexedNode) {
+        continue;
+      }
+
+      if (!isNodeBranch(indexedNode.node)) {
+        continue;
+      }
+
+      if (
+        isNodeDisabled?.(
+          indexedNode.node
+        )
+      ) {
+        continue;
+      }
+
+      const externalChildren =
+        getExternalNodeChildren?.(
+          indexedNode.node
+        );
+
+      if (externalChildren !== undefined) {
+        continue;
+      }
+
+      const loadState =
+        getLoadState(nodeId);
+
+      if (loadState.status !== "idle") {
+        continue;
+      }
+
+      void load(nodeId);
+    }
+  }, [
+    expandedIds,
+    getExternalNodeChildren,
+    getLoadState,
+    isNodeBranch,
+    isNodeDisabled,
+    load,
+    loadOnExpand,
+    nodeIndex,
+  ]);
+
   const reload = useCallback(
     async (nodeId: TreeNodeId) => {
       await performLoad(nodeId, true);
@@ -690,7 +746,7 @@ export function useTreeState<TNode>({
       const next =
         selectionMode === "single"
           ? createSingleTreeSelection(nodeId)
-          : toggleTreeSelection(current, nodeId);
+          : addTreeNodeId(current, nodeId);
 
       emitSelectedIds(next);
     },
