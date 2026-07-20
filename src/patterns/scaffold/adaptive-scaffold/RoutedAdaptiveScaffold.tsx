@@ -2,17 +2,16 @@
 import React from "react";
 
 import {
+    findNavigationNode,
+} from "../../navigation";
+
+import {
     AdaptiveScaffold,
 } from "./AdaptiveScaffold";
 
 import type {
     RoutedAdaptiveScaffoldProps,
 } from "./routedAdaptiveScaffold.types";
-
-import type {
-    NavigationLinkMeta,
-    NavigationNode,
-} from "../../navigation";
 
 
 export function RoutedAdaptiveScaffold({
@@ -35,11 +34,10 @@ export function RoutedAdaptiveScaffold({
             ) => {
 
                 const item =
-                    items.find(
-                        (node) =>
-                            node.id === id
+                    findNavigationNode(
+                        items,
+                        id
                     );
-
 
                 if (!item) {
                     return;
