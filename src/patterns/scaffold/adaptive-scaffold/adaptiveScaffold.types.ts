@@ -46,29 +46,38 @@ export type AdaptiveScaffoldDesktopNavigation =
   | "none";
 
 
-export type AdaptiveScaffoldNavigationPlacement =
-  | "start"
-  | "end"
+export type AdaptiveScaffoldMobileNavigationPlacement =
   | "top"
   | "bottom";
 
+export type AdaptiveScaffoldSideNavigationPlacement =
+  | "start"
+  | "end";
 
-export interface AdaptiveScaffoldNavigationConfig {
+export interface AdaptiveScaffoldNavigationConfig<
+  TPlacement extends string,
+> {
   /**
-   * Navegación personalizada.
+   * Navegación personalizada para el modo correspondiente.
    */
   content?: React.ReactNode;
 
-  placement?: AdaptiveScaffoldNavigationPlacement;
+  placement?: TPlacement;
 }
-
 
 export interface AdaptiveScaffoldNavigationSlots {
-  desktop?: AdaptiveScaffoldNavigationConfig;
-  tablet?: AdaptiveScaffoldNavigationConfig;
-  mobile?: AdaptiveScaffoldNavigationConfig;
-}
+  mobile?: AdaptiveScaffoldNavigationConfig<
+    AdaptiveScaffoldMobileNavigationPlacement
+  >;
 
+  tablet?: AdaptiveScaffoldNavigationConfig<
+    AdaptiveScaffoldSideNavigationPlacement
+  >;
+
+  desktop?: AdaptiveScaffoldNavigationConfig<
+    AdaptiveScaffoldSideNavigationPlacement
+  >;
+}
 
 export type AdaptiveScaffoldSlot =
   | "root"

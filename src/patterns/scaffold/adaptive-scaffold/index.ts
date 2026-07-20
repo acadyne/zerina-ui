@@ -7,7 +7,8 @@ export type {
   AdaptiveScaffoldTabletNavigation,
   AdaptiveScaffoldDesktopNavigation,
 
-  AdaptiveScaffoldNavigationPlacement,
+  AdaptiveScaffoldMobileNavigationPlacement,
+  AdaptiveScaffoldSideNavigationPlacement,
   AdaptiveScaffoldNavigationConfig,
   AdaptiveScaffoldNavigationSlots,
 
