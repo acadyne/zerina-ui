@@ -47,6 +47,8 @@ export type NavigationMenuOpenReason =
   | "programmatic";
 
 export type NavigationMenuCloseReason =
+  | "click"
+  | "keyboard"
   | "selection"
   | "escape"
   | "outside"

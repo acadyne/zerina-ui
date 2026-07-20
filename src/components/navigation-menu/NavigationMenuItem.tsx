@@ -13,7 +13,9 @@ import type {
   NavigationMenuStyles,
 } from "./navigationMenu.types";
 import { getNavigationMenuErrorMessage } from "./navigationMenu.utils";
-import { UseNavigationMenuStateResult } from "./hooks/useNavigationMenuState";
+import type {
+  UseNavigationMenuStateResult,
+} from "./hooks/useNavigationMenuState";
 
 export interface NavigationMenuItemProps<TItem> {
   item: TItem;
@@ -639,12 +641,11 @@ export function NavigationMenuItem<TItem>({
     renderEmpty?.(renderContext) ??
     "Sin opciones";
 
-  const errorContent =
+  const customErrorContent =
     renderError?.({
       ...renderContext,
       error: loadState.error,
-    }) ??
-    getNavigationMenuErrorMessage(loadState.error);
+    });
 
   const panelPlacement =
     depth === 0
@@ -830,20 +831,31 @@ export function NavigationMenuItem<TItem>({
             {failed ? (
               <li role="none">
                 <div {...errorSlot}>
-                  <span>{errorContent}</span>
+                  {renderError ? (
+                    customErrorContent
+                  ) : (
+                    <>
+                      <span>
+                        {getNavigationMenuErrorMessage(
+                          loadState.error
+                        )}
+                      </span>
 
-                  <button
-                    {...retrySlot}
-                    type="button"
-                    onClick={() => {
-                      void reload();
-                    }}
-                  >
-                    Reintentar
-                  </button>
+                      <button
+                        {...retrySlot}
+                        type="button"
+                        onClick={() => {
+                          void reload();
+                        }}
+                      >
+                        Reintentar
+                      </button>
+                    </>
+                  )}
                 </div>
               </li>
             ) : null}
+
           </ul>
         </NavigationMenuPanel>
       ) : null}

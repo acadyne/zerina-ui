@@ -5,7 +5,6 @@ import {
     useRef,
     useState,
 } from "react";
-// import { useTreeState } from "../../tree/hooks";
 import type {
     NavigationMenuCloseReason,
     NavigationMenuItemId,
@@ -19,7 +18,9 @@ import {
     createNavigationMenuOpenPath,
     setNavigationMenuOpenItemAtDepth,
 } from "../navigationMenu.utils";
-import { useTreeState } from "../../tree/hooks/useTreeState";
+import {
+  useTreeState,
+} from "../../tree/hooks";
 
 export interface UseNavigationMenuStateOptions<TItem> {
     items: readonly TItem[];
@@ -559,8 +560,9 @@ export function useNavigationMenuState<TItem>({
             if (isOpen(itemId)) {
                 closeItem(
                     itemId,
-                    "programmatic"
+                    reason
                 );
+
                 return;
             }
 
@@ -724,6 +726,60 @@ export function useNavigationMenuState<TItem>({
             cancelHoverTimers();
         };
     }, [cancelHoverTimers]);
+
+    useEffect(() => {
+        if (!loadOnOpen) {
+            return;
+        }
+
+        for (const itemId of openPath) {
+            const indexedItem =
+                tree.nodeIndex.get(itemId);
+
+            if (!indexedItem) {
+                continue;
+            }
+
+            if (
+                !isItemBranch(
+                    indexedItem.node
+                )
+            ) {
+                continue;
+            }
+
+            if (tree.isDisabled(itemId)) {
+                continue;
+            }
+
+            const externalChildren =
+                getItemChildren?.(
+                    indexedItem.node
+                );
+
+            if (externalChildren !== undefined) {
+                continue;
+            }
+
+            const loadState =
+                tree.getLoadState(itemId);
+
+            if (loadState.status !== "idle") {
+                continue;
+            }
+
+            void tree.load(itemId);
+        }
+    }, [
+        getItemChildren,
+        isItemBranch,
+        loadOnOpen,
+        openPath,
+        tree.getLoadState,
+        tree.isDisabled,
+        tree.load,
+        tree.nodeIndex,
+    ]);
 
     return {
         tree,

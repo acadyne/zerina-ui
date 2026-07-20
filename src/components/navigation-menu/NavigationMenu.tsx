@@ -705,7 +705,7 @@ function NavigationMenuInner<TItem>(
               if (open) {
                 menu.closeItem(
                   itemId,
-                  "programmatic"
+                  "keyboard"
                 );
               } else {
                 void menu.openItem(
