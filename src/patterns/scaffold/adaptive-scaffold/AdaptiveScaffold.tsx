@@ -139,10 +139,10 @@ export function AdaptiveScaffold<
       ? internalActiveId
       : fallbackItem?.id ?? "";
 
-const currentActiveId = isControlled
-  ? activeId ?? fallbackItem?.id ?? ""
-  : resolvedInternalActiveId;
-  
+  const currentActiveId = isControlled
+    ? activeId ?? fallbackItem?.id ?? ""
+    : resolvedInternalActiveId;
+
   const activeItem = React.useMemo(
     () => findNavigationNode(items, currentActiveId),
     [currentActiveId, items]
@@ -160,6 +160,23 @@ const currentActiveId = isControlled
     breakpoints:
       viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
   });
+
+  React.useEffect(() => {
+    if (
+      isControlled ||
+      internalActiveId === resolvedInternalActiveId
+    ) {
+      return;
+    }
+
+    setInternalActiveId(
+      resolvedInternalActiveId
+    );
+  }, [
+    internalActiveId,
+    isControlled,
+    resolvedInternalActiveId,
+  ]);
 
   const setActiveItem = React.useCallback(
     (
