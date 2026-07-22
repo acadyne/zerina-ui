@@ -1,3 +1,5 @@
+// src/components/navigation-menu/navigationMenu.types.ts
+
 import type {
   HTMLAttributes,
   KeyboardEvent,

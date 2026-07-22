@@ -1,3 +1,5 @@
+// src/components/navigation-menu/hooks/useNavigationMenuState.ts
+
 import {
     useCallback,
     useEffect,

@@ -17,7 +17,6 @@ import type {
   NavigationMenuItemId,
   NavigationMenuItemKeyDownContext,
   NavigationMenuProps,
-  NavigationMenuSemantics,
   NavigationMenuSlot,
 } from "./navigationMenu.types";
 

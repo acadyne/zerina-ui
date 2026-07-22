@@ -1,3 +1,5 @@
+// src/components/navigation-menu/navigationMenu.utils.ts
+
 import type {
   NavigationMenuItemId,
 } from "./navigationMenu.types";

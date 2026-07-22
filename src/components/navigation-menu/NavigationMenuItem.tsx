@@ -1,3 +1,5 @@
+// src/components/navigation-menu/NavigationMenuItem.tsx
+
 import React from "react";
 import { resolveSlot } from "../../helpers/css";
 import type { FloatingPlacement } from "../../core/overlay";

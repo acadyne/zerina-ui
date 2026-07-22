@@ -1,3 +1,5 @@
+// src/components/navigation-menu/NavigationMenuPanel.tsx
+
 import React from "react";
 import {
   motion,
