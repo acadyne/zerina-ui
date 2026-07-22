@@ -21,7 +21,7 @@ import {
     setNavigationMenuOpenItemAtDepth,
 } from "../navigationMenu.utils";
 import {
-  useTreeState,
+    useTreeState,
 } from "../../tree/hooks";
 
 export interface UseNavigationMenuStateOptions<TItem> {
@@ -399,17 +399,36 @@ export function useNavigationMenuState<TItem>({
                 return;
             }
 
+            const currentPath =
+                openPathRef.current;
+
             const wasOpen =
-                openPathRef.current[depth] === itemId;
+                currentPath[depth] === itemId;
+
+            const closingIds =
+                currentPath
+                    .slice(depth)
+                    .filter(
+                        (currentItemId) =>
+                            currentItemId !== itemId
+                    );
 
             const nextOpenPath =
                 setNavigationMenuOpenItemAtDepth(
-                    openPathRef.current,
+                    currentPath,
                     depth,
                     itemId
                 );
 
             emitOpenPath(nextOpenPath);
+
+            for (const closingId of closingIds) {
+                notifyOpenChange(
+                    closingId,
+                    false,
+                    reason
+                );
+            }
 
             if (!wasOpen) {
                 notifyOpenChange(
