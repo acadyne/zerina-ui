@@ -23,7 +23,7 @@ export interface NavigationMenuItemProps<TItem> {
   item: TItem;
   itemId: NavigationMenuItemId;
   depth: number;
-
+  rootTabStopId: NavigationMenuItemId | null;
   menu: UseNavigationMenuStateResult<TItem>;
 
   getItemId: (item: TItem) => NavigationMenuItemId;
@@ -101,7 +101,7 @@ export function NavigationMenuItem<TItem>({
   depth,
 
   menu,
-
+  rootTabStopId,
   getItemId,
   getItemLabel,
   isItemBranch,
@@ -279,7 +279,7 @@ export function NavigationMenuItem<TItem>({
   });
 
   const triggerSlot = resolveSlot<NavigationMenuSlot>({
-    slot: depth === 0 ? "trigger" : "panelItemContent",
+    slot: depth === 0 ? "trigger" : "panelTrigger",
     styles,
     slotProps,
     baseProps: {
@@ -674,7 +674,11 @@ export function NavigationMenuItem<TItem>({
         role={usesMenuSemantics ? "menuitem" : undefined}
         tabIndex={
           usesMenuSemantics
-            ? focused
+            ? focused ||
+              (
+                depth === 0 &&
+                itemId === rootTabStopId
+              )
               ? 0
               : -1
             : undefined
@@ -775,6 +779,7 @@ export function NavigationMenuItem<TItem>({
                   itemId={childId}
                   depth={depth + 1}
                   menu={menu}
+                  rootTabStopId={rootTabStopId}
                   getItemId={getItemId}
                   getItemLabel={getItemLabel}
                   isItemBranch={isItemBranch}

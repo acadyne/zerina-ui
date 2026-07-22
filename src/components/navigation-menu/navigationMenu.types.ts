@@ -70,6 +70,7 @@ export type NavigationMenuSlot =
   | "panel"
   | "panelList"
   | "panelItem"
+  | "panelTrigger"
   | "panelItemContent"
   | "panelItemActive"
   | "panelIcon"

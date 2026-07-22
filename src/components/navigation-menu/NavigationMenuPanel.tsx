@@ -260,7 +260,7 @@ export const NavigationMenuPanel =
         getLayerZIndex("dropdown") + depth;
 
       const content =
-        open && anchorRef.current ? (
+        open ? (
           <FloatingLayer
             anchorRef={anchorRef}
             open={open}

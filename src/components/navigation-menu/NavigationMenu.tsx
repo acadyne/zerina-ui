@@ -1,3 +1,5 @@
+// src/components/navigation-menu/NavigationMenu.tsx
+
 import {
   forwardRef,
   useCallback,
@@ -249,6 +251,43 @@ function NavigationMenuInner<TItem>(
     activateOnSelect,
     closeOnSelect,
   });
+
+  const rootTabStopId = useMemo(() => {
+    if (!usesMenuSemantics) {
+      return null;
+    }
+
+    const focusedRootItem =
+      items.find((item) => {
+        const itemId = getItemId(item);
+
+        return (
+          itemId === menu.focusedId &&
+          !menu.isDisabled(itemId)
+        );
+      });
+
+    if (focusedRootItem) {
+      return getItemId(focusedRootItem);
+    }
+
+    const firstEnabledItem =
+      items.find((item) => {
+        const itemId = getItemId(item);
+
+        return !menu.isDisabled(itemId);
+      });
+
+    return firstEnabledItem
+      ? getItemId(firstEnabledItem)
+      : null;
+  }, [
+    getItemId,
+    items,
+    menu.focusedId,
+    menu.isDisabled,
+    usesMenuSemantics,
+  ]);
 
   const itemRefs = useRef(
     new Map<
@@ -959,6 +998,7 @@ function NavigationMenuInner<TItem>(
                 item={item}
                 itemId={itemId}
                 depth={0}
+                rootTabStopId={rootTabStopId}
                 menu={menu}
                 getItemId={getItemId}
                 getItemLabel={
