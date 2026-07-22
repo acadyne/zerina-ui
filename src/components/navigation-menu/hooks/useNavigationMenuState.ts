@@ -182,7 +182,7 @@ export function useNavigationMenuState<TItem>({
 
     openOnHover = true,
     hoverOpenDelay = 120,
-    hoverCloseDelay = 180,
+    hoverCloseDelay = 1200,
 
     loadOnOpen = true,
     preserveChildrenOnReload = true,

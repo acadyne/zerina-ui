@@ -399,7 +399,7 @@ export interface NavigationMenuProps<TItem>
   /**
    * Tiempo antes de cerrar por hover.
    *
-   * @default 180
+   * @default 1200
    */
   hoverCloseDelay?: number;
 

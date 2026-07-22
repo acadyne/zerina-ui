@@ -179,8 +179,8 @@ function NavigationMenuInner<TItem>(
     onItemKeyDown,
 
     openOnHover = true,
-    hoverOpenDelay = 150,
-    hoverCloseDelay = 3000,
+    hoverOpenDelay = 120,
+    hoverCloseDelay = 1200,
 
     loadOnOpen = true,
     preserveChildrenOnReload = true,
@@ -810,7 +810,7 @@ function NavigationMenuInner<TItem>(
         );
       },
 
-      focus: menu.focusItem,
+      focus: moveFocus,
 
       select: (itemId) => {
         void menu.selectItem(itemId);
@@ -833,7 +833,7 @@ function NavigationMenuInner<TItem>(
       menu.closeAll,
       menu.closeFromDepth,
       menu.closeItem,
-      menu.focusItem,
+      moveFocus,
       menu.focusedId,
       menu.getItem,
       menu.isOpen,
