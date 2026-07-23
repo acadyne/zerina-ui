@@ -106,7 +106,7 @@ export interface ScaffoldProps
    */
   screenProps?: Omit<
     ScreenProps,
-    "children"
+    "children" | "fullHeight"
   >;
 
 

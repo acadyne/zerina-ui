@@ -1,5 +1,7 @@
 // src/patterns/scaffold/Scaffold.tsx
 
+import React from "react";
+
 import {
   resolveSlot,
 } from "../../helpers/css";
@@ -14,204 +16,289 @@ import type {
   ScaffoldSlot,
 } from "./scaffold.types";
 
-
-export function Scaffold({
-  children,
-
-  viewport = "window",
-
-  appBar,
-  footer,
-  floating,
-
-  scrollable = false,
-
-  scrollProps,
-  screenProps,
-
-  className = "",
-  style,
-
-  styles,
-  slotProps,
-
-  ...rest
-
-}: ScaffoldProps) {
-
-  const rootSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-    });
+import {
+  getScaffoldLocalZIndex,
+} from "./scaffoldLayers";
 
 
-  const appBarSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "appBar",
-      styles,
-      slotProps,
-      baseStyle: {
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-      },
-    });
-
-
-  const bodySlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "body",
-      styles,
-      slotProps,
-    });
-
-
-  const scrollSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "scroll",
-      styles,
-      slotProps,
-    });
-
-
-  const contentSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "content",
-      styles,
-      slotProps,
-    });
-
-
-  const floatingSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "floating",
-      styles,
-      slotProps,
-      baseStyle: {
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        zIndex: 30,
-      },
-    });
-
-
-  const footerSlot =
-    resolveSlot<ScaffoldSlot>({
-      slot: "footer",
-      styles,
-      slotProps,
-      baseStyle: {
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-      },
-    });
-
-
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
   return (
-    <Screen
-      {...screenProps}
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
 
-      {...rest}
 
-      className={
-        rootSlot.className
-      }
-
-      style={rootSlot.style}
-
-      fullHeight={
-        viewport === "window"
-      }
-    >
-
+export const Scaffold =
+  React.forwardRef<
+    HTMLDivElement,
+    ScaffoldProps
+  >(
+    (
       {
-        appBar ? (
-          <Screen.Header
-            {...appBarSlot}
-          >
-            {appBar}
-          </Screen.Header>
-        ) : null
-      }
+        children,
+
+        viewport = "window",
+
+        appBar,
+        footer,
+        floating,
+
+        scrollable = false,
+
+        scrollProps,
+        screenProps,
+
+        className = "",
+        style,
+
+        styles,
+        slotProps,
+
+        ...rest
+      },
+      ref
+    ) => {
+      const {
+        className:
+          screenClassName = "",
+
+        style:
+          screenStyle,
+
+        ...resolvedScreenProps
+      } = screenProps ?? {};
 
 
-      <Screen.Body
-        {...bodySlot}
-      >
+      const {
+        className:
+          scrollClassName = "",
 
-        {
-          scrollable ? (
+        style:
+          scrollStyle,
 
-            <Screen.Scroll
-              {...scrollProps}
-              {...scrollSlot}
-              style={{
-                minHeight: 0,
-                ...scrollSlot.style,
-              }}
+        ...resolvedScrollProps
+      } = scrollProps ?? {};
+
+
+      const rootSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "root",
+
+          styles,
+          slotProps,
+
+          className,
+          style,
+
+          baseProps: {
+            className:
+              screenClassName,
+
+            style:
+              screenStyle,
+          },
+
+          baseStyle: {
+            height:
+              viewport === "contained"
+                ? "100%"
+                : undefined,
+
+            minHeight: 0,
+          },
+        });
+
+
+      const appBarSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "appBar",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            width: "100%",
+            minWidth: 0,
+            flexShrink: 0,
+          },
+        });
+
+
+      const bodySlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "body",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            position: "relative",
+          },
+        });
+
+
+      const scrollSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "scroll",
+
+          styles,
+          slotProps,
+
+          className:
+            scrollClassName,
+
+          style:
+            scrollStyle,
+
+          baseStyle: {
+            minHeight: 0,
+          },
+        });
+
+
+      const contentSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "content",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            minWidth: 0,
+            minHeight: 0,
+          },
+        });
+
+
+      const floatingSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "floating",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            position: "absolute",
+            inset: 0,
+
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "flex-end",
+
+            padding: "1rem",
+            boxSizing: "border-box",
+
+            pointerEvents: "none",
+
+            zIndex:
+              getScaffoldLocalZIndex(
+                "floating"
+              ),
+          },
+        });
+
+
+      const footerSlot =
+        resolveSlot<ScaffoldSlot>({
+          slot: "footer",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            width: "100%",
+            minWidth: 0,
+            flexShrink: 0,
+          },
+        });
+
+
+      const hasAppBar =
+        hasRenderableNode(appBar);
+
+      const hasFloating =
+        hasRenderableNode(floating);
+
+      const hasFooter =
+        hasRenderableNode(footer);
+
+
+      return (
+        <Screen
+          {...resolvedScreenProps}
+          {...rest}
+          {...rootSlot}
+
+          ref={ref}
+
+          fullHeight={
+            viewport === "window"
+          }
+        >
+          {hasAppBar ? (
+            <Screen.Header
+              {...appBarSlot}
             >
+              {appBar}
+            </Screen.Header>
+          ) : null}
+
+
+          <Screen.Body
+            {...bodySlot}
+          >
+            {scrollable ? (
+              <Screen.Scroll
+                {...resolvedScrollProps}
+                {...scrollSlot}
+              >
+                <Box
+                  {...contentSlot}
+                >
+                  {children}
+                </Box>
+              </Screen.Scroll>
+            ) : (
               <Box
                 {...contentSlot}
               >
                 {children}
               </Box>
-            </Screen.Scroll>
+            )}
 
-          ) : (
 
-            <Box
-              {...contentSlot}
-              style={{
-                minWidth: 0,
-                minHeight: 0,
-                ...contentSlot.style,
-              }}
+            {hasFloating ? (
+              <Box
+                {...floatingSlot}
+              >
+                <Box
+                  style={{
+                    pointerEvents:
+                      "auto",
+                  }}
+                >
+                  {floating}
+                </Box>
+              </Box>
+            ) : null}
+          </Screen.Body>
+
+
+          {hasFooter ? (
+            <Screen.Footer
+              {...footerSlot}
             >
-              {children}
-            </Box>
-
-          )
-        }
-
-      </Screen.Body>
-
-
-      {
-        floating ? (
-          <Box
-            {...floatingSlot}
-          >
-            <Box
-              style={{
-                pointerEvents: "auto",
-              }}
-            >
-              {floating}
-            </Box>
-          </Box>
-        ) : null
-      }
-
-
-      {
-        footer ? (
-          <Screen.Footer
-            {...footerSlot}
-          >
-            {footer}
-          </Screen.Footer>
-        ) : null
-      }
-
-    </Screen>
+              {footer}
+            </Screen.Footer>
+          ) : null}
+        </Screen>
+      );
+    }
   );
-}
 
 
 Scaffold.displayName =
