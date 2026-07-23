@@ -386,9 +386,7 @@ export const BottomNavigationItem =
       return (
         <Pressable
           as="button"
-          ref={
-            ref as React.Ref<HTMLElement>
-          }
+          ref={ref}
           type="button"
           disabled={disabled}
           {...itemSlot}

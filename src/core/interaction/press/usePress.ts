@@ -101,6 +101,11 @@ export function usePress<TElement extends HTMLElement>({
   const keyboardActivationRef = React.useRef(false);
   const longPressTriggeredRef = React.useRef(false);
 
+  const pointerPressActiveRef =
+    React.useRef(false);
+
+  const pressCancelledRef =
+    React.useRef(false);
   const longPressTimerRef =
     React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -135,6 +140,8 @@ export function usePress<TElement extends HTMLElement>({
 
     keyboardActivationRef.current = false;
     longPressTriggeredRef.current = false;
+    pointerPressActiveRef.current = false;
+    pressCancelledRef.current = false;
 
     clearLongPressTimer();
   }, [clearLongPressTimer, disabled]);
@@ -170,6 +177,12 @@ export function usePress<TElement extends HTMLElement>({
 
   const internalPointerLeave = React.useCallback((): void => {
     setHovered(false);
+
+    if (pointerPressActiveRef.current) {
+      pressCancelledRef.current = true;
+      pointerPressActiveRef.current = false;
+    }
+
     resetPress();
   }, [resetPress]);
 
@@ -188,6 +201,8 @@ export function usePress<TElement extends HTMLElement>({
       lastPointerTypeRef.current = nextPointerType;
       keyboardActivationRef.current = false;
       longPressTriggeredRef.current = false;
+      pointerPressActiveRef.current = true;
+      pressCancelledRef.current = false;
 
       setPointerType(nextPointerType);
       setPressed(true);
@@ -221,6 +236,8 @@ export function usePress<TElement extends HTMLElement>({
 
   const internalPointerUp = React.useCallback(
     (event: React.PointerEvent<TElement>): void => {
+      pointerPressActiveRef.current = false;
+
       resetPress();
       releasePointerCapture(event);
     },
@@ -229,14 +246,23 @@ export function usePress<TElement extends HTMLElement>({
 
   const internalPointerCancel = React.useCallback(
     (event: React.PointerEvent<TElement>): void => {
-      resetPress();
+      pointerPressActiveRef.current = false;
+      pressCancelledRef.current = true;
       longPressTriggeredRef.current = false;
+
+      resetPress();
       releasePointerCapture(event);
     },
     [resetPress]
   );
 
   const internalLostPointerCapture = React.useCallback((): void => {
+    if (pointerPressActiveRef.current) {
+      pressCancelledRef.current = true;
+    }
+
+    pointerPressActiveRef.current = false;
+
     resetPress();
   }, [resetPress]);
 
@@ -245,6 +271,12 @@ export function usePress<TElement extends HTMLElement>({
       if (disabled) {
         event.preventDefault();
         event.stopPropagation();
+        return;
+      }
+
+      if (pressCancelledRef.current) {
+        pressCancelledRef.current = false;
+        event.preventDefault();
         return;
       }
 
@@ -279,6 +311,8 @@ export function usePress<TElement extends HTMLElement>({
         return;
       }
 
+      pressCancelledRef.current = false;
+      pointerPressActiveRef.current = false;
       keyboardActivationRef.current = true;
 
       setPointerType("keyboard");

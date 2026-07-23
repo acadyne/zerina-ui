@@ -269,7 +269,7 @@ export const FloatingActionButton = React.forwardRef<
     return (
       <Pressable
         as="button"
-        ref={ref as React.Ref<HTMLElement>}
+        ref={ref}
         type="button"
         disabled={disabled}
         {...rest}
