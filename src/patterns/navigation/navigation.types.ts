@@ -14,6 +14,13 @@ export interface NavigationNode<
 
   label: React.ReactNode;
 
+  /**
+   * Nombre accesible estable para contextos
+   * donde el label visual puede ocultarse,
+   * como navegación colapsada.
+   */
+  ariaLabel?: string;
+
   icon?: React.ReactNode;
   badge?: React.ReactNode;
 

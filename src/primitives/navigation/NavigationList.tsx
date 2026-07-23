@@ -12,17 +12,18 @@ import type { UIPressEvent } from "../../core/interaction";
 import { Pressable } from "../forms";
 import { Box } from "../layout";
 import {
-  Menu,
-  MenuContent,
-  MenuTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  type PopoverContentProps,
 } from "../overlay";
 import { Typography } from "../typography";
-import { MenuContentProps } from "../overlay/menu/menu.types";
-import type {
-  NavigationNode,
+import {
+  isNavigationNodeSelectable,
+  type NavigationNode,
 } from "../../patterns/navigation";
 
 export type NavigationListVariant =
@@ -41,6 +42,7 @@ export type NavigationListSlot =
   | "root"
   | "list"
   | "item"
+  | "itemRow"
   | "itemButton"
   | "itemContent"
   | "activeItem"
@@ -49,6 +51,7 @@ export type NavigationListSlot =
   | "label"
   | "badge"
   | "chevron"
+  | "toggleButton"
   | "group"
   | "flyoutContent"
   | "flyoutList";
@@ -61,7 +64,7 @@ export type NavigationListSlotProps =
 
 export interface NavigationListProps<
   TMeta = unknown
->{
+> {
   items: NavigationNode<TMeta>[];
 
   activeId?: string | null;
@@ -91,7 +94,7 @@ export interface NavigationListProps<
    */
   collapsedBehavior?: NavigationListCollapsedBehavior;
 
-  flyoutPlacement?: MenuContentProps["placement"];
+  flyoutPlacement?: PopoverContentProps["placement"];
   flyoutOffset?: number;
 
   indentSize?: number;
@@ -133,7 +136,7 @@ export interface NavigationListItemProps<
 
   collapsedBehavior?: NavigationListCollapsedBehavior;
 
-  flyoutPlacement?: MenuContentProps["placement"];
+  flyoutPlacement?: PopoverContentProps["placement"];
   flyoutOffset?: number;
 
   indentSize?: number;
@@ -157,8 +160,9 @@ type NavigationListComponent = {
     props: NavigationListProps<TMeta>
   ): React.ReactNode;
 
-  Item:
-    React.FC<NavigationListItemProps>;
+  Item: <TMeta = unknown>(
+    props: NavigationListItemProps<TMeta>
+  ) => React.ReactNode;
 
   displayName?: string;
 };
@@ -263,11 +267,22 @@ const navigationListRecipe =
         minWidth: 0,
       },
 
+      itemRow: {
+        width: "100%",
+        minWidth: 0,
+
+        display: "flex",
+        alignItems: "stretch",
+
+        gap: "0.25rem",
+      },
+
       itemButton: {
         width: "100%",
         minWidth: 0,
 
         display: "flex",
+        flex: 1,
 
         border: 0,
         padding: 0,
@@ -337,6 +352,30 @@ const navigationListRecipe =
 
         fontSize: "1rem",
         lineHeight: 1,
+      },
+
+      toggleButton: {
+        width: 38,
+        minWidth: 38,
+
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        flexShrink: 0,
+
+        border: 0,
+
+        padding: 0,
+
+        borderRadius:
+          "var(--ui-radius-md)",
+
+        background:
+          "transparent",
+
+        color:
+          "var(--ui-text-muted)",
       },
 
       group: {
@@ -438,6 +477,12 @@ const navigationListRecipe =
             : "pointer",
         },
 
+        toggleButton: {
+          cursor: disabled
+            ? "not-allowed"
+            : "pointer",
+        },
+
         itemContent: {
           paddingLeft: isCollapsed
             ? "0.4rem"
@@ -471,7 +516,7 @@ const navigationListRecipe =
   });
 
 
-  function itemContainsId<TMeta>(
+function itemContainsId<TMeta>(
   item: NavigationNode<TMeta>,
   id: string | null | undefined
 ): boolean {
@@ -538,17 +583,42 @@ function hasChildren<TMeta>(
   );
 }
 
-function isSelectable<TMeta>(
+function getNavigationNodeAriaLabel<
+  TMeta
+>(
   item: NavigationNode<TMeta>
-): boolean {
-  if (
-    item.selectable !== undefined
-  ) {
-    return item.selectable;
+): string | undefined {
+  if (item.ariaLabel) {
+    return item.ariaLabel;
   }
 
-  return !hasChildren(item);
+  if (
+    typeof item.label === "string" ||
+    typeof item.label === "number"
+  ) {
+    return String(item.label);
+  }
+
+  return undefined;
 }
+
+const visuallyHiddenStyle:
+  React.CSSProperties = {
+  position: "absolute",
+
+  width: 1,
+  height: 1,
+
+  padding: 0,
+  margin: -1,
+
+  overflow: "hidden",
+
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+
+  border: 0,
+};
 
 function getChevron(
   open: boolean
@@ -614,11 +684,7 @@ const NavigationListItem =
         activeId
       );
 
-    const usesCollapsedFlyout =
-      collapsed &&
-      childrenExist &&
-      collapsedBehavior ===
-      "flyout";
+
 
     const open =
       childrenExist &&
@@ -635,7 +701,118 @@ const NavigationListItem =
       );
 
     const selectable =
-      isSelectable(item);
+      isNavigationNodeSelectable(
+        item
+      );
+
+    const resolvedAriaLabel =
+      getNavigationNodeAriaLabel(
+        item
+      );
+
+    const flyoutAriaLabel =
+      resolvedAriaLabel
+        ? `Navegación de ${resolvedAriaLabel}`
+        : "Navegación";
+
+    const canExpandInline =
+      childrenExist &&
+      !collapsed;
+
+    const canOpenFlyout =
+      childrenExist &&
+      collapsed &&
+      collapsedBehavior ===
+      "flyout";
+
+    const usesCollapsedFlyout =
+      canOpenFlyout;
+
+    const isStaticCollapsedParent =
+      childrenExist &&
+      collapsed &&
+      collapsedBehavior ===
+      "icons-only" &&
+      !selectable;
+
+    const handleSelectPress =
+      React.useCallback(
+        (
+          event:
+            UIPressEvent<HTMLElement>
+        ): void => {
+          if (
+            item.disabled ||
+            !selectable
+          ) {
+            return;
+          }
+
+          onSelect?.(
+            item,
+            event
+          );
+        },
+        [
+          item,
+          onSelect,
+          selectable,
+        ]
+      );
+
+    const handleTogglePress =
+      React.useCallback(
+        (): void => {
+          if (
+            item.disabled ||
+            !canExpandInline
+          ) {
+            return;
+          }
+
+          onToggle?.(
+            item.id
+          );
+        },
+        [
+          canExpandInline,
+          item.disabled,
+          item.id,
+          onToggle,
+        ]
+      );
+
+    const handlePrimaryPress =
+      React.useCallback(
+        (
+          event:
+            UIPressEvent<HTMLElement>
+        ): void => {
+          if (item.disabled) {
+            return;
+          }
+
+          if (
+            canExpandInline &&
+            !selectable
+          ) {
+            handleTogglePress();
+
+            return;
+          }
+
+          handleSelectPress(
+            event
+          );
+        },
+        [
+          canExpandInline,
+          handleSelectPress,
+          handleTogglePress,
+          item.disabled,
+          selectable,
+        ]
+      );
 
     const handlePress =
       React.useCallback(
@@ -719,9 +896,10 @@ const NavigationListItem =
         slotProps,
 
         baseProps: {
+          role: "listitem",
+
           "data-ui-navigation-list-item":
             "",
-
           "data-ui-navigation-list-item-id":
             item.id,
 
@@ -749,6 +927,23 @@ const NavigationListItem =
           baseRecipeStyles.item,
       });
 
+    const itemRowSlot =
+      resolveSlot<NavigationListSlot>({
+        slot: "itemRow",
+
+        styles,
+        slotProps,
+
+        baseProps: {
+          "data-ui-navigation-list-item-row":
+            "",
+        },
+
+        baseStyle:
+          baseRecipeStyles
+            .itemRow,
+      });
+
     const itemButtonSlot =
       resolveSlot<NavigationListSlot>({
         slot: "itemButton",
@@ -759,6 +954,18 @@ const NavigationListItem =
         baseStyle:
           baseRecipeStyles
             .itemButton,
+      });
+
+    const toggleButtonSlot =
+      resolveSlot<NavigationListSlot>({
+        slot: "toggleButton",
+
+        styles,
+        slotProps,
+
+        baseStyle:
+          baseRecipeStyles
+            .toggleButton,
       });
 
     const iconSlot =
@@ -848,7 +1055,140 @@ const NavigationListItem =
             .flyoutList,
       });
 
-    const button = (
+    const renderItemContent = ({
+      hovered,
+      pressed,
+      focused,
+    }: {
+      hovered: boolean;
+      pressed: boolean;
+      focused: boolean;
+    }) => {
+      const stateRecipeStyles =
+        navigationListRecipe({
+          variant,
+
+          collapsed:
+            collapsed
+              ? "true"
+              : "false",
+
+          paddingLeft,
+
+          disabled:
+            Boolean(
+              item.disabled
+            ),
+
+          active,
+          directlyActive,
+
+          hovered,
+          pressed,
+          focused,
+        });
+
+      const itemContentSlot =
+        resolveMergedSlot<NavigationListSlot>(
+          {
+            slots: [
+              "itemContent",
+
+              ...(
+                active
+                  ? [
+                    "activeItem",
+                  ] as const
+                  : []
+              ),
+
+              ...(
+                directlyActive
+                  ? [
+                    "directActiveItem",
+                  ] as const
+                  : []
+              ),
+            ],
+
+            styles,
+            slotProps,
+
+            baseProps: {
+              "data-ui-navigation-list-item-content":
+                "",
+            },
+
+            baseStyle:
+              stateRecipeStyles
+                .itemContent,
+          }
+        );
+
+      return (
+        <Box
+          {...itemContentSlot}
+        >
+          {item.icon !== undefined &&
+            item.icon !== null ? (
+            <Box
+              {...iconSlot}
+            >
+              {item.icon}
+            </Box>
+          ) : null}
+
+          {!collapsed ? (
+            <>
+              <Typography
+                {...labelSlot}
+                as="span"
+                size="sm"
+                weight={
+                  directlyActive
+                    ? 800
+                    : active
+                      ? 700
+                      : 600
+                }
+              >
+                {item.label}
+              </Typography>
+
+              {item.badge !== undefined &&
+                item.badge !== null ? (
+                <Box
+                  {...badgeSlot}
+                >
+                  {item.badge}
+                </Box>
+              ) : null}
+
+              {childrenExist &&
+                !selectable ? (
+                <Box
+                  {...chevronSlot}
+                >
+                  {getChevron(
+                    open
+                  )}
+                </Box>
+              ) : null}
+            </>
+          ) : resolvedAriaLabel ? (
+            <span
+              style={
+                visuallyHiddenStyle
+              }
+            >
+              {resolvedAriaLabel}
+            </span>
+          ) : null}
+        </Box>
+      );
+    };
+
+    const primaryButton = (
       <Pressable
         {...itemButtonSlot}
         as="button"
@@ -857,7 +1197,7 @@ const NavigationListItem =
           item.disabled
         }
         onPress={
-          handlePress
+          handlePrimaryPress
         }
         aria-current={
           directlyActive
@@ -865,12 +1205,9 @@ const NavigationListItem =
             : undefined
         }
         aria-expanded={
-          childrenExist
-            ? (
-              usesCollapsedFlyout
-                ? flyoutOpen
-                : open
-            )
+          canExpandInline &&
+            !selectable
+            ? open
             : undefined
         }
         aria-disabled={
@@ -878,130 +1215,117 @@ const NavigationListItem =
           undefined
         }
       >
-        {({
-          hovered,
-          pressed,
-          focused,
-        }) => {
-          const stateRecipeStyles =
-            navigationListRecipe({
-              variant,
-
-              collapsed:
-                collapsed
-                  ? "true"
-                  : "false",
-
-              paddingLeft,
-
-              disabled:
-                Boolean(
-                  item.disabled
-                ),
-
-              active,
-              directlyActive,
-
-              hovered,
-              pressed,
-              focused,
-            });
-
-          const itemContentSlot =
-            resolveMergedSlot<NavigationListSlot>(
-              {
-                slots: [
-                  "itemContent",
-
-                  ...(
-                    active
-                      ? [
-                        "activeItem",
-                      ] as const
-                      : []
-                  ),
-
-                  ...(
-                    directlyActive
-                      ? [
-                        "directActiveItem",
-                      ] as const
-                      : []
-                  ),
-                ],
-
-                styles,
-                slotProps,
-
-                baseProps: {
-                  "data-ui-navigation-list-item-content":
-                    "",
-                },
-
-                baseStyle:
-                  stateRecipeStyles
-                    .itemContent,
-              }
-            );
-
-          return (
-            <Box
-              {...itemContentSlot}
-            >
-              {item.icon ? (
-                <Box
-                  {...iconSlot}
-                >
-                  {item.icon}
-                </Box>
-              ) : null}
-
-              {!collapsed ? (
-                <>
-                  <Typography
-                    {...labelSlot}
-                    as="span"
-                    size="sm"
-                    weight={
-                      directlyActive
-                        ? 800
-                        : active
-                          ? 700
-                          : 600
-                    }
-                  >
-                    {item.label}
-                  </Typography>
-
-                  {item.badge ? (
-                    <Box
-                      {...badgeSlot}
-                    >
-                      {item.badge}
-                    </Box>
-                  ) : null}
-
-                  {childrenExist ? (
-                    <Box
-                      {...chevronSlot}
-                    >
-                      {getChevron(
-                        open
-                      )}
-                    </Box>
-                  ) : null}
-                </>
-              ) : null}
-            </Box>
-          );
-        }}
+        {renderItemContent}
       </Pressable>
+    );
+
+    const flyoutTriggerButton = (
+      <Pressable
+        {...itemButtonSlot}
+        as="button"
+        type="button"
+        disabled={
+          item.disabled
+        }
+        aria-current={
+          directlyActive
+            ? "page"
+            : undefined
+        }
+        aria-disabled={
+          item.disabled ||
+          undefined
+        }
+      >
+        {renderItemContent}
+      </Pressable>
+    );
+
+    const staticCollapsedSurface = (
+      <Box
+        {...itemButtonSlot}
+        aria-disabled={
+          item.disabled ||
+          undefined
+        }
+        style={{
+          ...itemButtonSlot.style,
+
+          cursor: "default",
+        }}
+      >
+        {renderItemContent({
+          hovered: false,
+          pressed: false,
+          focused: false,
+        })}
+      </Box>
+    );
+
+    const toggleButton =
+      canExpandInline &&
+        selectable ? (
+        <Pressable
+          {...toggleButtonSlot}
+          as="button"
+          type="button"
+          disabled={
+            item.disabled
+          }
+          aria-label={
+            resolvedAriaLabel
+              ? open
+                ? `Colapsar ${resolvedAriaLabel}`
+                : `Expandir ${resolvedAriaLabel}`
+              : open
+                ? "Colapsar sección"
+                : "Expandir sección"
+          }
+          aria-expanded={
+            open
+          }
+          aria-disabled={
+            item.disabled ||
+            undefined
+          }
+          onPress={
+            handleTogglePress
+          }
+        >
+          <Box
+            {...chevronSlot}
+          >
+            {getChevron(
+              open
+            )}
+          </Box>
+        </Pressable>
+      ) : null;
+
+    const button =
+      isStaticCollapsedParent
+        ? staticCollapsedSurface
+        : usesCollapsedFlyout
+          ? flyoutTriggerButton
+          : primaryButton;
+
+    const inlineRow = (
+      <Box
+        {...itemRowSlot}
+      >
+        {button}
+        {toggleButton}
+      </Box>
     );
 
     const flyoutContent =
       childrenExist ? (
         <Box
           {...flyoutListSlot}
+          role="list"
+          aria-label={
+            flyoutAriaLabel
+          }
         >
           {children.map(
             (child) => (
@@ -1063,10 +1387,10 @@ const NavigationListItem =
         </Box>
       ) : null;
 
-    const collapsedWrappedButton =
+    const collapsedWrappedRow =
       collapsed ? (
         usesCollapsedFlyout ? (
-          <Menu
+          <Popover
             open={
               flyoutOpen
             }
@@ -1074,13 +1398,13 @@ const NavigationListItem =
               setFlyoutOpen
             }
           >
-            <MenuTrigger
+            <PopoverTrigger
               asChild
             >
-              {button}
-            </MenuTrigger>
+              {flyoutTriggerButton}
+            </PopoverTrigger>
 
-            <MenuContent
+            <PopoverContent
               {...toMotionSlotProps(
                 flyoutContentSlot
               )}
@@ -1090,10 +1414,16 @@ const NavigationListItem =
               offset={
                 flyoutOffset
               }
+              aria-label={
+                flyoutAriaLabel
+              }
+              autoFocus
+              trapFocus={false}
+              restoreFocus
             >
               {flyoutContent}
-            </MenuContent>
-          </Menu>
+            </PopoverContent>
+          </Popover>
         ) : (
           <Tooltip>
             <TooltipTrigger
@@ -1110,20 +1440,20 @@ const NavigationListItem =
           </Tooltip>
         )
       ) : (
-        button
+        inlineRow
       );
 
     return (
       <Box
         {...itemSlot}
       >
-        {collapsedWrappedButton}
+        {collapsedWrappedRow}
 
         {childrenExist &&
           open ? (
           <Box
             {...groupSlot}
-            role="group"
+            role="list"
           >
             {children.map(
               (child) => (
