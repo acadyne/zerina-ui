@@ -46,17 +46,27 @@ export type PressableElement =
   | "span"
   | "a";
 
-interface PressableOwnProps {
+type PressableElementInstance<
+  TAs extends PressableElement,
+> =
+  React.ComponentRef<TAs> extends HTMLElement
+    ? React.ComponentRef<TAs>
+    : HTMLElement;
+
+interface PressableOwnProps<
+  TElement extends HTMLElement =
+    HTMLElement,
+> {
   children?: PressableChildren;
 
   disabled?: boolean;
 
   onPress?: (
-    event: UIPressEvent<HTMLElement>
+    event: UIPressEvent<TElement>
   ) => void;
 
   onLongPress?: (
-    event: UIPressEvent<HTMLElement>
+    event: UIPressEvent<TElement>
   ) => void;
 
   longPressDelay?: number;
@@ -78,7 +88,9 @@ interface PressableOwnProps {
 export type PressableProps<
   TAs extends PressableElement = "button",
 > =
-  PressableOwnProps & {
+  PressableOwnProps<
+    PressableElementInstance<TAs>
+  > & {
     as?: TAs;
   } & Omit<
     React.ComponentPropsWithoutRef<TAs>,
@@ -90,7 +102,7 @@ export type PressableProps<
   >;
 
 type PressableImplementationProps =
-  PressableOwnProps &
+  PressableOwnProps<HTMLElement> &
   Omit<
     React.HTMLAttributes<HTMLElement>,
     "children" | "onClick"

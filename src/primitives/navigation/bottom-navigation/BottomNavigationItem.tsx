@@ -8,6 +8,7 @@ import { Box } from "../../layout";
 import { Typography } from "../../typography";
 import { useBottomNavigationContext } from "./BottomNavigationContext";
 import {
+  BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE,
   bottomNavigationItemRecipe,
   getBadgePlacementStyles,
 } from "./bottomNavigation.styles";
@@ -116,14 +117,23 @@ export const BottomNavigationItem =
         activeLabelWeight ??
         ctx.activeLabelWeight;
 
-      const showLabel =
-        Boolean(itemLabel) &&
+      const hasLabel =
+        itemLabel !== null &&
+        itemLabel !== undefined;
+
+      const hasIcon =
+        icon !== null &&
+        icon !== undefined;
+
+      const hasBadge =
+        badge !== null &&
+        badge !== undefined;
+
+      const labelVisible =
+        resolvedLabelBehavior === "always" ||
         (
-          resolvedLabelBehavior === "always" ||
-          (
-            resolvedLabelBehavior === "active" &&
-            active
-          )
+          resolvedLabelBehavior === "active" &&
+          active
         );
 
       const itemSlots:
@@ -180,8 +190,7 @@ export const BottomNavigationItem =
           itemMinWidth:
             resolvedItemMinWidth,
 
-          hasBadge:
-            Boolean(badge),
+                    hasBadge,
 
           badgeAnchor:
             resolvedBadgeAnchor,
@@ -220,12 +229,12 @@ export const BottomNavigationItem =
               undefined,
 
             "data-ui-bottom-navigation-item-badge-anchor":
-              badge
+              hasBadge
                 ? resolvedBadgeAnchor
                 : undefined,
 
             "data-ui-bottom-navigation-item-badge-placement":
-              badge
+              hasBadge
                 ? resolvedBadgePlacement
                 : undefined,
           },
@@ -377,7 +386,7 @@ export const BottomNavigationItem =
         });
 
       const badgeNode =
-        badge ? (
+        hasBadge ? (
           <Box {...badgeSlot}>
             {badge}
           </Box>
@@ -385,12 +394,17 @@ export const BottomNavigationItem =
 
       return (
         <Pressable
+          {...itemSlot}
+          {...rest}
           as="button"
           ref={ref}
           type="button"
           disabled={disabled}
-          {...itemSlot}
-          {...rest}
+          aria-current={
+            active
+              ? "page"
+              : undefined
+          }
           onPress={(event) => {
             onPress?.(event);
 
@@ -408,7 +422,7 @@ export const BottomNavigationItem =
         >
           <Box {...contentSlot}>
             <Box {...iconWrapSlot}>
-              {icon ? (
+                {hasIcon ? (
                 <Box {...iconSlot}>
                   {icon}
                 </Box>
@@ -424,7 +438,7 @@ export const BottomNavigationItem =
               })}
             </Box>
 
-            {showLabel ? (
+            {hasLabel ? (
               <Typography
                 as="span"
                 size="xs"
@@ -434,6 +448,14 @@ export const BottomNavigationItem =
                     : 700
                 }
                 {...labelSlot}
+                style={
+                  labelVisible
+                    ? labelSlot.style
+                    : {
+                        ...labelSlot.style,
+                        ...BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE,
+                      }
+                }
               >
                 {itemLabel}
               </Typography>

@@ -52,6 +52,8 @@ export interface TabScaffoldTab {
   value: string;
 
   label?: React.ReactNode;
+  ariaLabel?: string;
+
   icon?: React.ReactNode;
   badge?: React.ReactNode;
 

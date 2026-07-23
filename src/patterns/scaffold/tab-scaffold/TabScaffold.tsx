@@ -460,6 +460,7 @@ export function TabScaffold(
           icon={tab.icon}
           badge={tab.badge}
           disabled={tab.disabled}
+          aria-label={tab.ariaLabel}
         >
           {tab.label}
         </BottomNavigation.Item>

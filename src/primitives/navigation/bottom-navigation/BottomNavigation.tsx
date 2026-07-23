@@ -81,7 +81,7 @@ const BottomNavigationRoot = React.forwardRef<
     const setValue = React.useCallback(
       (
         nextValue: string,
-        event: UIPressEvent<HTMLElement>
+        event: UIPressEvent<HTMLButtonElement>
       ): void => {
         const reason =
           currentValue === nextValue

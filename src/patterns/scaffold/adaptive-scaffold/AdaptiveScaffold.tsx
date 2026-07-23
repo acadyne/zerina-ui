@@ -340,6 +340,7 @@ export function AdaptiveScaffold<
               item.disabled ||
               !isNavigationNodeSelectable(item)
             }
+            aria-label={item.ariaLabel}
           >
             {item.label}
           </BottomNavigation.Item>
