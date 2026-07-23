@@ -138,6 +138,8 @@ interface TabScaffoldBaseProps
     | "appBar"
     | "footer"
     | "floating"
+    | "styles"
+    | "slotProps"
   > {
   /**
    * Secciones raíz visibles en BottomNavigation.

@@ -28,9 +28,26 @@ import {
   resolveTabScaffoldSlot,
 } from "./tabScaffold.utils";
 
-export function TabScaffold(
-  props: TabScaffoldProps
-) {
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
+
+
+export const TabScaffold =
+  React.forwardRef<
+    HTMLDivElement,
+    TabScaffoldProps
+  >(
+    (
+      props,
+      ref
+    ) => {
   const {
     tabs,
     screens,
@@ -39,6 +56,12 @@ export function TabScaffold(
 
     initialTab: initialTabProp,
     initialParams,
+
+    entries:
+      controlledEntries,
+
+    transitionDirection:
+      controlledTransitionDirection,
 
     onEntriesChange,
 
@@ -141,8 +164,26 @@ export function TabScaffold(
     [tabs, initialTabProp]
   );
 
-  const entryId = React.useId().replace(/:/g, "");
-  const entrySequenceRef = React.useRef(1);
+  const entryId =
+    React.useId().replace(/:/g, "");
+
+  const entrySequenceRef =
+    React.useRef(1);
+
+  const fallbackEntry =
+    React.useMemo(
+      () =>
+        createTabScaffoldEntry(
+          `${entryId}-fallback`,
+          initialTab,
+          initialParams
+        ),
+      [
+        entryId,
+        initialParams,
+        initialTab,
+      ]
+    );
 
   const createEntry = React.useCallback(
     (
@@ -163,31 +204,45 @@ export function TabScaffold(
     [entryId]
   );
 
-  const isControlled = props.entries !== undefined;
+  const isControlled =
+    controlledEntries !== undefined;
 
-  const [internalEntries, setInternalEntries] = React.useState<
-    NavigationStackEntry[]
-  >(() => [
-    createTabScaffoldEntry(
-      `${entryId}-0`,
-      initialTab,
-      initialParams
-    ),
-  ]);
+  const [
+    internalEntries,
+    setInternalEntries,
+  ] =
+    React.useState<
+      NavigationStackEntry[]
+    >(() =>
+      initialTab
+        ? [
+            fallbackEntry,
+          ]
+        : []
+    );
 
   const [
     internalTransitionDirection,
     setInternalTransitionDirection,
   ] = React.useState<NavigationStackTransitionDirection>("replace");
 
-  const stackEntries =
-    props.entries !== undefined
-      ? props.entries
+  const providedEntries =
+    controlledEntries !== undefined
+      ? controlledEntries
       : internalEntries;
 
+  const stackEntries =
+    providedEntries.length > 0
+      ? providedEntries
+      : initialTab
+        ? [
+            fallbackEntry,
+          ]
+        : [];
+
   const stackTransitionDirection =
-    props.entries !== undefined
-      ? props.transitionDirection
+    controlledEntries !== undefined
+      ? controlledTransitionDirection
       : internalTransitionDirection;
 
   const setEntries = React.useCallback(
@@ -198,12 +253,14 @@ export function TabScaffold(
       const normalizedEntries =
         nextEntries.length > 0
           ? nextEntries
-          : [
-            createEntry(
-              initialTab,
-              initialParams
-            ),
-          ];
+          : initialTab
+            ? [
+                createEntry(
+                  initialTab,
+                  initialParams
+                ),
+              ]
+            : [];
 
       if (!isControlled) {
         setInternalEntries(normalizedEntries);
@@ -283,26 +340,25 @@ export function TabScaffold(
       },
 
       pop: () => {
-        updateEntries(
-          (currentEntries) => {
-            if (currentEntries.length <= 1) {
-              return currentEntries;
-            }
+        if (stackEntries.length <= 1) {
+          return;
+        }
 
-            return currentEntries.slice(0, -1);
-          },
+        updateEntries(
+          stackEntries.slice(0, -1),
           "back"
         );
       },
 
       popToRoot: () => {
+        if (stackEntries.length <= 1) {
+          return;
+        }
+
         updateEntries(
-          (currentEntries) => [
-            currentEntries[0] ??
-            createEntry(
-              initialTab,
-              initialParams
-            ),
+          [
+            stackEntries[0] ??
+              fallbackEntry,
           ],
           "back"
         );
@@ -337,8 +393,7 @@ export function TabScaffold(
       canGoBack,
       createEntry,
       current,
-      initialParams,
-      initialTab,
+      fallbackEntry,
       onTabChange,
       setEntries,
       stackEntries,
@@ -414,7 +469,10 @@ export function TabScaffold(
     />
   ) : null;
 
-  const appBar = appBarNode ? (
+  const appBar =
+    hasRenderableNode(
+      appBarNode
+    ) ? (
     <Box
       {...appBarSlot}
       data-ui-tab-scaffold-app-bar=""
@@ -468,7 +526,10 @@ export function TabScaffold(
     </BottomNavigation>
   ) : null;
 
-  const bottomNavigation = bottomNavigationNode ? (
+  const bottomNavigation =
+    hasRenderableNode(
+      bottomNavigationNode
+    ) ? (
     <Box
       {...bottomNavigationSlot}
       data-ui-tab-scaffold-bottom-navigation=""
@@ -483,7 +544,10 @@ export function TabScaffold(
       renderContext
     );
 
-  const floatingNode = floatingContent ? (
+  const floatingNode =
+    hasRenderableNode(
+      floatingContent
+    ) ? (
     <Box
       {...floatingSlot}
       data-ui-tab-scaffold-floating=""
@@ -492,90 +556,134 @@ export function TabScaffold(
     </Box>
   ) : null;
 
-  if (tabs.length === 0 || !initialTab) {
+    if (tabs.length === 0 || !initialTab) {
     return (
       <Scaffold
-        viewport={viewport}
+        {...scaffoldProps}
+        {...rootSlot}
 
+        ref={ref}
+
+        viewport={viewport}
         scrollable={scrollable}
 
         appBar={appBar}
-
-        footer={bottomNavigation}
-
-        floating={floatingNode}
-
-        {...rootSlot}
-
-        data-ui-tab-scaffold=""
-        data-ui-tab-scaffold-active-tab={activeTab}
-        data-ui-tab-scaffold-can-go-back={
-          canGoBack || undefined
+        footer={
+          bottomNavigation
+        }
+        floating={
+          floatingNode
         }
 
-        {...scaffoldProps}
+        data-ui-tab-scaffold=""
+        data-ui-tab-scaffold-active-tab={
+          activeTab
+        }
+        data-ui-tab-scaffold-can-go-back={
+          canGoBack ||
+          undefined
+        }
       >
-        {fallback ?? renderTabScaffoldFallback()}
+        {fallback ??
+          renderTabScaffoldFallback()}
       </Scaffold>
     );
   }
 
   return (
-    <TabScaffoldContext.Provider value={contextValue}>
+    <TabScaffoldContext.Provider
+      value={contextValue}
+    >
       <Scaffold
+        {...scaffoldProps}
+        {...rootSlot}
+
+        ref={ref}
+
         viewport={viewport}
         scrollable={scrollable}
+
         appBar={appBar}
-        footer={bottomNavigation}
-        floating={floatingNode}
-        {...rootSlot}
-        data-ui-tab-scaffold=""
-        data-ui-tab-scaffold-active-tab={activeTab}
-        data-ui-tab-scaffold-can-go-back={
-          canGoBack || undefined
+        footer={
+          bottomNavigation
         }
-        {...scaffoldProps}
+        floating={
+          floatingNode
+        }
+
+        data-ui-tab-scaffold=""
+        data-ui-tab-scaffold-active-tab={
+          activeTab
+        }
+        data-ui-tab-scaffold-can-go-back={
+          canGoBack ||
+          undefined
+        }
       >
         <Box
           {...stackSlot}
           data-ui-tab-scaffold-stack=""
         >
           <NavigationStack
-            initialName={initialTab}
-            initialParams={initialParams}
-            entries={stackEntries}
-            transitionDirection={stackTransitionDirection}
-            onEntriesChange={setEntries}
-            animation={animation}
-            fallback={fallback}
+            initialName={
+              initialTab
+            }
+            initialParams={
+              initialParams
+            }
+            entries={
+              stackEntries
+            }
+            transitionDirection={
+              stackTransitionDirection
+            }
+            onEntriesChange={
+              setEntries
+            }
+            animation={
+              animation
+            }
+            fallback={
+              fallback
+            }
             style={{
               height: "100%",
               minHeight: 0,
               minWidth: 0,
             }}
-            styles={{
-              screen: screenSlot.style,
-            }}
             slotProps={{
-              screen: {
-                className: screenSlot.className,
-              },
+              screen:
+                screenSlot,
             }}
           >
-            {screens.map((screen) => (
-              <NavigationStack.Screen
-                key={screen.name}
-                name={screen.name}
-                component={screen.component}
-                render={screen.render}
-                element={screen.element}
-              />
-            ))}
+            {screens.map(
+              (screen) => (
+                <NavigationStack.Screen
+                  key={
+                    screen.name
+                  }
+                  name={
+                    screen.name
+                  }
+                  component={
+                    screen.component
+                  }
+                  render={
+                    screen.render
+                  }
+                  element={
+                    screen.element
+                  }
+                />
+              )
+            )}
           </NavigationStack>
         </Box>
       </Scaffold>
     </TabScaffoldContext.Provider>
   );
-}
+    }
+  );
 
-TabScaffold.displayName = "TabScaffold";
+TabScaffold.displayName =
+  "TabScaffold";
