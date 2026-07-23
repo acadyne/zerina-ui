@@ -99,7 +99,6 @@ export function AdaptiveScaffold<
   styles,
   slotProps,
 
-  ...rest
 }: AdaptiveScaffoldProps<TMeta>) {
   const viewportInfo = useOptionalUIViewport();
   const [, rootSize] = useElementSize<HTMLDivElement>();

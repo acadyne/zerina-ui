@@ -185,7 +185,7 @@ export function DataTableDesktop<
                 </th>
               ) : null}
 
-              {columns.map((column, index) => {
+              {columns.map((column, _) => {
                 const sortable = !!column.accessor && column.sortable !== false;
                 const isSorted =
                   column.accessor && sortConfig?.key === column.accessor;

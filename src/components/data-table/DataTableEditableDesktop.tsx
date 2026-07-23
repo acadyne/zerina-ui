@@ -267,7 +267,7 @@ export function DataTableEditableDesktop<
                 </th>
               ) : null}
 
-              {columns.map((column, index) => {
+              {columns.map((column, _) => {
                 const sortable = column.sortable !== false;
                 const isSorted = sortConfig?.key === column.accessor;
                 const ariaSort = getHeaderAriaSort({

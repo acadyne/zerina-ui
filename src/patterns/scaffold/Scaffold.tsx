@@ -1,7 +1,5 @@
 // src/patterns/scaffold/Scaffold.tsx
 
-import React from "react";
-
 import {
   resolveSlot,
 } from "../../helpers/css";

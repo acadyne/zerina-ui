@@ -1,5 +1,5 @@
 // src/components/data-table/DataTableMobileCards.tsx
-import React from "react";
+
 import { Button, Checkbox, Input, Select } from "../../primitives/forms";
 import { resolveSlot } from "../../helpers/css";
 import type {

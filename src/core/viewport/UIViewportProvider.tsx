@@ -8,7 +8,6 @@ import {
   type UIOrientation,
   type UIViewportBreakpoints,
   type UIViewportInfo,
-  type UIViewportKind,
   type UIViewportMode,
 } from "./viewport.types";
 
