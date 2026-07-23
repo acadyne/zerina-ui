@@ -226,6 +226,12 @@ export const MenuItem =
         resolveSlot<MenuSlot>({
           slot: "item",
 
+          styles:
+            resolvedStyles,
+
+          slotProps:
+            resolvedSlotProps,
+
           className,
 
           style,
@@ -243,8 +249,8 @@ export const MenuItem =
               "",
           },
 
-        baseStyle:
-          undefined,
+          baseStyle:
+            undefined,
         });
 
 
@@ -405,6 +411,12 @@ export const MenuItem =
       const itemSlot =
         resolveSlot<MenuSlot>({
           slot: "item",
+
+          styles:
+            resolvedStyles,
+
+          slotProps:
+            resolvedSlotProps,
 
           className:
             preliminarySlotRest.className,

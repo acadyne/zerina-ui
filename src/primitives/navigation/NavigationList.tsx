@@ -575,14 +575,6 @@ function isItemDirectlyActive<TMeta>(
   );
 }
 
-function hasChildren<TMeta>(
-  item: NavigationNode<TMeta>
-): boolean {
-  return Boolean(
-    item.children?.length
-  );
-}
-
 function getNavigationNodeAriaLabel<
   TMeta
 >(
@@ -810,52 +802,6 @@ const NavigationListItem =
           handleSelectPress,
           handleTogglePress,
           item.disabled,
-          selectable,
-        ]
-      );
-
-    const handlePress =
-      React.useCallback(
-        (
-          event:
-            UIPressEvent<HTMLElement>
-        ) => {
-          if (item.disabled) {
-            return;
-          }
-
-          if (
-            childrenExist &&
-            !collapsed
-          ) {
-            onToggle?.(
-              item.id
-            );
-          }
-
-          if (
-            childrenExist &&
-            collapsed &&
-            collapsedBehavior ===
-            "icons-only"
-          ) {
-            return;
-          }
-
-          if (selectable) {
-            onSelect?.(
-              item,
-              event
-            );
-          }
-        },
-        [
-          childrenExist,
-          collapsed,
-          collapsedBehavior,
-          item,
-          onSelect,
-          onToggle,
           selectable,
         ]
       );

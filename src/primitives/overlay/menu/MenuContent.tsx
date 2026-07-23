@@ -38,7 +38,6 @@ import {
 
 import {
   menuRecipe,
-  DEFAULT_MENU_RECIPE_STYLES,
 } from "./menu.recipe";
 
 import type {
@@ -135,31 +134,31 @@ export const MenuContent =
       }, []);
 
 
-  React.useEffect(() => {
-  if (!open) {
-    return;
-  }
+      React.useEffect(() => {
+        if (!open) {
+          return;
+        }
 
 
-  if (ctx.hasFocusedItem) {
-    return;
-  }
+        if (ctx.hasFocusedItem) {
+          return;
+        }
 
-const id =
-  window.setTimeout(() => {
-    ctx.focusItemAt(
-      ctx.initialFocusIndex
-    );
-  }, 0);
+        const id =
+          window.setTimeout(() => {
+            ctx.focusItemAt(
+              ctx.initialFocusIndex
+            );
+          }, 0);
 
-  return () => {
-    window.clearTimeout(id);
-  };
-}, [
-  ctx.hasFocusedItem,
-  focusFirst,
-  open,
-]);
+        return () => {
+          window.clearTimeout(id);
+        };
+      }, [
+        ctx.hasFocusedItem,
+        focusFirst,
+        open,
+      ]);
 
 
       const handleDismiss =
@@ -189,60 +188,60 @@ const id =
         );
 
 
-   const handleKeyDown =
-  React.useCallback(
-    (
-      event: React.KeyboardEvent<HTMLDivElement>
-    ) => {
+      const handleKeyDown =
+        React.useCallback(
+          (
+            event: React.KeyboardEvent<HTMLDivElement>
+          ) => {
 
-      if (
-        event.key === "ArrowDown"
-      ) {
-        event.preventDefault();
+            if (
+              event.key === "ArrowDown"
+            ) {
+              event.preventDefault();
 
-        focusNext();
+              focusNext();
 
-        return;
-      }
-
-
-      if (
-        event.key === "ArrowUp"
-      ) {
-        event.preventDefault();
-
-        focusPrev();
-
-        return;
-      }
+              return;
+            }
 
 
-      if (
-        event.key === "Home"
-      ) {
-        event.preventDefault();
+            if (
+              event.key === "ArrowUp"
+            ) {
+              event.preventDefault();
 
-        focusFirst();
+              focusPrev();
 
-        return;
-      }
+              return;
+            }
 
 
-      if (
-        event.key === "End"
-      ) {
-        event.preventDefault();
+            if (
+              event.key === "Home"
+            ) {
+              event.preventDefault();
 
-        focusLast();
-      }
-    },
-    [
-      focusFirst,
-      focusLast,
-      focusNext,
-      focusPrev,
-    ]
-  );
+              focusFirst();
+
+              return;
+            }
+
+
+            if (
+              event.key === "End"
+            ) {
+              event.preventDefault();
+
+              focusLast();
+            }
+          },
+          [
+            focusFirst,
+            focusLast,
+            focusNext,
+            focusPrev,
+          ]
+        );
 
       const variants =
         motionState.getVariants(
@@ -260,7 +259,7 @@ const id =
 
       const content =
         ctx.open &&
-        ctx.anchorRef.current ? (
+          ctx.anchorRef.current ? (
           <FloatingLayer
             anchorRef={
               ctx.anchorRef
