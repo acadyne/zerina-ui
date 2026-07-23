@@ -1,3 +1,5 @@
+// src/components/tree/tree.types.ts
+
 import type {
   HTMLAttributes,
   KeyboardEvent,

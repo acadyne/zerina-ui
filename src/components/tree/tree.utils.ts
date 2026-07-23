@@ -1,3 +1,5 @@
+// src/components/tree/tree.utils.ts
+
 import type { TreeNodeId } from "./tree.types";
 
 export interface TreeIndexedNode<TNode> {
