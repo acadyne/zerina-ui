@@ -168,8 +168,23 @@ export const Scaffold =
           slotProps,
 
           baseStyle: {
+            width: "100%",
+
+            height:
+              scrollable
+                ? undefined
+                : "100%",
+
             minWidth: 0,
             minHeight: 0,
+
+            overflow:
+              scrollable
+                ? undefined
+                : "hidden",
+
+            boxSizing:
+              "border-box",
           },
         });
 

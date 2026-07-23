@@ -70,6 +70,94 @@ const sizeMap: Record<
   xl: "var(--ui-font-size-xl)",
 };
 
+function getSpacingStyles({
+  m,
+  mt,
+  mb,
+  ml,
+  mr,
+
+  p,
+  pt,
+  pb,
+  pl,
+  pr,
+}: {
+  m?: React.CSSProperties["margin"];
+  mt?: React.CSSProperties["marginTop"];
+  mb?: React.CSSProperties["marginBottom"];
+  ml?: React.CSSProperties["marginLeft"];
+  mr?: React.CSSProperties["marginRight"];
+
+  p?: React.CSSProperties["padding"];
+  pt?: React.CSSProperties["paddingTop"];
+  pb?: React.CSSProperties["paddingBottom"];
+  pl?: React.CSSProperties["paddingLeft"];
+  pr?: React.CSSProperties["paddingRight"];
+}): React.CSSProperties {
+  return {
+    ...(m !== undefined
+      ? {
+          margin: m,
+        }
+      : {}),
+
+    ...(mt !== undefined
+      ? {
+          marginTop: mt,
+        }
+      : {}),
+
+    ...(mr !== undefined
+      ? {
+          marginRight: mr,
+        }
+      : {}),
+
+    ...(mb !== undefined
+      ? {
+          marginBottom: mb,
+        }
+      : {}),
+
+    ...(ml !== undefined
+      ? {
+          marginLeft: ml,
+        }
+      : {}),
+
+    ...(p !== undefined
+      ? {
+          padding: p,
+        }
+      : {}),
+
+    ...(pt !== undefined
+      ? {
+          paddingTop: pt,
+        }
+      : {}),
+
+    ...(pr !== undefined
+      ? {
+          paddingRight: pr,
+        }
+      : {}),
+
+    ...(pb !== undefined
+      ? {
+          paddingBottom: pb,
+        }
+      : {}),
+
+    ...(pl !== undefined
+      ? {
+          paddingLeft: pl,
+        }
+      : {}),
+  };
+}
+
 function TypographyRender(
   props: TypographyProps<React.ElementType>,
   ref: React.ForwardedRef<Element>
@@ -122,17 +210,19 @@ function TypographyRender(
         letterSpacing: tracking,
         minWidth: 0,
 
-        margin: m,
-        marginTop: mt,
-        marginBottom: mb,
-        marginLeft: ml,
-        marginRight: mr,
+        ...getSpacingStyles({
+          m,
+          mt,
+          mb,
+          ml,
+          mr,
 
-        padding: p,
-        paddingTop: pt,
-        paddingBottom: pb,
-        paddingLeft: pl,
-        paddingRight: pr,
+          p,
+          pt,
+          pb,
+          pl,
+          pr,
+        }),
 
         ...style,
       },

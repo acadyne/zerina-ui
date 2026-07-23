@@ -82,7 +82,11 @@ export const NAVIGATION_RAIL_VISUALLY_HIDDEN_STYLE:
     height: 1,
 
     padding: 0,
-    margin: -1,
+
+    marginTop: -1,
+    marginRight: -1,
+    marginBottom: -1,
+    marginLeft: -1,
 
     overflow: "hidden",
 
@@ -521,7 +525,11 @@ export const navigationRailItemRecipe =
       label: {
         maxWidth: "100%",
         minWidth: 0,
-        margin: 0,
+
+        marginTop: 0,
+        marginRight: 0,
+        marginBottom: 0,
+        marginLeft: 0,
 
         overflow: "hidden",
         textOverflow: "ellipsis",
