@@ -37,6 +37,11 @@ const NavigationStackRoot =
     children,
     initialName,
     initialParams,
+
+    entries: controlledEntries,
+    transitionDirection:
+      controlledTransitionDirection,
+
     onEntriesChange,
     animation = "slide",
     fallback,
@@ -48,7 +53,8 @@ const NavigationStackRoot =
     ...rest
   } = props;
 
-  const isControlled = props.entries !== undefined;
+  const isControlled =
+    controlledEntries !== undefined;
 
   const entryId =
     React.useId().replace(/:/g, "");
@@ -105,8 +111,8 @@ const NavigationStackRoot =
   ] = React.useState<NavigationStackTransitionDirection>("replace");
 
   const providedEntries =
-    props.entries !== undefined
-      ? props.entries
+    controlledEntries !== undefined
+      ? controlledEntries
       : internalEntries;
 
   const stackEntries =
@@ -117,8 +123,8 @@ const NavigationStackRoot =
         ];
 
   const transitionDirection =
-    props.entries !== undefined
-      ? props.transitionDirection
+    controlledEntries !== undefined
+      ? controlledTransitionDirection
       : internalTransitionDirection;
 
   const screens = React.useMemo(
