@@ -62,34 +62,53 @@ export function collectNavigationStackScreens(
       RegisteredNavigationStackScreen
     >();
 
-  React.Children.forEach(
-    children,
-    (child) => {
-      if (
-        !isNavigationStackScreenElement(
-          child
-        )
-      ) {
-        return;
+  function visit(
+    nextChildren: React.ReactNode
+  ): void {
+    React.Children.forEach(
+      nextChildren,
+      (child) => {
+        if (!React.isValidElement(child)) {
+          return;
+        }
+
+        if (
+          child.type ===
+          React.Fragment
+        ) {
+          visit(
+            child.props.children
+          );
+
+          return;
+        }
+
+        if (
+          !isNavigationStackScreenElement(
+            child
+          )
+        ) {
+          return;
+        }
+
+        const {
+          name,
+          component,
+          render,
+          element,
+        } = child.props;
+
+        screens.set(name, {
+          name,
+          component,
+          render,
+          element,
+        });
       }
+    );
+  }
 
-      const {
-        name,
-        title,
-        component,
-        render,
-        element,
-      } = child.props;
-
-      screens.set(name, {
-        name,
-        title,
-        component,
-        render,
-        element,
-      });
-    }
-  );
+  visit(children);
 
   return screens;
 }

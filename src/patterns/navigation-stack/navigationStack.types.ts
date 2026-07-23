@@ -88,7 +88,6 @@ export interface NavigationStackScreenProps<
   TParams extends NavigationStackParams = NavigationStackParams,
 > {
   name: string;
-  title?: React.ReactNode;
 
   component?: React.ComponentType<
     NavigationStackScreenRenderProps<TParams>
@@ -106,7 +105,11 @@ type NavigationStackEntriesChangeHandler = (
   transitionDirection: NavigationStackTransitionDirection
 ) => void;
 
-interface NavigationStackBaseProps {
+interface NavigationStackBaseProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "children"
+  > {
   children?: React.ReactNode;
 
   initialName: string;
@@ -114,9 +117,6 @@ interface NavigationStackBaseProps {
 
   animation?: NavigationStackAnimation;
   fallback?: React.ReactNode;
-
-  className?: string;
-  style?: React.CSSProperties;
 
   styles?: NavigationStackStyles;
   slotProps?: NavigationStackSlotProps;
@@ -149,7 +149,6 @@ export type NavigationStackProps =
 
 export type RegisteredNavigationStackScreen = {
   name: string;
-  title?: React.ReactNode;
 
   component?: React.ComponentType<
     NavigationStackScreenRenderProps<NavigationStackParams>
@@ -163,6 +162,10 @@ export type RegisteredNavigationStackScreen = {
 };
 
 export type NavigationStackComponent =
-  React.FC<NavigationStackProps> & {
-    Screen: React.FC<NavigationStackScreenProps>;
+  React.ForwardRefExoticComponent<
+    NavigationStackProps &
+    React.RefAttributes<HTMLDivElement>
+  > & {
+    Screen:
+      React.FC<NavigationStackScreenProps>;
   };

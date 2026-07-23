@@ -24,9 +24,15 @@ import {
   renderMissingNavigationStackScreen,
 } from "./navigationStack.utils";
 
-const NavigationStackRoot = function NavigationStackRoot(
-  props: NavigationStackProps
-) {
+const NavigationStackRoot =
+  React.forwardRef<
+    HTMLDivElement,
+    NavigationStackProps
+  >(
+    (
+      props,
+      ref
+    ) => {
   const {
     children,
     initialName,
@@ -38,12 +44,32 @@ const NavigationStackRoot = function NavigationStackRoot(
     style,
     styles,
     slotProps,
+
+    ...rest
   } = props;
 
   const isControlled = props.entries !== undefined;
 
-  const entryId = React.useId().replace(/:/g, "");
-  const entrySequenceRef = React.useRef(1);
+  const entryId =
+    React.useId().replace(/:/g, "");
+
+  const entrySequenceRef =
+    React.useRef(1);
+
+  const fallbackEntry =
+    React.useMemo(
+      () =>
+        createNavigationStackEntry(
+          `${entryId}-fallback`,
+          initialName,
+          initialParams
+        ),
+      [
+        entryId,
+        initialName,
+        initialParams,
+      ]
+    );
 
   const createEntry = React.useCallback(
     (
@@ -64,14 +90,13 @@ const NavigationStackRoot = function NavigationStackRoot(
     [entryId]
   );
 
-  const [internalEntries, setInternalEntries] = React.useState<
+  const [
+    internalEntries,
+    setInternalEntries,
+  ] = React.useState<
     NavigationStackEntry[]
   >(() => [
-    createNavigationStackEntry(
-      `${entryId}-0`,
-      initialName,
-      initialParams
-    ),
+    fallbackEntry,
   ]);
 
   const [
@@ -79,10 +104,17 @@ const NavigationStackRoot = function NavigationStackRoot(
     setInternalTransitionDirection,
   ] = React.useState<NavigationStackTransitionDirection>("replace");
 
-  const stackEntries =
+  const providedEntries =
     props.entries !== undefined
       ? props.entries
       : internalEntries;
+
+  const stackEntries =
+    providedEntries.length > 0
+      ? providedEntries
+      : [
+          fallbackEntry,
+        ];
 
   const transitionDirection =
     props.entries !== undefined
@@ -102,7 +134,12 @@ const NavigationStackRoot = function NavigationStackRoot(
       const normalizedEntries =
         nextEntries.length > 0
           ? nextEntries
-          : [createEntry(initialName)];
+          : [
+              createEntry(
+                initialName,
+                initialParams
+              ),
+            ];
 
       if (!isControlled) {
         setInternalEntries(normalizedEntries);
@@ -115,11 +152,12 @@ const NavigationStackRoot = function NavigationStackRoot(
       );
     },
     [
-  createEntry,
-  initialName,
-  isControlled,
-  onEntriesChange,
-]
+      createEntry,
+      initialName,
+      initialParams,
+      isControlled,
+      onEntriesChange,
+    ]
   );
 
   const currentIndex = Math.max(0, stackEntries.length - 1);
@@ -172,7 +210,7 @@ const NavigationStackRoot = function NavigationStackRoot(
         setEntries(
           [
             stackEntries[0] ??
-            createEntry(initialName),
+              fallbackEntry,
           ],
           "back"
         );
@@ -186,14 +224,14 @@ const NavigationStackRoot = function NavigationStackRoot(
       },
     }),
   [
-  stackEntries,
-  current,
-  currentIndex,
-  canGoBack,
-  createEntry,
-  setEntries,
-  initialName,
-]
+    stackEntries,
+    current,
+    currentIndex,
+    canGoBack,
+    createEntry,
+    fallbackEntry,
+    setEntries,
+  ]
   );
 
   const activeScreen =
@@ -271,10 +309,16 @@ const NavigationStackRoot = function NavigationStackRoot(
   return (
     <NavigationStackContext.Provider value={navigation}>
       <Box
+        {...rest}
         {...rootSlot}
+        ref={ref}
         data-ui-navigation-stack=""
-        data-ui-navigation-stack-animation={animation}
-        data-ui-navigation-stack-direction={transitionDirection}
+        data-ui-navigation-stack-animation={
+          animation
+        }
+        data-ui-navigation-stack-direction={
+          transitionDirection
+        }
       >
         {current ? (
           <MotionSwitch
@@ -291,7 +335,11 @@ const NavigationStackRoot = function NavigationStackRoot(
       </Box>
     </NavigationStackContext.Provider>
   );
-};
+    }
+  );
+
+NavigationStackRoot.displayName =
+  "NavigationStack";
 
 export const NavigationStack = Object.assign(
   NavigationStackRoot,
