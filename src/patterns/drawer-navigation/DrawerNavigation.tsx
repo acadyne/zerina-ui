@@ -40,7 +40,11 @@ export interface DrawerNavigationProps<
 >
   extends Omit<
     DrawerProps,
-    "children" | "className" | "style"
+    | "children"
+    | "className"
+    | "style"
+    | "styles"
+    | "slotProps"
   > {
   items: NavigationNode<TMeta>[];
 
@@ -90,6 +94,17 @@ export interface DrawerNavigationProps<
   slotProps?: DrawerNavigationSlotProps;
 }
 
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
+
+
 export function DrawerNavigation<TMeta = unknown>({
   items,
   activeId,
@@ -126,6 +141,9 @@ export function DrawerNavigation<TMeta = unknown>({
 
   ...drawerProps
 }: DrawerNavigationProps<TMeta>) {
+    const hasFooter =
+      hasRenderableNode(footer);
+
     const handleSelect =
       React.useCallback(
         (
@@ -225,8 +243,9 @@ export function DrawerNavigation<TMeta = unknown>({
         size={size}
         title={title}
         description={description}
-        className={rootSlot.className}
-        style={rootSlot.style}
+        slotProps={{
+          panel: rootSlot,
+        }}
       >
         <DrawerBody {...bodySlot}>
           <Box {...navigationSlot}>
@@ -255,7 +274,7 @@ export function DrawerNavigation<TMeta = unknown>({
           </Box>
         </DrawerBody>
 
-        {footer ? (
+        {hasFooter ? (
           <DrawerFooter {...footerSlot}>
             <Box
               {...footerContentSlot}

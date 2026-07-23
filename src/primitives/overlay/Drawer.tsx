@@ -206,6 +206,17 @@ const drawerRecipe = defineSlotRecipe<
   }),
 });
 
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
+
+
 const DEFAULT_DRAWER_RECIPE_STYLES =
   drawerRecipe({
     placement: "right",
@@ -336,6 +347,17 @@ export const Drawer:
 
     const descriptionId =
       `${overlayId}-description`;
+
+    const hasTitle =
+      hasRenderableNode(title);
+
+    const hasDescription =
+      hasRenderableNode(description);
+
+    const hasHeader =
+      hasTitle ||
+      hasDescription ||
+      showCloseButton;
 
     const handleClose =
       React.useCallback(() => {
@@ -515,12 +537,12 @@ export const Drawer:
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby={
-                    title
+                    hasTitle
                       ? titleId
                       : undefined
                   }
                   aria-describedby={
-                    description
+                    hasDescription
                       ? descriptionId
                       : undefined
                   }
@@ -528,9 +550,8 @@ export const Drawer:
                     panelSlot
                   )}
                 >
-                  {title ||
-                  description ||
-                  showCloseButton ? (
+
+                  {hasHeader ? (
                     <DrawerHeader>
                       <Box
                         style={{
@@ -538,7 +559,7 @@ export const Drawer:
                           minWidth: 0,
                         }}
                       >
-                        {title ? (
+                        {hasTitle ? (
                           <DrawerTitle
                             id={titleId}
                           >
@@ -546,7 +567,7 @@ export const Drawer:
                           </DrawerTitle>
                         ) : null}
 
-                        {description ? (
+                        {hasDescription ? (
                           <DrawerDescription
                             id={
                               descriptionId
