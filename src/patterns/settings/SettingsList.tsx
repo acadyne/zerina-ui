@@ -57,7 +57,7 @@ export interface SettingsListSectionProps {
   description?: React.ReactNode;
 }
 
-export interface SettingsListItemProps {
+interface SettingsListItemBaseProps {
   label: React.ReactNode;
   description?: React.ReactNode;
   value?: React.ReactNode;
@@ -68,15 +68,28 @@ export interface SettingsListItemProps {
   disabled?: boolean;
   selected?: boolean;
   showChevron?: boolean;
-
-  onPress?: (
-    event: UIPressEvent<HTMLElement>
-  ) => void;
-
-  onLongPress?: (
-    event: UIPressEvent<HTMLElement>
-  ) => void;
 }
+
+type StaticSettingsListItemProps =
+  SettingsListItemBaseProps & {
+    onPress?: never;
+    onLongPress?: never;
+  };
+
+type InteractiveSettingsListItemProps =
+  SettingsListItemBaseProps & {
+    onPress: (
+      event: UIPressEvent<HTMLElement>
+    ) => void;
+
+    onLongPress?: (
+      event: UIPressEvent<HTMLElement>
+    ) => void;
+  };
+
+export type SettingsListItemProps =
+  | StaticSettingsListItemProps
+  | InteractiveSettingsListItemProps;
 
 export interface SettingsListSwitchProps
   extends Omit<
@@ -267,18 +280,32 @@ SettingsList.Item =
     onPress,
     onLongPress,
   }: SettingsListItemProps) {
+    const commonProps = {
+      title: label,
+      description,
+      value,
+      leading,
+      trailing,
+      disabled,
+      selected,
+      showChevron,
+    };
+
+    if (onPress) {
+      return (
+        <List.Item
+          {...commonProps}
+          onPress={onPress}
+          onLongPress={
+            onLongPress
+          }
+        />
+      );
+    }
+
     return (
       <List.Item
-        title={label}
-        description={description}
-        value={value}
-        leading={leading}
-        trailing={trailing}
-        disabled={disabled}
-        selected={selected}
-        showChevron={showChevron}
-        onPress={onPress}
-        onLongPress={onLongPress}
+        {...commonProps}
       />
     );
   };
@@ -297,8 +324,11 @@ SettingsList.Switch =
   }: SettingsListSwitchProps) {
     const canToggleFromRow =
       !disabled &&
-      hasControlledChecked(checked) &&
-      onCheckedChange !== undefined;
+      hasControlledChecked(
+        checked
+      ) &&
+      onCheckedChange !==
+        undefined;
 
     const handleRowPress =
       canToggleFromRow
@@ -318,41 +348,58 @@ SettingsList.Switch =
           }
         : undefined;
 
+    const trailingControl = (
+      <Box
+        onClick={stopPropagation}
+        onPointerDown={
+          stopPropagation
+        }
+      >
+        <Switch
+          {...rest}
+          size={size}
+          checked={checked}
+          defaultChecked={
+            defaultChecked
+          }
+          disabled={disabled}
+          onChange={(event) => {
+            onCheckedChange?.(
+              event.currentTarget
+                .checked,
+
+              createControlCheckedChangeEvent(
+                event
+              )
+            );
+          }}
+        />
+      </Box>
+    );
+
+    const commonProps = {
+      title: label,
+      description,
+      value,
+      disabled,
+      trailing:
+        trailingControl,
+    };
+
+    if (handleRowPress) {
+      return (
+        <List.Item
+          {...commonProps}
+          onPress={
+            handleRowPress
+          }
+        />
+      );
+    }
+
     return (
       <List.Item
-        title={label}
-        description={description}
-        value={value}
-        disabled={disabled}
-        onPress={handleRowPress}
-        trailing={
-          <Box
-            onClick={stopPropagation}
-            onPointerDown={
-              stopPropagation
-            }
-          >
-            <Switch
-              {...rest}
-              size={size}
-              checked={checked}
-              defaultChecked={
-                defaultChecked
-              }
-              disabled={disabled}
-              onChange={(event) => {
-                onCheckedChange?.(
-                  event.currentTarget
-                    .checked,
-
-                  createControlCheckedChangeEvent(
-                    event
-                  )
-                );
-              }}
-            />
-          </Box>
-        }
+        {...commonProps}
       />
     );
   };
@@ -370,8 +417,11 @@ SettingsList.Checkbox =
   }: SettingsListCheckboxProps) {
     const canToggleFromRow =
       !disabled &&
-      hasControlledChecked(checked) &&
-      onCheckedChange !== undefined;
+      hasControlledChecked(
+        checked
+      ) &&
+      onCheckedChange !==
+        undefined;
 
     const handleRowPress =
       canToggleFromRow
@@ -391,40 +441,57 @@ SettingsList.Checkbox =
           }
         : undefined;
 
+    const trailingControl = (
+      <Box
+        onClick={stopPropagation}
+        onPointerDown={
+          stopPropagation
+        }
+      >
+        <Checkbox
+          {...rest}
+          checked={checked}
+          defaultChecked={
+            defaultChecked
+          }
+          disabled={disabled}
+          onChange={(event) => {
+            onCheckedChange?.(
+              event.currentTarget
+                .checked,
+
+              createControlCheckedChangeEvent(
+                event
+              )
+            );
+          }}
+        />
+      </Box>
+    );
+
+    const commonProps = {
+      title: label,
+      description,
+      value,
+      disabled,
+      trailing:
+        trailingControl,
+    };
+
+    if (handleRowPress) {
+      return (
+        <List.Item
+          {...commonProps}
+          onPress={
+            handleRowPress
+          }
+        />
+      );
+    }
+
     return (
       <List.Item
-        title={label}
-        description={description}
-        value={value}
-        disabled={disabled}
-        onPress={handleRowPress}
-        trailing={
-          <Box
-            onClick={stopPropagation}
-            onPointerDown={
-              stopPropagation
-            }
-          >
-            <Checkbox
-              {...rest}
-              checked={checked}
-              defaultChecked={
-                defaultChecked
-              }
-              disabled={disabled}
-              onChange={(event) => {
-                onCheckedChange?.(
-                  event.currentTarget
-                    .checked,
-
-                  createControlCheckedChangeEvent(
-                    event
-                  )
-                );
-              }}
-            />
-          </Box>
-        }
+        {...commonProps}
       />
     );
   };

@@ -1,0 +1,44 @@
+/* src/primitives/layout/list.css */
+
+[data-ui-list-item] {
+  background:
+    var(
+      --ui-list-item-background,
+      transparent
+    );
+
+  transition:
+    background
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-normal)
+      var(--ui-ease-standard);
+}
+
+[data-ui-list-item][data-ui-pressable-hovered],
+[data-ui-list-item][data-ui-pressable-focus-visible] {
+  background:
+    var(--ui-surface-hover);
+}
+
+[data-ui-list-item][data-selected] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 12%,
+      var(--ui-surface)
+    );
+}
+
+[data-ui-list-item][data-ui-pressable-pressed] {
+  background:
+    var(--ui-surface-3);
+}
+
+[data-ui-list-items][data-divided]
+  > [data-ui-list-item-wrapper]
+  + [data-ui-list-item-wrapper] {
+  border-top:
+    1px solid var(--ui-border);
+}
