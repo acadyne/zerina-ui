@@ -235,6 +235,17 @@ const TOP_APP_BAR_SIZE_MAP: Record<
 };
 
 
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
+
+
 function getVariantStyles(
   variant: TopAppBarVariant
 ): Pick<
@@ -280,432 +291,455 @@ function getVariantStyles(
   };
 }
 
+export const TopAppBar =
+  React.forwardRef<
+    HTMLElement,
+    TopAppBarProps
+  >(
+    (
+      {
+        title,
+        subtitle,
 
-export function TopAppBar({
-  title,
-  subtitle,
+        leading,
+        actions,
 
-  leading,
-  actions,
+        center,
 
-  center,
+        size = "md",
+        variant = "blur",
 
-  size = "md",
-  variant = "blur",
+        safeAreaTop = false,
 
-  safeAreaTop = false,
+        sticky = false,
 
-  sticky = false,
+        centerTitle = false,
 
-  centerTitle = false,
+        className = "",
 
+        style,
 
-  className = "",
+        styles,
 
-  style,
+        slotProps,
 
-
-  styles,
-
-  slotProps,
-
-
-  ...rest
-
-}: TopAppBarProps) {
-
-
-  const sizeStyles =
-    TOP_APP_BAR_SIZE_MAP[size];
-
-
-  const rootSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "root",
-
-      styles,
-
-      slotProps,
-
-      className,
-
-      style,
-
-
-      baseProps: {
-        "data-ui-top-app-bar": "",
-
-        "data-ui-top-app-bar-size":
-          size,
-
-        "data-ui-top-app-bar-variant":
-          variant,
+        ...rest
       },
+      ref
+    ) => {
+      const sizeStyles =
+        TOP_APP_BAR_SIZE_MAP[size];
 
+      const hasTitle =
+        hasRenderableNode(title);
 
-      baseStyle: {
-        position:
-          sticky
-            ? "sticky"
-            : "relative",
+      const hasSubtitle =
+        hasRenderableNode(subtitle);
 
-        top:
-          sticky
-            ? 0
-            : undefined,
+      const hasLeading =
+        hasRenderableNode(leading);
 
-        zIndex:
-          sticky
-            ? 20
-            : undefined,
+      const hasCustomCenter =
+        center !== null &&
+        center !== undefined;
 
 
-        width: "100%",
+      const rootSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "root",
 
-        minWidth: 0,
+          styles,
 
-        boxSizing:
-          "border-box",
+          slotProps,
 
+          className,
 
-        paddingTop:
-          safeAreaTop
-            ? "var(--safe-top-offset)"
-            : undefined,
+          style,
 
 
-        ...getVariantStyles(
-          variant
-        ),
+          baseProps: {
+            "data-ui-top-app-bar": "",
 
+            "data-ui-top-app-bar-size":
+              size,
 
-        color:
-          "var(--ui-text)",
-      },
-    });
+            "data-ui-top-app-bar-variant":
+              variant,
+          },
 
 
+          baseStyle: {
+            position:
+              sticky
+                ? "sticky"
+                : "relative",
 
-  const contentSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "content",
+            top:
+              sticky
+                ? 0
+                : undefined,
 
-      styles,
+            zIndex:
+              sticky
+                ? 20
+                : undefined,
 
-      slotProps,
 
+            width: "100%",
 
-      baseStyle: {
-        position:
-          "relative",
+            minWidth: 0,
 
-        minWidth: 0,
+            boxSizing:
+              "border-box",
 
-        minHeight:
-          sizeStyles.minHeight,
 
-        paddingInline:
-          sizeStyles.paddingInline,
+            paddingTop:
+              safeAreaTop
+                ? "var(--safe-top-offset)"
+                : undefined,
 
-        boxSizing:
-          "border-box",
-      },
-    });
 
+            ...getVariantStyles(
+              variant
+            ),
 
 
-  const leadingSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "leading",
+            color:
+              "var(--ui-text)",
+          },
+        });
 
-      styles,
 
-      slotProps,
 
+      const contentSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "content",
 
-      baseStyle: {
-        minWidth: 0,
+          styles,
 
-        flex:
-          centerTitle
-            ? "0 0 auto"
-            : "1 1 0",
+          slotProps,
 
-        maxWidth:
-          centerTitle
-            ? "34%"
-            : undefined,
 
+          baseStyle: {
+            position:
+              "relative",
 
-        position:
-          "relative",
+            minWidth: 0,
 
-        zIndex:
-          2,
-      },
-    });
+            minHeight:
+              sizeStyles.minHeight,
 
+            paddingInline:
+              sizeStyles.paddingInline,
 
+            boxSizing:
+              "border-box",
+          },
+        });
 
-  const centerSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "center",
 
-      styles,
 
-      slotProps,
+      const leadingSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "leading",
 
+          styles,
 
-      baseStyle: {
-        minWidth: 0,
+          slotProps,
 
-        textAlign:
-          centerTitle
-            ? "center"
-            : "left",
-      },
-    });
 
+          baseStyle: {
+            minWidth: 0,
 
+            flex:
+              centerTitle
+                ? "0 0 auto"
+                : "1 1 0",
 
-  const titleSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "title",
+            maxWidth:
+              centerTitle
+                ? "34%"
+                : undefined,
 
-      styles,
 
-      slotProps,
+            position:
+              "relative",
 
+            zIndex:
+              2,
+          },
+        });
 
-      baseStyle: {
-        margin: 0,
 
-        overflow:
-          "hidden",
 
-        textOverflow:
-          "ellipsis",
+      const centerSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "center",
 
-        whiteSpace:
-          "nowrap",
+          styles,
 
-        color:
-          "var(--ui-text)",
-      },
-    });
+          slotProps,
 
 
+          baseStyle: {
+            minWidth: 0,
 
-  const subtitleSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "subtitle",
+            textAlign:
+              centerTitle
+                ? "center"
+                : "left",
+          },
+        });
 
-      styles,
 
-      slotProps,
 
+      const titleSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "title",
 
-      baseStyle: {
-        marginTop:
-          "0.12rem",
+          styles,
 
-        overflow:
-          "hidden",
+          slotProps,
 
-        textOverflow:
-          "ellipsis",
 
-        whiteSpace:
-          "nowrap",
-      },
-    });
+          baseStyle: {
+            margin: 0,
 
+            overflow:
+              "hidden",
 
+            textOverflow:
+              "ellipsis",
 
-  const actionsSlot =
-    resolveSlot<TopAppBarSlot>({
-      slot: "actions",
+            whiteSpace:
+              "nowrap",
 
-      styles,
+            color:
+              "var(--ui-text)",
+          },
+        });
 
-      slotProps,
 
 
-      baseStyle: {
-        minWidth: 0,
+      const subtitleSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "subtitle",
 
-        flex:
-          "0 0 auto",
+          styles,
 
-        position:
-          "relative",
+          slotProps,
 
-        zIndex:
-          2,
-      },
-    });
 
+          baseStyle: {
+            marginTop:
+              "0.12rem",
 
+            overflow:
+              "hidden",
 
-  /**
-   * Cuando existe center:
-   *
-   * center tiene prioridad.
-   *
-   * Esto permite sustituir completamente
-   * la jerarquía title/subtitle.
-   */
-  const titleContent =
-    center ?? (
-      <Box {...centerSlot}>
+            textOverflow:
+              "ellipsis",
 
-        {
-          title ? (
-            <Typography
-              as="div"
-              size={sizeStyles.titleSize}
-              weight={800}
-              leading={1.2}
-              {...titleSlot}
-            >
-              {title}
-            </Typography>
-          ) : null
-        }
+            whiteSpace:
+              "nowrap",
+          },
+        });
 
 
-        {
-          subtitle ? (
-            <Typography
-              as="div"
-              size={sizeStyles.subtitleSize}
-              color="var(--ui-text-muted)"
-              leading={1.25}
-              {...subtitleSlot}
-            >
-              {subtitle}
-            </Typography>
-          ) : null
-        }
 
-      </Box>
-    );
+      const actionsSlot =
+        resolveSlot<TopAppBarSlot>({
+          slot: "actions",
 
+          styles,
 
-  return (
-    <Box
-      as="header"
-      {...rest}
-      {...rootSlot}
-    >
+          slotProps,
 
-      <Flex
-        align="center"
-        justify="space-between"
-        gap="0.75rem"
-        {...contentSlot}
-      >
 
-        <Flex
-          align="center"
-          gap="0.55rem"
-          {...leadingSlot}
+          baseStyle: {
+            minWidth: 0,
+
+            flex:
+              "0 0 auto",
+
+            position:
+              "relative",
+
+            zIndex:
+              2,
+          },
+        });
+
+
+
+      /**
+       * Cuando existe center:
+       *
+       * center tiene prioridad.
+       *
+       * Esto permite sustituir completamente
+       * la jerarquía title/subtitle.
+       */
+      const centerContent =
+        hasCustomCenter ? (
+          center
+        ) : (
+          <>
+            {hasTitle ? (
+              <Typography
+                as="div"
+                size={
+                  sizeStyles.titleSize
+                }
+                weight={800}
+                leading={1.2}
+                {...titleSlot}
+              >
+                {title}
+              </Typography>
+            ) : null}
+
+
+            {hasSubtitle ? (
+              <Typography
+                as="div"
+                size={
+                  sizeStyles.subtitleSize
+                }
+                color="var(--ui-text-muted)"
+                leading={1.25}
+                {...subtitleSlot}
+              >
+                {subtitle}
+              </Typography>
+            ) : null}
+          </>
+        );
+
+
+      const titleContent = (
+        <Box {...centerSlot}>
+          {centerContent}
+        </Box>
+      );
+
+
+      return (
+        <Box
+          as="header"
+          ref={ref}
+          {...rest}
+          {...rootSlot}
         >
 
-          {
-            leading ? (
-              <Box
-                style={{
-                  display:
-                    "inline-flex",
+          <Flex
+            align="center"
+            justify="space-between"
+            gap="0.75rem"
+            {...contentSlot}
+          >
 
-                  alignItems:
-                    "center",
-
-                  justifyContent:
-                    "center",
-
-                  flexShrink:
-                    0,
-                }}
-              >
-                {leading}
-              </Box>
-            ) : null
-          }
-
-
-          {
-            !centerTitle
-              ? titleContent
-              : null
-          }
-
-        </Flex>
-
-
-
-        {
-          centerTitle ? (
-            <Box
-              style={{
-                position:
-                  "absolute",
-
-                left:
-                  "50%",
-
-                top:
-                  "50%",
-
-                transform:
-                  "translate(-50%, -50%)",
-
-                width:
-                  "min(52vw, 420px)",
-
-                minWidth: 0,
-
-                pointerEvents:
-                  "none",
-
-                zIndex:
-                  1,
-              }}
+            <Flex
+              align="center"
+              gap="0.55rem"
+              {...leadingSlot}
             >
 
-              <Box
-                style={{
-                  minWidth: 0,
+              {
+                hasLeading ? (
+                  <Box
+                    style={{
+                      display:
+                        "inline-flex",
 
-                  pointerEvents:
-                    "auto",
-                }}
-              >
-                {titleContent}
-              </Box>
+                      alignItems:
+                        "center",
 
-            </Box>
-          ) : null
-        }
+                      justifyContent:
+                        "center",
 
-
-
-        <Flex
-          align="center"
-          justify="flex-end"
-          gap="0.35rem"
-          {...actionsSlot}
-        >
-          {actions}
-        </Flex>
+                      flexShrink:
+                        0,
+                    }}
+                  >
+                    {leading}
+                  </Box>
+                ) : null
+              }
 
 
-      </Flex>
+              {
+                !centerTitle
+                  ? titleContent
+                  : null
+              }
 
-    </Box>
+            </Flex>
+
+
+
+            {
+              centerTitle ? (
+                <Box
+                  style={{
+                    position:
+                      "absolute",
+
+                    left:
+                      "50%",
+
+                    top:
+                      "50%",
+
+                    transform:
+                      "translate(-50%, -50%)",
+
+                    width:
+                      "min(52%, 420px)",
+
+                    minWidth: 0,
+
+                    pointerEvents:
+                      "none",
+
+                    zIndex:
+                      1,
+                  }}
+                >
+
+                  <Box
+                    style={{
+                      minWidth: 0,
+
+                      pointerEvents:
+                        "auto",
+                    }}
+                  >
+                    {titleContent}
+                  </Box>
+
+                </Box>
+              ) : null
+            }
+
+
+
+            <Flex
+              align="center"
+              justify="flex-end"
+              gap="0.35rem"
+              {...actionsSlot}
+            >
+              {actions}
+            </Flex>
+
+
+          </Flex>
+
+        </Box>
+      );
+    }
   );
-}
 
 
 TopAppBar.displayName =
