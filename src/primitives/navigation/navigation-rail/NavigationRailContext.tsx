@@ -18,7 +18,7 @@ export interface NavigationRailContextValue {
 
   setValue: (
     value: string,
-    event: UIPressEvent<HTMLElement>
+    event: UIPressEvent<HTMLButtonElement>
   ) => void;
 
   labelBehavior: NavigationRailLabelBehavior;

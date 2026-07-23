@@ -8,6 +8,7 @@ import { Box } from "../../layout";
 import { Typography } from "../../typography";
 import { useNavigationRailContext } from "./NavigationRailContext";
 import {
+  NAVIGATION_RAIL_VISUALLY_HIDDEN_STYLE,
   getBadgePlacementStyles,
   navigationRailItemRecipe,
 } from "./navigationRail.styles";
@@ -116,16 +117,25 @@ export const NavigationRailItem =
         activeLabelWeight ??
         ctx.activeLabelWeight;
 
-      const showLabel =
-        Boolean(itemLabel) &&
+      const hasLabel =
+        itemLabel !== null &&
+        itemLabel !== undefined;
+
+      const hasIcon =
+        icon !== null &&
+        icon !== undefined;
+
+      const hasBadge =
+        badge !== null &&
+        badge !== undefined;
+
+      const labelVisible =
+        resolvedLabelBehavior ===
+          "always" ||
         (
           resolvedLabelBehavior ===
-            "always" ||
-          (
-            resolvedLabelBehavior ===
-              "active" &&
-            active
-          )
+            "active" &&
+          active
         );
 
       const itemSlots:
@@ -202,8 +212,7 @@ export const NavigationRailItem =
           itemMinHeight:
             resolvedItemMinHeight,
 
-          hasBadge:
-            Boolean(badge),
+          hasBadge,
 
           badgeAnchor:
             resolvedBadgeAnchor,
@@ -242,12 +251,12 @@ export const NavigationRailItem =
               undefined,
 
             "data-ui-navigation-rail-item-badge-anchor":
-              badge
+              hasBadge
                 ? resolvedBadgeAnchor
                 : undefined,
 
             "data-ui-navigation-rail-item-badge-placement":
-              badge
+              hasBadge
                 ? resolvedBadgePlacement
                 : undefined,
           },
@@ -399,7 +408,7 @@ export const NavigationRailItem =
         });
 
       const badgeNode =
-        badge ? (
+        hasBadge ? (
           <Box {...badgeSlot}>
             {badge}
           </Box>
@@ -407,12 +416,17 @@ export const NavigationRailItem =
 
       return (
         <Pressable
+          {...itemSlot}
+          {...rest}
           as="button"
           ref={ref}
           type="button"
           disabled={disabled}
-          {...itemSlot}
-          {...rest}
+          aria-current={
+            active
+              ? "page"
+              : undefined
+          }
           onPress={(event) => {
             onPress?.(event);
 
@@ -430,7 +444,7 @@ export const NavigationRailItem =
         >
           <Box {...contentSlot}>
             <Box {...iconWrapSlot}>
-              {icon ? (
+              {hasIcon ? (
                 <Box {...iconSlot}>
                   {icon}
                 </Box>
@@ -447,7 +461,7 @@ export const NavigationRailItem =
               })}
             </Box>
 
-            {showLabel ? (
+            {hasLabel ? (
               <Typography
                 as="span"
                 size="xs"
@@ -457,6 +471,14 @@ export const NavigationRailItem =
                     : 700
                 }
                 {...labelSlot}
+                style={
+                  labelVisible
+                    ? labelSlot.style
+                    : {
+                        ...labelSlot.style,
+                        ...NAVIGATION_RAIL_VISUALLY_HIDDEN_STYLE,
+                      }
+                }
               >
                 {itemLabel}
               </Typography>

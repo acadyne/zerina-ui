@@ -108,7 +108,7 @@ export interface NavigationRailProps
    */
   onValueChange?: (
     value: string,
-    event: UIPressEvent<HTMLElement>,
+    event: UIPressEvent<HTMLButtonElement>,
     context: NavigationRailSelectionContext
   ) => void;
 
@@ -147,7 +147,12 @@ export interface NavigationRailProps
 export interface NavigationRailItemProps
   extends Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
-    "children" | "onClick" | "onSelect" | "value"
+    | "children"
+    | "onClick"
+    | "onSelect"
+    | "value"
+    | "type"
+    | "aria-current"
   > {
   value: string;
 
@@ -159,7 +164,7 @@ export interface NavigationRailItemProps
   disabled?: boolean;
 
   onPress?: (
-    event: UIPressEvent<HTMLElement>
+    event: UIPressEvent<HTMLButtonElement>
   ) => void;
 
   labelBehavior?: NavigationRailLabelBehavior;
