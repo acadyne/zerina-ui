@@ -183,6 +183,47 @@ export const ImageViewer = forwardRef<
     const failed = error !== null;
 
     useEffect(() => {
+      const nextTransform =
+        surfaceApiRef.current
+          ?.getTransform();
+
+      if (!nextTransform) {
+        return;
+      }
+
+      const currentTransform =
+        transformRef.current;
+
+      const unchanged =
+        Math.abs(
+          currentTransform.scale -
+          nextTransform.scale
+        ) <= 0.0001 &&
+        Math.abs(
+          currentTransform.position.x -
+          nextTransform.position.x
+        ) <= 0.0001 &&
+        Math.abs(
+          currentTransform.position.y -
+          nextTransform.position.y
+        ) <= 0.0001;
+
+      if (unchanged) {
+        return;
+      }
+
+      transformRef.current =
+        nextTransform;
+
+      setTransform(
+        nextTransform
+      );
+    }, [
+      scale,
+      position,
+    ]);
+
+    useEffect(() => {
       setLoading(Boolean(src));
       setLoaded(false);
       setError(null);
@@ -380,6 +421,14 @@ export const ImageViewer = forwardRef<
           minHeight: 0,
         },
       });
+
+    const {
+      className:
+        surfaceClassName,
+      style:
+        surfaceStyle,
+      ...surfaceRest
+    } = surfaceSlot;
 
     const imageSlot =
       resolveSlot<ImageViewerSlot>({
@@ -671,6 +720,7 @@ export const ImageViewer = forwardRef<
       >
         {src ? (
           <TransformableSurface
+            {...surfaceRest}
             apiRef={surfaceApiRef}
             resetKey={resolvedResetKey}
             scale={scale}
@@ -728,10 +778,10 @@ export const ImageViewer = forwardRef<
               onGestureEnd
             }
             className={
-              surfaceSlot.className
+              surfaceClassName
             }
             style={
-              surfaceSlot.style
+              surfaceStyle
             }
           >
             <img
