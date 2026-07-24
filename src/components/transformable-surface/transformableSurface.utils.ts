@@ -356,13 +356,19 @@ export function getSurfaceAxisBounds(
       };
     }
 
-    const freeSpace =
-      safeViewportLength -
-      safeContentLength;
+    const halfFreeSpace =
+      (
+        safeViewportLength -
+        safeContentLength
+      ) / 2;
 
     return {
-      min: -padding,
-      max: freeSpace + padding,
+      min:
+        -halfFreeSpace -
+        padding,
+      max:
+        halfFreeSpace +
+        padding,
     };
   }
 
@@ -450,11 +456,32 @@ export function constrainSurfaceTransform({
   boundsPadding = 0,
   centerContent = true,
 }: TransformableSurfaceConstraintOptions): TransformableSurfaceTransform {
-  const scale = clampSurfaceScale(
-    transform.scale,
-    minScale,
-    maxScale
-  );
+  const normalizedRange =
+    normalizeScaleRange(
+      minScale,
+      maxScale
+    );
+
+  const effectiveMinScale =
+    bounds === "cover"
+      ? Math.min(
+          normalizedRange.maxScale,
+          Math.max(
+            normalizedRange.minScale,
+            getMinimumCoverScale(
+              viewportSize,
+              contentSize
+            )
+          )
+        )
+      : normalizedRange.minScale;
+
+  const scale =
+    clampSurfaceScale(
+      transform.scale,
+      effectiveMinScale,
+      normalizedRange.maxScale
+    );
 
   const position =
     constrainSurfacePosition(
@@ -474,7 +501,6 @@ export function constrainSurfaceTransform({
     position,
   };
 }
-
 /**
  * Calcula la nueva posición necesaria para mantener estable visualmente
  * un punto del viewport mientras cambia la escala.
@@ -537,14 +563,14 @@ export function zoomSurfaceAtPoint({
           centeredOrigin.x -
           previousPosition.x
         ) *
-          scaleRatio,
+        scaleRatio,
       y:
         centeredOrigin.y -
         (
           centeredOrigin.y -
           previousPosition.y
         ) *
-          scaleRatio,
+        scaleRatio,
     },
   };
 }

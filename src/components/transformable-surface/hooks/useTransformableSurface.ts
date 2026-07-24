@@ -402,6 +402,56 @@ export function useTransformableSurface({
     ]
   );
 
+  useEffect(() => {
+    if (!disabled) {
+      return;
+    }
+
+    const viewport =
+      viewportRef.current;
+
+    for (
+      const pointerId of
+      activePointersRef.current.keys()
+    ) {
+      try {
+        if (
+          viewport?.hasPointerCapture(
+            pointerId
+          )
+        ) {
+          viewport.releasePointerCapture(
+            pointerId
+          );
+        }
+      } catch {
+        // El navegador puede rechazar la liberación
+        // si el puntero ya dejó de estar activo.
+      }
+    }
+
+    activePointersRef.current.clear();
+    panStartRef.current = null;
+    pinchStartRef.current = null;
+    tapCandidateRef.current = null;
+    lastTapRef.current = null;
+
+    if (
+      wheelEndTimerRef.current !== null
+    ) {
+      clearTimeout(
+        wheelEndTimerRef.current
+      );
+
+      wheelEndTimerRef.current = null;
+    }
+
+    setGesture("idle");
+  }, [
+    disabled,
+    setGesture,
+  ]);
+
   const constrainTransform =
     useCallback(
       (
