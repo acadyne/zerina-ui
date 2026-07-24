@@ -349,12 +349,80 @@ export class ThemeSystem {
 
 
     if (tokens.color) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(tokens.color)) {
-        set(key, value);
-      }
+      set(
+        "primary",
+        tokens.color.primary
+      );
+
+      set(
+        "primary-hover",
+        tokens.color.primaryHover
+      );
+
+      set(
+        "primary-contrast",
+        tokens.color.primaryContrast
+      );
+
+      set(
+        "secondary",
+        tokens.color.secondary
+      );
+
+      set(
+        "secondary-hover",
+        tokens.color.secondaryHover
+      );
+
+      set(
+        "secondary-contrast",
+        tokens.color.secondaryContrast
+      );
+
+      set(
+        "success",
+        tokens.color.success
+      );
+
+      set(
+        "success-strong",
+        tokens.color.successStrong
+      );
+
+      set(
+        "success-contrast",
+        tokens.color.successContrast
+      );
+
+      set(
+        "warning",
+        tokens.color.warning
+      );
+
+      set(
+        "warning-strong",
+        tokens.color.warningStrong
+      );
+
+      set(
+        "warning-contrast",
+        tokens.color.warningContrast
+      );
+
+      set(
+        "danger",
+        tokens.color.danger
+      );
+
+      set(
+        "danger-hover",
+        tokens.color.dangerHover
+      );
+
+      set(
+        "danger-contrast",
+        tokens.color.dangerContrast
+      );
     }
 
 

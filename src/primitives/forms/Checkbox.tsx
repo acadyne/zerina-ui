@@ -132,8 +132,10 @@ const checkboxRecipe =
       },
 
       mark: {
+        display: "block",
+
         background:
-          "var(--ui-control-indicator)",
+          "var(--ui-primary-contrast)",
 
         transformOrigin: "center",
       },
@@ -178,11 +180,14 @@ const checkboxRecipe =
 
         checked: {
           mark: {
+            background:
+              "transparent",
+
             borderRight:
-              "3px solid var(--ui-control-indicator)",
+              "3px solid var(--ui-primary-contrast)",
 
             borderBottom:
-              "3px solid var(--ui-control-indicator)",
+              "3px solid var(--ui-primary-contrast)",
 
             transform:
               "rotate(45deg)",
@@ -220,7 +225,7 @@ const checkboxRecipe =
         borderRadius: radius,
 
         background: marked
-          ? "var(--ui-control-indicator-overlay)"
+          ? `color-mix(in srgb, ${color} 22%, transparent)`
           : "transparent",
 
         boxShadow: focused
@@ -246,7 +251,7 @@ const checkboxRecipe =
           ),
 
         background: marked
-          ? "var(--ui-control-indicator-overlay)"
+          ? `color-mix(in srgb, ${color} 22%, transparent)`
           : "transparent",
       },
 
@@ -263,19 +268,19 @@ const checkboxRecipe =
           : {
             width:
               Math.max(
-                5,
-                boxSize - 8
+                4,
+                boxSize - 10
               ),
 
             height:
               Math.max(
-                8,
+                7,
                 boxSize - 8
               ),
 
             transform: checked
-              ? "rotate(45deg) scale(1)"
-              : "rotate(45deg) scale(0)",
+              ? "translateY(-1px) rotate(45deg) scale(1)"
+              : "translateY(-1px) rotate(45deg) scale(0)",
           },
 
       label: {

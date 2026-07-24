@@ -143,10 +143,13 @@ const switchRecipe =
       },
 
       thumb: {
+        display: "block",
+
         borderRadius:
           "var(--ui-radius-full)",
 
-        background: "var(--ui-control-indicator)",
+        background:
+          "var(--ui-primary-contrast)",
 
         boxShadow:
           "var(--ui-shadow-control)",
@@ -276,7 +279,7 @@ const switchRecipe =
             }`,
 
           boxShadow: focused
-            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+            ? "0 0 0 3px var(--ui-focus-ring)"
             : "none",
 
           opacity: disabled

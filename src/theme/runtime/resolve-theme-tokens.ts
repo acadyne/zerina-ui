@@ -54,6 +54,11 @@ function mergeTokens(
       },
     },
 
+    interaction: {
+      ...base.interaction,
+      ...override.interaction,
+    },
+
     extensions: {
       ...base.extensions,
       ...override.extensions,
