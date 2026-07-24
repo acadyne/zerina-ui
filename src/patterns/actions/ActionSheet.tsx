@@ -57,12 +57,10 @@ export interface ActionSheetItemProps
 export interface ActionSheetSeparatorProps
   extends React.HTMLAttributes<HTMLDivElement> { }
 
-export interface ActionSheetSectionProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
-  label?: React.ReactNode;
-  description?: React.ReactNode;
-}
+export type ActionSheetSectionProps =
+  React.ComponentPropsWithoutRef<
+    typeof List.Section
+  >;
 
 type ActionSheetContextValue = {
   closeOnPress: boolean;
@@ -115,6 +113,16 @@ function getToneBackground(
   }
 
   return undefined;
+}
+
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
 }
 
 export const ActionSheet = (({
@@ -219,7 +227,7 @@ ActionSheet.Item = function ActionSheetItem({
     <List.Item
       {...rest}
       leading={
-        icon ? (
+        hasRenderableNode(icon) ? (
           <Box
             style={{
               color:
@@ -231,7 +239,9 @@ ActionSheet.Item = function ActionSheetItem({
         ) : undefined
       }
       title={
-        itemLabel ? (
+        hasRenderableNode(
+          itemLabel
+        ) ? (
           <Box
             style={{
               color:
@@ -284,72 +294,26 @@ ActionSheet.Section =
     children,
     label,
     description,
-    style,
     ...rest
   }: ActionSheetSectionProps) {
     return (
-      <Box
+      <List.Section
         {...rest}
-        style={{
-          minWidth: 0,
-          ...style,
-        }}
+        label={
+          hasRenderableNode(label)
+            ? label
+            : undefined
+        }
+        description={
+          hasRenderableNode(
+            description
+          )
+            ? description
+            : undefined
+        }
       >
-        {label || description ? (
-          <Box
-            style={{
-              padding:
-                "0.25rem 0.35rem 0.45rem",
-            }}
-          >
-            {label ? (
-              <Box
-                style={{
-                  fontSize:
-                    "var(--ui-font-size-xs)",
-
-                  fontWeight:
-                    "var(--ui-font-weight-bold)",
-
-                  color:
-                    "var(--ui-text-muted)",
-
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {label}
-              </Box>
-            ) : null}
-
-            {description ? (
-              <Box
-                style={{
-                  marginTop: "0.2rem",
-
-                  fontSize:
-                    "var(--ui-font-size-xs)",
-
-                  color:
-                    "var(--ui-text-muted)",
-
-                  lineHeight: 1.35,
-                }}
-              >
-                {description}
-              </Box>
-            ) : null}
-          </Box>
-        ) : null}
-
-        <List
-          variant="plain"
-          density="comfortable"
-          spacing="0.4rem"
-        >
-          {children}
-        </List>
-      </Box>
+        {children}
+      </List.Section>
     );
   };
 

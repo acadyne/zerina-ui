@@ -263,6 +263,16 @@ function useOptionalBottomSheetContext() {
   );
 }
 
+function hasRenderableNode(
+  node: React.ReactNode
+): boolean {
+  return (
+    node !== null &&
+    node !== undefined &&
+    typeof node !== "boolean"
+  );
+}
+
 export interface BottomSheetProps {
   children?: React.ReactNode;
 
@@ -368,6 +378,19 @@ export const BottomSheet:
 
     const descriptionId =
       `${overlayId}-description`;
+
+    const hasTitle =
+      hasRenderableNode(title);
+
+    const hasDescription =
+      hasRenderableNode(
+        description
+      );
+
+    const hasHeader =
+      hasTitle ||
+      hasDescription ||
+      showCloseButton;
 
     const handleClose =
       React.useCallback(() => {
@@ -543,12 +566,12 @@ export const BottomSheet:
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby={
-                    title
+                    hasTitle
                       ? titleId
                       : undefined
                   }
                   aria-describedby={
-                    description
+                    hasDescription
                       ? descriptionId
                       : undefined
                   }
@@ -560,9 +583,7 @@ export const BottomSheet:
                     <BottomSheetHandle />
                   ) : null}
 
-                  {title ||
-                    description ||
-                    showCloseButton ? (
+                  {hasHeader ? (
                     <BottomSheetHeader>
                       <Box
                         style={{
@@ -570,7 +591,7 @@ export const BottomSheet:
                           minWidth: 0,
                         }}
                       >
-                        {title ? (
+                        {hasTitle ? (
                           <BottomSheetTitle
                             id={titleId}
                           >
@@ -578,7 +599,7 @@ export const BottomSheet:
                           </BottomSheetTitle>
                         ) : null}
 
-                        {description ? (
+                        {hasDescription ? (
                           <BottomSheetDescription
                             id={
                               descriptionId
