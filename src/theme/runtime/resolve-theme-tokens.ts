@@ -54,6 +54,13 @@ function mergeTokens(
       },
     },
 
+    control: {
+      height: {
+        ...base.control?.height,
+        ...override.control?.height,
+      },
+    },
+
     interaction: {
       ...base.interaction,
       ...override.interaction,

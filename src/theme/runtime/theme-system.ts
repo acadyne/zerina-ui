@@ -71,20 +71,49 @@ export class ThemeSystem {
     }
 
 
+    if (this.themes.size === 0) {
+      throw new Error(
+        "ThemeSystem requires at least one registered theme"
+      );
+    }
+
+
     const storedTheme =
       this.getStoredTheme();
 
 
+    const initialTheme =
+      options.initialTheme &&
+      this.themes.has(
+        options.initialTheme
+      )
+        ? options.initialTheme
+        : undefined;
+
+
+    const firstTheme =
+      this.themes
+        .keys()
+        .next()
+        .value;
+
+
+    if (!firstTheme) {
+      throw new Error(
+        "ThemeSystem could not resolve an initial theme"
+      );
+    }
+
+
     this.activeThemeName =
-      options.initialTheme ??
+      initialTheme ??
       (
         storedTheme &&
           this.themes.has(storedTheme)
           ? storedTheme
           : undefined
       ) ??
-      this.themes.keys().next().value ??
-      "light";
+      firstTheme;
   }
 
 
@@ -272,10 +301,9 @@ export class ThemeSystem {
     );
 
 
-    if (resolved.metadata?.colorScheme) {
-      root.style.colorScheme =
-        resolved.metadata.colorScheme;
-    }
+    root.style.colorScheme =
+      resolved.metadata?.colorScheme ??
+      "";
   }
 
 
@@ -488,14 +516,59 @@ export class ThemeSystem {
     }
 
 
+    if (tokens.typography?.fontSize) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(
+        tokens.typography.fontSize
+      )) {
+        set(
+          `font-size-${key}`,
+          value
+        );
+      }
+    }
+
+
+    if (tokens.typography?.fontWeight) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(
+        tokens.typography.fontWeight
+      )) {
+        set(
+          `font-weight-${key}`,
+          value
+        );
+      }
+    }
+
+
+    if (tokens.control?.height) {
+      for (const [
+        key,
+        value,
+      ] of Object.entries(
+        tokens.control.height
+      )) {
+        set(
+          `control-h-${key}`,
+          value
+        );
+      }
+    }
+
+
     if (tokens.interaction) {
       set(
-        "overlay",
+        "interaction-overlay",
         tokens.interaction.overlay
       );
 
       set(
-        "focus-ring",
+        "interaction-focus-ring",
         tokens.interaction.focusRing
       );
     }
@@ -511,9 +584,13 @@ export class ThemeSystem {
     }
 
 
-    return window.localStorage.getItem(
-      this.storageKey
-    );
+    try {
+      return window.localStorage.getItem(
+        this.storageKey
+      );
+    } catch {
+      return null;
+    }
   }
 
 
@@ -527,10 +604,14 @@ export class ThemeSystem {
     }
 
 
-    window.localStorage.setItem(
-      this.storageKey,
+    try {
+      window.localStorage.setItem(
+        this.storageKey,
 
-      this.activeThemeName
-    );
+        this.activeThemeName
+      );
+    } catch {
+      // Theme persistence is best effort.
+    }
   }
 }

@@ -55,6 +55,8 @@ export interface ThemeTokens {
 
   typography?: ThemeTypographyTokens;
 
+  control?: ThemeControlTokens;
+
   extensions?: Record<string, unknown>;
 
   interaction?: ThemeInteractionTokens;
@@ -135,6 +137,14 @@ export interface ThemeTypographyTokens {
   fontWeight?: {
     medium?: CSSFontWeight;
     bold?: CSSFontWeight;
+  };
+}
+
+export interface ThemeControlTokens {
+  height?: {
+    sm?: string;
+    md?: string;
+    lg?: string;
   };
 }
 

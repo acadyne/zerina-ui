@@ -40,6 +40,7 @@ export type {
 
 
 export type {
+  ThemeControlTokens,
   ThemeDefinition,
   ThemeMetadata,
   ThemeSource,
