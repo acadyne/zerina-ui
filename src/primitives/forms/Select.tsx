@@ -243,6 +243,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             onBlur?.(event);
           }}
           {...props}
+          data-ui="select"
         >
           {hasPlaceholder ? (
             <option value="" disabled hidden>

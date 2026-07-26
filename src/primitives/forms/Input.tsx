@@ -187,6 +187,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           onBlur?.(event);
         }}
         {...props}
+        data-ui="input"
       />
     );
   }

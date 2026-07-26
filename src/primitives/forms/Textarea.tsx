@@ -197,6 +197,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           onBlur?.(event);
         }}
         {...props}
+        data-ui="textarea"
       />
     );
   }
