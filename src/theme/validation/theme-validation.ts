@@ -118,34 +118,12 @@ function validateInheritance(
 }
 
 
-function validateTokens(
-  theme: ThemeDefinition
-): ThemeValidationDiagnostic[] {
-  if (
-    !theme.tokens?.extensions
-  ) {
-    return [];
-  }
-
-
-  return [
-    createDiagnostic(
-      "warning",
-      "theme.tokens.extensions",
-      "Theme contains application extension tokens.",
-      "tokens.extensions"
-    ),
-  ];
-}
-
-
 export function validateThemeDefinition(
   theme: ThemeDefinition
 ): ThemeValidationResult {
   const diagnostics = [
     ...validateIdentity(theme),
     ...validateSource(theme),
-    ...validateTokens(theme),
     ...validateInheritance(theme),
     ...validateMetadata(theme),
   ];

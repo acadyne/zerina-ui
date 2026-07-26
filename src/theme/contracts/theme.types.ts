@@ -40,6 +40,29 @@ export interface ThemeDefinition {
   tokens?: ThemeTokens;
 }
 
+export type ThemeExtensionPrimitive =
+  | string
+  | number
+  | boolean
+  | null;
+
+export type ThemeExtensionValue =
+  | ThemeExtensionPrimitive
+  | readonly ThemeExtensionValue[]
+  | {
+      readonly [key: string]:
+        ThemeExtensionValue;
+    };
+
+export type ThemeExtensionTokens =
+  Readonly<
+    Record<
+      string,
+      ThemeExtensionValue
+    >
+  >;
+
+
 export interface ThemeTokens {
   color?: ThemeColorTokens;
 
@@ -57,7 +80,7 @@ export interface ThemeTokens {
 
   control?: ThemeControlTokens;
 
-  extensions?: Record<string, unknown>;
+  extensions?: ThemeExtensionTokens;
 
   interaction?: ThemeInteractionTokens;
 }
