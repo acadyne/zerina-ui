@@ -316,8 +316,6 @@ export class ThemeSystem {
 
     this.activeThemeName = name;
 
-    this.applyTheme();
-
     this.persistTheme();
   }
 
