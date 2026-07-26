@@ -146,34 +146,3 @@ select:where([data-ui="select"])[data-invalid="true"]:focus {
 [data-ui="input-group"][data-disabled="true"] {
   opacity: var(--ui-state-disabled-opacity);
 }
-
-/* Reduced motion */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: var(--ui-duration-instant) !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: var(--ui-duration-instant) !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-[data-ui-motion="none"] *,
-[data-ui-motion="none"] *::before,
-[data-ui-motion="none"] *::after {
-  animation-duration: var(--ui-duration-instant) !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: var(--ui-duration-instant) !important;
-  scroll-behavior: auto !important;
-}
-
-[data-ui-motion-effective="reduced"] *,
-[data-ui-motion-effective="reduced"] *::before,
-[data-ui-motion-effective="reduced"] *::after {
-  animation-duration: var(--ui-duration-instant) !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: var(--ui-duration-instant) !important;
-  scroll-behavior: auto !important;
-}
