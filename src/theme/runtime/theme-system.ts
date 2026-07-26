@@ -292,13 +292,9 @@ export class ThemeSystem {
   registerTheme(
     theme: ThemeDefinition
   ): void {
-    const storedTheme =
-      createStoredTheme(theme);
-
-
     const validation =
       validateThemeDefinition(
-        storedTheme
+        theme
       );
 
 
@@ -311,6 +307,12 @@ export class ThemeSystem {
           .join("\n")
       );
     }
+
+
+    const storedTheme =
+      createStoredTheme(
+        validation.value
+      );
 
 
     const previousTheme =

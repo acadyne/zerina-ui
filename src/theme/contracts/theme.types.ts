@@ -181,11 +181,21 @@ export interface ThemeValidationDiagnostic {
   path?: string;
 }
 
-export interface ThemeValidationResult {
-  valid: boolean;
+export type ThemeValidationResult =
+  | {
+      valid: true;
 
-  diagnostics: ThemeValidationDiagnostic[];
-}
+      value: ThemeDefinition;
+
+      diagnostics:
+        ThemeValidationDiagnostic[];
+    }
+  | {
+      valid: false;
+
+      diagnostics:
+        ThemeValidationDiagnostic[];
+    };
 
 
 export interface ThemeInteractionTokens {
