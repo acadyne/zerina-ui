@@ -13,3 +13,44 @@
     transparent
   );
 }
+
+@keyframes ui-skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+[data-ui-skeleton="true"] {
+  position: relative;
+  overflow: hidden;
+  background: var(--ui-skeleton-bg);
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-ui-skeleton="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ui-skeleton-highlight),
+    transparent
+  );
+  animation:
+    ui-skeleton-shimmer
+    var(--ui-skeleton-duration)
+    infinite;
+}
+
+[data-ui-skeleton-static="true"]::after {
+  animation: none;
+  display: none;
+}

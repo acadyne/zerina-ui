@@ -1,6 +1,10 @@
 // src/components/feedback/Skeleton.tsx
 import React from "react";
 import {
+  shouldAnimateContinuousMotion,
+  useOptionalUIMotion,
+} from "../../core/motion";
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -92,6 +96,15 @@ export const Skeleton = React.forwardRef<
     },
     ref
   ) => {
+    const motionState =
+      useOptionalUIMotion();
+
+    const shouldAnimate =
+      animated &&
+      shouldAnimateContinuousMotion(
+        motionState.effectiveLevel
+      );
+
     if (!loading) {
       return <>{children}</>;
     }
@@ -108,7 +121,7 @@ export const Skeleton = React.forwardRef<
         "data-ui-skeleton": "true",
         "data-ui-skeleton-variant": variant,
         "data-ui-skeleton-static":
-          !animated ||
+          !shouldAnimate ||
           undefined,
       },
 
