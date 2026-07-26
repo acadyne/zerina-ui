@@ -57,6 +57,17 @@ export interface ResolvedTheme {
 const DEFAULT_STORAGE_KEY = "ui-theme";
 
 
+function toCSSVariableSegment(
+  value: string
+): string {
+  return value.replace(
+    /[A-Z]/g,
+    (character) =>
+      `-${character.toLowerCase()}`
+  );
+}
+
+
 function cloneValue<T>(
   value: T,
   seen = new WeakMap<object, unknown>()
@@ -715,7 +726,7 @@ export class ThemeSystem {
         value,
       ] of Object.entries(tokens.shadow)) {
         set(
-          `shadow-${key}`,
+          `shadow-${toCSSVariableSegment(key)}`,
           value
         );
       }
