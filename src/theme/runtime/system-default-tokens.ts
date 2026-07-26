@@ -4,8 +4,11 @@ import type {
   ThemeTokens,
 } from "../contracts/theme.types";
 
+import {
+  deepFreeze,
+} from "../internal/theme-object-utils";
 
-export const SYSTEM_DEFAULT_TOKENS: ThemeTokens = {
+const systemDefaultTokens: ThemeTokens = {
   color: {
     primary: "#2f8c79",
     primaryHover: "#267564",
@@ -97,4 +100,11 @@ export const SYSTEM_DEFAULT_TOKENS: ThemeTokens = {
 
     focusRing: "rgba(47,140,121,0.35)",
   },
+
 };
+
+export const SYSTEM_DEFAULT_TOKENS:
+  ThemeTokens =
+  deepFreeze(
+    systemDefaultTokens
+  );

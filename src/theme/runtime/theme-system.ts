@@ -19,6 +19,7 @@ import {
 } from "./system-default-tokens";
 
 import {
+  cloneThemeValue,
   deepFreeze,
 } from "../internal/theme-object-utils";
 
@@ -68,129 +69,13 @@ function toCSSVariableSegment(
 }
 
 
-function cloneValue<T>(
-  value: T,
-  seen = new WeakMap<object, unknown>()
-): T {
-  if (
-    value === null ||
-    typeof value !== "object"
-  ) {
-    return value;
-  }
-
-
-  const existingClone =
-    seen.get(value);
-
-
-  if (existingClone) {
-    return existingClone as T;
-  }
-
-
-  if (value instanceof Date) {
-    return new Date(
-      value.getTime()
-    ) as T;
-  }
-
-
-  if (Array.isArray(value)) {
-    const clone: unknown[] = [];
-
-
-    seen.set(
-      value,
-      clone
-    );
-
-
-    for (const item of value) {
-      clone.push(
-        cloneValue(
-          item,
-          seen
-        )
-      );
-    }
-
-
-    return clone as T;
-  }
-
-
-  const clone =
-    Object.create(
-      Object.getPrototypeOf(value)
-    ) as object;
-
-
-  seen.set(
-    value,
-    clone
-  );
-
-
-  for (
-    const key of Reflect.ownKeys(value)
-  ) {
-    const descriptor =
-      Object.getOwnPropertyDescriptor(
-        value,
-        key
-      );
-
-
-    if (!descriptor) {
-      continue;
-    }
-
-
-    if ("value" in descriptor) {
-      Object.defineProperty(
-        clone,
-        key,
-        {
-          value: cloneValue(
-            descriptor.value,
-            seen
-          ),
-
-          enumerable:
-            descriptor.enumerable,
-
-          writable: true,
-
-          configurable: true,
-        }
-      );
-
-      continue;
-    }
-
-
-    Object.defineProperty(
-      clone,
-      key,
-      {
-        ...descriptor,
-
-        configurable: true,
-      }
-    );
-  }
-
-
-  return clone as T;
-}
 
 
 function createStoredTheme(
   theme: ThemeDefinition
 ): ThemeDefinition {
   return deepFreeze(
-    cloneValue(theme)
+    cloneThemeValue(theme)
   );
 }
 
@@ -198,7 +83,7 @@ function createStoredTheme(
 function createPublicTheme(
   theme: ThemeDefinition
 ): ThemeDefinition {
-  return cloneValue(theme);
+  return cloneThemeValue(theme);
 }
 
 
@@ -475,20 +360,31 @@ export class ThemeSystem {
     }
 
 
+    const tokens =
+      resolveThemeTokens({
+        theme,
+
+        themes: this.themes,
+
+        defaults:
+          SYSTEM_DEFAULT_TOKENS,
+      });
+
+
     return {
       name: theme.name,
 
       source: theme.source,
 
-      metadata: theme.metadata,
+      metadata:
+        theme.metadata
+          ? cloneThemeValue(
+              theme.metadata
+            )
+          : undefined,
 
-      tokens: resolveThemeTokens({
-        theme,
-
-        themes: this.themes,
-
-        defaults: SYSTEM_DEFAULT_TOKENS,
-      }),
+      tokens:
+        cloneThemeValue(tokens),
     };
   }
 
