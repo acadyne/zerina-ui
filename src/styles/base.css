@@ -76,9 +76,7 @@ button,
   -webkit-tap-highlight-color: transparent;
 }
 
-:focus-visible {
-  outline: none;
-}
+
 
 @keyframes ui-skeleton-shimmer {
   0% {

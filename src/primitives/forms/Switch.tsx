@@ -12,6 +12,9 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { FormControlContext } from "./FormControl";
+import {
+  useFocusVisible,
+} from "../../core/interaction/focus";
 
 export type SwitchSlot =
   | "root"
@@ -82,7 +85,7 @@ type SwitchRecipeState = {
   color: string;
 
   checked: boolean;
-  focused: boolean;
+  focusVisible: boolean;
   disabled: boolean;
 };
 
@@ -247,7 +250,7 @@ const switchRecipe =
       size,
       color,
       checked,
-      focused,
+      focusVisible,
       disabled,
     }) => {
       const resolvedSize =
@@ -278,9 +281,10 @@ const switchRecipe =
               : "var(--ui-border)"
             }`,
 
-          boxShadow: focused
-            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
-            : "none",
+          boxShadow:
+            focusVisible
+              ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+              : "none",
 
           opacity: disabled
             ? "var(--ui-state-disabled-opacity)"
@@ -363,10 +367,7 @@ export const Switch =
         ctx?.id ??
         `sw-${autoId}`;
 
-      const [
-        isFocused,
-        setIsFocused,
-      ] = useState(false);
+
 
       const isControlled =
         checked !== undefined;
@@ -387,6 +388,18 @@ export const Switch =
         ctx?.isDisabled ??
         disabled ??
         false;
+
+      const {
+        focusVisible,
+        focusProps,
+      } =
+        useFocusVisible<HTMLInputElement>({
+          disabled:
+            finalDisabled,
+
+          onFocus,
+          onBlur,
+        });
 
       const finalInvalid =
         ariaInvalid ??
@@ -425,8 +438,7 @@ export const Switch =
 
           checked: isOn,
 
-          focused:
-            isFocused,
+          focusVisible,
 
           disabled:
             finalDisabled,
@@ -458,8 +470,8 @@ export const Switch =
               finalInvalid ||
               undefined,
 
-            "data-ui-switch-focused":
-              isFocused ||
+            "data-ui-switch-focus-visible":
+              focusVisible ||
               undefined,
 
             "data-ui-switch-size":
@@ -583,28 +595,12 @@ export const Switch =
                   event
                 );
               }}
-              onFocus={(
-                event
-              ) => {
-                setIsFocused(
-                  true
-                );
-
-                onFocus?.(
-                  event
-                );
-              }}
-              onBlur={(
-                event
-              ) => {
-                setIsFocused(
-                  false
-                );
-
-                onBlur?.(
-                  event
-                );
-              }}
+              onFocus={
+                focusProps.onFocus
+              }
+              onBlur={
+                focusProps.onBlur
+              }
             />
 
             <span

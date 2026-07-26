@@ -15,6 +15,9 @@ import {
 } from "../../helpers/css";
 import { FormControlContext } from "./FormControl";
 import { setRef } from "../../core/interaction/events";
+import {
+  useFocusVisible,
+} from "../../core/interaction/focus";
 
 export type CheckboxSlot =
   | "root"
@@ -66,7 +69,7 @@ type CheckboxRecipeState = {
 
   checked: boolean;
   marked: boolean;
-  focused: boolean;
+  focusVisible: boolean;
   disabled: boolean;
 };
 
@@ -205,7 +208,7 @@ const checkboxRecipe =
       radius,
       checked,
       marked,
-      focused,
+      focusVisible,
       disabled,
       markKind,
     }) => ({
@@ -228,9 +231,10 @@ const checkboxRecipe =
           ? `color-mix(in srgb, ${color} 22%, transparent)`
           : "transparent",
 
-        boxShadow: focused
-          ? "0 0 0 3px var(--ui-interaction-focus-ring)"
-          : "none",
+        boxShadow:
+          focusVisible
+            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+            : "none",
 
         cursor: disabled
           ? "not-allowed"
@@ -355,11 +359,6 @@ export const Checkbox =
           null
         );
 
-      const [
-        isFocused,
-        setIsFocused,
-      ] = useState(false);
-
       const isControlled =
         checked !== undefined;
 
@@ -383,6 +382,19 @@ export const Checkbox =
         ctx?.isDisabled ??
         disabled ??
         false;
+
+      const {
+        focusVisible,
+        focusProps,
+      } =
+        useFocusVisible<HTMLInputElement>({
+          disabled:
+            finalDisabled,
+
+          onFocus,
+          onBlur,
+        });
+
 
       const finalInvalid =
         ariaInvalid ??
@@ -454,8 +466,7 @@ export const Checkbox =
           marked:
             showMarked,
 
-          focused:
-            isFocused,
+          focusVisible,
 
           disabled:
             finalDisabled,
@@ -491,8 +502,8 @@ export const Checkbox =
               finalInvalid ||
               undefined,
 
-            "data-ui-checkbox-focused":
-              isFocused ||
+            "data-ui-checkbox-focus-visible":
+              focusVisible ||
               undefined,
           },
 
@@ -631,28 +642,12 @@ export const Checkbox =
                   event
                 );
               }}
-              onFocus={(
-                event
-              ) => {
-                setIsFocused(
-                  true
-                );
-
-                onFocus?.(
-                  event
-                );
-              }}
-              onBlur={(
-                event
-              ) => {
-                setIsFocused(
-                  false
-                );
-
-                onBlur?.(
-                  event
-                );
-              }}
+              onFocus={
+                focusProps.onFocus
+              }
+              onBlur={
+                focusProps.onBlur
+              }
             />
 
             <span

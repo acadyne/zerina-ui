@@ -3,7 +3,6 @@ import React, {
   forwardRef,
   useContext,
   useId,
-  useState,
 } from "react";
 import {
   defineSlotRecipe,
@@ -13,6 +12,9 @@ import {
 } from "../../helpers/css";
 import { FormControlContext } from "./FormControl";
 import { useRadioGroupContext } from "./RadioGroup";
+import {
+  useFocusVisible,
+} from "../../core/interaction/focus";
 
 export type RadioSlot =
   | "root"
@@ -39,8 +41,8 @@ export interface RadioProps
   boxSize?: number;
 
   labelPlacement?:
-    | "right"
-    | "left";
+  | "right"
+  | "left";
 
   styles?: RadioStyles;
   slotProps?: RadioSlotProps;
@@ -48,8 +50,8 @@ export interface RadioProps
 
 type RadioRecipeVariants = {
   labelPlacement:
-    | "right"
-    | "left";
+  | "right"
+  | "left";
 };
 
 type RadioRecipeState = {
@@ -57,7 +59,7 @@ type RadioRecipeState = {
   boxSize: number;
 
   checked: boolean;
-  focused: boolean;
+  focusVisible: boolean;
   disabled: boolean;
 };
 
@@ -165,7 +167,7 @@ const radioRecipe =
       color,
       boxSize,
       checked,
-      focused,
+      focusVisible,
       disabled,
     }) => {
       const dotSize =
@@ -188,9 +190,10 @@ const radioRecipe =
           border:
             `2px solid ${color}`,
 
-          boxShadow: focused
-            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
-            : "none",
+          boxShadow:
+            focusVisible
+              ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+              : "none",
 
           cursor: disabled
             ? "not-allowed"
@@ -240,18 +243,18 @@ export const Radio =
         required,
 
         "aria-describedby":
-          ariaDescribedBy,
+        ariaDescribedBy,
 
         "aria-invalid":
-          ariaInvalid,
+        ariaInvalid,
 
         color =
-          "var(--ui-primary)",
+        "var(--ui-primary)",
 
         boxSize = 16,
 
         labelPlacement =
-          "right",
+        "right",
 
         className = "",
         style,
@@ -283,10 +286,7 @@ export const Radio =
         ctx?.id ??
         `radio-${autoId}`;
 
-      const [
-        isFocused,
-        setIsFocused,
-      ] = useState(false);
+
 
       const resolvedName =
         group?.name ??
@@ -297,6 +297,18 @@ export const Radio =
         ctx?.isDisabled ??
         disabled ??
         false;
+
+      const {
+        focusVisible,
+        focusProps,
+      } =
+        useFocusVisible<HTMLInputElement>({
+          disabled:
+            resolvedDisabled,
+
+          onFocus,
+          onBlur,
+        });
 
       const finalInvalid =
         ariaInvalid ??
@@ -325,19 +337,19 @@ export const Radio =
         checked !== undefined
           ? checked
           : group?.value !==
-                undefined &&
-              value !== undefined
+            undefined &&
+            value !== undefined
             ? group.value ===
-              String(value)
+            String(value)
             : undefined;
 
       const visualChecked =
         resolvedChecked !==
-        undefined
+          undefined
           ? resolvedChecked
           : Boolean(
-              defaultChecked
-            );
+            defaultChecked
+          );
 
       const WrapperTag =
         label
@@ -354,8 +366,7 @@ export const Radio =
           checked:
             visualChecked,
 
-          focused:
-            isFocused,
+          focusVisible,
 
           disabled:
             resolvedDisabled,
@@ -387,8 +398,8 @@ export const Radio =
               finalInvalid ||
               undefined,
 
-            "data-ui-radio-focused":
-              isFocused ||
+            "data-ui-radio-focus-visible":
+              focusVisible ||
               undefined,
           },
 
@@ -468,9 +479,9 @@ export const Radio =
           {...(
             label
               ? {
-                  htmlFor:
-                    inputId,
-                }
+                htmlFor:
+                  inputId,
+              }
               : {}
           )}
         >
@@ -520,7 +531,7 @@ export const Radio =
                   group?.onChange &&
                   event.currentTarget
                     .value !==
-                    undefined
+                  undefined
                 ) {
                   group.onChange(
                     event
@@ -529,28 +540,12 @@ export const Radio =
                   );
                 }
               }}
-              onFocus={(
-                event
-              ) => {
-                setIsFocused(
-                  true
-                );
-
-                onFocus?.(
-                  event
-                );
-              }}
-              onBlur={(
-                event
-              ) => {
-                setIsFocused(
-                  false
-                );
-
-                onBlur?.(
-                  event
-                );
-              }}
+              onFocus={
+                focusProps.onFocus
+              }
+              onBlur={
+                focusProps.onBlur
+              }
             />
 
             <span
