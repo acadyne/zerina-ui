@@ -44,6 +44,196 @@ export interface ResolvedTheme {
 const DEFAULT_STORAGE_KEY = "ui-theme";
 
 
+function cloneValue<T>(
+  value: T,
+  seen = new WeakMap<object, unknown>()
+): T {
+  if (
+    value === null ||
+    typeof value !== "object"
+  ) {
+    return value;
+  }
+
+
+  const existingClone =
+    seen.get(value);
+
+
+  if (existingClone) {
+    return existingClone as T;
+  }
+
+
+  if (value instanceof Date) {
+    return new Date(
+      value.getTime()
+    ) as T;
+  }
+
+
+  if (Array.isArray(value)) {
+    const clone: unknown[] = [];
+
+
+    seen.set(
+      value,
+      clone
+    );
+
+
+    for (const item of value) {
+      clone.push(
+        cloneValue(
+          item,
+          seen
+        )
+      );
+    }
+
+
+    return clone as T;
+  }
+
+
+  const clone =
+    Object.create(
+      Object.getPrototypeOf(value)
+    ) as object;
+
+
+  seen.set(
+    value,
+    clone
+  );
+
+
+  for (
+    const key of Reflect.ownKeys(value)
+  ) {
+    const descriptor =
+      Object.getOwnPropertyDescriptor(
+        value,
+        key
+      );
+
+
+    if (!descriptor) {
+      continue;
+    }
+
+
+    if ("value" in descriptor) {
+      Object.defineProperty(
+        clone,
+        key,
+        {
+          value: cloneValue(
+            descriptor.value,
+            seen
+          ),
+
+          enumerable:
+            descriptor.enumerable,
+
+          writable: true,
+
+          configurable: true,
+        }
+      );
+
+      continue;
+    }
+
+
+    Object.defineProperty(
+      clone,
+      key,
+      {
+        ...descriptor,
+
+        configurable: true,
+      }
+    );
+  }
+
+
+  return clone as T;
+}
+
+
+function deepFreeze<T>(
+  value: T,
+  visited = new WeakSet<object>()
+): T {
+  if (
+    value === null ||
+    typeof value !== "object"
+  ) {
+    return value;
+  }
+
+
+  const objectValue =
+    value as object;
+
+
+  if (
+    visited.has(objectValue)
+  ) {
+    return value;
+  }
+
+
+  visited.add(objectValue);
+
+
+  for (
+    const key of Reflect.ownKeys(
+      objectValue
+    )
+  ) {
+    const descriptor =
+      Object.getOwnPropertyDescriptor(
+        objectValue,
+        key
+      );
+
+
+    if (
+      descriptor &&
+      "value" in descriptor
+    ) {
+      deepFreeze(
+        descriptor.value,
+        visited
+      );
+    }
+  }
+
+
+  return Object.freeze(
+    value
+  );
+}
+
+
+function createStoredTheme(
+  theme: ThemeDefinition
+): ThemeDefinition {
+  return deepFreeze(
+    cloneValue(theme)
+  );
+}
+
+
+function createPublicTheme(
+  theme: ThemeDefinition
+): ThemeDefinition {
+  return cloneValue(theme);
+}
+
+
 export class ThemeSystem {
   private readonly themes =
     new Map<ThemeName, ThemeDefinition>();
@@ -120,8 +310,14 @@ export class ThemeSystem {
   registerTheme(
     theme: ThemeDefinition
   ): void {
+    const storedTheme =
+      createStoredTheme(theme);
+
+
     const validation =
-      validateThemeDefinition(theme);
+      validateThemeDefinition(
+        storedTheme
+      );
 
 
     if (!validation.valid) {
@@ -136,26 +332,30 @@ export class ThemeSystem {
 
 
     const previousTheme =
-      this.themes.get(theme.name);
+      this.themes.get(
+        storedTheme.name
+      );
 
 
     this.themes.set(
-      theme.name,
-      theme
+      storedTheme.name,
+      storedTheme
     );
 
 
     try {
-      this.validateInheritanceChain(theme);
+      this.validateInheritanceChain(
+        storedTheme
+      );
     } catch (error) {
       if (previousTheme) {
         this.themes.set(
-          theme.name,
+          storedTheme.name,
           previousTheme
         );
       } else {
         this.themes.delete(
-          theme.name
+          storedTheme.name
         );
       }
 
@@ -166,7 +366,8 @@ export class ThemeSystem {
 
   getThemes(): ThemeDefinition[] {
     return Array.from(
-      this.themes.values()
+      this.themes.values(),
+      createPublicTheme
     );
   }
 
@@ -185,7 +386,9 @@ export class ThemeSystem {
     }
 
 
-    return theme;
+    return createPublicTheme(
+      theme
+    );
   }
 
 
@@ -209,7 +412,9 @@ export class ThemeSystem {
 
   cycleTheme(): void {
     const themes =
-      this.getThemes();
+      Array.from(
+        this.themes.values()
+      );
 
 
     if (!themes.length) {

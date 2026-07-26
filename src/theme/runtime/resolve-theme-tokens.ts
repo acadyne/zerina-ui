@@ -88,11 +88,64 @@ export function resolveThemeTokens({
   themes,
   defaults = {},
 }: ResolveThemeTokensOptions): ThemeTokens {
+  return resolveThemeTokensInternal({
+    theme,
+    themes,
+    defaults,
+    path: [],
+  });
+}
+
+
+interface ResolveThemeTokensInternalOptions
+  extends ResolveThemeTokensOptions {
+  path: ThemeName[];
+}
+
+
+function resolveThemeTokensInternal({
+  theme,
+  themes,
+  defaults = {},
+  path,
+}: ResolveThemeTokensInternalOptions): ThemeTokens {
+  const cycleStartIndex =
+    path.indexOf(theme.name);
+
+
+  if (cycleStartIndex >= 0) {
+    const cyclePath = [
+      ...path.slice(
+        cycleStartIndex
+      ),
+
+      theme.name,
+    ];
+
+
+    throw new Error(
+      `Circular theme inheritance detected: ${cyclePath
+        .map(
+          (name) =>
+            `"${name}"`
+        )
+        .join(" -> ")}`
+    );
+  }
+
+
+  const nextPath = [
+    ...path,
+    theme.name,
+  ];
+
+
   const inheritedTokens = theme.extends
     ? resolveParentThemeTokens(
         theme.extends,
         themes,
-        defaults
+        defaults,
+        nextPath
       )
     : {};
 
@@ -110,7 +163,8 @@ export function resolveThemeTokens({
 function resolveParentThemeTokens(
   parentName: ThemeName,
   themes: Map<ThemeName, ThemeDefinition>,
-  defaults: ThemeTokens
+  defaults: ThemeTokens,
+  path: ThemeName[]
 ): ThemeTokens {
   const parent =
     themes.get(parentName);
@@ -123,9 +177,11 @@ function resolveParentThemeTokens(
   }
 
 
-  return resolveThemeTokens({
+  return resolveThemeTokensInternal({
     theme: parent,
     themes,
     defaults,
+    path,
   });
 }
+
