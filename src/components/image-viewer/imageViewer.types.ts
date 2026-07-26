@@ -1,3 +1,4 @@
+//  /src/components/image-viewer/imageViewer.types.ts
 import type {
   CSSProperties,
   HTMLAttributes,
@@ -16,6 +17,18 @@ import type {
   TransformableSurfacePoint,
   TransformableSurfaceTransform,
 } from "../transformable-surface";
+
+type ImageViewerDataAttributeValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
+
+type ImageViewerDataAttributes = {
+  [Key in `data-${string}`]?:
+    ImageViewerDataAttributeValue;
+};
 
 export type ImageViewerFit =
   | "contain"
@@ -273,15 +286,17 @@ export interface ImageViewerProps
   /**
    * Props nativas aplicadas al elemento `<img>`.
    */
-  imageProps?: Omit<
-    React.ImgHTMLAttributes<HTMLImageElement>,
-    | "src"
-    | "alt"
-    | "style"
-    | "className"
-    | "onLoad"
-    | "onError"
-  >;
+  imageProps?:
+    Omit<
+      React.ImgHTMLAttributes<HTMLImageElement>,
+      | "src"
+      | "alt"
+      | "style"
+      | "className"
+      | "onLoad"
+      | "onError"
+    > &
+    ImageViewerDataAttributes;
 
   className?: string;
   style?: CSSProperties;
