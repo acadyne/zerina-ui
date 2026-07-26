@@ -63,6 +63,19 @@ export const UIThemeProvider: React.FC<
   storageKey,
   themes,
 }) => {
+  const parentThemeContext =
+    React.useContext(
+      UIThemeContext
+    );
+
+
+  if (parentThemeContext) {
+    throw new Error(
+      "UIThemeProvider cannot be nested because it owns the global document theme."
+    );
+  }
+
+
   const systemRef =
     React.useRef<ThemeSystem | null>(null);
 
