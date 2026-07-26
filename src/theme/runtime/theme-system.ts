@@ -444,8 +444,6 @@ export class ThemeSystem {
     return true;
   }
 
-
-
   setTheme(
     name: ThemeName
   ): void {
