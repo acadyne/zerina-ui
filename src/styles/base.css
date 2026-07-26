@@ -123,45 +123,45 @@ button,
    CONTROL STATES
    ========================= */
 
-input[data-focus="true"],
-textarea[data-focus="true"],
-select[data-focus="true"] {
+input:where([data-ui="input"])[data-focus="true"],
+textarea:where([data-ui="textarea"])[data-focus="true"],
+select:where([data-ui="select"])[data-focus="true"] {
   border-color: var(--ui-primary);
   box-shadow: 0 0 0 3px var(--ui-state-focus);
 }
 
-input[data-invalid="true"],
-textarea[data-invalid="true"],
-select[data-invalid="true"] {
+input:where([data-ui="input"])[data-invalid="true"],
+textarea:where([data-ui="textarea"])[data-invalid="true"],
+select:where([data-ui="select"])[data-invalid="true"] {
   border-color: var(--ui-danger);
 }
 
-input[data-focus="true"][data-invalid="true"],
-textarea[data-focus="true"][data-invalid="true"],
-select[data-focus="true"][data-invalid="true"] {
+input:where([data-ui="input"])[data-focus="true"][data-invalid="true"],
+textarea:where([data-ui="textarea"])[data-focus="true"][data-invalid="true"],
+select:where([data-ui="select"])[data-focus="true"][data-invalid="true"] {
   border-color: var(--ui-danger);
   box-shadow: 0 0 0 3px var(--ui-state-focus-danger);
 }
 
-input[data-disabled="true"],
-textarea[data-disabled="true"],
-select[data-disabled="true"] {
+input:where([data-ui="input"])[data-disabled="true"],
+textarea:where([data-ui="textarea"])[data-disabled="true"],
+select:where([data-ui="select"])[data-disabled="true"] {
   opacity: var(--ui-state-disabled-opacity);
   cursor: not-allowed;
 }
 
 /* Native focus fallback */
 
-input:focus,
-textarea:focus,
-select:focus {
+input:where([data-ui="input"]):focus,
+textarea:where([data-ui="textarea"]):focus,
+select:where([data-ui="select"]):focus {
   border-color: var(--ui-primary);
   box-shadow: 0 0 0 3px var(--ui-state-focus);
 }
 
-input[data-invalid="true"]:focus,
-textarea[data-invalid="true"]:focus,
-select[data-invalid="true"]:focus {
+input:where([data-ui="input"])[data-invalid="true"]:focus,
+textarea:where([data-ui="textarea"])[data-invalid="true"]:focus,
+select:where([data-ui="select"])[data-invalid="true"]:focus {
   border-color: var(--ui-danger);
   box-shadow: 0 0 0 3px var(--ui-state-focus-danger);
 }
