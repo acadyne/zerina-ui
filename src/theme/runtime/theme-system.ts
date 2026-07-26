@@ -23,6 +23,10 @@ import {
   deepFreeze,
 } from "../internal/theme-object-utils";
 
+import {
+  applyThemeStyleDeclarations,
+  createThemeStyleDeclarations,
+} from "./theme-style-declarations";
 
 export interface ThemeSystemOptions {
   initialTheme?: ThemeName;
@@ -66,19 +70,6 @@ export interface ResolvedTheme {
 
 
 const DEFAULT_STORAGE_KEY = "ui-theme";
-
-
-function toCSSVariableSegment(
-  value: string
-): string {
-  return value.replace(
-    /[A-Z]/g,
-    (character) =>
-      `-${character.toLowerCase()}`
-  );
-}
-
-
 
 
 function createStoredTheme(
@@ -433,8 +424,11 @@ export class ThemeSystem {
       resolved.name;
 
 
-    this.applyTokens(
-      resolved.tokens
+    applyThemeStyleDeclarations(
+      root,
+      createThemeStyleDeclarations(
+        resolved.tokens
+      )
     );
 
 
@@ -482,233 +476,6 @@ export class ThemeSystem {
 
       visited
     );
-  }
-
-
-  private applyTokens(
-    tokens: ThemeTokens
-  ): void {
-    if (
-      typeof document === "undefined"
-    ) {
-      return;
-    }
-
-    const root =
-      document.documentElement;
-
-
-    const set = (
-      name: string,
-      value: unknown
-    ) => {
-      if (value === undefined) {
-        return;
-      }
-
-      root.style.setProperty(
-        `--ui-${name}`,
-        String(value)
-      );
-    };
-
-
-    if (tokens.color) {
-      set(
-        "primary",
-        tokens.color.primary
-      );
-
-      set(
-        "primary-hover",
-        tokens.color.primaryHover
-      );
-
-      set(
-        "primary-contrast",
-        tokens.color.primaryContrast
-      );
-
-      set(
-        "secondary",
-        tokens.color.secondary
-      );
-
-      set(
-        "secondary-hover",
-        tokens.color.secondaryHover
-      );
-
-      set(
-        "secondary-contrast",
-        tokens.color.secondaryContrast
-      );
-
-      set(
-        "success",
-        tokens.color.success
-      );
-
-      set(
-        "success-strong",
-        tokens.color.successStrong
-      );
-
-      set(
-        "success-contrast",
-        tokens.color.successContrast
-      );
-
-      set(
-        "warning",
-        tokens.color.warning
-      );
-
-      set(
-        "warning-strong",
-        tokens.color.warningStrong
-      );
-
-      set(
-        "warning-contrast",
-        tokens.color.warningContrast
-      );
-
-      set(
-        "danger",
-        tokens.color.danger
-      );
-
-      set(
-        "danger-hover",
-        tokens.color.dangerHover
-      );
-
-      set(
-        "danger-contrast",
-        tokens.color.dangerContrast
-      );
-    }
-
-
-    if (tokens.surface) {
-      set("bg", tokens.surface.bg);
-      set("surface", tokens.surface.surface);
-      set("surface-2", tokens.surface.surface2);
-      set("surface-3", tokens.surface.surface3);
-      set(
-        "surface-hover",
-        tokens.surface.surfaceHover
-      );
-    }
-
-
-    if (tokens.text) {
-      set("text", tokens.text.text);
-      set("text-muted", tokens.text.textMuted);
-      set("text-soft", tokens.text.textSoft);
-      set(
-        "text-inverse",
-        tokens.text.textInverse
-      );
-    }
-
-
-    if (tokens.border) {
-      set(
-        "border",
-        tokens.border.border
-      );
-
-      set(
-        "border-strong",
-        tokens.border.borderStrong
-      );
-    }
-
-
-    if (tokens.radius) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(tokens.radius)) {
-        set(
-          `radius-${key}`,
-          value
-        );
-      }
-    }
-
-
-    if (tokens.shadow) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(tokens.shadow)) {
-        set(
-          `shadow-${toCSSVariableSegment(key)}`,
-          value
-        );
-      }
-    }
-
-
-    if (tokens.typography?.fontSize) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(
-        tokens.typography.fontSize
-      )) {
-        set(
-          `font-size-${key}`,
-          value
-        );
-      }
-    }
-
-
-    if (tokens.typography?.fontWeight) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(
-        tokens.typography.fontWeight
-      )) {
-        set(
-          `font-weight-${key}`,
-          value
-        );
-      }
-    }
-
-
-    if (tokens.control?.height) {
-      for (const [
-        key,
-        value,
-      ] of Object.entries(
-        tokens.control.height
-      )) {
-        set(
-          `control-h-${key}`,
-          value
-        );
-      }
-    }
-
-
-    if (tokens.interaction) {
-      set(
-        "interaction-overlay",
-        tokens.interaction.overlay
-      );
-
-      set(
-        "interaction-focus-ring",
-        tokens.interaction.focusRing
-      );
-    }
   }
 
   private getStoredTheme(): ThemeName | null {
