@@ -15,8 +15,12 @@ import {
 } from "./resolve-theme-tokens";
 
 import {
-  BASE_DARK_TOKENS,
+  SYSTEM_DEFAULT_TOKENS,
 } from "./system-default-tokens";
+
+import {
+  deepFreeze,
+} from "../internal/theme-object-utils";
 
 
 export interface ThemeSystemOptions {
@@ -26,7 +30,7 @@ export interface ThemeSystemOptions {
 
   storageKey?: string;
 
-  themes?: ThemeDefinition[];
+  themes?: readonly ThemeDefinition[];
 
   /**
    * Controls whether the constructor may read the persisted theme.
@@ -168,62 +172,6 @@ function cloneValue<T>(
 
 
   return clone as T;
-}
-
-
-function deepFreeze<T>(
-  value: T,
-  visited = new WeakSet<object>()
-): T {
-  if (
-    value === null ||
-    typeof value !== "object"
-  ) {
-    return value;
-  }
-
-
-  const objectValue =
-    value as object;
-
-
-  if (
-    visited.has(objectValue)
-  ) {
-    return value;
-  }
-
-
-  visited.add(objectValue);
-
-
-  for (
-    const key of Reflect.ownKeys(
-      objectValue
-    )
-  ) {
-    const descriptor =
-      Object.getOwnPropertyDescriptor(
-        objectValue,
-        key
-      );
-
-
-    if (
-      descriptor &&
-      "value" in descriptor
-    ) {
-      deepFreeze(
-        descriptor.value,
-        visited
-      );
-    }
-  }
-
-
-  return Object.freeze(
-    value
-  );
 }
 
 
@@ -387,7 +335,7 @@ export class ThemeSystem {
   }
 
 
-  getThemes(): ThemeDefinition[] {
+  getThemes(): readonly ThemeDefinition[] {
     return Array.from(
       this.themes.values(),
       createPublicTheme
@@ -443,6 +391,7 @@ export class ThemeSystem {
 
     return true;
   }
+
 
   setTheme(
     name: ThemeName
@@ -525,7 +474,7 @@ export class ThemeSystem {
 
         themes: this.themes,
 
-        defaults: BASE_DARK_TOKENS,
+        defaults: SYSTEM_DEFAULT_TOKENS,
       }),
     };
   }

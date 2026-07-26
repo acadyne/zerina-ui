@@ -1,11 +1,16 @@
 // src/theme/built-in/themes.ts
 
+
 import type {
   ThemeDefinition,
 } from "../contracts/theme.types";
 
+import {
+  deepFreeze,
+} from "../internal/theme-object-utils";
 
-export const BUILT_IN_THEMES: ThemeDefinition[] = [
+
+const builtInThemes: ThemeDefinition[] = [
   {
     name: "light",
     source: "builtin",
@@ -364,3 +369,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
     },
   },
 ];
+
+
+export const BUILT_IN_THEMES:
+  readonly ThemeDefinition[] =
+  deepFreeze(builtInThemes);

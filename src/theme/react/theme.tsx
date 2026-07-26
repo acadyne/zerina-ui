@@ -25,14 +25,14 @@ export interface UIThemeProviderProps {
 
   storageKey?: string;
 
-  themes?: ThemeDefinition[];
+  themes?: readonly ThemeDefinition[];
 }
 
 
 interface UIThemeContextValue {
   theme: ThemeDefinition;
 
-  themes: ThemeDefinition[];
+  themes: readonly ThemeDefinition[];
 
   setTheme(
     name: ThemeName

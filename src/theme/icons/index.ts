@@ -6,11 +6,9 @@ export {
 
 
 export {
-  THEME_ICON_REGISTRY,
   registerThemeIcon,
 } from "./theme-icon.registry";
 
-
 export type {
-  ThemeIconName,
-} from "./theme-icon.types";
+  RegisterThemeIconOptions,
+} from "./theme-icon.registry";

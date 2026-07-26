@@ -9,13 +9,12 @@ import type {
 } from "lucide-react";
 
 import {
-  THEME_ICON_REGISTRY,
+  getThemeIcon,
 } from "./theme-icon.registry";
 
 import type {
   ThemeIconName,
-} from "./theme-icon.types";
-
+} from "../contracts/theme.types";
 
 export function resolveThemeIcon(
   icon?: ThemeIconName
@@ -25,7 +24,7 @@ export function resolveThemeIcon(
   }
 
   return (
-    THEME_ICON_REGISTRY[icon] ??
+    getThemeIcon(icon) ??
     Sparkles
   );
 }

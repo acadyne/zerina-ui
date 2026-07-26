@@ -1,3 +1,5 @@
+// src/theme/icons/theme-icon.registry.ts
+
 import {
   Sparkles,
   Sun,
@@ -15,43 +17,102 @@ import type {
 
 import type {
   ThemeIconName,
-} from "./theme-icon.types";
+} from "../contracts/theme.types";
 
 
-export const THEME_ICON_REGISTRY:
-  Record<
+export interface RegisterThemeIconOptions {
+  overwrite?: boolean;
+}
+
+
+const themeIconRegistry =
+  new Map<
     ThemeIconName,
     LucideIcon
-  > = {
-    sun:
+  >([
+    [
+      "sun",
       Sun,
+    ],
 
-    moon:
+    [
+      "moon",
       Moon,
+    ],
 
-    sparkles:
+    [
+      "sparkles",
       Sparkles,
+    ],
 
-    spring:
+    [
+      "spring",
       Flower2,
+    ],
 
-    summer:
+    [
+      "summer",
       SunMedium,
+    ],
 
-    autumn:
+    [
+      "autumn",
       Leaf,
+    ],
 
-    winter:
+    [
+      "winter",
       Snowflake,
+    ],
 
-    palette:
+    [
+      "palette",
       Palette,
-  };
+    ],
+  ]);
+
+
+export function getThemeIcon(
+  name: ThemeIconName
+): LucideIcon | undefined {
+  return themeIconRegistry.get(name);
+}
 
 
 export function registerThemeIcon(
   name: ThemeIconName,
-  icon: LucideIcon
+  icon: LucideIcon,
+  options: RegisterThemeIconOptions = {}
 ): void {
-  THEME_ICON_REGISTRY[name] = icon;
+  const registeredIcon =
+    themeIconRegistry.get(name);
+
+
+  if (!registeredIcon) {
+    themeIconRegistry.set(
+      name,
+      icon
+    );
+
+    return;
+  }
+
+
+  if (registeredIcon === icon) {
+    return;
+  }
+
+
+  if (!options.overwrite) {
+    throw new Error(
+      `Theme icon "${name}" is already registered. ` +
+      "Pass { overwrite: true } to replace it."
+    );
+  }
+
+
+  themeIconRegistry.set(
+    name,
+    icon
+  );
 }

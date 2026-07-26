@@ -14,6 +14,11 @@ export {
   ThemeSystem,
 } from "./runtime/theme-system";
 
+export type {
+  ResolvedTheme,
+  ThemeSystemOptions,
+} from "./runtime/theme-system";
+
 
 export {
   createThemeDefinition,
@@ -24,10 +29,16 @@ export {
   validateThemeDefinition,
 } from "./validation/theme-validation";
 
+
 export {
-    resolveThemeIcon,
+  resolveThemeIcon,
   registerThemeIcon,
 } from "./icons";
+
+export type {
+  RegisterThemeIconOptions,
+} from "./icons";
+
 
 export {
   BUILT_IN_THEMES,
@@ -35,17 +46,23 @@ export {
 
 
 export type {
-  ThemeIconName,
-} from "./icons";
-
-
-export type {
+  CSSFontWeight,
+  ThemeBorderTokens,
+  ThemeColorScheme,
+  ThemeColorTokens,
   ThemeControlTokens,
   ThemeDefinition,
+  ThemeIconName,
+  ThemeInteractionTokens,
   ThemeMetadata,
+  ThemeName,
+  ThemeRadiusTokens,
+  ThemeShadowTokens,
   ThemeSource,
+  ThemeSurfaceTokens,
+  ThemeTextTokens,
   ThemeTokens,
+  ThemeTypographyTokens,
   ThemeValidationDiagnostic,
   ThemeValidationResult,
-  ThemeName,
 } from "./contracts/theme.types";
