@@ -16,6 +16,69 @@ import {
   resolveUIViewportKind,
 } from "./viewport.utils";
 
+const VIEWPORT_DOCUMENT_ATTRIBUTES = [
+  "data-ui-viewport",
+  "data-ui-viewport-mode",
+  "data-ui-orientation",
+  "data-ui-density",
+  "data-ui-density-mode",
+  "data-ui-input",
+] as const;
+
+type ViewportDocumentAttribute =
+  (typeof VIEWPORT_DOCUMENT_ATTRIBUTES)[number];
+
+type ViewportDocumentAttributeValues = Record<
+  ViewportDocumentAttribute,
+  string | null
+>;
+
+const viewportDocumentOwners =
+  new WeakMap<Document, symbol>();
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined"
+    ? React.useLayoutEffect
+    : React.useEffect;
+
+function readViewportDocumentAttributes(
+  root: HTMLElement
+): ViewportDocumentAttributeValues {
+  return {
+    "data-ui-viewport":
+      root.getAttribute("data-ui-viewport"),
+    "data-ui-viewport-mode":
+      root.getAttribute("data-ui-viewport-mode"),
+    "data-ui-orientation":
+      root.getAttribute("data-ui-orientation"),
+    "data-ui-density":
+      root.getAttribute("data-ui-density"),
+    "data-ui-density-mode":
+      root.getAttribute("data-ui-density-mode"),
+    "data-ui-input":
+      root.getAttribute("data-ui-input"),
+  };
+}
+
+function writeViewportDocumentAttributes(
+  root: HTMLElement,
+  values: ViewportDocumentAttributeValues
+): void {
+  for (
+    const attribute of
+    VIEWPORT_DOCUMENT_ATTRIBUTES
+  ) {
+    const value = values[attribute];
+
+    if (value === null) {
+      root.removeAttribute(attribute);
+      continue;
+    }
+
+    root.setAttribute(attribute, value);
+  }
+}
+
 type SetViewportModeAction =
   | UIViewportMode
   | ((prevMode: UIViewportMode) => UIViewportMode);
@@ -206,6 +269,27 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   tallBreakpoint = DEFAULT_TALL_BREAKPOINT,
   ssrSafe = false,
 }) => {
+  const parentViewportContext =
+    React.useContext(UIViewportContext);
+
+  if (parentViewportContext) {
+    throw new Error(
+      "UIViewportProvider cannot be nested because it owns the global document viewport state."
+    );
+  }
+
+  const [documentOwner] =
+    React.useState(() => Symbol("UIViewportProvider"));
+
+  const ownedDocumentRef =
+    React.useRef<Document | null>(null);
+
+  const previousAttributesRef =
+    React.useRef<ViewportDocumentAttributeValues | null>(null);
+
+  const writtenAttributesRef =
+    React.useRef<ViewportDocumentAttributeValues | null>(null);
+
   const isModeControlled = mode !== undefined;
 
   const [internalMode, setInternalMode] =
@@ -379,18 +463,123 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     setDesktopMode,
   ]);
 
-  React.useEffect(() => {
-    if (typeof document === "undefined") return;
+  useIsomorphicLayoutEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const activeOwner =
+      viewportDocumentOwners.get(document);
+
+    if (
+      activeOwner &&
+      activeOwner !== documentOwner
+    ) {
+      throw new Error(
+        "Only one UIViewportProvider can own the global document viewport state."
+      );
+    }
 
     const root = document.documentElement;
 
-    root.setAttribute("data-ui-viewport", value.kind);
-    root.setAttribute("data-ui-viewport-mode", value.mode);
-    root.setAttribute("data-ui-orientation", value.orientation);
-    root.setAttribute("data-ui-density", value.density);
-    root.setAttribute("data-ui-density-mode", value.densityMode);
-    root.setAttribute("data-ui-input", value.inputKind);
+    viewportDocumentOwners.set(
+      document,
+      documentOwner
+    );
+
+    ownedDocumentRef.current = document;
+    previousAttributesRef.current =
+      readViewportDocumentAttributes(root);
+
+    return () => {
+      const ownedDocument =
+        ownedDocumentRef.current;
+
+      if (
+        !ownedDocument ||
+        viewportDocumentOwners.get(ownedDocument) !==
+          documentOwner
+      ) {
+        return;
+      }
+
+      const ownedRoot =
+        ownedDocument.documentElement;
+
+      const previousAttributes =
+        previousAttributesRef.current;
+
+      const writtenAttributes =
+        writtenAttributesRef.current;
+
+      if (
+        previousAttributes &&
+        writtenAttributes
+      ) {
+        for (
+          const attribute of
+          VIEWPORT_DOCUMENT_ATTRIBUTES
+        ) {
+          if (
+            ownedRoot.getAttribute(attribute) !==
+            writtenAttributes[attribute]
+          ) {
+            continue;
+          }
+
+          const previousValue =
+            previousAttributes[attribute];
+
+          if (previousValue === null) {
+            ownedRoot.removeAttribute(attribute);
+          } else {
+            ownedRoot.setAttribute(
+              attribute,
+              previousValue
+            );
+          }
+        }
+      }
+
+      viewportDocumentOwners.delete(
+        ownedDocument
+      );
+
+      ownedDocumentRef.current = null;
+      previousAttributesRef.current = null;
+      writtenAttributesRef.current = null;
+    };
+  }, [documentOwner]);
+
+  useIsomorphicLayoutEffect(() => {
+    const ownedDocument =
+      ownedDocumentRef.current;
+
+    if (
+      !ownedDocument ||
+      viewportDocumentOwners.get(ownedDocument) !==
+        documentOwner
+    ) {
+      return;
+    }
+
+    const values: ViewportDocumentAttributeValues = {
+      "data-ui-viewport": value.kind,
+      "data-ui-viewport-mode": value.mode,
+      "data-ui-orientation": value.orientation,
+      "data-ui-density": value.density,
+      "data-ui-density-mode": value.densityMode,
+      "data-ui-input": value.inputKind,
+    };
+
+    writeViewportDocumentAttributes(
+      ownedDocument.documentElement,
+      values
+    );
+
+    writtenAttributesRef.current = values;
   }, [
+    documentOwner,
     value.kind,
     value.mode,
     value.orientation,
