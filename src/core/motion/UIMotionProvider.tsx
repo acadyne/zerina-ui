@@ -16,6 +16,57 @@ import {
 } from "./motion.presets";
 import { resolveEffectiveMotionLevel } from "./motion.utils";
 
+const MOTION_DOCUMENT_ATTRIBUTES = [
+  "data-ui-motion",
+  "data-ui-motion-effective",
+  "data-ui-reduced-motion",
+] as const;
+
+type MotionDocumentAttribute =
+  (typeof MOTION_DOCUMENT_ATTRIBUTES)[number];
+
+type MotionDocumentAttributeValues = Record<
+  MotionDocumentAttribute,
+  string | null
+>;
+
+const motionDocumentOwners =
+  new WeakMap<Document, symbol>();
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined"
+    ? React.useLayoutEffect
+    : React.useEffect;
+
+function readMotionDocumentAttributes(
+  root: HTMLElement
+): MotionDocumentAttributeValues {
+  return {
+    "data-ui-motion":
+      root.getAttribute("data-ui-motion"),
+    "data-ui-motion-effective":
+      root.getAttribute("data-ui-motion-effective"),
+    "data-ui-reduced-motion":
+      root.getAttribute("data-ui-reduced-motion"),
+  };
+}
+
+function writeMotionDocumentAttributes(
+  root: HTMLElement,
+  values: MotionDocumentAttributeValues
+): void {
+  for (const attribute of MOTION_DOCUMENT_ATTRIBUTES) {
+    const value = values[attribute];
+
+    if (value === null) {
+      root.removeAttribute(attribute);
+      continue;
+    }
+
+    root.setAttribute(attribute, value);
+  }
+}
+
 export interface UIMotionContextValue extends UIMotionState {
   setLevel: (level: UIMotionLevel) => void;
   getTransition: typeof getMotionTransition;
@@ -59,6 +110,27 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
   onLevelChange,
   respectReducedMotion = true,
 }) => {
+  const parentMotionContext =
+    React.useContext(UIMotionContext);
+
+  if (parentMotionContext) {
+    throw new Error(
+      "UIMotionProvider cannot be nested because it owns the global document motion state."
+    );
+  }
+
+  const [documentOwner] =
+    React.useState(() => Symbol("UIMotionProvider"));
+
+  const ownedDocumentRef =
+    React.useRef<Document | null>(null);
+
+  const previousAttributesRef =
+    React.useRef<MotionDocumentAttributeValues | null>(null);
+
+  const writtenAttributesRef =
+    React.useRef<MotionDocumentAttributeValues | null>(null);
+
   const prefersReducedMotion = useMediaQuery(
     "(prefers-reduced-motion: reduce)",
     false
@@ -126,16 +198,125 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
     []
   );
 
-  React.useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const activeOwner =
+      motionDocumentOwners.get(document);
+
+    if (
+      activeOwner &&
+      activeOwner !== documentOwner
+    ) {
+      throw new Error(
+        "Only one UIMotionProvider can own the global document motion state."
+      );
+    }
+
     const root = document.documentElement;
 
-    root.setAttribute("data-ui-motion", currentLevel);
-    root.setAttribute("data-ui-motion-effective", effectiveLevel);
-    root.setAttribute(
-      "data-ui-reduced-motion",
-      prefersReducedMotion ? "true" : "false"
+    motionDocumentOwners.set(
+      document,
+      documentOwner
     );
-  }, [currentLevel, effectiveLevel, prefersReducedMotion]);
+
+    ownedDocumentRef.current = document;
+    previousAttributesRef.current =
+      readMotionDocumentAttributes(root);
+
+    return () => {
+      const ownedDocument =
+        ownedDocumentRef.current;
+
+      if (
+        !ownedDocument ||
+        motionDocumentOwners.get(ownedDocument) !==
+          documentOwner
+      ) {
+        return;
+      }
+
+      const ownedRoot =
+        ownedDocument.documentElement;
+
+      const previousAttributes =
+        previousAttributesRef.current;
+
+      const writtenAttributes =
+        writtenAttributesRef.current;
+
+      if (
+        previousAttributes &&
+        writtenAttributes
+      ) {
+        for (
+          const attribute of
+          MOTION_DOCUMENT_ATTRIBUTES
+        ) {
+          if (
+            ownedRoot.getAttribute(attribute) !==
+            writtenAttributes[attribute]
+          ) {
+            continue;
+          }
+
+          const previousValue =
+            previousAttributes[attribute];
+
+          if (previousValue === null) {
+            ownedRoot.removeAttribute(attribute);
+          } else {
+            ownedRoot.setAttribute(
+              attribute,
+              previousValue
+            );
+          }
+        }
+      }
+
+      motionDocumentOwners.delete(
+        ownedDocument
+      );
+
+      ownedDocumentRef.current = null;
+      previousAttributesRef.current = null;
+      writtenAttributesRef.current = null;
+    };
+  }, [documentOwner]);
+
+  useIsomorphicLayoutEffect(() => {
+    const ownedDocument =
+      ownedDocumentRef.current;
+
+    if (
+      !ownedDocument ||
+      motionDocumentOwners.get(ownedDocument) !==
+        documentOwner
+    ) {
+      return;
+    }
+
+    const values: MotionDocumentAttributeValues = {
+      "data-ui-motion": currentLevel,
+      "data-ui-motion-effective": effectiveLevel,
+      "data-ui-reduced-motion":
+        prefersReducedMotion ? "true" : "false",
+    };
+
+    writeMotionDocumentAttributes(
+      ownedDocument.documentElement,
+      values
+    );
+
+    writtenAttributesRef.current = values;
+  }, [
+    documentOwner,
+    currentLevel,
+    effectiveLevel,
+    prefersReducedMotion,
+  ]);
 
   const value = React.useMemo<UIMotionContextValue>(
     () => ({
