@@ -15,6 +15,7 @@ export {
 } from "./runtime/theme-system";
 
 export type {
+  RegisterThemeOptions,
   ResolvedTheme,
   ThemeSystemOptions,
 } from "./runtime/theme-system";

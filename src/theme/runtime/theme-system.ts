@@ -43,6 +43,16 @@ export interface ThemeSystemOptions {
   readStoredThemeOnInit?: boolean;
 }
 
+export interface RegisterThemeOptions {
+  /**
+   * Allows an existing theme definition to be replaced.
+   *
+   * Defaults to false.
+   */
+  replace?: boolean;
+}
+
+
 
 export interface ResolvedTheme {
   name: ThemeName;
@@ -175,7 +185,8 @@ export class ThemeSystem {
 
 
   registerTheme(
-    theme: ThemeDefinition
+    theme: ThemeDefinition,
+    options: RegisterThemeOptions = {}
   ): void {
     const validation =
       validateThemeDefinition(
@@ -206,6 +217,16 @@ export class ThemeSystem {
       );
 
 
+    if (
+      previousTheme &&
+      options.replace !== true
+    ) {
+      throw new Error(
+        `Theme "${storedTheme.name}" is already registered. Pass { replace: true } to replace it.`
+      );
+    }
+
+
     this.themes.set(
       storedTheme.name,
       storedTheme
@@ -227,6 +248,7 @@ export class ThemeSystem {
           storedTheme.name
         );
       }
+
 
       throw error;
     }
@@ -379,8 +401,8 @@ export class ThemeSystem {
       metadata:
         theme.metadata
           ? cloneThemeValue(
-              theme.metadata
-            )
+            theme.metadata
+          )
           : undefined,
 
       tokens:
