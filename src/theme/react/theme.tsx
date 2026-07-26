@@ -48,6 +48,12 @@ const UIThemeContext =
   );
 
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined"
+    ? React.useLayoutEffect
+    : React.useEffect;
+
+
 export const UIThemeProvider: React.FC<
   UIThemeProviderProps
 > = ({
@@ -70,6 +76,9 @@ export const UIThemeProvider: React.FC<
         themes:
           themes ??
           BUILT_IN_THEMES,
+
+        readStoredThemeOnInit:
+          false,
       });
   }
 
@@ -85,12 +94,19 @@ export const UIThemeProvider: React.FC<
     );
 
 
-  React.useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    const changed =
+      system.restoreStoredTheme();
+
+
     system.applyTheme();
 
-    setThemeState(
-      system.getActiveTheme()
-    );
+
+    if (changed) {
+      setThemeState(
+        system.getActiveTheme()
+      );
+    }
   }, [system]);
 
 

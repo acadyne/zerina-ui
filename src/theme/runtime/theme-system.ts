@@ -27,6 +27,15 @@ export interface ThemeSystemOptions {
   storageKey?: string;
 
   themes?: ThemeDefinition[];
+
+  /**
+   * Controls whether the constructor may read the persisted theme.
+   *
+   * Defaults to true for direct ThemeSystem usage.
+   * UIThemeProvider disables this during its initial render so
+   * the server and the hydrating client select the same theme.
+   */
+  readStoredThemeOnInit?: boolean;
 }
 
 
@@ -240,6 +249,8 @@ export class ThemeSystem {
 
   private activeThemeName: ThemeName;
 
+  private readonly hasExplicitInitialTheme: boolean;
+
   private readonly persist: boolean;
 
   private readonly storageKey: string;
@@ -268,17 +279,29 @@ export class ThemeSystem {
     }
 
 
-    const storedTheme =
-      this.getStoredTheme();
-
-
     const initialTheme =
       options.initialTheme &&
-      this.themes.has(
-        options.initialTheme
-      )
+        this.themes.has(
+          options.initialTheme
+        )
         ? options.initialTheme
         : undefined;
+
+
+    this.hasExplicitInitialTheme =
+      initialTheme !== undefined;
+
+
+    const shouldReadStoredTheme =
+      options.readStoredThemeOnInit ??
+      true;
+
+
+    const storedTheme =
+      !this.hasExplicitInitialTheme &&
+        shouldReadStoredTheme
+        ? this.getStoredTheme()
+        : null;
 
 
     const firstTheme =
@@ -390,6 +413,37 @@ export class ThemeSystem {
       theme
     );
   }
+
+
+  restoreStoredTheme(): boolean {
+    if (
+      this.hasExplicitInitialTheme
+    ) {
+      return false;
+    }
+
+
+    const storedTheme =
+      this.getStoredTheme();
+
+
+    if (
+      !storedTheme ||
+      !this.themes.has(storedTheme) ||
+      storedTheme ===
+      this.activeThemeName
+    ) {
+      return false;
+    }
+
+
+    this.activeThemeName =
+      storedTheme;
+
+
+    return true;
+  }
+
 
 
   setTheme(
