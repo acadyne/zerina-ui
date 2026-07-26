@@ -10,6 +10,9 @@ import {
 import type {
   UIPressEvent,
 } from "../../core/interaction";
+import {
+  useOptionalUIMotion,
+} from "../../core/motion";
 
 export type ListDensity = "compact" | "comfortable" | "spacious";
 
@@ -200,6 +203,9 @@ const ListRoot =
       },
       ref
     ) => {
+      const motionState =
+        useOptionalUIMotion();
+
       const contextValue =
         React.useMemo<ListContextValue>(
           () => ({
@@ -224,6 +230,9 @@ const ListRoot =
             role="list"
             data-ui-list=""
             data-ui-list-items=""
+            data-ui-list-motion={
+              motionState.effectiveLevel
+            }
             data-divided={
               divided ||
               undefined

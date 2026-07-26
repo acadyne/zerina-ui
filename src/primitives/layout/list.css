@@ -16,6 +16,18 @@
       var(--ui-ease-standard);
 }
 
+[data-ui-list][data-ui-list-motion="none"]
+  [data-ui-list-item] {
+  transition-duration:
+    var(--ui-duration-instant);
+}
+
+[data-ui-list][data-ui-list-motion="reduced"]
+  [data-ui-list-item] {
+  transition-duration:
+    var(--ui-duration-fast);
+}
+
 [data-ui-list-item][data-ui-pressable-hovered],
 [data-ui-list-item][data-ui-pressable-focus-visible] {
   background:
