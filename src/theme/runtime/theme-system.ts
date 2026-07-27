@@ -1,9 +1,11 @@
 // src/theme/runtime/theme-system.ts
 
 import type {
+  ThemeColorScheme,
   ThemeDefinition,
-  ThemeTokens,
+  ThemeMetadata,
   ThemeName,
+  ThemeTokens,
 } from "../contracts/theme.types";
 
 import {
@@ -15,13 +17,14 @@ import {
 } from "./resolve-theme-tokens";
 
 import {
-  SYSTEM_DEFAULT_TOKENS,
+  SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME,
 } from "./system-default-tokens";
 
 import {
   cloneThemeValue,
   deepFreeze,
 } from "../internal/theme-object-utils";
+
 
 export interface ThemeSystemOptions {
   initialTheme?: ThemeName;
@@ -42,6 +45,7 @@ export interface ThemeSystemOptions {
   readStoredThemeOnInit?: boolean;
 }
 
+
 export interface RegisterThemeOptions {
   /**
    * Allows an existing theme definition to be replaced.
@@ -52,19 +56,23 @@ export interface RegisterThemeOptions {
 }
 
 
-
 export interface ResolvedTheme {
   name: ThemeName;
 
   source: ThemeDefinition["source"];
 
-  metadata?: ThemeDefinition["metadata"];
+  metadata:
+    ThemeMetadata & {
+      colorScheme:
+        ThemeColorScheme;
+    };
 
   tokens: ThemeTokens;
 }
 
 
-const DEFAULT_STORAGE_KEY = "ui-theme";
+const DEFAULT_STORAGE_KEY =
+  "ui-theme";
 
 
 function createStoredTheme(
@@ -85,15 +93,22 @@ function createPublicTheme(
 
 export class ThemeSystem {
   private readonly themes =
-    new Map<ThemeName, ThemeDefinition>();
+    new Map<
+      ThemeName,
+      ThemeDefinition
+    >();
 
-  private activeThemeName: ThemeName;
+  private activeThemeName:
+    ThemeName;
 
-  private readonly hasExplicitInitialTheme: boolean;
+  private readonly hasExplicitInitialTheme:
+    boolean;
 
-  private readonly persist: boolean;
+  private readonly persist:
+    boolean;
 
-  private readonly storageKey: string;
+  private readonly storageKey:
+    string;
 
 
   constructor(
@@ -107,8 +122,13 @@ export class ThemeSystem {
       DEFAULT_STORAGE_KEY;
 
 
-    for (const theme of options.themes ?? []) {
-      this.registerTheme(theme);
+    for (
+      const theme of
+      options.themes ?? []
+    ) {
+      this.registerTheme(
+        theme
+      );
     }
 
 
@@ -121,9 +141,9 @@ export class ThemeSystem {
 
     const initialTheme =
       options.initialTheme &&
-        this.themes.has(
-          options.initialTheme
-        )
+      this.themes.has(
+        options.initialTheme
+      )
         ? options.initialTheme
         : undefined;
 
@@ -139,7 +159,7 @@ export class ThemeSystem {
 
     const storedTheme =
       !this.hasExplicitInitialTheme &&
-        shouldReadStoredTheme
+      shouldReadStoredTheme
         ? this.getStoredTheme()
         : null;
 
@@ -162,7 +182,9 @@ export class ThemeSystem {
       initialTheme ??
       (
         storedTheme &&
-          this.themes.has(storedTheme)
+        this.themes.has(
+          storedTheme
+        )
           ? storedTheme
           : undefined
       ) ??
@@ -184,7 +206,8 @@ export class ThemeSystem {
       throw new Error(
         validation.diagnostics
           .map(
-            (item) => item.message
+            (item) =>
+              item.message
           )
           .join("\n")
       );
@@ -241,7 +264,8 @@ export class ThemeSystem {
   }
 
 
-  getThemes(): readonly ThemeDefinition[] {
+  getThemes():
+    readonly ThemeDefinition[] {
     return Array.from(
       this.themes.values(),
       createPublicTheme
@@ -249,7 +273,8 @@ export class ThemeSystem {
   }
 
 
-  getActiveTheme(): ThemeDefinition {
+  getActiveTheme():
+    ThemeDefinition {
     const theme =
       this.themes.get(
         this.activeThemeName
@@ -269,7 +294,8 @@ export class ThemeSystem {
   }
 
 
-  restoreStoredTheme(): boolean {
+  restoreStoredTheme():
+    boolean {
     if (
       this.hasExplicitInitialTheme
     ) {
@@ -283,9 +309,11 @@ export class ThemeSystem {
 
     if (
       !storedTheme ||
-      !this.themes.has(storedTheme) ||
+      !this.themes.has(
+        storedTheme
+      ) ||
       storedTheme ===
-      this.activeThemeName
+        this.activeThemeName
     ) {
       return false;
     }
@@ -302,14 +330,19 @@ export class ThemeSystem {
   setTheme(
     name: ThemeName
   ): void {
-    if (!this.themes.has(name)) {
+    if (
+      !this.themes.has(
+        name
+      )
+    ) {
       throw new Error(
         `Theme "${name}" is not registered`
       );
     }
 
 
-    this.activeThemeName = name;
+    this.activeThemeName =
+      name;
 
     this.persistTheme();
   }
@@ -330,14 +363,17 @@ export class ThemeSystem {
     const currentIndex =
       themes.findIndex(
         (theme) =>
-          theme.name === this.activeThemeName
+          theme.name ===
+          this.activeThemeName
       );
 
 
     const nextTheme =
       themes[
-      (currentIndex + 1) %
-      themes.length
+        (
+          currentIndex + 1
+        ) %
+        themes.length
       ];
 
 
@@ -356,7 +392,9 @@ export class ThemeSystem {
     name: ThemeName
   ): ResolvedTheme {
     const theme =
-      this.themes.get(name);
+      this.themes.get(
+        name
+      );
 
 
     if (!theme) {
@@ -366,52 +404,141 @@ export class ThemeSystem {
     }
 
 
+    const colorScheme =
+      this.resolveThemeColorScheme(
+        theme
+      );
+
+
     const tokens =
       resolveThemeTokens({
         theme,
 
-        themes: this.themes,
+        themes:
+          this.themes,
 
         defaults:
-          SYSTEM_DEFAULT_TOKENS,
+          SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME[
+            colorScheme
+          ],
       });
 
 
     return {
-      name: theme.name,
+      name:
+        theme.name,
 
-      source: theme.source,
+      source:
+        theme.source,
 
-      metadata:
-        theme.metadata
-          ? cloneThemeValue(
-            theme.metadata
-          )
-          : undefined,
+      metadata: {
+        ...(
+          theme.metadata
+            ? cloneThemeValue(
+                theme.metadata
+              )
+            : {}
+        ),
+
+        colorScheme,
+      },
 
       tokens:
-        cloneThemeValue(tokens),
+        cloneThemeValue(
+          tokens
+        ),
     };
   }
 
+
+  /**
+   * Resolves the nearest explicit color scheme in the inheritance chain.
+   *
+   * Root themes must establish a scheme. Derived themes may inherit it
+   * or replace it with their own explicit value.
+   */
+  private resolveThemeColorScheme(
+    theme: ThemeDefinition,
+    visited =
+      new Set<ThemeName>()
+  ): ThemeColorScheme {
+    const explicitColorScheme =
+      theme.metadata
+        ?.colorScheme;
+
+
+    if (explicitColorScheme) {
+      return explicitColorScheme;
+    }
+
+
+    if (
+      visited.has(
+        theme.name
+      )
+    ) {
+      throw new Error(
+        `Circular theme inheritance detected while resolving colorScheme for "${theme.name}"`
+      );
+    }
+
+
+    visited.add(
+      theme.name
+    );
+
+
+    if (!theme.extends) {
+      throw new Error(
+        `Root theme "${theme.name}" must define metadata.colorScheme`
+      );
+    }
+
+
+    const parent =
+      this.themes.get(
+        theme.extends
+      );
+
+
+    if (!parent) {
+      throw new Error(
+        `Theme "${theme.name}" extends unknown theme "${theme.extends}"`
+      );
+    }
+
+
+    return this.resolveThemeColorScheme(
+      parent,
+      visited
+    );
+  }
+
+
   private validateInheritanceChain(
     theme: ThemeDefinition,
-
-    visited = new Set<ThemeName>()
+    visited =
+      new Set<ThemeName>()
   ): void {
     if (!theme.extends) {
       return;
     }
 
 
-    if (visited.has(theme.name)) {
+    if (
+      visited.has(
+        theme.name
+      )
+    ) {
       throw new Error(
         `Circular theme inheritance detected: "${theme.name}"`
       );
     }
 
 
-    visited.add(theme.name);
+    visited.add(
+      theme.name
+    );
 
 
     const parent =
@@ -429,47 +556,50 @@ export class ThemeSystem {
 
     this.validateInheritanceChain(
       parent,
-
       visited
     );
   }
 
-  private getStoredTheme(): ThemeName | null {
+
+  private getStoredTheme():
+    ThemeName | null {
     if (
       !this.persist ||
-
-      typeof window === "undefined"
+      typeof window ===
+        "undefined"
     ) {
       return null;
     }
 
 
     try {
-      return window.localStorage.getItem(
-        this.storageKey
-      );
+      return window.localStorage
+        .getItem(
+          this.storageKey
+        );
     } catch {
       return null;
     }
   }
 
 
-  private persistTheme(): void {
+  private persistTheme():
+    void {
     if (
       !this.persist ||
-
-      typeof window === "undefined"
+      typeof window ===
+        "undefined"
     ) {
       return;
     }
 
 
     try {
-      window.localStorage.setItem(
-        this.storageKey,
-
-        this.activeThemeName
-      );
+      window.localStorage
+        .setItem(
+          this.storageKey,
+          this.activeThemeName
+        );
     } catch {
       // Theme persistence is best effort.
     }

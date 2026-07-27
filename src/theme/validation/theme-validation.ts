@@ -1494,6 +1494,24 @@ function normalizeThemeDefinition(
       diagnostics
     );
 
+  /*
+   * Root themes establish the color scheme inherited by descendants.
+   * Derived themes may omit it and inherit the nearest explicit value.
+   */
+  if (
+    extendsName === undefined &&
+    metadata?.colorScheme ===
+      undefined
+  ) {
+    addDiagnostic(
+      diagnostics,
+      "theme.metadata.color_scheme.required",
+      "A root theme must define metadata.colorScheme.",
+      "metadata.colorScheme"
+    );
+  }
+
+
 
   if (
     name === undefined ||
