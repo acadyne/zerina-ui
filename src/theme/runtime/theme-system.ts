@@ -122,12 +122,21 @@ export class ThemeSystem {
       DEFAULT_STORAGE_KEY;
 
 
+    /*
+     * Initial themes are stored before validating inheritance.
+     * This makes constructor batches independent from declaration order.
+     *
+     * Public registerTheme() remains strict and validates inheritance
+     * immediately.
+     */
     for (
       const theme of
       options.themes ?? []
     ) {
-      this.registerTheme(
-        theme
+      this.registerThemeInternal(
+        theme,
+        {},
+        false
       );
     }
 
@@ -139,13 +148,34 @@ export class ThemeSystem {
     }
 
 
+    /*
+     * Validate every inheritance chain only after the complete initial
+     * batch has been stored.
+     */
+    for (
+      const theme of
+      this.themes.values()
+    ) {
+      this.validateInheritanceChain(
+        theme
+      );
+    }
+
+
     const initialTheme =
-      options.initialTheme &&
-      this.themes.has(
-        options.initialTheme
+      options.initialTheme;
+
+
+    if (
+      initialTheme !== undefined &&
+      !this.themes.has(
+        initialTheme
       )
-        ? options.initialTheme
-        : undefined;
+    ) {
+      throw new Error(
+        `Initial theme "${initialTheme}" is not registered`
+      );
+    }
 
 
     this.hasExplicitInitialTheme =
@@ -196,71 +226,11 @@ export class ThemeSystem {
     theme: ThemeDefinition,
     options: RegisterThemeOptions = {}
   ): void {
-    const validation =
-      validateThemeDefinition(
-        theme
-      );
-
-
-    if (!validation.valid) {
-      throw new Error(
-        validation.diagnostics
-          .map(
-            (item) =>
-              item.message
-          )
-          .join("\n")
-      );
-    }
-
-
-    const storedTheme =
-      createStoredTheme(
-        validation.value
-      );
-
-
-    const previousTheme =
-      this.themes.get(
-        storedTheme.name
-      );
-
-
-    if (
-      previousTheme &&
-      options.replace !== true
-    ) {
-      throw new Error(
-        `Theme "${storedTheme.name}" is already registered. Pass { replace: true } to replace it.`
-      );
-    }
-
-
-    this.themes.set(
-      storedTheme.name,
-      storedTheme
+    this.registerThemeInternal(
+      theme,
+      options,
+      true
     );
-
-
-    try {
-      this.validateInheritanceChain(
-        storedTheme
-      );
-    } catch (error) {
-      if (previousTheme) {
-        this.themes.set(
-          storedTheme.name,
-          previousTheme
-        );
-      } else {
-        this.themes.delete(
-          storedTheme.name
-        );
-      }
-
-
-      throw error;
-    }
   }
 
 
@@ -448,6 +418,91 @@ export class ThemeSystem {
           tokens
         ),
     };
+  }
+
+
+  /**
+   * Registers one normalized theme.
+   *
+   * Constructor batches defer inheritance validation until every theme
+   * has been stored. Public registration validates immediately.
+   */
+  private registerThemeInternal(
+    theme: ThemeDefinition,
+    options: RegisterThemeOptions,
+    validateInheritance:
+      boolean
+  ): void {
+    const validation =
+      validateThemeDefinition(
+        theme
+      );
+
+
+    if (!validation.valid) {
+      throw new Error(
+        validation.diagnostics
+          .map(
+            (item) =>
+              item.message
+          )
+          .join("\n")
+      );
+    }
+
+
+    const storedTheme =
+      createStoredTheme(
+        validation.value
+      );
+
+
+    const previousTheme =
+      this.themes.get(
+        storedTheme.name
+      );
+
+
+    if (
+      previousTheme &&
+      options.replace !== true
+    ) {
+      throw new Error(
+        `Theme "${storedTheme.name}" is already registered. Pass { replace: true } to replace it.`
+      );
+    }
+
+
+    this.themes.set(
+      storedTheme.name,
+      storedTheme
+    );
+
+
+    if (!validateInheritance) {
+      return;
+    }
+
+
+    try {
+      this.validateInheritanceChain(
+        storedTheme
+      );
+    } catch (error) {
+      if (previousTheme) {
+        this.themes.set(
+          storedTheme.name,
+          previousTheme
+        );
+      } else {
+        this.themes.delete(
+          storedTheme.name
+        );
+      }
+
+
+      throw error;
+    }
   }
 
 
