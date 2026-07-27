@@ -9,6 +9,7 @@ import {
 import {
   applyThemeStyleDeclarations,
   createThemeStyleDeclarations,
+  type ThemeStyleDeclaration,
 } from "../runtime/theme-style-declarations";
 
 import {
@@ -72,224 +73,327 @@ type ThemeStyleSnapshot = {
 };
 
 
-type ThemeStyleSnapshots =
+type OwnedThemeStyle = {
+  previous: ThemeStyleSnapshot;
+
+  written: ThemeStyleSnapshot;
+};
+
+
+type OwnedThemeStyles =
   Map<
     string,
-    ThemeStyleSnapshot
+    OwnedThemeStyle
   >;
 
 
-function readStyleSnapshots(
-  root: HTMLElement,
-  properties: readonly string[]
-): ThemeStyleSnapshots {
-  const snapshots =
-    new Map<
-      string,
-      ThemeStyleSnapshot
-    >();
-
-
-  for (const property of properties) {
-    snapshots.set(
-      property,
-      {
-        exists:
-          root.style.getPropertyValue(
-            property
-          ) !== "",
-
-        value:
-          root.style.getPropertyValue(
-            property
-          ),
-
-        priority:
-          root.style.getPropertyPriority(
-            property
-          ),
-      }
-    );
+/**
+ * Checks whether an inline CSS declaration is present.
+ *
+ * Reading only getPropertyValue() is insufficient because an existing
+ * declaration may serialize to an empty string.
+ */
+function hasInlineStyleProperty(
+  style: CSSStyleDeclaration,
+  property: string
+): boolean {
+  for (
+    let index = 0;
+    index < style.length;
+    index += 1
+  ) {
+    if (
+      style.item(index) ===
+      property
+    ) {
+      return true;
+    }
   }
 
 
-  return snapshots;
+  return false;
 }
 
-function createWrittenStyleSnapshots(
+
+/**
+ * Captures the complete inline state of one CSS property.
+ */
+function readStyleSnapshot(
+  root: HTMLElement,
+  property: string
+): ThemeStyleSnapshot {
+  return {
+    exists:
+      hasInlineStyleProperty(
+        root.style,
+        property
+      ),
+
+    value:
+      root.style.getPropertyValue(
+        property
+      ),
+
+    priority:
+      root.style.getPropertyPriority(
+        property
+      ),
+  };
+}
+
+
+/**
+ * Compares both the value and the structural presence of a declaration.
+ */
+function styleSnapshotsMatch(
+  left: ThemeStyleSnapshot,
+  right: ThemeStyleSnapshot
+): boolean {
+  return (
+    left.exists ===
+    right.exists &&
+    left.value ===
+    right.value &&
+    left.priority ===
+    right.priority
+  );
+}
+
+
+/**
+ * Restores a previously captured inline declaration.
+ */
+function restoreStyleSnapshot(
+  root: HTMLElement,
+  property: string,
+  snapshot: ThemeStyleSnapshot
+): void {
+  if (!snapshot.exists) {
+    root.style.removeProperty(
+      property
+    );
+
+    return;
+  }
+
+
+  root.style.setProperty(
+    property,
+    snapshot.value,
+    snapshot.priority
+  );
+}
+
+
+/**
+ * Synchronizes the inline properties currently owned by the provider.
+ *
+ * The order is significant:
+ * 1. Release properties absent from the next theme.
+ * 2. Capture the DOM before acquiring new properties.
+ * 3. Apply the next declarations.
+ * 4. Read the browser-serialized values.
+ * 5. Update the current ownership map.
+ */
+function applyOwnedStyleDeclarations(
+  root: HTMLElement,
+  ownedStyles: OwnedThemeStyles,
   declarations:
-    readonly {
-      property: string;
-
-      value: string;
-
-      priority?: string;
-    }[]
-): ThemeStyleSnapshots {
-  const snapshots =
+    readonly ThemeStyleDeclaration[]
+): void {
+  const nextDeclarations =
     new Map<
       string,
-      ThemeStyleSnapshot
+      ThemeStyleDeclaration
     >();
 
 
   for (const declaration of declarations) {
-    snapshots.set(
+    nextDeclarations.set(
       declaration.property,
-      {
-        exists:
-          true,
-
-        value:
-          declaration.value,
-
-        priority:
-          declaration.priority ??
-          "",
-      }
+      declaration
     );
   }
 
 
-  return snapshots;
-}
-
-function mergeStyleSnapshots(
-  target: ThemeStyleSnapshots,
-  source: ThemeStyleSnapshots
-): ThemeStyleSnapshots {
-  const merged =
-    new Map(
-      target
-    );
-
-
+  /*
+   * Release properties that the next theme no longer declares.
+   *
+   * The previous value is restored only when the DOM still contains
+   * the last value written by this provider. External mutations are
+   * preserved.
+   */
   for (
     const [
       property,
-      snapshot,
-    ] of source
-  ) {
-    merged.set(
-      property,
-      snapshot
-    );
-  }
-
-
-  return merged;
-}
-
-function removeMissingStyleSnapshots(
-  root: HTMLElement,
-  previous: ThemeStyleSnapshots,
-  next: ThemeStyleSnapshots
-): void {
-  for (
-    const [
-      property,
-      previousValue,
-    ] of previous
+      ownership,
+    ] of Array.from(
+      ownedStyles.entries()
+    )
   ) {
     if (
-      next.has(property)
+      nextDeclarations.has(
+        property
+      )
     ) {
       continue;
     }
 
 
-    const currentValue =
-      root.style.getPropertyValue(
+    const current =
+      readStyleSnapshot(
+        root,
         property
       );
-
-    const currentPriority =
-      root.style.getPropertyPriority(
-        property
-      );
-
-
-    const currentExists =
-      currentValue !== "";
 
 
     if (
-      currentExists !==
-      previousValue.exists ||
-      currentValue !==
-      previousValue.value ||
-      currentPriority !==
-      previousValue.priority
+      styleSnapshotsMatch(
+        current,
+        ownership.written
+      )
     ) {
-      continue;
+      restoreStyleSnapshot(
+        root,
+        property,
+        ownership.previous
+      );
     }
 
 
-    root.style.removeProperty(
+    ownedStyles.delete(
       property
     );
   }
+
+
+  /*
+   * Capture properties immediately before acquiring them.
+   *
+   * This also handles properties that were previously released and
+   * later acquired again after an external actor modified the DOM.
+   */
+  const acquiredStyles =
+    new Map<
+      string,
+      ThemeStyleSnapshot
+    >();
+
+
+  for (
+    const property of
+    nextDeclarations.keys()
+  ) {
+    if (
+      ownedStyles.has(
+        property
+      )
+    ) {
+      continue;
+    }
+
+
+    acquiredStyles.set(
+      property,
+      readStyleSnapshot(
+        root,
+        property
+      )
+    );
+  }
+
+
+  applyThemeStyleDeclarations(
+    root,
+    Array.from(
+      nextDeclarations.values()
+    )
+  );
+
+
+  /*
+   * Read the declarations back from the DOM because the browser may
+   * normalize their serialized values.
+   */
+  for (
+    const property of
+    nextDeclarations.keys()
+  ) {
+    const existingOwnership =
+      ownedStyles.get(
+        property
+      );
+
+
+    const previous =
+      existingOwnership?.previous ??
+      acquiredStyles.get(
+        property
+      );
+
+
+    if (!previous) {
+      throw new Error(
+        `UIThemeProvider could not acquire inline property "${property}".`
+      );
+    }
+
+
+    ownedStyles.set(
+      property,
+      {
+        previous,
+
+        written:
+          readStyleSnapshot(
+            root,
+            property
+          ),
+      }
+    );
+  }
 }
 
-function restoreStyleSnapshots(
+
+/**
+ * Releases every property currently owned by the provider.
+ *
+ * A property is restored only when its current DOM value still matches
+ * the last value written by the provider.
+ */
+function releaseOwnedStyleDeclarations(
   root: HTMLElement,
-  previous: ThemeStyleSnapshots,
-  written: ThemeStyleSnapshots
+  ownedStyles: OwnedThemeStyles
 ): void {
   for (
     const [
       property,
-      writtenValue,
-    ] of written
+      ownership,
+    ] of ownedStyles
   ) {
-    const currentValue =
-      root.style.getPropertyValue(
+    const current =
+      readStyleSnapshot(
+        root,
         property
       );
-
-    const currentPriority =
-      root.style.getPropertyPriority(
-        property
-      );
-
-    const currentExists =
-      currentValue !== "";
 
 
     if (
-      currentExists !==
-      writtenValue.exists ||
-      currentValue !==
-      writtenValue.value ||
-      currentPriority !==
-      writtenValue.priority
+      styleSnapshotsMatch(
+        current,
+        ownership.written
+      )
     ) {
-      continue;
-    }
-
-
-    const previousValue =
-      previous.get(property);
-
-
-    if (
-      !previousValue ||
-      !previousValue.exists
-    ) {
-      root.style.removeProperty(
-        property
+      restoreStyleSnapshot(
+        root,
+        property,
+        ownership.previous
       );
-
-      continue;
     }
-
-
-    root.style.setProperty(
-      property,
-      previousValue.value,
-      previousValue.priority
-    );
   }
+
+
+  ownedStyles.clear();
 }
 
 
@@ -315,39 +419,6 @@ function resolveThemeDeclarations(
   };
 }
 
-function getThemeOwnedProperties(
-  system: ThemeSystem
-): readonly string[] {
-  const properties =
-    new Set<string>();
-
-
-  for (
-    const theme of system.getThemes()
-  ) {
-    const {
-      declarations,
-    } =
-      resolveThemeDeclarations(
-        system,
-        theme.name
-      );
-
-
-    for (
-      const declaration of declarations
-    ) {
-      properties.add(
-        declaration.property
-      );
-    }
-  }
-
-
-  return Array.from(
-    properties
-  );
-}
 
 export const UIThemeProvider: React.FC<
   UIThemeProviderProps
@@ -392,38 +463,22 @@ export const UIThemeProvider: React.FC<
       >(null);
 
 
-    const previousColorSchemeRef =
-      React.useRef<
-        ThemeStyleSnapshot | null
-      >(null);
-
-
-    const previousStylesRef =
-      React.useRef<
-        ThemeStyleSnapshots | null
-      >(null);
-
-
     const writtenThemeRef =
       React.useRef<
         string | null
       >(null);
 
 
-    const writtenColorSchemeRef =
-      React.useRef<
-        ThemeStyleSnapshot | null
-      >(null);
-
-    // All CSS properties written by this provider
-    // during its lifetime.
     const ownedStylesRef =
-      React.useRef<
-        ThemeStyleSnapshots | null
-      >(null);
+      React.useRef<OwnedThemeStyles>(
+        new Map()
+      );
+
 
     const systemRef =
-      React.useRef<ThemeSystem | null>(null);
+      React.useRef<ThemeSystem | null>(
+        null
+      );
 
 
     if (!systemRef.current) {
@@ -432,6 +487,7 @@ export const UIThemeProvider: React.FC<
           initialTheme,
           persist,
           storageKey,
+
           themes:
             themes ??
             BUILT_IN_THEMES,
@@ -446,16 +502,26 @@ export const UIThemeProvider: React.FC<
       systemRef.current;
 
 
-    const [theme, setThemeState] =
+    const [
+      theme,
+      setThemeState,
+    ] =
       React.useState<ThemeDefinition>(
         () =>
           system.getActiveTheme()
       );
 
 
+    /*
+     * This effect owns the document lifecycle.
+     *
+     * Theme values are applied by the following effect, after this
+     * provider has successfully acquired document ownership.
+     */
     useIsomorphicLayoutEffect(() => {
       if (
-        typeof document === "undefined"
+        typeof document ===
+        "undefined"
       ) {
         return;
       }
@@ -469,7 +535,8 @@ export const UIThemeProvider: React.FC<
 
       if (
         activeOwner &&
-        activeOwner !== documentOwner
+        activeOwner !==
+        documentOwner
       ) {
         throw new Error(
           "Only one UIThemeProvider can own the global document theme."
@@ -485,15 +552,6 @@ export const UIThemeProvider: React.FC<
         system.restoreStoredTheme();
 
 
-      // Initial snapshot only.
-      // Properties introduced by later theme changes
-      // are captured before application.
-      const properties =
-        getThemeOwnedProperties(
-          system
-        );
-
-
       themeDocumentOwners.set(
         document,
         documentOwner
@@ -507,32 +565,6 @@ export const UIThemeProvider: React.FC<
       previousThemeRef.current =
         root.dataset.uiTheme ??
         null;
-
-
-      previousColorSchemeRef.current =
-      {
-        exists:
-          root.style.getPropertyValue(
-            "color-scheme"
-          ) !== "",
-
-        value:
-          root.style.getPropertyValue(
-            "color-scheme"
-          ),
-
-        priority:
-          root.style.getPropertyPriority(
-            "color-scheme"
-          ),
-      };
-
-
-      previousStylesRef.current =
-        readStyleSnapshots(
-          root,
-          properties
-        );
 
 
       if (changed) {
@@ -554,9 +586,15 @@ export const UIThemeProvider: React.FC<
 
 
         const ownedRoot =
-          document.documentElement;
+          ownedDocumentRef.current
+            .documentElement;
 
 
+        /*
+         * data-ui-theme is owned for the complete provider lifetime.
+         * An external mutation is preserved when it no longer matches
+         * the last value written by this provider.
+         */
         if (
           ownedRoot.dataset.uiTheme ===
           writtenThemeRef.current
@@ -573,65 +611,10 @@ export const UIThemeProvider: React.FC<
         }
 
 
-        const currentColorScheme =
-        {
-          exists:
-            ownedRoot.style.getPropertyValue(
-              "color-scheme"
-            ) !== "",
-
-          value:
-            ownedRoot.style.getPropertyValue(
-              "color-scheme"
-            ),
-
-          priority:
-            ownedRoot.style.getPropertyPriority(
-              "color-scheme"
-            ),
-        };
-
-
-        if (
-          writtenColorSchemeRef.current &&
-          currentColorScheme.exists ===
-          writtenColorSchemeRef.current.exists &&
-          currentColorScheme.value ===
-          writtenColorSchemeRef.current.value &&
-          currentColorScheme.priority ===
-          writtenColorSchemeRef.current.priority
-        ) {
-          const previous =
-            previousColorSchemeRef.current;
-
-
-          if (
-            previous &&
-            previous.exists
-          ) {
-            ownedRoot.style.setProperty(
-              "color-scheme",
-              previous.value,
-              previous.priority
-            );
-          } else {
-            ownedRoot.style.removeProperty(
-              "color-scheme"
-            );
-          }
-        }
-
-
-        if (
-          previousStylesRef.current &&
+        releaseOwnedStyleDeclarations(
+          ownedRoot,
           ownedStylesRef.current
-        ) {
-          restoreStyleSnapshots(
-            ownedRoot,
-            previousStylesRef.current,
-            ownedStylesRef.current
-          );
-        }
+        );
 
 
         themeDocumentOwners.delete(
@@ -646,19 +629,8 @@ export const UIThemeProvider: React.FC<
         previousThemeRef.current =
           null;
 
-        previousColorSchemeRef.current =
-          null;
-
-        previousStylesRef.current =
-          null;
 
         writtenThemeRef.current =
-          null;
-
-        writtenColorSchemeRef.current =
-          null;
-
-        ownedStylesRef.current =
           null;
       };
     }, [
@@ -667,9 +639,16 @@ export const UIThemeProvider: React.FC<
     ]);
 
 
+    /*
+     * This effect synchronizes the active theme with the owned document.
+     *
+     * color-scheme participates in the same ownership mechanism as the
+     * generated custom properties.
+     */
     useIsomorphicLayoutEffect(() => {
       if (
-        typeof document === "undefined"
+        typeof document ===
+        "undefined"
       ) {
         return;
       }
@@ -688,60 +667,45 @@ export const UIThemeProvider: React.FC<
         document.documentElement;
 
 
+      const activeTheme =
+        system.getActiveTheme();
+
+
       const {
         resolved,
         declarations,
       } =
         resolveThemeDeclarations(
           system,
-          theme.name
+          activeTheme.name
         );
 
 
-      const nextWrittenStyles =
-        createWrittenStyleSnapshots(
-          declarations
-        );
+      const inlineDeclarations:
+        ThemeStyleDeclaration[] = [
+          ...declarations,
+        ];
 
 
       if (
-        previousStylesRef.current
+        resolved.metadata
+          ?.colorScheme
       ) {
-        for (
-          const property of nextWrittenStyles.keys()
-        ) {
-          if (
-            previousStylesRef.current.has(
-              property
-            )
-          ) {
-            continue;
-          }
+        inlineDeclarations.push({
+          property:
+            "color-scheme",
 
-
-          const snapshot =
-            readStyleSnapshots(
-              root,
-              [
-                property,
-              ]
-            ).get(
-              property
-            );
-
-
-          if (snapshot) {
-            previousStylesRef.current.set(
-              property,
-              snapshot
-            );
-          }
-        }
+          value:
+            resolved.metadata
+              .colorScheme,
+        });
       }
 
-      applyThemeStyleDeclarations(
+
+      applyOwnedStyleDeclarations(
         root,
-        declarations
+        ownedStylesRef.current,
+        inlineDeclarations
       );
 
 
@@ -749,59 +713,8 @@ export const UIThemeProvider: React.FC<
         resolved.name;
 
 
-      if (
-        resolved.metadata?.colorScheme
-      ) {
-        root.style.setProperty(
-          "color-scheme",
-          resolved.metadata.colorScheme
-        );
-      } else {
-        root.style.removeProperty(
-          "color-scheme"
-        );
-      }
-
-
       writtenThemeRef.current =
         resolved.name;
-
-
-      writtenColorSchemeRef.current =
-      {
-        exists:
-          resolved.metadata?.colorScheme !==
-          undefined,
-
-        value:
-          resolved.metadata?.colorScheme ??
-          "",
-
-        priority:
-          "",
-      };
-
-      if (
-        ownedStylesRef.current
-      ) {
-        removeMissingStyleSnapshots(
-          root,
-          ownedStylesRef.current,
-          nextWrittenStyles
-        );
-      }
-
-
-      ownedStylesRef.current =
-        mergeStyleSnapshots(
-          ownedStylesRef.current ??
-          new Map<
-            string,
-            ThemeStyleSnapshot
-          >(),
-
-          nextWrittenStyles
-        );
     }, [
       documentOwner,
       system,
@@ -812,13 +725,18 @@ export const UIThemeProvider: React.FC<
     const setTheme =
       React.useCallback(
         (name: ThemeName) => {
-          system.setTheme(name);
+          system.setTheme(
+            name
+          );
+
 
           setThemeState(
             system.getActiveTheme()
           );
         },
-        [system]
+        [
+          system,
+        ]
       );
 
 
@@ -827,11 +745,14 @@ export const UIThemeProvider: React.FC<
         () => {
           system.cycleTheme();
 
+
           setThemeState(
             system.getActiveTheme()
           );
         },
-        [system]
+        [
+          system,
+        ]
       );
 
 

@@ -23,11 +23,6 @@ import {
   deepFreeze,
 } from "../internal/theme-object-utils";
 
-import {
-  applyThemeStyleDeclarations,
-  createThemeStyleDeclarations,
-} from "./theme-style-declarations";
-
 export interface ThemeSystemOptions {
   initialTheme?: ThemeName;
 
@@ -398,43 +393,6 @@ export class ThemeSystem {
         cloneThemeValue(tokens),
     };
   }
-
-
-  applyTheme(): void {
-    if (
-      typeof document === "undefined"
-    ) {
-      return;
-    }
-
-
-    const resolved =
-      this.resolveTheme(
-        this.activeThemeName
-      );
-
-
-    const root =
-      document.documentElement;
-
-
-    root.dataset.uiTheme =
-      resolved.name;
-
-
-    applyThemeStyleDeclarations(
-      root,
-      createThemeStyleDeclarations(
-        resolved.tokens
-      )
-    );
-
-
-    root.style.colorScheme =
-      resolved.metadata?.colorScheme ??
-      "";
-  }
-
 
   private validateInheritanceChain(
     theme: ThemeDefinition,
