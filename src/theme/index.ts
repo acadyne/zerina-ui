@@ -11,6 +11,18 @@ export type {
 
 
 export {
+  createThemeDocumentState,
+} from "./ssr/theme-document-state";
+
+export type {
+  CreateThemeDocumentStateOptions,
+  ThemeDocumentCustomProperty,
+  ThemeDocumentState,
+  ThemeDocumentStyle,
+} from "./ssr/theme-document-state";
+
+
+export {
   ThemeSystem,
 } from "./runtime/theme-system";
 
