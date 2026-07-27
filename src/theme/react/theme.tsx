@@ -22,6 +22,12 @@ import type {
 } from "../contracts/theme.types";
 
 
+/**
+ * Configuration props are immutable for the provider lifetime.
+ *
+ * Remount UIThemeProvider to change the theme registry, persistence
+ * configuration, storage key, or initial theme.
+ */
 export interface UIThemeProviderProps {
   children: React.ReactNode;
 
@@ -34,6 +40,16 @@ export interface UIThemeProviderProps {
   themes?: readonly ThemeDefinition[];
 }
 
+
+interface UIThemeProviderConfiguration {
+  initialTheme?: ThemeName;
+
+  persist: boolean;
+
+  storageKey?: string;
+
+  themes: readonly ThemeDefinition[];
+}
 
 interface UIThemeContextValue {
   theme: ThemeDefinition;
@@ -419,6 +435,79 @@ function resolveThemeDeclarations(
   };
 }
 
+/**
+ * Rejects configuration changes that the existing ThemeSystem instance
+ * cannot apply safely.
+ */
+function assertImmutableProviderConfiguration(
+  initial:
+    UIThemeProviderConfiguration,
+  current:
+    UIThemeProviderConfiguration
+): void {
+  const changedProperties:
+    string[] = [];
+
+
+  if (
+    initial.initialTheme !==
+    current.initialTheme
+  ) {
+    changedProperties.push(
+      "initialTheme"
+    );
+  }
+
+
+  if (
+    initial.persist !==
+    current.persist
+  ) {
+    changedProperties.push(
+      "persist"
+    );
+  }
+
+
+  if (
+    initial.storageKey !==
+    current.storageKey
+  ) {
+    changedProperties.push(
+      "storageKey"
+    );
+  }
+
+
+  /*
+   * themes is mount-only configuration. Requiring a stable reference
+   * avoids silently accepting a registry that ThemeSystem will not use.
+   */
+  if (
+    initial.themes !==
+    current.themes
+  ) {
+    changedProperties.push(
+      "themes"
+    );
+  }
+
+
+  if (
+    changedProperties.length ===
+    0
+  ) {
+    return;
+  }
+
+
+  throw new Error(
+    `UIThemeProvider configuration cannot change after mount: ${changedProperties.join(
+      ", "
+    )}. Remount UIThemeProvider to apply a new configuration.`
+  );
+}
+
 
 export const UIThemeProvider: React.FC<
   UIThemeProviderProps
@@ -475,6 +564,44 @@ export const UIThemeProvider: React.FC<
       );
 
 
+    const currentConfiguration:
+      UIThemeProviderConfiguration = {
+        initialTheme,
+
+        persist,
+
+        storageKey,
+
+        themes:
+          themes ??
+          BUILT_IN_THEMES,
+      };
+
+
+    const initialConfigurationRef =
+      React.useRef<
+        UIThemeProviderConfiguration | null
+      >(null);
+
+
+    if (
+      initialConfigurationRef.current ===
+      null
+    ) {
+      initialConfigurationRef.current =
+        currentConfiguration;
+    } else {
+      assertImmutableProviderConfiguration(
+        initialConfigurationRef.current,
+        currentConfiguration
+      );
+    }
+
+
+    const initialConfiguration =
+      initialConfigurationRef.current;
+
+
     const systemRef =
       React.useRef<ThemeSystem | null>(
         null
@@ -484,13 +611,21 @@ export const UIThemeProvider: React.FC<
     if (!systemRef.current) {
       systemRef.current =
         new ThemeSystem({
-          initialTheme,
-          persist,
-          storageKey,
+          initialTheme:
+            initialConfiguration
+              .initialTheme,
+
+          persist:
+            initialConfiguration
+              .persist,
+
+          storageKey:
+            initialConfiguration
+              .storageKey,
 
           themes:
-            themes ??
-            BUILT_IN_THEMES,
+            initialConfiguration
+              .themes,
 
           readStoredThemeOnInit:
             false,
