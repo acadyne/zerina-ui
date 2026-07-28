@@ -119,10 +119,25 @@ function resolveSafeAreaEdges(
 
 function getSafeAreaPadding(edges: SafeAreaEdges): React.CSSProperties {
     return {
-        paddingTop: edges.top ? "var(--safe-top-offset)" : undefined,
-        paddingRight: edges.right ? "var(--safe-right-offset)" : undefined,
-        paddingBottom: edges.bottom ? "var(--safe-bottom-offset)" : undefined,
-        paddingLeft: edges.left ? "var(--safe-left-offset)" : undefined,
+        paddingTop:
+            edges.top
+                ? "var(--ui-safe-top-offset)"
+                : undefined,
+
+        paddingRight:
+            edges.right
+                ? "var(--ui-safe-right-offset)"
+                : undefined,
+
+        paddingBottom:
+            edges.bottom
+                ? "var(--ui-safe-bottom-offset)"
+                : undefined,
+
+        paddingLeft:
+            edges.left
+                ? "var(--ui-safe-left-offset)"
+                : undefined,
     };
 }
 

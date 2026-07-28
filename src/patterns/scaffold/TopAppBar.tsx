@@ -395,7 +395,7 @@ export const TopAppBar =
 
             paddingTop:
               safeAreaTop
-                ? "var(--safe-top-offset)"
+                ? "var(--ui-safe-top-offset)"
                 : undefined,
 
 

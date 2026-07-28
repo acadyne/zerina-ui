@@ -30,10 +30,25 @@ export function SafeArea<E extends React.ElementType = "div">(
     <Box
       {...(rest as BoxProps<E>)}
       style={{
-        paddingTop: edges.top ? "var(--safe-top-offset)" : undefined,
-        paddingRight: edges.right ? "var(--safe-right-offset)" : undefined,
-        paddingBottom: edges.bottom ? "var(--safe-bottom-offset)" : undefined,
-        paddingLeft: edges.left ? "var(--safe-left-offset)" : undefined,
+        paddingTop:
+          edges.top
+            ? "var(--ui-safe-top-offset)"
+            : undefined,
+
+        paddingRight:
+          edges.right
+            ? "var(--ui-safe-right-offset)"
+            : undefined,
+
+        paddingBottom:
+          edges.bottom
+            ? "var(--ui-safe-bottom-offset)"
+            : undefined,
+
+        paddingLeft:
+          edges.left
+            ? "var(--ui-safe-left-offset)"
+            : undefined,
         minHeight: minScreenHeight ? "100dvh" : undefined,
         height: minScreenHeight ? "100dvh" : undefined,
         boxSizing: "border-box",

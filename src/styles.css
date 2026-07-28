@@ -1,42 +1,73 @@
 /* src/styles.css */
 
+@import "./styles/safe-area.css";
+
 @import "./core/motion/motion.css";
+
 @import "./core/interaction/interaction.css";
+
+@import "./styles/controls.css";
+
 @import "./components/feedback/skeleton.css";
+
 @import "./primitives/layout/list.css";
-@import "./styles/base.css";
+
 
 /* ScrollArea */
+
 .ui-scrollarea--thin {
   scrollbar-width: thin;
-  scrollbar-color: var(--ui-border-strong) transparent;
+
+  scrollbar-color:
+    var(--ui-border-strong)
+    transparent;
 }
+
 
 .ui-scrollarea--thin::-webkit-scrollbar {
   width: 6px;
+
   height: 6px;
 }
 
+
 .ui-scrollarea--thin::-webkit-scrollbar-track {
-  background: transparent;
+  background:
+    transparent;
 }
+
 
 .ui-scrollarea--thin::-webkit-scrollbar-thumb {
-  background: var(--ui-border-strong);
-  border-radius: var(--ui-radius-full);
+  background:
+    var(--ui-border-strong);
+
+  border-radius:
+    var(--ui-radius-full);
 }
+
 
 .ui-scrollarea--thin::-webkit-scrollbar-thumb:hover {
-  background: var(--ui-text-muted);
+  background:
+    var(--ui-text-muted);
 }
+
 
 .ui-scrollarea--hidden {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width:
+    none;
+
+  -ms-overflow-style:
+    none;
 }
 
+
 .ui-scrollarea--hidden::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  display:
+    none;
+
+  width:
+    0;
+
+  height:
+    0;
 }

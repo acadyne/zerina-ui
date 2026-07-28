@@ -1,0 +1,106 @@
+/* src/styles/controls.css */
+
+
+/* Control states */
+
+input:where([data-ui="input"])[data-focus="true"],
+textarea:where([data-ui="textarea"])[data-focus="true"],
+select:where([data-ui="select"])[data-focus="true"] {
+  border-color:
+    var(--ui-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus);
+}
+
+
+input:where([data-ui="input"])[data-invalid="true"],
+textarea:where([data-ui="textarea"])[data-invalid="true"],
+select:where([data-ui="select"])[data-invalid="true"] {
+  border-color:
+    var(--ui-danger);
+}
+
+
+input:where([data-ui="input"])[data-focus="true"][data-invalid="true"],
+textarea:where([data-ui="textarea"])[data-focus="true"][data-invalid="true"],
+select:where([data-ui="select"])[data-focus="true"][data-invalid="true"] {
+  border-color:
+    var(--ui-danger);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus-danger);
+}
+
+
+input:where([data-ui="input"])[data-disabled="true"],
+textarea:where([data-ui="textarea"])[data-disabled="true"],
+select:where([data-ui="select"])[data-disabled="true"] {
+  opacity:
+    var(--ui-state-disabled-opacity);
+
+  cursor:
+    not-allowed;
+}
+
+
+/* Native focus fallback */
+
+input:where([data-ui="input"]):focus,
+textarea:where([data-ui="textarea"]):focus,
+select:where([data-ui="select"]):focus {
+  border-color:
+    var(--ui-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus);
+}
+
+
+input:where([data-ui="input"])[data-invalid="true"]:focus,
+textarea:where([data-ui="textarea"])[data-invalid="true"]:focus,
+select:where([data-ui="select"])[data-invalid="true"]:focus {
+  border-color:
+    var(--ui-danger);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus-danger);
+}
+
+
+/* InputGroup */
+
+[data-ui="input-group"]:focus-within {
+  border-color:
+    var(--ui-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus);
+}
+
+
+[data-ui="input-group"][data-invalid="true"] {
+  border-color:
+    var(--ui-danger);
+}
+
+
+[data-ui="input-group"][data-invalid="true"]:focus-within {
+  border-color:
+    var(--ui-danger);
+
+  box-shadow:
+    0 0 0 3px
+    var(--ui-state-focus-danger);
+}
+
+
+[data-ui="input-group"][data-disabled="true"] {
+  opacity:
+    var(--ui-state-disabled-opacity);
+}

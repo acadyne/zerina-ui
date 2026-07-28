@@ -1,0 +1,55 @@
+/* src/reset.css */
+
+/*
+ * Optional global reset.
+ *
+ * Import "zerina-ui/reset.css" only when the application wants Zerina
+ * UI to normalize common browser defaults.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing:
+    border-box;
+}
+
+
+body {
+  margin:
+    0;
+}
+
+
+button,
+input,
+select,
+textarea {
+  font:
+    inherit;
+}
+
+
+a {
+  color:
+    inherit;
+}
+
+
+img,
+svg,
+video,
+canvas {
+  display:
+    block;
+
+  max-width:
+    100%;
+}
+
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color:
+    transparent;
+}

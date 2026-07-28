@@ -15,7 +15,6 @@
   "bugs": {
     "url": "https://github.com/acadyne/zerina-ui/issues"
   },
-  
   "keywords": [
     "react",
     "typescript",
@@ -24,7 +23,7 @@
     "design-system",
     "dashboard",
     "admin",
-    "sass",
+    "css",
     "datatable",
     "themes"
   ],
@@ -42,11 +41,12 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./reset.css": "./dist/reset.css"
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "pnpm clean && tsup && mkdir -p dist/styles && cp src/styles/*.css dist/styles/",
+    "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "pack:check": "pnpm typecheck && pnpm build && pnpm pack",
