@@ -474,7 +474,7 @@ function readRequiredString(
     (
       !properties.has(key) ||
       properties.get(key) ===
-        undefined
+      undefined
     )
   ) {
     addDiagnostic(
@@ -487,6 +487,75 @@ function readRequiredString(
 
 
   return value;
+}
+
+function validateThemeIdentifier(
+  value: string | undefined,
+  path: string,
+  diagnostics:
+    ThemeValidationDiagnostic[]
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+
+  if (
+    value !==
+    value.trim()
+  ) {
+    addDiagnostic(
+      diagnostics,
+      "theme.identifier.whitespace",
+      `${path} must not contain leading or trailing whitespace.`,
+      path
+    );
+
+    return undefined;
+  }
+
+
+  return value;
+}
+
+
+function readOptionalThemeIdentifier(
+  properties: DataProperties,
+  key: string,
+  path: string,
+  diagnostics:
+    ThemeValidationDiagnostic[]
+): string | undefined {
+  return validateThemeIdentifier(
+    readOptionalString(
+      properties,
+      key,
+      path,
+      diagnostics
+    ),
+    path,
+    diagnostics
+  );
+}
+
+
+function readRequiredThemeIdentifier(
+  properties: DataProperties,
+  key: string,
+  path: string,
+  diagnostics:
+    ThemeValidationDiagnostic[]
+): string | undefined {
+  return validateThemeIdentifier(
+    readRequiredString(
+      properties,
+      key,
+      path,
+      diagnostics
+    ),
+    path,
+    diagnostics
+  );
 }
 
 
@@ -644,7 +713,7 @@ function normalizeTypography(
   if (
     properties.has("fontWeight") &&
     properties.get("fontWeight") !==
-      undefined
+    undefined
   ) {
     const weightPath =
       `${path}.fontWeight`;
@@ -747,8 +816,8 @@ function normalizeControl(
 
   return height
     ? {
-        height,
-      }
+      height,
+    }
     : {};
 }
 
@@ -813,7 +882,7 @@ function normalizeExtensionArray(
       !descriptor ||
       !("value" in descriptor) ||
       typeof descriptor.value !==
-        "number" ||
+      "number" ||
       !Number.isSafeInteger(
         descriptor.value
       ) ||
@@ -1245,7 +1314,7 @@ function normalizeMetadata(
   if (
     properties.has("colorScheme") &&
     properties.get("colorScheme") !==
-      undefined
+    undefined
   ) {
     const colorScheme =
       properties.get("colorScheme");
@@ -1259,7 +1328,7 @@ function normalizeMetadata(
     ) {
       result.colorScheme =
         colorScheme as
-          ThemeMetadata["colorScheme"];
+        ThemeMetadata["colorScheme"];
     } else {
       addDiagnostic(
         diagnostics,
@@ -1425,7 +1494,7 @@ function normalizeThemeDefinition(
 
 
   const name =
-    readRequiredString(
+    readRequiredThemeIdentifier(
       properties,
       "name",
       "name",
@@ -1459,14 +1528,22 @@ function normalizeThemeDefinition(
   }
 
 
+  const hasDeclaredExtends =
+    properties.has(
+      "extends"
+    ) &&
+    properties.get(
+      "extends"
+    ) !== undefined;
+
+
   const extendsName =
-    readOptionalString(
+    readOptionalThemeIdentifier(
       properties,
       "extends",
       "extends",
       diagnostics
     );
-
 
   if (
     name !== undefined &&
@@ -1497,11 +1574,14 @@ function normalizeThemeDefinition(
   /*
    * Root themes establish the color scheme inherited by descendants.
    * Derived themes may omit it and inherit the nearest explicit value.
+   *
+   * An invalid declared extends value is not treated as if inheritance
+   * had never been declared. Its own validation diagnostic is sufficient.
    */
   if (
-    extendsName === undefined &&
+    !hasDeclaredExtends &&
     metadata?.colorScheme ===
-      undefined
+    undefined
   ) {
     addDiagnostic(
       diagnostics,
@@ -1523,9 +1603,9 @@ function normalizeThemeDefinition(
 
   const result:
     ThemeDefinition = {
-      name,
-      source,
-    };
+    name,
+    source,
+  };
 
 
   if (metadata !== undefined) {

@@ -62,10 +62,10 @@ export interface ResolvedTheme {
   source: ThemeDefinition["source"];
 
   metadata:
-    ThemeMetadata & {
-      colorScheme:
-        ThemeColorScheme;
-    };
+  ThemeMetadata & {
+    colorScheme:
+    ThemeColorScheme;
+  };
 
   tokens: ThemeTokens;
 }
@@ -189,7 +189,7 @@ export class ThemeSystem {
 
     const storedTheme =
       !this.hasExplicitInitialTheme &&
-      shouldReadStoredTheme
+        shouldReadStoredTheme
         ? this.getStoredTheme()
         : null;
 
@@ -212,9 +212,9 @@ export class ThemeSystem {
       initialTheme ??
       (
         storedTheme &&
-        this.themes.has(
-          storedTheme
-        )
+          this.themes.has(
+            storedTheme
+          )
           ? storedTheme
           : undefined
       ) ??
@@ -283,7 +283,7 @@ export class ThemeSystem {
         storedTheme
       ) ||
       storedTheme ===
-        this.activeThemeName
+      this.activeThemeName
     ) {
       return false;
     }
@@ -318,6 +318,14 @@ export class ThemeSystem {
   }
 
 
+  /**
+   * Activates the next theme using registration order.
+   *
+   * Constructor themes preserve their array order.
+   * Newly registered themes are appended.
+   * Replacing an existing theme preserves its current position.
+   * Cycling from the final theme wraps to the first.
+   */
   cycleTheme(): void {
     const themes =
       Array.from(
@@ -340,10 +348,10 @@ export class ThemeSystem {
 
     const nextTheme =
       themes[
-        (
-          currentIndex + 1
-        ) %
-        themes.length
+      (
+        currentIndex + 1
+      ) %
+      themes.length
       ];
 
 
@@ -389,7 +397,7 @@ export class ThemeSystem {
 
         defaults:
           SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME[
-            colorScheme
+          colorScheme
           ],
       });
 
@@ -405,8 +413,8 @@ export class ThemeSystem {
         ...(
           theme.metadata
             ? cloneThemeValue(
-                theme.metadata
-              )
+              theme.metadata
+            )
             : {}
         ),
 
@@ -472,7 +480,10 @@ export class ThemeSystem {
       );
     }
 
-
+    /*
+    * Map.set() preserves insertion order when replacing an existing key.
+    * This keeps cycleTheme() order stable across theme replacements.
+    */
     this.themes.set(
       storedTheme.name,
       storedTheme
@@ -621,7 +632,7 @@ export class ThemeSystem {
     if (
       !this.persist ||
       typeof window ===
-        "undefined"
+      "undefined"
     ) {
       return null;
     }
@@ -643,7 +654,7 @@ export class ThemeSystem {
     if (
       !this.persist ||
       typeof window ===
-        "undefined"
+      "undefined"
     ) {
       return;
     }
