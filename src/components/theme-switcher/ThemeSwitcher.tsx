@@ -14,45 +14,69 @@ import {
 } from "../../primitives/overlay";
 
 import {
-  useUITheme,
   resolveThemeIcon,
+  useUITheme,
+  type ThemeIconRegistry,
 } from "../../theme";
+
 
 export interface ThemeSwitcherProps {
   className?: string;
 
   style?: React.CSSProperties;
 
+  /**
+   * Prefix displayed before the active theme label.
+   *
+   * Pass null to render only the active theme label.
+   */
   label?: React.ReactNode;
+
+  /**
+   * Component-local icon registry.
+   *
+   * Custom entries override built-in icon names only for this
+   * ThemeSwitcher instance.
+   */
+  icons?: ThemeIconRegistry;
 }
 
 
 export function ThemeSwitcher({
   className,
   style,
-  label = "Tema",
+  label = "Theme",
+  icons,
 }: ThemeSwitcherProps) {
   const {
-    theme,
+    resolvedTheme,
     themes,
     setTheme,
   } = useUITheme();
 
 
-  const [open, setOpen] =
-    React.useState(false);
+  const [
+    open,
+    setOpen,
+  ] =
+    React.useState(
+      false
+    );
 
 
   const selectedIndex =
     themes.findIndex(
       (item) =>
-        item.name === theme.name
+        item.name ===
+        resolvedTheme.name
     );
 
 
   const ThemeIcon =
     resolveThemeIcon(
-      theme.metadata?.icon
+      resolvedTheme.metadata
+        .icon,
+      icons
     );
 
 
@@ -69,15 +93,26 @@ export function ThemeSwitcher({
           variant="outline"
           size="sm"
           leftIcon={
-            <ThemeIcon size={16} />
+            <ThemeIcon
+              size={16}
+            />
           }
           className={className}
           style={style}
         >
-          {label}:{" "}
+          {label
+            ? (
+                <>
+                  {label}:{" "}
+                </>
+              )
+            : null}
+
           {
-            theme.metadata?.label ??
-            theme.name
+            resolvedTheme
+              .metadata
+              .label ??
+            resolvedTheme.name
           }
         </Button>
       </MenuTrigger>
@@ -86,8 +121,11 @@ export function ThemeSwitcher({
       <MenuContent
         placement="bottom-end"
         style={{
-          minWidth: "220px",
-          padding: "0.4rem",
+          minWidth:
+            "220px",
+
+          padding:
+            "0.4rem",
 
           background:
             "var(--ui-surface)",
@@ -102,62 +140,71 @@ export function ThemeSwitcher({
             "var(--ui-shadow-lg)",
         }}
       >
-        {themes.map((item) => {
-          const Icon =
-            resolveThemeIcon(
-              item.metadata?.icon
-            );
+        {themes.map(
+          (item) => {
+            const Icon =
+              resolveThemeIcon(
+                item.metadata
+                  ?.icon,
+                icons
+              );
 
 
-          const active =
-            item.name === theme.name;
+            const active =
+              item.name ===
+              resolvedTheme.name;
 
 
-          return (
-            <MenuItem
-              key={item.name}
-              onSelect={() => {
-                setTheme(item.name);
-                setOpen(false);
-
-                // requestAnimationFrame(() => {
-                //   console.log(
-                //     "THEME AFTER CLOSE",
-                //     document.activeElement
-                //   );
-                // });
-              }}
-              style={{
-                display: "flex",
-
-                alignItems:
-                  "center",
-
-                gap:
-                  "0.55rem",
-
-                fontWeight:
-                  active
-                    ? 700
-                    : 500,
-
-                background:
-                  active
-                    ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
-                    : undefined,
-              }}
-            >
-              <Icon size={16} />
-
-              <span>
-                {
-                  item.metadata?.label ??
+            return (
+              <MenuItem
+                key={
                   item.name
                 }
-              </span>
-            </MenuItem>
-          );
-        })}
+                onSelect={() => {
+                  setTheme(
+                    item.name
+                  );
+
+                  setOpen(
+                    false
+                  );
+                }}
+                style={{
+                  display:
+                    "flex",
+
+                  alignItems:
+                    "center",
+
+                  gap:
+                    "0.55rem",
+
+                  fontWeight:
+                    active
+                      ? 700
+                      : 500,
+
+                  background:
+                    active
+                      ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
+                      : undefined,
+                }}
+              >
+                <Icon
+                  size={16}
+                />
+
+                <span>
+                  {
+                    item.metadata
+                      ?.label ??
+                    item.name
+                  }
+                </span>
+              </MenuItem>
+            );
+          }
+        )}
       </MenuContent>
     </Menu>
   );

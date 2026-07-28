@@ -1,14 +1,14 @@
 // src/theme/icons/theme-icon.registry.ts
 
 import {
+  Flower2,
+  Leaf,
+  Moon,
+  Palette,
+  Snowflake,
   Sparkles,
   Sun,
-  Moon,
-  Flower2,
   SunMedium,
-  Leaf,
-  Snowflake,
-  Palette,
 } from "lucide-react";
 
 import type {
@@ -20,99 +20,54 @@ import type {
 } from "../contracts/theme.types";
 
 
-export interface RegisterThemeIconOptions {
-  overwrite?: boolean;
-}
+/**
+ * Provider-independent collection of theme icons.
+ *
+ * Consumers may supply a local registry to ThemeSwitcher or
+ * resolveThemeIcon(). The registry is never mutated by Zerina UI.
+ */
+export type ThemeIconRegistry =
+  Readonly<
+    Record<
+      ThemeIconName,
+      LucideIcon
+    >
+  >;
 
 
-const themeIconRegistry =
-  new Map<
-    ThemeIconName,
-    LucideIcon
-  >([
-    [
-      "sun",
+const BUILT_IN_THEME_ICONS:
+  ThemeIconRegistry =
+  Object.freeze({
+    sun:
       Sun,
-    ],
 
-    [
-      "moon",
+    moon:
       Moon,
-    ],
 
-    [
-      "sparkles",
+    sparkles:
       Sparkles,
-    ],
 
-    [
-      "spring",
+    spring:
       Flower2,
-    ],
 
-    [
-      "summer",
+    summer:
       SunMedium,
-    ],
 
-    [
-      "autumn",
+    autumn:
       Leaf,
-    ],
 
-    [
-      "winter",
+    winter:
       Snowflake,
-    ],
 
-    [
-      "palette",
+    palette:
       Palette,
-    ],
-  ]);
+  });
 
 
-export function getThemeIcon(
+export function getBuiltInThemeIcon(
   name: ThemeIconName
 ): LucideIcon | undefined {
-  return themeIconRegistry.get(name);
-}
-
-
-export function registerThemeIcon(
-  name: ThemeIconName,
-  icon: LucideIcon,
-  options: RegisterThemeIconOptions = {}
-): void {
-  const registeredIcon =
-    themeIconRegistry.get(name);
-
-
-  if (!registeredIcon) {
-    themeIconRegistry.set(
-      name,
-      icon
-    );
-
-    return;
-  }
-
-
-  if (registeredIcon === icon) {
-    return;
-  }
-
-
-  if (!options.overwrite) {
-    throw new Error(
-      `Theme icon "${name}" is already registered. ` +
-      "Pass { overwrite: true } to replace it."
-    );
-  }
-
-
-  themeIconRegistry.set(
-    name,
-    icon
-  );
+  return BUILT_IN_THEME_ICONS[
+    name
+  ];
 }

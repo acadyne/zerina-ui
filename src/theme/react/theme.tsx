@@ -4,6 +4,7 @@ import React from "react";
 
 import {
   ThemeSystem,
+  type ResolvedTheme,
 } from "../runtime/theme-system";
 
 import {
@@ -52,7 +53,18 @@ interface UIThemeProviderConfiguration {
 }
 
 interface UIThemeContextValue {
+  /**
+   * Original registered definition of the active theme.
+   */
   theme: ThemeDefinition;
+
+  /**
+   * Fully resolved active theme.
+   *
+   * Includes inherited values, scheme defaults and resolved
+   * extension tokens.
+   */
+  resolvedTheme: ResolvedTheme;
 
   themes: readonly ThemeDefinition[];
 
@@ -566,16 +578,16 @@ export const UIThemeProvider: React.FC<
 
     const currentConfiguration:
       UIThemeProviderConfiguration = {
-        initialTheme,
+      initialTheme,
 
-        persist,
+      persist,
 
-        storageKey,
+      storageKey,
 
-        themes:
-          themes ??
-          BUILT_IN_THEMES,
-      };
+      themes:
+        themes ??
+        BUILT_IN_THEMES,
+    };
 
 
     const initialConfigurationRef =
@@ -644,6 +656,18 @@ export const UIThemeProvider: React.FC<
       React.useState<ThemeDefinition>(
         () =>
           system.getActiveTheme()
+      );
+
+    const resolvedTheme =
+      React.useMemo(
+        () =>
+          system.resolveTheme(
+            theme.name
+          ),
+        [
+          system,
+          theme.name,
+        ]
       );
 
 
@@ -896,6 +920,8 @@ export const UIThemeProvider: React.FC<
         () => ({
           theme,
 
+          resolvedTheme,
+
           themes:
             system.getThemes(),
 
@@ -905,6 +931,7 @@ export const UIThemeProvider: React.FC<
         }),
         [
           theme,
+          resolvedTheme,
           system,
           setTheme,
           cycleTheme,

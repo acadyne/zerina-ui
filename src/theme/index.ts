@@ -45,11 +45,10 @@ export {
 
 export {
   resolveThemeIcon,
-  registerThemeIcon,
 } from "./icons";
 
 export type {
-  RegisterThemeIconOptions,
+  ThemeIconRegistry,
 } from "./icons";
 
 

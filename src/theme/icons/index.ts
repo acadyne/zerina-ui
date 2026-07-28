@@ -5,10 +5,6 @@ export {
 } from "./resolve-theme-icon";
 
 
-export {
-  registerThemeIcon,
-} from "./theme-icon.registry";
-
 export type {
-  RegisterThemeIconOptions,
+  ThemeIconRegistry,
 } from "./theme-icon.registry";
