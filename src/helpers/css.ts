@@ -1,4 +1,5 @@
 // src/helpers/css.ts
+
 import React from "react";
 
 export function cx(
@@ -102,7 +103,7 @@ export type SlotRecipe<
   input: TVariants & TState
 ) => SlotStyleMap<TSlot>;
 
-export function mergeSlotStyles<TSlot extends string>(
+function mergeStyleMaps<TSlot extends string>(
   ...maps: Array<SlotStyleMap<TSlot> | undefined>
 ): SlotStyleMap<TSlot> {
   const result: SlotStyleMap<TSlot> = {};
@@ -136,50 +137,48 @@ export function defineSlotRecipe<
   TVariants,
   TState
 >): SlotRecipe<TSlot, TVariants, TState> {
+  const variantNames = Object.keys(
+    variants ?? {}
+  ) as Array<Extract<keyof TVariants, string>>;
+
   return (input) => {
-    const selectedVariantStyles = Object.entries(input).reduce<
-      SlotStyleMap<TSlot>
-    >((acc, [variantName, selectedValue]) => {
+    let result = mergeStyleMaps(base);
+
+    for (const variantName of variantNames) {
+      const selectedValue = input[variantName];
+
       if (
-        selectedValue === undefined ||
-        typeof selectedValue === "boolean"
+        typeof selectedValue !== "string" &&
+        typeof selectedValue !== "number"
       ) {
-        return acc;
+        continue;
       }
 
-      const variantMap =
-        variants?.[variantName as keyof TVariants];
-
-      const selectedStyles =
-        variantMap?.[
-          selectedValue as Extract<
-            TVariants[keyof TVariants],
-            RecipeVariantValue
+      const variantMap = variants?.[variantName] as
+        | Partial<
+            Record<
+              RecipeVariantValue,
+              SlotStyleMap<TSlot>
+            >
           >
-        ];
+        | undefined;
 
-      return mergeSlotStyles(
-        acc,
-        selectedStyles
+      result = mergeStyleMaps(
+        result,
+        variantMap?.[selectedValue]
       );
-    }, {});
+    }
 
-    return mergeSlotStyles(
-      base,
-      selectedVariantStyles,
+    return mergeStyleMaps(
+      result,
       resolve?.(input)
     );
   };
 }
 
-export interface ResolvedSlotProps {
-  className?: string;
-  style?: React.CSSProperties;
-  rest: Omit<SlotElementProps, "className" | "style">;
-}
-
 export interface ResolveSlotOptions<TSlot extends string> {
   slot: TSlot;
+
   styles?: SlotStyleMap<TSlot>;
   slotProps?: SlotPropsMap<TSlot>;
 
@@ -193,7 +192,7 @@ export interface ResolveSlotOptions<TSlot extends string> {
 export interface ResolveLayeredSlotOptions<
   TSlot extends string,
 > {
-  slots: TSlot[];
+  slots: readonly TSlot[];
 
   contextStyles?: SlotStyleMap<TSlot>;
   contextSlotProps?: SlotPropsMap<TSlot>;
@@ -208,24 +207,47 @@ export interface ResolveLayeredSlotOptions<
   baseProps?: SlotElementProps;
 }
 
-export function getSlotStyle<TSlot extends string>(
-  styles: SlotStyleMap<TSlot> | undefined,
-  slot: TSlot
-): React.CSSProperties | undefined {
-  return styles?.[slot];
+type SlotRestProps = Omit<
+  SlotElementProps,
+  "className" | "style"
+>;
+
+interface SeparatedSlotElementProps {
+  className?: string;
+  style?: React.CSSProperties;
+  rest: SlotRestProps;
 }
 
-export function getSlotProps<TSlot extends string>(
-  slotProps: SlotPropsMap<TSlot> | undefined,
-  slot: TSlot
-): SlotElementProps {
-  return slotProps?.[slot] ?? {};
+interface SlotLayer<TSlot extends string> {
+  styles?: SlotStyleMap<TSlot>;
+  slotProps?: SlotPropsMap<TSlot>;
 }
 
-export function splitSlotProps(
+interface ResolvedSlotLayer {
+  className?: string;
+  style: React.CSSProperties;
+  rest: SlotRestProps;
+}
+
+interface ResolveSlotsOptions<TSlot extends string> {
+  slots: readonly TSlot[];
+  layers: readonly SlotLayer<TSlot>[];
+
+  className?: string;
+  style?: React.CSSProperties;
+
+  baseStyle?: React.CSSProperties;
+  baseProps?: SlotElementProps;
+}
+
+function separateSlotElementProps(
   props: SlotElementProps | undefined
-): ResolvedSlotProps {
-  const { className, style, ...rest } = props ?? {};
+): SeparatedSlotElementProps {
+  const {
+    className,
+    style,
+    ...rest
+  } = props ?? {};
 
   return {
     className,
@@ -234,119 +256,213 @@ export function splitSlotProps(
   };
 }
 
-export function resolveSlot<TSlot extends string>({
-  slot,
-  styles,
-  slotProps,
-  className,
-  style,
-  baseStyle,
-  baseProps,
-}: ResolveSlotOptions<TSlot>): SlotElementProps {
-  const resolvedBaseProps =
-    splitSlotProps(baseProps);
+function mergeDefinedSlotProperties(
+  ...sources: Array<SlotRestProps | undefined>
+): SlotRestProps {
+  const result: SlotRestProps = {};
+  const resultRecord =
+    result as unknown as Record<string, unknown>;
 
-  const resolvedUserProps =
-    splitSlotProps(
-      getSlotProps(slotProps, slot)
+  for (const source of sources) {
+    if (!source) {
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(source)) {
+      if (value !== undefined) {
+        resultRecord[key] = value;
+      }
+    }
+  }
+
+  return result;
+}
+
+function resolveSlotLayer<TSlot extends string>(
+  slots: readonly TSlot[],
+  layer: SlotLayer<TSlot>
+): ResolvedSlotLayer {
+  const declaredStyles: React.CSSProperties[] = [];
+
+  for (const slot of slots) {
+    const slotStyle = layer.styles?.[slot];
+
+    if (slotStyle) {
+      declaredStyles.push(slotStyle);
+    }
+  }
+
+  let className: string | undefined;
+  let rest: SlotRestProps = {};
+
+  const propStyles: React.CSSProperties[] = [];
+
+  for (const slot of slots) {
+    const separated = separateSlotElementProps(
+      layer.slotProps?.[slot]
     );
 
+    className = cx(
+      className,
+      separated.className
+    );
+
+    if (separated.style) {
+      propStyles.push(separated.style);
+    }
+
+    rest = mergeDefinedSlotProperties(
+      rest,
+      separated.rest
+    );
+  }
+
   return {
-    ...resolvedBaseProps.rest,
-    ...resolvedUserProps.rest,
+    className,
+
+    style: mergeStyles(
+      ...declaredStyles,
+      ...propStyles
+    ),
+
+    rest,
+  };
+}
+
+function resolveSlots<TSlot extends string>({
+  slots,
+  layers,
+
+  className: directClassName,
+  style: directStyle,
+
+  baseStyle,
+  baseProps,
+}: ResolveSlotsOptions<TSlot>): SlotElementProps {
+  const separatedBase =
+    separateSlotElementProps(baseProps);
+
+  let resolvedClassName =
+    separatedBase.className;
+
+  let resolvedStyle = mergeStyles(
+    baseStyle,
+    separatedBase.style
+  );
+
+  let resolvedRest =
+    mergeDefinedSlotProperties(
+      separatedBase.rest
+    );
+
+  for (const layer of layers) {
+    const resolvedLayer =
+      resolveSlotLayer(
+        slots,
+        layer
+      );
+
+    resolvedClassName = cx(
+      resolvedClassName,
+      resolvedLayer.className
+    );
+
+    resolvedStyle = mergeStyles(
+      resolvedStyle,
+      resolvedLayer.style
+    );
+
+    resolvedRest =
+      mergeDefinedSlotProperties(
+        resolvedRest,
+        resolvedLayer.rest
+      );
+  }
+
+  return {
+    ...resolvedRest,
 
     className: cx(
-      resolvedBaseProps.className,
-      className,
-      resolvedUserProps.className
+      resolvedClassName,
+      directClassName
     ),
 
     style: mergeStyles(
-      baseStyle,
-      getSlotStyle(styles, slot),
-      resolvedBaseProps.style,
-      resolvedUserProps.style,
-      style
+      resolvedStyle,
+      directStyle
     ),
   };
 }
 
-export function resolveMergedSlot<TSlot extends string>({
-  slots,
+export function resolveSlot<TSlot extends string>({
+  slot,
+
   styles,
   slotProps,
+
   className,
   style,
+
+  baseStyle,
+  baseProps,
+}: ResolveSlotOptions<TSlot>): SlotElementProps {
+  return resolveSlots({
+    slots: [slot],
+
+    layers: [
+      {
+        styles,
+        slotProps,
+      },
+    ],
+
+    className,
+    style,
+
+    baseStyle,
+    baseProps,
+  });
+}
+
+export function resolveMergedSlot<TSlot extends string>({
+  slots,
+
+  styles,
+  slotProps,
+
+  className,
+  style,
+
   baseStyle,
   baseProps,
 }: {
-  slots: TSlot[];
+  slots: readonly TSlot[];
+
   styles?: SlotStyleMap<TSlot>;
   slotProps?: SlotPropsMap<TSlot>;
+
   className?: string;
   style?: React.CSSProperties;
+
   baseStyle?: React.CSSProperties;
   baseProps?: SlotElementProps;
 }): SlotElementProps {
-  const merged = slots.reduce<{
-    className?: string;
-    style?: React.CSSProperties;
-    rest: Omit<
-      SlotElementProps,
-      "className" | "style"
-    >;
-  }>(
-    (acc, slot) => {
-      const resolved =
-        splitSlotProps(
-          getSlotProps(slotProps, slot)
-        );
+  return resolveSlots({
+    slots,
 
-      return {
-        className: cx(
-          acc.className,
-          resolved.className
-        ),
+    layers: [
+      {
+        styles,
+        slotProps,
+      },
+    ],
 
-        style: mergeStyles(
-          acc.style,
-          getSlotStyle(styles, slot),
-          resolved.style
-        ),
+    className,
+    style,
 
-        rest: {
-          ...acc.rest,
-          ...resolved.rest,
-        },
-      };
-    },
-    {
-      className: undefined,
-      style: undefined,
-      rest: {},
-    }
-  );
-
-  const resolvedBaseProps =
-    splitSlotProps(baseProps);
-
-  return {
-    ...resolvedBaseProps.rest,
-    ...merged.rest,
-
-    className: cx(
-      resolvedBaseProps.className,
-      className,
-      merged.className
-    ),
-
-    style: mergeStyles(
-      baseStyle,
-      resolvedBaseProps.style,
-      merged.style,
-      style
-    ),
-  };
+    baseStyle,
+    baseProps,
+  });
 }
 
 export function resolveLayeredSlot<
@@ -366,38 +482,26 @@ export function resolveLayeredSlot<
   baseStyle,
   baseProps,
 }: ResolveLayeredSlotOptions<TSlot>): SlotElementProps {
-  const contextSlot =
-    resolveMergedSlot({
-      slots,
-      styles: contextStyles,
-      slotProps: contextSlotProps,
-      baseStyle,
-      baseProps,
-    });
+  return resolveSlots({
+    slots,
 
-  const localSlot =
-    resolveMergedSlot({
-      slots,
-      styles,
-      slotProps,
-    });
+    layers: [
+      {
+        styles: contextStyles,
+        slotProps: contextSlotProps,
+      },
+      {
+        styles,
+        slotProps,
+      },
+    ],
 
-  return {
-    ...contextSlot,
-    ...localSlot,
+    className,
+    style,
 
-    className: cx(
-      contextSlot.className,
-      className,
-      localSlot.className
-    ),
-
-    style: mergeStyles(
-      contextSlot.style,
-      localSlot.style,
-      style
-    ),
-  };
+    baseStyle,
+    baseProps,
+  });
 }
 
 type MotionSlotCollision =

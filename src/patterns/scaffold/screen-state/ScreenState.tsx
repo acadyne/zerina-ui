@@ -163,51 +163,42 @@ export const ScreenState = React.forwardRef<HTMLDivElement, ScreenStateProps>(
         ? renderSuccessProp(context)
         : renderSuccess({ children, context });
 
-      const rootSlot = resolveSlot<ScreenStateSlot>({
-        slot: "root",
-        styles,
-        slotProps,
-        className,
-        style,
-        baseProps: {
-          "data-ui-screen-state": "",
-          "data-ui-screen-state-status": "success",
-        },
-        baseStyle: {
-          width: "100%",
-          minWidth: 0,
-          minHeight: 0,
-        },
-      });
+      const successSlot =
+        resolveMergedSlot<ScreenStateSlot>({
+          slots: [
+            "root",
+            "success",
+          ],
 
-      const successSlot = resolveSlot<ScreenStateSlot>({
-        slot: "success",
-        styles,
-        slotProps,
-        baseProps: {
-          "data-ui-screen-state-success": "",
-        },
-      });
+          styles,
+          slotProps,
 
-      const shouldWrapSuccess =
-        Boolean(rootSlot.className) ||
-        Boolean(successSlot.className) ||
-        Boolean(rootSlot.style && Object.keys(rootSlot.style).length > 0) ||
-        Boolean(successSlot.style && Object.keys(successSlot.style).length > 0) ||
-        Object.keys(rest).length > 0;
+          className,
+          style,
 
-      if (!shouldWrapSuccess) {
-        return <>{successNode}</>;
-      }
+          baseProps: {
+            "data-ui-screen-state":
+              "",
+
+            "data-ui-screen-state-status":
+              "success",
+
+            "data-ui-screen-state-success":
+              "",
+          },
+
+          baseStyle: {
+            width: "100%",
+            minWidth: 0,
+            minHeight: 0,
+          },
+        });
 
       return (
         <Box
           ref={ref}
-          {...rootSlot}
           {...successSlot}
           {...rest}
-          className={cx(rootSlot.className, successSlot.className)}
-          style={mergeStyles(rootSlot.style, successSlot.style)}
         >
           {successNode}
         </Box>
