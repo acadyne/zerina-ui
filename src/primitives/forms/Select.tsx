@@ -1,6 +1,6 @@
 // src/primitives/forms/Select.tsx
-import React, { forwardRef, useContext, useMemo, useState } from "react";
-import { FormControlContext } from "./FormControl";
+import React, { forwardRef, useState } from "react";
+import { useFieldControl } from "./use-field-control";
 import {
   getControlBaseStyles,
   getControlDataAttributes,
@@ -43,9 +43,8 @@ export interface SelectProps
   className?: string;
   style?: React.CSSProperties;
 
-  error?: boolean;
-  isInvalid?: boolean;
-  isDisabled?: boolean;
+  invalid?: boolean;
+  readOnly?: boolean;
   rounded?: React.CSSProperties["borderRadius"];
   minW?: React.CSSProperties["minWidth"];
   size?: SelectSize;
@@ -74,21 +73,25 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       children,
       className = "",
       style,
-      error,
-      isInvalid,
-      isDisabled,
+      invalid,
+      readOnly,
       rounded,
       minW,
       size = "md",
       variant = "outline",
       fullWidth = true,
       disabled = false,
+      required,
       placeholder,
       rightPadding,
       indicatorOffset = 10,
       id,
       onFocus,
       onBlur,
+      "aria-invalid": ariaInvalid,
+      "aria-required": ariaRequired,
+      "aria-readonly": ariaReadOnly,
+      "aria-labelledby": ariaLabelledBy,
       "aria-describedby": ariaDescribedBy,
 
       p,
@@ -113,36 +116,33 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const ctx = useContext(FormControlContext);
-    const [isFocused, setIsFocused] = useState(false);
+    const [isFocused, setIsFocused] =
+      useState(false);
 
-    const finalId = id ?? ctx?.id;
-    const finalInvalid = isInvalid ?? error ?? ctx?.isInvalid ?? false;
-    const finalDisabled = isDisabled ?? ctx?.isDisabled ?? disabled ?? false;
-    const hasPlaceholder = placeholder !== undefined;
+    const fieldControl =
+      useFieldControl({
+        id,
 
-    const describedBy = useMemo(() => {
-      const ids = new Set<string>();
+        disabled,
+        invalid,
+        required,
+        readOnly,
 
-      if (ariaDescribedBy) {
-        ariaDescribedBy
-          .split(" ")
-          .map((value) => value.trim())
-          .filter(Boolean)
-          .forEach((value) => ids.add(value));
-      }
+        ariaInvalid,
+        ariaRequired,
+        ariaReadOnly,
 
-      if (finalInvalid && ctx?.errorId) {
-        ids.add(ctx.errorId);
-      }
+        ariaLabelledBy,
+        ariaDescribedBy,
+      });
 
-      return ids.size > 0 ? Array.from(ids).join(" ") : undefined;
-    }, [ariaDescribedBy, finalInvalid, ctx?.errorId]);
+    const hasPlaceholder =
+      placeholder !== undefined;
 
     const sizeStyles = getControlSizeStyles(size);
     const controlStyles = getControlBaseStyles(size, variant, {
-      invalid: finalInvalid,
-      disabled: finalDisabled,
+      invalid: fieldControl.invalid,
+      disabled: fieldControl.disabled,
       focused: isFocused,
     });
 
@@ -210,7 +210,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         top: "50%",
         transform: "translateY(-50%)",
         pointerEvents: "none",
-        opacity: finalDisabled ? 0.55 : 0.8,
+        opacity: fieldControl.disabled ? 0.55 : 0.8,
         fontSize: 12,
         color: "var(--ui-text-muted)",
         lineHeight: 1,
@@ -222,17 +222,56 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           {...controlSlot}
           ref={ref}
-          id={finalId}
+          id={fieldControl.id}
           value={value}
-          onChange={onChange}
-          disabled={finalDisabled}
-          aria-invalid={finalInvalid || undefined}
-          aria-labelledby={ctx?.labelId}
-          aria-describedby={describedBy}
+
+          onChange={(event) => {
+            if (
+              fieldControl.readOnly
+            ) {
+              event.preventDefault();
+              return;
+            }
+
+            onChange(event);
+          }}
+
+          disabled={
+            fieldControl.disabled
+          }
+
+          required={
+            fieldControl.required
+          }
+
+          aria-invalid={
+            fieldControl.ariaInvalid
+          }
+
+          aria-required={
+            fieldControl.ariaRequired
+          }
+
+          aria-readonly={
+            fieldControl.ariaReadOnly
+          }
+
+          aria-labelledby={
+            fieldControl.ariaLabelledBy
+          }
+
+          aria-describedby={
+            fieldControl.ariaDescribedBy
+          }
+
+          data-readonly={
+            fieldControl.readOnly ||
+            undefined
+          }
           {...getControlDataAttributes({
             focused: isFocused,
-            invalid: finalInvalid,
-            disabled: finalDisabled,
+            invalid: fieldControl.invalid,
+            disabled: fieldControl.disabled,
           })}
           onFocus={(event) => {
             setIsFocused(true);

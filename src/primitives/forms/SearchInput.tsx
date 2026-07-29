@@ -10,7 +10,9 @@ import {
 import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { InputRightElement } from "./InputRightElement";
-import { FormControlContext } from "./FormControl";
+import {
+  useFieldState,
+} from "./use-field-control";
 
 export type SearchInputSlot =
   | "group"
@@ -157,9 +159,27 @@ export const SearchInput =
 
         placeholder = "Buscar…",
 
+        id,
+
         disabled,
-        isDisabled,
-        isInvalid,
+        invalid,
+        required,
+        readOnly,
+
+        "aria-invalid":
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
 
         className = "",
         style,
@@ -171,10 +191,13 @@ export const SearchInput =
       },
       ref
     ) => {
-      const ctx =
-        React.useContext(
-          FormControlContext
-        );
+      const state =
+        useFieldState({
+          disabled,
+          invalid,
+          required,
+          readOnly,
+        });
 
       const [
         clearHovered,
@@ -201,28 +224,18 @@ export const SearchInput =
           ? String(value ?? "")
           : internalValue;
 
-      const finalDisabled =
-        isDisabled ??
-        ctx?.isDisabled ??
-        disabled ??
-        false;
-
-      const finalInvalid =
-        isInvalid ??
-        ctx?.isInvalid ??
-        false;
-
       const showClear =
         clearable &&
         currentValue.length > 0 &&
-        !finalDisabled;
+        !state.disabled &&
+        !state.readOnly;
 
       const recipeStyles =
         searchInputRecipe({
           clearHovered,
 
           disabled:
-            finalDisabled,
+            state.disabled,
         });
 
       const groupSlot =
@@ -240,11 +253,15 @@ export const SearchInput =
               "",
 
             "data-ui-search-input-disabled":
-              finalDisabled ||
+              state.disabled ||
               undefined,
 
             "data-ui-search-input-invalid":
-              finalInvalid ||
+              state.invalid ||
+              undefined,
+
+            "data-ui-search-input-readonly":
+              state.readOnly ||
               undefined,
 
             "data-ui-search-input-clearable":
@@ -317,6 +334,13 @@ export const SearchInput =
       const handleClear =
         React.useCallback(() => {
           if (
+            state.disabled ||
+            state.readOnly
+          ) {
+            return;
+          }
+
+          if (
             !isControlled
           ) {
             setInternalValue("");
@@ -328,16 +352,16 @@ export const SearchInput =
           isControlled,
           onClear,
           onValueChange,
+          state.disabled,
+          state.readOnly,
         ]);
 
       return (
         <InputGroup
-          isInvalid={
-            finalInvalid
-          }
-          isDisabled={
-            finalDisabled
-          }
+          invalid={invalid}
+          disabled={disabled}
+          required={required}
+          readOnly={readOnly}
           className={
             groupSlot.className
           }
@@ -355,16 +379,32 @@ export const SearchInput =
 
           <Input
             ref={ref}
+            id={id}
             type="search"
+
+            aria-invalid={
+              ariaInvalid
+            }
+
+            aria-required={
+              ariaRequired
+            }
+
+            aria-readonly={
+              ariaReadOnly
+            }
+
+            aria-labelledby={
+              ariaLabelledBy
+            }
+
+            aria-describedby={
+              ariaDescribedBy
+            }
             value={
               isControlled
                 ? value
                 : internalValue
-            }
-            defaultValue={
-              isControlled
-                ? undefined
-                : defaultValue
             }
             onChange={(
               event
@@ -391,15 +431,6 @@ export const SearchInput =
             }}
             placeholder={
               placeholder
-            }
-            disabled={
-              finalDisabled
-            }
-            isDisabled={
-              finalDisabled
-            }
-            isInvalid={
-              finalInvalid
             }
             leftPadding="2.35rem"
             rightPadding={

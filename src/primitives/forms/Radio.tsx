@@ -1,8 +1,7 @@
 // src/primitives/forms/Radio.tsx
 import React, {
   forwardRef,
-  useContext,
-  useId,
+  useState,
 } from "react";
 import {
   defineSlotRecipe,
@@ -10,7 +9,9 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { FormControlContext } from "./FormControl";
+import {
+  useFieldControl,
+} from "./use-field-control";
 import { useRadioGroupContext } from "./RadioGroup";
 import {
   useFocusVisible,
@@ -36,6 +37,8 @@ export interface RadioProps
     "type" | "size"
   > {
   label?: React.ReactNode;
+
+  invalid?: boolean;
 
   color?: string;
   boxSize?: number;
@@ -240,13 +243,24 @@ export const Radio =
         onChange,
 
         disabled,
+        invalid,
         required,
+        readOnly,
 
         "aria-describedby":
-        ariaDescribedBy,
+          ariaDescribedBy,
+
+        "aria-labelledby":
+          ariaLabelledBy,
 
         "aria-invalid":
-        ariaInvalid,
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
 
         color =
         "var(--ui-primary)",
@@ -264,6 +278,7 @@ export const Radio =
 
         onFocus,
         onBlur,
+        onClick,
 
         name,
 
@@ -271,32 +286,64 @@ export const Radio =
       },
       ref
     ) => {
-      const autoId = useId();
-
       const group =
         useRadioGroupContext();
 
-      const ctx =
-        useContext(
-          FormControlContext
-        );
+      const groupManaged =
+        checked === undefined &&
+        group !== null &&
+        value !== undefined;
 
-      const inputId =
-        id ??
-        ctx?.id ??
-        `radio-${autoId}`;
+      const externallyControlled =
+        checked !== undefined ||
+        groupManaged;
 
+      const [
+        internalChecked,
+        setInternalChecked,
+      ] = useState(
+        Boolean(defaultChecked)
+      );
 
+      const fieldControl =
+        useFieldControl({
+          id,
+
+          disabled,
+          invalid,
+          required,
+          readOnly,
+
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
+
+          ariaLabelledBy,
+          ariaDescribedBy,
+
+          kind:
+            group === null
+              ? "control"
+              : "group-item",
+
+          includeFieldDescription:
+            group === null,
+
+          additionalState:
+            group?.state,
+        });
 
       const resolvedName =
         group?.name ??
         name;
 
-      const resolvedDisabled =
-        group?.isDisabled ??
-        ctx?.isDisabled ??
-        disabled ??
-        false;
+      const visualChecked =
+        checked !== undefined
+          ? Boolean(checked)
+          : groupManaged
+            ? group?.value ===
+              String(value)
+            : internalChecked;
 
       const {
         focusVisible,
@@ -304,52 +351,11 @@ export const Radio =
       } =
         useFocusVisible<HTMLInputElement>({
           disabled:
-            resolvedDisabled,
+            fieldControl.disabled,
 
           onFocus,
           onBlur,
         });
-
-      const finalInvalid =
-        ariaInvalid ??
-        ctx?.isInvalid ??
-        false;
-
-      const finalRequired =
-        required ??
-        ctx?.isRequired ??
-        false;
-
-      const describedBy =
-        [
-          ariaDescribedBy,
-          ctx?.helpTextId,
-
-          finalInvalid
-            ? ctx?.errorId
-            : undefined,
-        ]
-          .filter(Boolean)
-          .join(" ") ||
-        undefined;
-
-      const resolvedChecked =
-        checked !== undefined
-          ? checked
-          : group?.value !==
-            undefined &&
-            value !== undefined
-            ? group.value ===
-            String(value)
-            : undefined;
-
-      const visualChecked =
-        resolvedChecked !==
-          undefined
-          ? resolvedChecked
-          : Boolean(
-            defaultChecked
-          );
 
       const WrapperTag =
         label
@@ -369,7 +375,7 @@ export const Radio =
           focusVisible,
 
           disabled:
-            resolvedDisabled,
+            fieldControl.disabled,
         });
 
       const rootSlot =
@@ -391,11 +397,11 @@ export const Radio =
               undefined,
 
             "data-ui-radio-disabled":
-              resolvedDisabled ||
+              fieldControl.disabled ||
               undefined,
 
             "data-ui-radio-invalid":
-              finalInvalid ||
+              fieldControl.invalid ||
               undefined,
 
             "data-ui-radio-focus-visible":
@@ -480,7 +486,7 @@ export const Radio =
             label
               ? {
                 htmlFor:
-                  inputId,
+                  fieldControl.id,
               }
               : {}
           )}
@@ -492,51 +498,87 @@ export const Radio =
               {...inputSlot}
               {...rest}
               ref={ref}
-              id={inputId}
+              id={fieldControl.id}
               type="radio"
               name={resolvedName}
               value={value}
               checked={
-                resolvedChecked
+                visualChecked
               }
-              defaultChecked={
-                defaultChecked
-              }
+
               disabled={
-                resolvedDisabled
+                fieldControl.disabled
               }
+
               required={
-                finalRequired
+                fieldControl.required
               }
+
               aria-invalid={
-                finalInvalid ||
+                fieldControl.ariaInvalid
+              }
+
+              aria-required={
+                fieldControl.ariaRequired
+              }
+
+              aria-readonly={
+                fieldControl.ariaReadOnly
+              }
+
+              aria-describedby={
+                fieldControl.ariaDescribedBy
+              }
+
+              aria-labelledby={
+                fieldControl
+                  .ariaLabelledBy
+              }
+
+              data-readonly={
+                fieldControl.readOnly ||
                 undefined
               }
-              aria-describedby={
-                describedBy
-              }
-              aria-labelledby={
-                label
-                  ? undefined
-                  : ctx?.labelId
-              }
-              onChange={(
-                event
-              ) => {
+
+              onClick={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                }
+
+                onClick?.(event);
+              }}
+
+              onChange={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                  return;
+                }
+
+                if (
+                  !externallyControlled
+                ) {
+                  setInternalChecked(
+                    event.currentTarget
+                      .checked
+                  );
+                }
+
                 onChange?.(
                   event
                 );
 
                 if (
-                  group?.onChange &&
+                  groupManaged &&
                   event.currentTarget
-                    .value !==
-                  undefined
+                    .checked
                 ) {
-                  group.onChange(
+                  group?.selectValue(
+                    String(value),
                     event
-                      .currentTarget
-                      .value
                   );
                 }
               }}

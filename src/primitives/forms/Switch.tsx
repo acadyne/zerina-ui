@@ -1,8 +1,6 @@
 // src/primitives/forms/Switch.tsx
 import React, {
   forwardRef,
-  useContext,
-  useId,
   useState,
 } from "react";
 import {
@@ -11,7 +9,9 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { FormControlContext } from "./FormControl";
+import {
+  useFieldControl,
+} from "./use-field-control";
 import {
   useFocusVisible,
 } from "../../core/interaction/focus";
@@ -35,6 +35,7 @@ export interface SwitchProps
     "type" | "size"
   > {
   label?: React.ReactNode;
+  invalid?: boolean;
 
   labelPlacement?:
   | "right"
@@ -326,13 +327,24 @@ export const Switch =
         onChange,
 
         disabled,
+        invalid,
         required,
+        readOnly,
 
         "aria-describedby":
-        ariaDescribedBy,
+          ariaDescribedBy,
+
+        "aria-labelledby":
+          ariaLabelledBy,
 
         "aria-invalid":
-        ariaInvalid,
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
 
         size = "md",
 
@@ -350,25 +362,12 @@ export const Switch =
 
         onFocus,
         onBlur,
+        onClick,
 
         ...rest
       },
       ref
     ) => {
-      const autoId = useId();
-
-      const ctx =
-        useContext(
-          FormControlContext
-        );
-
-      const inputId =
-        id ??
-        ctx?.id ??
-        `sw-${autoId}`;
-
-
-
       const isControlled =
         checked !== undefined;
 
@@ -384,10 +383,22 @@ export const Switch =
           ? Boolean(checked)
           : internalChecked;
 
-      const finalDisabled =
-        ctx?.isDisabled ??
-        disabled ??
-        false;
+      const fieldControl =
+        useFieldControl({
+          id,
+
+          disabled,
+          invalid,
+          required,
+          readOnly,
+
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
+
+          ariaLabelledBy,
+          ariaDescribedBy,
+        });
 
       const {
         focusVisible,
@@ -395,34 +406,11 @@ export const Switch =
       } =
         useFocusVisible<HTMLInputElement>({
           disabled:
-            finalDisabled,
+            fieldControl.disabled,
 
           onFocus,
           onBlur,
         });
-
-      const finalInvalid =
-        ariaInvalid ??
-        ctx?.isInvalid ??
-        false;
-
-      const finalRequired =
-        required ??
-        ctx?.isRequired ??
-        false;
-
-      const describedBy =
-        [
-          ariaDescribedBy,
-          ctx?.helpTextId,
-
-          finalInvalid
-            ? ctx?.errorId
-            : undefined,
-        ]
-          .filter(Boolean)
-          .join(" ") ||
-        undefined;
 
       const WrapperTag =
         label
@@ -441,7 +429,7 @@ export const Switch =
           focusVisible,
 
           disabled:
-            finalDisabled,
+            fieldControl.disabled,
         });
 
       const rootSlot =
@@ -463,11 +451,11 @@ export const Switch =
               undefined,
 
             "data-ui-switch-disabled":
-              finalDisabled ||
+              fieldControl.disabled ||
               undefined,
 
             "data-ui-switch-invalid":
-              finalInvalid ||
+              fieldControl.invalid ||
               undefined,
 
             "data-ui-switch-focus-visible":
@@ -540,7 +528,7 @@ export const Switch =
             label
               ? {
                 htmlFor:
-                  inputId,
+                  fieldControl.id,
               }
               : {}
           )}
@@ -552,41 +540,71 @@ export const Switch =
               {...inputSlot}
               {...rest}
               ref={ref}
-              id={inputId}
+              id={fieldControl.id}
               type="checkbox"
               role="switch"
-              checked={checked}
-              defaultChecked={
-                defaultChecked
-              }
+              checked={isOn}
+
               disabled={
-                finalDisabled
+                fieldControl.disabled
               }
+
               required={
-                finalRequired
+                fieldControl.required
               }
+
               aria-checked={isOn}
+
               aria-invalid={
-                finalInvalid ||
+                fieldControl.ariaInvalid
+              }
+
+              aria-required={
+                fieldControl.ariaRequired
+              }
+
+              aria-readonly={
+                fieldControl.ariaReadOnly
+              }
+
+              aria-describedby={
+                fieldControl
+                  .ariaDescribedBy
+              }
+
+              aria-labelledby={
+                fieldControl
+                  .ariaLabelledBy
+              }
+
+              data-readonly={
+                fieldControl.readOnly ||
                 undefined
               }
-              aria-describedby={
-                describedBy
-              }
-              aria-labelledby={
-                label
-                  ? undefined
-                  : ctx?.labelId
-              }
-              onChange={(
-                event
-              ) => {
+
+              onClick={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                }
+
+                onClick?.(event);
+              }}
+
+              onChange={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                  return;
+                }
+
                 if (
                   !isControlled
                 ) {
                   setInternalChecked(
-                    event
-                      .currentTarget
+                    event.currentTarget
                       .checked
                   );
                 }

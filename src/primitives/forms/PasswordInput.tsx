@@ -10,7 +10,9 @@ import {
 import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { InputRightElement } from "./InputRightElement";
-import { FormControlContext } from "./FormControl";
+import {
+  useFieldState,
+} from "./use-field-control";
 
 export type PasswordInputSlot =
   | "group"
@@ -127,9 +129,27 @@ export const PasswordInput =
         hideLabel =
           "Ocultar contraseña",
 
+        id,
+
         disabled,
-        isDisabled,
-        isInvalid,
+        invalid,
+        required,
+        readOnly,
+
+        "aria-invalid":
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
 
         className = "",
         style,
@@ -141,10 +161,13 @@ export const PasswordInput =
       },
       ref
     ) => {
-      const ctx =
-        React.useContext(
-          FormControlContext
-        );
+      const state =
+        useFieldState({
+          disabled,
+          invalid,
+          required,
+          readOnly,
+        });
 
       const [
         visible,
@@ -158,24 +181,13 @@ export const PasswordInput =
       ] =
         React.useState(false);
 
-      const finalDisabled =
-        isDisabled ??
-        ctx?.isDisabled ??
-        disabled ??
-        false;
-
-      const finalInvalid =
-        isInvalid ??
-        ctx?.isInvalid ??
-        false;
-
       const recipeStyles =
         passwordInputRecipe({
           hovered:
             toggleHovered,
 
           disabled:
-            finalDisabled,
+            state.disabled,
         });
 
       const groupSlot =
@@ -197,11 +209,15 @@ export const PasswordInput =
               undefined,
 
             "data-ui-password-input-disabled":
-              finalDisabled ||
+              state.disabled ||
               undefined,
 
             "data-ui-password-input-invalid":
-              finalInvalid ||
+              state.invalid ||
+              undefined,
+
+            "data-ui-password-input-readonly":
+              state.readOnly ||
               undefined,
           },
 
@@ -253,12 +269,10 @@ export const PasswordInput =
 
       return (
         <InputGroup
-          isInvalid={
-            finalInvalid
-          }
-          isDisabled={
-            finalDisabled
-          }
+          invalid={invalid}
+          disabled={disabled}
+          required={required}
+          readOnly={readOnly}
           className={
             groupSlot.className
           }
@@ -268,19 +282,32 @@ export const PasswordInput =
         >
           <Input
             ref={ref}
+            id={id}
+
+            aria-invalid={
+              ariaInvalid
+            }
+
+            aria-required={
+              ariaRequired
+            }
+
+            aria-readonly={
+              ariaReadOnly
+            }
+
+            aria-labelledby={
+              ariaLabelledBy
+            }
+
+            aria-describedby={
+              ariaDescribedBy
+            }
+
             type={
               visible
                 ? "text"
                 : "password"
-            }
-            disabled={
-              finalDisabled
-            }
-            isDisabled={
-              finalDisabled
-            }
-            isInvalid={
-              finalInvalid
             }
             rightPadding="2.75rem"
             className={
@@ -312,7 +339,7 @@ export const PasswordInput =
                 visible
               }
               disabled={
-                finalDisabled
+                state.disabled
               }
               onClick={() => {
                 setVisible(

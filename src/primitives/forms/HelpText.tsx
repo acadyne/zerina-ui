@@ -1,21 +1,31 @@
-// src/primitives/forms/HelpText.tsx
-import React from "react";
+import React, {
+  useContext,
+} from "react";
+
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { FormControlContext } from "./FormControl";
+
+import {
+  FieldContext,
+} from "./field-context";
+
 
 export type HelpTextSlot = "root";
 
-export type HelpTextStyles = SlotStyleMap<HelpTextSlot>;
+export type HelpTextStyles =
+  SlotStyleMap<HelpTextSlot>;
 
-export type HelpTextSlotProps = SlotPropsMap<HelpTextSlot>;
+export type HelpTextSlotProps =
+  SlotPropsMap<HelpTextSlot>;
+
 
 export interface HelpTextProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
   children?: React.ReactNode;
+
   className?: string;
   style?: React.CSSProperties;
 
@@ -23,46 +33,90 @@ export interface HelpTextProps
   slotProps?: HelpTextSlotProps;
 }
 
-export const HelpText = React.forwardRef<HTMLParagraphElement, HelpTextProps>(
-  (
-    {
-      children,
-      className = "",
-      style,
-      styles,
-      slotProps,
-      ...rest
-    },
-    ref
-  ) => {
-    const ctx = React.useContext(FormControlContext);
 
-    if (!children) {
-      return null;
-    }
+export const HelpText =
+  React.forwardRef<
+    HTMLParagraphElement,
+    HelpTextProps
+  >(
+    (
+      {
+        children,
+        id,
 
-    const rootSlot = resolveSlot<HelpTextSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseStyle: {
-        marginTop: "0.35rem",
-        fontSize: "var(--ui-font-size-sm)",
-        color: "var(--ui-text-muted)",
-        lineHeight: 1.35,
-        wordBreak: "break-word",
-        minWidth: 0,
+        className = "",
+        style,
+
+        styles,
+        slotProps,
+
+        ...rest
       },
-    });
+      ref
+    ) => {
+      const field =
+        useContext(
+          FieldContext
+        );
 
-    return (
-      <p {...rootSlot} ref={ref} id={ctx?.helpTextId} {...rest}>
-        {children}
-      </p>
-    );
-  }
-);
+      if (
+        children === null ||
+        children === undefined ||
+        children === false ||
+        children === true
+      ) {
+        return null;
+      }
 
-HelpText.displayName = "HelpText";
+      const rootSlot =
+        resolveSlot<HelpTextSlot>({
+          slot:
+            "root",
+
+          styles,
+          slotProps,
+
+          className,
+          style,
+
+          baseStyle: {
+            marginTop:
+              "0.35rem",
+
+            fontSize:
+              "var(--ui-font-size-sm)",
+
+            color:
+              "var(--ui-text-muted)",
+
+            lineHeight:
+              1.35,
+
+            wordBreak:
+              "break-word",
+
+            minWidth:
+              0,
+          },
+        });
+
+      return (
+        <p
+          {...rest}
+          {...rootSlot}
+          ref={ref}
+
+          id={
+            field?.helpTextId ??
+            id
+          }
+        >
+          {children}
+        </p>
+      );
+    }
+  );
+
+
+HelpText.displayName =
+  "HelpText";

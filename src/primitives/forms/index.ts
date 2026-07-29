@@ -5,6 +5,7 @@ export * from "./Field";
 export { FormControl } from "./FormControl";
 
 export type {
+  FieldLabelAssociation,
   FormControlProps,
   FormControlSlot,
   FormControlSlotProps,

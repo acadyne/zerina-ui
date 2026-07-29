@@ -1,39 +1,91 @@
-// src/primitives/forms/RadioGroup.tsx
 import React from "react";
+
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { Stack } from "../layout/Stack";
 
-type RadioGroupValue = {
+import {
+  Stack,
+} from "../layout/Stack";
+
+import {
+  useFieldControl,
+} from "./use-field-control";
+
+import type {
+  FieldState,
+} from "./field-semantics";
+
+
+type RadioGroupContextValue = {
   name: string;
   value?: string;
-  onChange?: (value: string) => void;
-  isDisabled?: boolean;
+
+  selectValue: (
+    value: string,
+    event:
+      React.ChangeEvent<HTMLInputElement>
+  ) => void;
+
+  state: FieldState;
 };
 
-const RadioGroupContext = React.createContext<RadioGroupValue | null>(null);
+
+const RadioGroupContext =
+  React.createContext<
+    RadioGroupContextValue | null
+  >(null);
+
 
 export function useRadioGroupContext() {
-  return React.useContext(RadioGroupContext);
+  return React.useContext(
+    RadioGroupContext
+  );
 }
 
-export type RadioGroupSlot = "root";
 
-export type RadioGroupStyles = SlotStyleMap<RadioGroupSlot>;
+export type RadioGroupSlot =
+  "root";
 
-export type RadioGroupSlotProps = SlotPropsMap<RadioGroupSlot>;
+export type RadioGroupStyles =
+  SlotStyleMap<RadioGroupSlot>;
 
-export interface RadioGroupProps {
+export type RadioGroupSlotProps =
+  SlotPropsMap<RadioGroupSlot>;
+
+
+export interface RadioGroupProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    | "defaultValue"
+    | "onChange"
+  > {
   children?: React.ReactNode;
+
   name: string;
+
   value?: string;
-  onChange?: (value: string) => void;
-  isDisabled?: boolean;
-  direction?: "row" | "column";
-  spacing?: React.CSSProperties["gap"];
+  defaultValue?: string;
+
+  onValueChange?: (
+    value: string,
+    event:
+      React.ChangeEvent<HTMLInputElement>
+  ) => void;
+
+  disabled?: boolean;
+  invalid?: boolean;
+  required?: boolean;
+  readOnly?: boolean;
+
+  direction?:
+    | "row"
+    | "column";
+
+  spacing?:
+    React.CSSProperties["gap"];
 
   className?: string;
   style?: React.CSSProperties;
@@ -42,61 +94,247 @@ export interface RadioGroupProps {
   slotProps?: RadioGroupSlotProps;
 }
 
-export const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
-  (
-    {
-      children,
-      name,
-      value,
-      onChange,
-      isDisabled = false,
-      direction = "column",
-      spacing = "0.65rem",
-      className = "",
-      style,
-      styles,
-      slotProps,
-    },
-    ref
-  ) => {
-    const ctx = React.useMemo<RadioGroupValue>(
-      () => ({
+
+export const RadioGroup =
+  React.forwardRef<
+    HTMLDivElement,
+    RadioGroupProps
+  >(
+    (
+      {
+        children,
+
+        id,
         name,
+
         value,
-        onChange,
-        isDisabled,
-      }),
-      [name, value, onChange, isDisabled]
-    );
+        defaultValue,
+        onValueChange,
 
-    const rootSlot = resolveSlot<RadioGroupSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        role: "radiogroup",
-        "data-ui-radio-group": "",
-        "data-ui-radio-group-disabled": isDisabled || undefined,
+        disabled,
+        invalid,
+        required,
+        readOnly,
+
+        direction =
+          "column",
+
+        spacing =
+          "0.65rem",
+
+        className = "",
+        style,
+
+        styles,
+        slotProps,
+
+        "aria-invalid":
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
+
+        ...rest
       },
-    });
+      ref
+    ) => {
+      const controlled =
+        value !== undefined;
 
-    return (
-      <RadioGroupContext.Provider value={ctx}>
-        <Stack
-          ref={ref}
-          direction={direction}
-          spacing={spacing}
-          className={rootSlot.className}
-          style={rootSlot.style}
-          {...rootSlot}
+      const [
+        internalValue,
+        setInternalValue,
+      ] = React.useState<
+        string | undefined
+      >(
+        defaultValue
+      );
+
+      const currentValue =
+        controlled
+          ? value
+          : internalValue;
+
+      const fieldControl =
+        useFieldControl({
+          id,
+
+          disabled,
+          invalid,
+          required,
+          readOnly,
+
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
+
+          ariaLabelledBy,
+          ariaDescribedBy,
+
+          kind:
+            "group",
+        });
+
+      const selectValue =
+        React.useCallback(
+          (
+            nextValue: string,
+            event:
+              React.ChangeEvent<HTMLInputElement>
+          ) => {
+            if (
+              fieldControl.disabled ||
+              fieldControl.readOnly
+            ) {
+              event.preventDefault();
+              return;
+            }
+
+            if (!controlled) {
+              setInternalValue(
+                nextValue
+              );
+            }
+
+            onValueChange?.(
+              nextValue,
+              event
+            );
+          },
+          [
+            controlled,
+            fieldControl.disabled,
+            fieldControl.readOnly,
+            onValueChange,
+          ]
+        );
+
+      const contextValue =
+        React.useMemo<
+          RadioGroupContextValue
+        >(
+          () => ({
+            name,
+
+            value:
+              currentValue,
+
+            selectValue,
+
+            state: {
+              disabled:
+                fieldControl.disabled,
+
+              invalid:
+                fieldControl.invalid,
+
+              required:
+                fieldControl.required,
+
+              readOnly:
+                fieldControl.readOnly,
+            },
+          }),
+          [
+            name,
+            currentValue,
+            selectValue,
+
+            fieldControl.disabled,
+            fieldControl.invalid,
+            fieldControl.required,
+            fieldControl.readOnly,
+          ]
+        );
+
+      const rootSlot =
+        resolveSlot<RadioGroupSlot>({
+          slot:
+            "root",
+
+          styles,
+          slotProps,
+
+          className,
+          style,
+
+          baseProps: {
+            id:
+              fieldControl.id,
+
+            role:
+              "radiogroup",
+
+            "data-ui-radio-group":
+              "",
+
+            "data-ui-radio-group-disabled":
+              fieldControl.disabled ||
+              undefined,
+
+            "data-ui-radio-group-invalid":
+              fieldControl.invalid ||
+              undefined,
+
+            "data-ui-radio-group-required":
+              fieldControl.required ||
+              undefined,
+
+            "data-ui-radio-group-readonly":
+              fieldControl.readOnly ||
+              undefined,
+
+            "aria-invalid":
+              fieldControl.ariaInvalid,
+
+            "aria-required":
+              fieldControl.ariaRequired,
+
+            "aria-readonly":
+              fieldControl.ariaReadOnly,
+
+            "aria-labelledby":
+              fieldControl.ariaLabelledBy,
+
+            "aria-describedby":
+              fieldControl.ariaDescribedBy,
+          },
+        });
+
+      return (
+        <RadioGroupContext.Provider
+          value={contextValue}
         >
-          {children}
-        </Stack>
-      </RadioGroupContext.Provider>
-    );
-  }
-);
+          <Stack
+            {...rest}
+            {...rootSlot}
 
-RadioGroup.displayName = "RadioGroup";
+            ref={ref}
+
+            direction={
+              direction
+            }
+
+            spacing={
+              spacing
+            }
+          >
+            {children}
+          </Stack>
+        </RadioGroupContext.Provider>
+      );
+    }
+  );
+
+
+RadioGroup.displayName =
+  "RadioGroup";

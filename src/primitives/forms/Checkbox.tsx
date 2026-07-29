@@ -1,9 +1,7 @@
 // src/primitives/forms/Checkbox.tsx
 import React, {
   forwardRef,
-  useContext,
   useEffect,
-  useId,
   useRef,
   useState,
 } from "react";
@@ -13,7 +11,9 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { FormControlContext } from "./FormControl";
+import {
+  useFieldControl,
+} from "./use-field-control";
 import { setRef } from "../../core/interaction/events";
 import {
   useFocusVisible,
@@ -39,6 +39,7 @@ export interface CheckboxProps
     "type" | "size"
   > {
   label?: React.ReactNode;
+  invalid?: boolean;
   indeterminate?: boolean;
   color?: string;
   boxSize?: number;
@@ -310,13 +311,24 @@ export const Checkbox =
         onChange,
 
         disabled,
+        invalid,
         required,
+        readOnly,
 
         "aria-describedby":
-        ariaDescribedBy,
+          ariaDescribedBy,
+
+        "aria-labelledby":
+          ariaLabelledBy,
 
         "aria-invalid":
-        ariaInvalid,
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
 
         indeterminate = false,
 
@@ -337,23 +349,12 @@ export const Checkbox =
 
         onFocus,
         onBlur,
+        onClick,
 
         ...rest
       },
       ref
     ) => {
-      const autoId = useId();
-
-      const ctx =
-        useContext(
-          FormControlContext
-        );
-
-      const inputId =
-        id ??
-        ctx?.id ??
-        `cb-${autoId}`;
-
       const innerRef =
         useRef<HTMLInputElement | null>(
           null
@@ -378,10 +379,22 @@ export const Checkbox =
         indeterminate ||
         visualChecked;
 
-      const finalDisabled =
-        ctx?.isDisabled ??
-        disabled ??
-        false;
+      const fieldControl =
+        useFieldControl({
+          id,
+
+          disabled,
+          invalid,
+          required,
+          readOnly,
+
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
+
+          ariaLabelledBy,
+          ariaDescribedBy,
+        });
 
       const {
         focusVisible,
@@ -389,35 +402,11 @@ export const Checkbox =
       } =
         useFocusVisible<HTMLInputElement>({
           disabled:
-            finalDisabled,
+            fieldControl.disabled,
 
           onFocus,
           onBlur,
         });
-
-
-      const finalInvalid =
-        ariaInvalid ??
-        ctx?.isInvalid ??
-        false;
-
-      const finalRequired =
-        required ??
-        ctx?.isRequired ??
-        false;
-
-      const describedBy =
-        [
-          ariaDescribedBy,
-          ctx?.helpTextId,
-
-          finalInvalid
-            ? ctx?.errorId
-            : undefined,
-        ]
-          .filter(Boolean)
-          .join(" ") ||
-        undefined;
 
       useEffect(() => {
         if (
@@ -469,7 +458,7 @@ export const Checkbox =
           focusVisible,
 
           disabled:
-            finalDisabled,
+            fieldControl.disabled,
         });
 
       const rootSlot =
@@ -495,11 +484,11 @@ export const Checkbox =
               undefined,
 
             "data-ui-checkbox-disabled":
-              finalDisabled ||
+              fieldControl.disabled ||
               undefined,
 
             "data-ui-checkbox-invalid":
-              finalInvalid ||
+              fieldControl.invalid ||
               undefined,
 
             "data-ui-checkbox-focus-visible":
@@ -584,7 +573,7 @@ export const Checkbox =
             label
               ? {
                 htmlFor:
-                  inputId,
+                  fieldControl.id,
               }
               : {}
           )}
@@ -595,45 +584,77 @@ export const Checkbox =
             <input
               {...inputSlot}
               {...rest}
-              id={inputId}
+              id={fieldControl.id}
               ref={setRefs}
               type="checkbox"
-              checked={checked}
-              defaultChecked={
-                defaultChecked
+              checked={
+                visualChecked
               }
+
               disabled={
-                finalDisabled
+                fieldControl.disabled
               }
+
               required={
-                finalRequired
+                fieldControl.required
               }
+
               aria-checked={
                 indeterminate
                   ? "mixed"
                   : visualChecked
               }
+
               aria-invalid={
-                finalInvalid ||
+                fieldControl.ariaInvalid
+              }
+
+              aria-required={
+                fieldControl.ariaRequired
+              }
+
+              aria-readonly={
+                fieldControl.ariaReadOnly
+              }
+
+              aria-describedby={
+                fieldControl
+                  .ariaDescribedBy
+              }
+
+              aria-labelledby={
+                fieldControl
+                  .ariaLabelledBy
+              }
+
+              data-readonly={
+                fieldControl.readOnly ||
                 undefined
               }
-              aria-describedby={
-                describedBy
-              }
-              aria-labelledby={
-                label
-                  ? undefined
-                  : ctx?.labelId
-              }
-              onChange={(
-                event
-              ) => {
+
+              onClick={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                }
+
+                onClick?.(event);
+              }}
+
+              onChange={(event) => {
+                if (
+                  fieldControl.readOnly
+                ) {
+                  event.preventDefault();
+                  return;
+                }
+
                 if (
                   !isControlled
                 ) {
                   setInternalChecked(
-                    event
-                      .currentTarget
+                    event.currentTarget
                       .checked
                   );
                 }

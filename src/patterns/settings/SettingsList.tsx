@@ -688,7 +688,6 @@ const SettingsListSelect =
         options,
         children,
         disabled,
-        isDisabled,
         selectWidth = 150,
         size = "sm",
         ...rest
@@ -696,9 +695,7 @@ const SettingsListSelect =
       ref
     ) => {
       const finalDisabled =
-        isDisabled ??
-        disabled ??
-        false;
+        Boolean(disabled);
 
       return (
         <List.Item
@@ -722,8 +719,9 @@ const SettingsListSelect =
                 size={size}
                 value={value}
                 options={options}
-                disabled={disabled}
-                isDisabled={isDisabled}
+                disabled={
+                  finalDisabled
+                }
                 fullWidth
                 onChange={(event) => {
                   onValueChange(

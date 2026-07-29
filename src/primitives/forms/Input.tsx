@@ -1,6 +1,6 @@
 // src/primitives/forms/Input.tsx
-import React, { forwardRef, useContext, useMemo, useState } from "react";
-import { FormControlContext } from "./FormControl";
+import React, { forwardRef, useState } from "react";
+import { useFieldControl } from "./use-field-control";
 import {
   getControlBaseStyles,
   getControlDataAttributes,
@@ -31,8 +31,7 @@ export interface InputProps
 
   size?: InputSize;
   variant?: InputVariant;
-  isInvalid?: boolean;
-  isDisabled?: boolean;
+  invalid?: boolean;
   leftPadding?: number | string;
   rightPadding?: number | string;
   fullWidth?: boolean;
@@ -54,16 +53,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       style,
       size = "md",
       variant = "outline",
-      isInvalid,
-      isDisabled,
+      invalid,
       leftPadding,
       rightPadding,
       type = "text",
       id,
       disabled,
+      required,
+      readOnly,
       fullWidth = true,
       onFocus,
       onBlur,
+      "aria-invalid": ariaInvalid,
+      "aria-required": ariaRequired,
+      "aria-readonly": ariaReadOnly,
+      "aria-labelledby": ariaLabelledBy,
       "aria-describedby": ariaDescribedBy,
 
       p,
@@ -88,35 +92,30 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const ctx = useContext(FormControlContext);
-    const [isFocused, setIsFocused] = useState(false);
+    const [isFocused, setIsFocused] =
+      useState(false);
 
-    const finalId = id ?? ctx?.id;
-    const finalInvalid = isInvalid ?? ctx?.isInvalid ?? false;
-    const finalDisabled = isDisabled ?? ctx?.isDisabled ?? disabled ?? false;
+    const fieldControl =
+      useFieldControl({
+        id,
 
-    const describedBy = useMemo(() => {
-      const ids = new Set<string>();
+        disabled,
+        invalid,
+        required,
+        readOnly,
 
-      if (ariaDescribedBy) {
-        ariaDescribedBy
-          .split(" ")
-          .map((value) => value.trim())
-          .filter(Boolean)
-          .forEach((value) => ids.add(value));
-      }
+        ariaInvalid,
+        ariaRequired,
+        ariaReadOnly,
 
-      if (finalInvalid && ctx?.errorId) {
-        ids.add(ctx.errorId);
-      }
-
-      return ids.size > 0 ? Array.from(ids).join(" ") : undefined;
-    }, [ariaDescribedBy, finalInvalid, ctx?.errorId]);
+        ariaLabelledBy,
+        ariaDescribedBy,
+      });
 
     const sizeStyles = getControlSizeStyles(size);
     const controlStyles = getControlBaseStyles(size, variant, {
-      invalid: finalInvalid,
-      disabled: finalDisabled,
+      invalid: fieldControl.invalid,
+      disabled: fieldControl.disabled,
       focused: isFocused,
     });
 
@@ -167,16 +166,49 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         {...rootSlot}
         ref={ref}
-        id={finalId}
+        id={fieldControl.id}
         type={type}
-        disabled={finalDisabled}
-        aria-invalid={finalInvalid || undefined}
-        aria-labelledby={ctx?.labelId}
-        aria-describedby={describedBy}
+
+        disabled={
+          fieldControl.disabled
+        }
+
+        required={
+          fieldControl.required
+        }
+
+        readOnly={
+          fieldControl.readOnly
+        }
+
+        aria-invalid={
+          fieldControl.ariaInvalid
+        }
+
+        aria-required={
+          fieldControl.ariaRequired
+        }
+
+        aria-readonly={
+          fieldControl.ariaReadOnly
+        }
+
+        aria-labelledby={
+          fieldControl.ariaLabelledBy
+        }
+
+        aria-describedby={
+          fieldControl.ariaDescribedBy
+        }
+
+        data-readonly={
+          fieldControl.readOnly ||
+          undefined
+        }
         {...getControlDataAttributes({
           focused: isFocused,
-          invalid: finalInvalid,
-          disabled: finalDisabled,
+          invalid: fieldControl.invalid,
+          disabled: fieldControl.disabled,
         })}
         onFocus={(event) => {
           setIsFocused(true);

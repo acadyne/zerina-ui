@@ -1,36 +1,65 @@
-// src/primitives/forms/FormControl.tsx
-import React, { createContext, useId, useMemo } from "react";
+import React, {
+  useContext,
+  useId,
+  useMemo,
+} from "react";
+
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
+import {
+  FieldContext,
+  type FieldContextValue,
+  type FieldLabelAssociation,
+} from "./field-context";
+
+import {
+  resolveFieldState,
+} from "./field-semantics";
+
+
+export type {
+  FieldLabelAssociation,
+} from "./field-context";
+
+
 export type FormControlSlot = "root";
 
-export type FormControlStyles = SlotStyleMap<FormControlSlot>;
+export type FormControlStyles =
+  SlotStyleMap<FormControlSlot>;
 
-export type FormControlSlotProps = SlotPropsMap<FormControlSlot>;
+export type FormControlSlotProps =
+  SlotPropsMap<FormControlSlot>;
 
-export type FormControlContextValue = {
-  id: string;
-  isInvalid: boolean;
-  isRequired: boolean;
-  isDisabled: boolean;
-  labelId: string;
-  helpTextId: string;
-  errorId: string;
-};
 
-export const FormControlContext =
-  createContext<FormControlContextValue | null>(null);
-
-export interface FormControlProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface FormControlProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "id"
+  > {
   children?: React.ReactNode;
+
+  /** ID del contenedor semántico. */
   id?: string;
-  isInvalid?: boolean;
-  isRequired?: boolean;
-  isDisabled?: boolean;
+
+  /** ID del control singular o grupo asociado. */
+  controlId?: string;
+
+  disabled?: boolean;
+  invalid?: boolean;
+  required?: boolean;
+  readOnly?: boolean;
+
+  labelAssociation?:
+    FieldLabelAssociation;
+
+  labelId?: string;
+  helpTextId?: string;
+  errorMessageId?: string;
+
   className?: string;
   style?: React.CSSProperties;
 
@@ -38,67 +67,165 @@ export interface FormControlProps extends React.HTMLAttributes<HTMLDivElement> {
   slotProps?: FormControlSlotProps;
 }
 
-export const FormControl = React.forwardRef<HTMLDivElement, FormControlProps>(
-  (
-    {
-      children,
-      id,
-      isInvalid = false,
-      isRequired = false,
-      isDisabled = false,
-      className = "",
-      style,
-      styles,
-      slotProps,
-      ...rest
-    },
-    ref
-  ) => {
-    const autoId = useId();
-    const baseId = id ?? `fc-${autoId}`;
 
-    const ctx = useMemo<FormControlContextValue>(
-      () => ({
-        id: baseId,
-        isInvalid,
-        isRequired,
-        isDisabled,
-        labelId: `${baseId}-label`,
-        helpTextId: `${baseId}-help`,
-        errorId: `${baseId}-error`,
-      }),
-      [baseId, isInvalid, isRequired, isDisabled]
-    );
+export const FormControl =
+  React.forwardRef<
+    HTMLDivElement,
+    FormControlProps
+  >(
+    (
+      {
+        children,
 
-    const rootSlot = resolveSlot<FormControlSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        "data-ui": "form-control",
-        "data-invalid": isInvalid || undefined,
-        "data-required": isRequired || undefined,
-        "data-disabled": isDisabled || undefined,
+        id,
+        controlId,
+
+        disabled = false,
+        invalid = false,
+        required = false,
+        readOnly = false,
+
+        labelAssociation =
+          "control",
+
+        labelId,
+        helpTextId,
+        errorMessageId,
+
+        className = "",
+        style,
+
+        styles,
+        slotProps,
+
+        ...rest
       },
-      baseStyle: {
-        width: "100%",
-        display: "block",
-        minWidth: 0,
-        marginBottom: "1rem",
-        opacity: isDisabled ? 0.7 : 1,
-      },
-    });
+      ref
+    ) => {
+      const generatedId =
+        useId();
 
-    return (
-      <FormControlContext.Provider value={ctx}>
-        <div {...rootSlot} ref={ref} {...rest}>
-          {children}
-        </div>
-      </FormControlContext.Provider>
-    );
-  }
-);
+      const parent =
+        useContext(
+          FieldContext
+        );
 
-FormControl.displayName = "FormControl";
+      const resolvedFieldId =
+        id ??
+        `ui-field-${generatedId}`;
+
+      const resolvedControlId =
+        controlId ??
+        `${resolvedFieldId}-control`;
+
+      const state =
+        resolveFieldState(
+          parent,
+          {
+            disabled,
+            invalid,
+            required,
+            readOnly,
+          }
+        );
+
+      const contextValue =
+        useMemo<FieldContextValue>(
+          () => ({
+            ...state,
+
+            fieldId:
+              resolvedFieldId,
+
+            controlId:
+              resolvedControlId,
+
+            labelId,
+            helpTextId,
+            errorMessageId,
+
+            labelAssociation,
+          }),
+          [
+            state.disabled,
+            state.invalid,
+            state.required,
+            state.readOnly,
+
+            resolvedFieldId,
+            resolvedControlId,
+
+            labelId,
+            helpTextId,
+            errorMessageId,
+
+            labelAssociation,
+          ]
+        );
+
+      const rootSlot =
+        resolveSlot<FormControlSlot>({
+          slot:
+            "root",
+
+          styles,
+          slotProps,
+
+          className,
+          style,
+
+          baseProps: {
+            id:
+              resolvedFieldId,
+
+            "data-ui":
+              "form-control",
+
+            "data-invalid":
+              state.invalid ||
+              undefined,
+
+            "data-required":
+              state.required ||
+              undefined,
+
+            "data-disabled":
+              state.disabled ||
+              undefined,
+
+            "data-readonly":
+              state.readOnly ||
+              undefined,
+          },
+
+          baseStyle: {
+            width:
+              "100%",
+
+            display:
+              "block",
+
+            minWidth:
+              0,
+          },
+        });
+
+      return (
+        <FieldContext.Provider
+          value={contextValue}
+        >
+          <div
+            {...rest}
+            {...rootSlot}
+            ref={ref}
+          >
+            {children}
+          </div>
+        </FieldContext.Provider>
+      );
+    }
+  );
+
+
+FormControl.displayName =
+  "FormControl";

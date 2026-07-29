@@ -3,7 +3,6 @@ import React, {
   Children,
   forwardRef,
   isValidElement,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -19,7 +18,13 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { FormControlContext } from "./FormControl";
+import {
+  InputGroupContext,
+} from "./input-group-context";
+
+import {
+  useFieldState,
+} from "./use-field-control";
 import { setRef } from "../../core/interaction/events";
 
 export type InputGroupSlot =
@@ -38,8 +43,10 @@ export interface InputGroupProps
   className?: string;
   style?: React.CSSProperties;
 
-  isInvalid?: boolean;
-  isDisabled?: boolean;
+  invalid?: boolean;
+  disabled?: boolean;
+  required?: boolean;
+  readOnly?: boolean;
 
   rounded?:
   React.CSSProperties["borderRadius"];
@@ -84,9 +91,6 @@ type SupportedControlProps = {
 
   rounded?:
   React.CSSProperties["borderRadius"];
-
-  isInvalid?: boolean;
-  isDisabled?: boolean;
 
   variant?:
   | "outline"
@@ -250,8 +254,10 @@ export const InputGroup =
         className = "",
         style,
 
-        isInvalid,
-        isDisabled,
+        invalid,
+        disabled,
+        required,
+        readOnly,
 
         rounded =
         "var(--ui-radius-md)",
@@ -263,10 +269,13 @@ export const InputGroup =
       },
       ref
     ) => {
-      const ctx =
-        useContext(
-          FormControlContext
-        );
+      const state =
+        useFieldState({
+          invalid,
+          disabled,
+          required,
+          readOnly,
+        });
 
       const [
         rightWidth,
@@ -277,16 +286,6 @@ export const InputGroup =
         useRef<MeasuredNodeMap>(
           new Map()
         );
-
-      const finalInvalid =
-        isInvalid ??
-        ctx?.isInvalid ??
-        false;
-
-      const finalDisabled =
-        isDisabled ??
-        ctx?.isDisabled ??
-        false;
 
       const rightElementCount =
         useMemo(() => {
@@ -444,16 +443,6 @@ export const InputGroup =
 
               const commonInjectedProps:
                 SupportedControlProps = {
-                isInvalid:
-                  child.props
-                    .isInvalid ??
-                  finalInvalid,
-
-                isDisabled:
-                  child.props
-                    .isDisabled ??
-                  finalDisabled,
-
                 variant:
                   child.props
                     .variant ??
@@ -519,8 +508,8 @@ export const InputGroup =
         }, [
           children,
           rightWidth,
-          finalInvalid,
-          finalDisabled,
+          state.invalid,
+          state.disabled,
           rounded,
         ]);
 
@@ -529,10 +518,10 @@ export const InputGroup =
           rounded,
 
           invalid:
-            finalInvalid,
+            state.invalid,
 
           disabled:
-            finalDisabled,
+            state.disabled,
         });
 
       const rootSlot =
@@ -550,11 +539,19 @@ export const InputGroup =
               "input-group",
 
             "data-invalid":
-              finalInvalid ||
+              state.invalid ||
               undefined,
 
             "data-disabled":
-              finalDisabled ||
+              state.disabled ||
+              undefined,
+
+            "data-required":
+              state.required ||
+              undefined,
+
+            "data-readonly":
+              state.readOnly ||
               undefined,
           },
 
@@ -563,13 +560,17 @@ export const InputGroup =
         });
 
       return (
-        <div
-          {...rootSlot}
-          ref={ref}
-          {...rest}
+        <InputGroupContext.Provider
+          value={state}
         >
-          {resolvedChildren}
-        </div>
+          <div
+            {...rootSlot}
+            ref={ref}
+            {...rest}
+          >
+            {resolvedChildren}
+          </div>
+        </InputGroupContext.Provider>
       );
     }
   );
