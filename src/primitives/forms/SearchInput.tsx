@@ -1,31 +1,61 @@
-// src/primitives/forms/SearchInput.tsx
 import React from "react";
-import { Search, X } from "lucide-react";
+
 import {
-  defineSlotRecipe,
+  Search,
+  X,
+} from "lucide-react";
+
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import type {
+  UIPressEvent,
+} from "../../core/interaction";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { Input, type InputProps } from "./Input";
-import { InputGroup } from "./InputGroup";
-import { InputRightElement } from "./InputRightElement";
+
+import {
+  ControlAction,
+} from "./ControlAction";
+
+import {
+  Input,
+  type InputProps,
+} from "./Input";
+
+import {
+  InputAdornment,
+} from "./InputAdornment";
+
+import {
+  InputGroup,
+} from "./InputGroup";
+
 import {
   useFieldState,
 } from "./use-field-control";
 
+
 export type SearchInputSlot =
   | "group"
+  | "startAdornment"
   | "icon"
   | "input"
-  | "rightElement"
+  | "endAdornment"
   | "clearButton";
+
 
 export type SearchInputStyles =
   SlotStyleMap<SearchInputSlot>;
 
 export type SearchInputSlotProps =
   SlotPropsMap<SearchInputSlot>;
+
 
 export interface SearchInputProps
   extends Omit<
@@ -44,102 +74,13 @@ export interface SearchInputProps
 
   clearable?: boolean;
 
-  styles?: SearchInputStyles;
-  slotProps?: SearchInputSlotProps;
+  styles?:
+    SearchInputStyles;
+
+  slotProps?:
+    SearchInputSlotProps;
 }
 
-type SearchInputRecipeVariants =
-  Record<never, never>;
-
-type SearchInputRecipeState = {
-  clearHovered: boolean;
-  disabled: boolean;
-};
-
-/**
- * La recipe concentra la política visual propia de SearchInput.
- *
- * Input e InputGroup conservan sus respectivas políticas visuales.
- * El valor, el clear y los eventos permanecen fuera de Styling.
- */
-const searchInputRecipe =
-  defineSlotRecipe<
-    SearchInputSlot,
-    SearchInputRecipeVariants,
-    SearchInputRecipeState
-  >({
-    base: {
-      icon: {
-        position: "absolute",
-
-        left: 12,
-        top: "50%",
-
-        zIndex: 1,
-
-        display: "inline-flex",
-
-        color:
-          "var(--ui-text-muted)",
-
-        pointerEvents: "none",
-
-        transform:
-          "translateY(-50%)",
-      },
-
-      clearButton: {
-        width: 26,
-        height: 26,
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        padding: 0,
-
-        border:
-          "1px solid transparent",
-
-        borderRadius:
-          "var(--ui-radius-full)",
-
-        background: "transparent",
-
-        color:
-          "var(--ui-text-muted)",
-
-        cursor: "pointer",
-      },
-    },
-
-    resolve: ({
-      clearHovered,
-      disabled,
-    }) => ({
-      clearButton: {
-        background:
-          clearHovered &&
-          !disabled
-            ? "var(--ui-surface-hover)"
-            : "transparent",
-
-        color:
-          clearHovered &&
-          !disabled
-            ? "var(--ui-text)"
-            : "var(--ui-text-muted)",
-
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-      },
-    }),
-  });
 
 export const SearchInput =
   React.forwardRef<
@@ -155,9 +96,11 @@ export const SearchInput =
         onClear,
         onValueChange,
 
-        clearable = true,
+        clearable =
+          true,
 
-        placeholder = "Buscar…",
+        placeholder =
+          "Buscar…",
 
         id,
 
@@ -199,187 +142,255 @@ export const SearchInput =
           readOnly,
         });
 
-      const [
-        clearHovered,
-        setClearHovered,
-      ] =
-        React.useState(false);
 
       const isControlled =
-        value !== undefined;
+        value !==
+        undefined;
+
 
       const [
         internalValue,
         setInternalValue,
-      ] = React.useState(
-        defaultValue == null
-          ? ""
-          : String(
-              defaultValue
-            )
-      );
+      ] =
+        React.useState(
+          defaultValue == null
+            ? ""
+            : String(
+                defaultValue
+              )
+        );
+
 
       const currentValue =
         isControlled
-          ? String(value ?? "")
+          ? String(
+              value ?? ""
+            )
           : internalValue;
+
 
       const showClear =
         clearable &&
-        currentValue.length > 0 &&
+        currentValue.length >
+          0 &&
         !state.disabled &&
         !state.readOnly;
 
-      const recipeStyles =
-        searchInputRecipe({
-          clearHovered,
-
-          disabled:
-            state.disabled,
-        });
 
       const groupSlot =
         resolveSlot<SearchInputSlot>({
-          slot: "group",
+          slot:
+            "group",
 
           styles,
           slotProps,
 
           className,
           style,
-
-          baseProps: {
-            "data-ui-search-input":
-              "",
-
-            "data-ui-search-input-disabled":
-              state.disabled ||
-              undefined,
-
-            "data-ui-search-input-invalid":
-              state.invalid ||
-              undefined,
-
-            "data-ui-search-input-readonly":
-              state.readOnly ||
-              undefined,
-
-            "data-ui-search-input-clearable":
-              showClear ||
-              undefined,
-          },
-
-          baseStyle:
-            recipeStyles.group,
         });
+
+
+      const startAdornmentSlot =
+        resolveSlot<SearchInputSlot>({
+          slot:
+            "startAdornment",
+
+          styles,
+          slotProps,
+        });
+
 
       const iconSlot =
         resolveSlot<SearchInputSlot>({
-          slot: "icon",
+          slot:
+            "icon",
 
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden": true,
-
-            "data-ui-search-input-icon":
-              "",
+            "aria-hidden":
+              true,
           },
 
-          baseStyle:
-            recipeStyles.icon,
+          baseStyle: {
+            display:
+              "inline-flex",
+
+            color:
+              "var(--ui-text-muted)",
+
+            pointerEvents:
+              "none",
+          },
         });
 
-      const inputSlot =
+
+      const endAdornmentSlot =
         resolveSlot<SearchInputSlot>({
-          slot: "input",
+          slot:
+            "endAdornment",
 
           styles,
           slotProps,
-
-          baseStyle:
-            recipeStyles.input,
         });
 
-      const rightElementSlot =
-        resolveSlot<SearchInputSlot>({
-          slot: "rightElement",
-
-          styles,
-          slotProps,
-
-          baseStyle:
-            recipeStyles
-              .rightElement,
-        });
 
       const clearButtonSlot =
         resolveSlot<SearchInputSlot>({
-          slot: "clearButton",
+          slot:
+            "clearButton",
 
           styles,
           slotProps,
-
-          baseProps: {
-            "data-ui-search-input-clear-button":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles
-              .clearButton,
         });
 
+
+      const inputRootStyle =
+        styles?.input;
+
+      const inputRootSlotProps =
+        slotProps?.input;
+
+      const {
+        onChange:
+          slotOnChange,
+
+        ...inputRootSlotPropsRest
+      } =
+        inputRootSlotProps ??
+        {};
+
+
+      const handleChange =
+        composeEventHandlers<
+          React.ChangeEvent<HTMLInputElement>
+        >(
+          slotOnChange as
+            | React.ChangeEventHandler<HTMLInputElement>
+            | undefined,
+
+          (event) => {
+            const nextValue =
+              event.currentTarget
+                .value;
+
+            if (
+              !isControlled
+            ) {
+              setInternalValue(
+                nextValue
+              );
+            }
+
+            onValueChange?.(
+              nextValue
+            );
+
+            onChange?.(
+              event
+            );
+          }
+        );
+
+
       const handleClear =
-        React.useCallback(() => {
-          if (
-            state.disabled ||
-            state.readOnly
-          ) {
-            return;
-          }
+        React.useCallback(
+          (
+            _event:
+              UIPressEvent<HTMLButtonElement>
+          ) => {
+            if (
+              state.disabled ||
+              state.readOnly
+            ) {
+              return;
+            }
 
-          if (
-            !isControlled
-          ) {
-            setInternalValue("");
-          }
+            if (
+              !isControlled
+            ) {
+              setInternalValue(
+                ""
+              );
+            }
 
-          onClear?.();
-          onValueChange?.("");
-        }, [
-          isControlled,
-          onClear,
-          onValueChange,
-          state.disabled,
-          state.readOnly,
-        ]);
+            onClear?.();
+            onValueChange?.(
+              ""
+            );
+          },
+          [
+            isControlled,
+            onClear,
+            onValueChange,
+            state.disabled,
+            state.readOnly,
+          ]
+        );
+
 
       return (
         <InputGroup
-          invalid={invalid}
-          disabled={disabled}
-          required={required}
-          readOnly={readOnly}
-          className={
-            groupSlot.className
+          {...groupSlot}
+
+          invalid={
+            invalid
           }
-          style={
-            groupSlot.style
+
+          disabled={
+            disabled
+          }
+
+          required={
+            required
+          }
+
+          readOnly={
+            readOnly
           }
         >
-          <span
-            {...iconSlot}
+          <InputAdornment
+            {...startAdornmentSlot}
+
+            position="start"
+
+            pointerEvents="none"
           >
-            <Search
-              size={16}
-            />
-          </span>
+            <span
+              {...iconSlot}
+            >
+              <Search
+                size={16}
+              />
+            </span>
+          </InputAdornment>
 
           <Input
+            {...rest}
+
+            styles={
+              inputRootStyle
+                ? {
+                    root:
+                      inputRootStyle,
+                  }
+                : undefined
+            }
+
+            slotProps={
+              inputRootSlotProps
+                ? {
+                    root:
+                      inputRootSlotPropsRest,
+                  }
+                : undefined
+            }
+
             ref={ref}
+
             id={id}
+
             type="search"
 
             aria-invalid={
@@ -401,89 +412,50 @@ export const SearchInput =
             aria-describedby={
               ariaDescribedBy
             }
+
             value={
               isControlled
                 ? value
                 : internalValue
             }
-            onChange={(
-              event
-            ) => {
-              const nextValue =
-                event.currentTarget
-                  .value;
 
-              if (
-                !isControlled
-              ) {
-                setInternalValue(
-                  nextValue
-                );
-              }
+            onChange={
+              handleChange
+            }
 
-              onValueChange?.(
-                nextValue
-              );
-
-              onChange?.(
-                event
-              );
-            }}
             placeholder={
               placeholder
             }
-            leftPadding="2.35rem"
-            rightPadding={
-              showClear
-                ? "2.5rem"
-                : undefined
-            }
-            className={
-              inputSlot.className
-            }
-            style={
-              inputSlot.style
-            }
-            {...rest}
           />
 
           {showClear ? (
-            <InputRightElement
-              className={
-                rightElementSlot.className
-              }
-              style={
-                rightElementSlot.style
-              }
+            <InputAdornment
+              {...endAdornmentSlot}
+
+              position="end"
             >
-              <button
+              <ControlAction
                 {...clearButtonSlot}
-                type="button"
+
+                size="sm"
+
                 aria-label="Limpiar búsqueda"
-                onClick={
+
+                onPress={
                   handleClear
                 }
-                onMouseEnter={() => {
-                  setClearHovered(
-                    true
-                  );
-                }}
-                onMouseLeave={() => {
-                  setClearHovered(
-                    false
-                  );
-                }}
               >
                 <X
                   size={14}
                 />
-              </button>
-            </InputRightElement>
+              </ControlAction>
+            </InputAdornment>
           ) : null}
         </InputGroup>
       );
     }
   );
+
 
 SearchInput.displayName =
   "SearchInput";

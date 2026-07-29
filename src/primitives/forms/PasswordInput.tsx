@@ -1,30 +1,55 @@
-// src/primitives/forms/PasswordInput.tsx
 import React from "react";
-import { Eye, EyeOff } from "lucide-react";
+
 import {
-  defineSlotRecipe,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+
+import type {
+  UIPressEvent,
+} from "../../core/interaction";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
-import { Input, type InputProps } from "./Input";
-import { InputGroup } from "./InputGroup";
-import { InputRightElement } from "./InputRightElement";
+
+import {
+  ControlAction,
+} from "./ControlAction";
+
+import {
+  Input,
+  type InputProps,
+} from "./Input";
+
+import {
+  InputAdornment,
+} from "./InputAdornment";
+
+import {
+  InputGroup,
+} from "./InputGroup";
+
 import {
   useFieldState,
 } from "./use-field-control";
 
+
 export type PasswordInputSlot =
   | "group"
   | "input"
-  | "rightElement"
+  | "endAdornment"
   | "toggleButton";
+
 
 export type PasswordInputStyles =
   SlotStyleMap<PasswordInputSlot>;
 
 export type PasswordInputSlotProps =
   SlotPropsMap<PasswordInputSlot>;
+
 
 export interface PasswordInputProps
   extends Omit<
@@ -37,84 +62,13 @@ export interface PasswordInputProps
   showLabel?: string;
   hideLabel?: string;
 
-  styles?: PasswordInputStyles;
-  slotProps?: PasswordInputSlotProps;
+  styles?:
+    PasswordInputStyles;
+
+  slotProps?:
+    PasswordInputSlotProps;
 }
 
-type PasswordInputRecipeVariants =
-  Record<never, never>;
-
-type PasswordInputRecipeState = {
-  hovered: boolean;
-  disabled: boolean;
-};
-
-/**
- * La recipe concentra la política visual propia de PasswordInput.
- *
- * Input e InputGroup conservan sus respectivas políticas visuales.
- * La visibilidad y los eventos permanecen fuera de Styling.
- */
-const passwordInputRecipe =
-  defineSlotRecipe<
-    PasswordInputSlot,
-    PasswordInputRecipeVariants,
-    PasswordInputRecipeState
-  >({
-    base: {
-      toggleButton: {
-        width: 28,
-        height: 28,
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        padding: 0,
-
-        border:
-          "1px solid transparent",
-
-        borderRadius:
-          "var(--ui-radius-full)",
-
-        background:
-          "transparent",
-
-        color:
-          "var(--ui-text-muted)",
-
-        cursor: "pointer",
-      },
-    },
-
-    resolve: ({
-      hovered,
-      disabled,
-    }) => ({
-      toggleButton: {
-        background:
-          hovered &&
-          !disabled
-            ? "var(--ui-surface-hover)"
-            : "transparent",
-
-        color:
-          hovered &&
-          !disabled
-            ? "var(--ui-text)"
-            : "var(--ui-text-muted)",
-
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? 0.55
-          : 1,
-      },
-    }),
-  });
 
 export const PasswordInput =
   React.forwardRef<
@@ -169,85 +123,45 @@ export const PasswordInput =
           readOnly,
         });
 
+
       const [
         visible,
         setVisible,
       ] =
-        React.useState(false);
+        React.useState(
+          false
+        );
 
-      const [
-        toggleHovered,
-        setToggleHovered,
-      ] =
-        React.useState(false);
-
-      const recipeStyles =
-        passwordInputRecipe({
-          hovered:
-            toggleHovered,
-
-          disabled:
-            state.disabled,
-        });
 
       const groupSlot =
         resolveSlot<PasswordInputSlot>({
-          slot: "group",
+          slot:
+            "group",
 
           styles,
           slotProps,
 
           className,
           style,
-
-          baseProps: {
-            "data-ui-password-input":
-              "",
-
-            "data-ui-password-input-visible":
-              visible ||
-              undefined,
-
-            "data-ui-password-input-disabled":
-              state.disabled ||
-              undefined,
-
-            "data-ui-password-input-invalid":
-              state.invalid ||
-              undefined,
-
-            "data-ui-password-input-readonly":
-              state.readOnly ||
-              undefined,
-          },
-
-          baseStyle:
-            recipeStyles.group,
         });
 
-      const inputSlot =
-        resolveSlot<PasswordInputSlot>({
-          slot: "input",
 
-          styles,
-          slotProps,
+      const inputRootStyle =
+        styles?.input;
 
-          baseStyle:
-            recipeStyles.input,
-        });
+      const inputRootSlotProps =
+        slotProps?.input;
 
-      const rightElementSlot =
+
+      const endAdornmentSlot =
         resolveSlot<PasswordInputSlot>({
           slot:
-            "rightElement",
+            "endAdornment",
 
           styles,
           slotProps,
-
-          baseStyle:
-            recipeStyles
-              .rightElement,
         });
+
 
       const toggleButtonSlot =
         resolveSlot<PasswordInputSlot>({
@@ -256,32 +170,75 @@ export const PasswordInput =
 
           styles,
           slotProps,
-
-          baseProps: {
-            "data-ui-password-input-toggle":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles
-              .toggleButton,
         });
+
+
+      const handleToggle =
+        React.useCallback(
+          (
+            _event:
+              UIPressEvent<HTMLButtonElement>
+          ) => {
+            if (
+              state.disabled
+            ) {
+              return;
+            }
+
+            setVisible(
+              (current) =>
+                !current
+            );
+          },
+          [
+            state.disabled,
+          ]
+        );
+
 
       return (
         <InputGroup
-          invalid={invalid}
-          disabled={disabled}
-          required={required}
-          readOnly={readOnly}
-          className={
-            groupSlot.className
+          {...groupSlot}
+
+          invalid={
+            invalid
           }
-          style={
-            groupSlot.style
+
+          disabled={
+            disabled
+          }
+
+          required={
+            required
+          }
+
+          readOnly={
+            readOnly
           }
         >
           <Input
+            {...rest}
+
+            styles={
+              inputRootStyle
+                ? {
+                    root:
+                      inputRootStyle,
+                  }
+                : undefined
+            }
+
+            slotProps={
+              inputRootSlotProps
+                ? {
+                    root:
+                      inputRootSlotProps,
+                  }
+                : undefined
+            }
+
             ref={ref}
+
             id={id}
 
             aria-invalid={
@@ -309,54 +266,35 @@ export const PasswordInput =
                 ? "text"
                 : "password"
             }
-            rightPadding="2.75rem"
-            className={
-              inputSlot.className
-            }
-            style={
-              inputSlot.style
-            }
-            {...rest}
           />
 
-          <InputRightElement
-            className={
-              rightElementSlot.className
-            }
-            style={
-              rightElementSlot.style
-            }
+          <InputAdornment
+            {...endAdornmentSlot}
+
+            position="end"
           >
-            <button
+            <ControlAction
               {...toggleButtonSlot}
-              type="button"
+
+              size="md"
+
               aria-label={
                 visible
                   ? hideLabel
                   : showLabel
               }
+
               aria-pressed={
                 visible
               }
+
               disabled={
                 state.disabled
               }
-              onClick={() => {
-                setVisible(
-                  (current) =>
-                    !current
-                );
-              }}
-              onMouseEnter={() => {
-                setToggleHovered(
-                  true
-                );
-              }}
-              onMouseLeave={() => {
-                setToggleHovered(
-                  false
-                );
-              }}
+
+              onPress={
+                handleToggle
+              }
             >
               {visible ? (
                 <EyeOff
@@ -367,12 +305,13 @@ export const PasswordInput =
                   size={16}
                 />
               )}
-            </button>
-          </InputRightElement>
+            </ControlAction>
+          </InputAdornment>
         </InputGroup>
       );
     }
   );
+
 
 PasswordInput.displayName =
   "PasswordInput";

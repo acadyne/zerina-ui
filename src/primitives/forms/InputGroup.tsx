@@ -1,31 +1,36 @@
-// src/primitives/forms/InputGroup.tsx
 import React, {
-  Children,
   forwardRef,
-  isValidElement,
-  useEffect,
+  useCallback,
   useMemo,
   useRef,
   useState,
 } from "react";
+
 import {
   getElementSize,
   observeElementSizes,
 } from "../../core/dom";
+
 import {
-  defineSlotRecipe,
+  dataAttr,
+} from "../../helpers";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+
 import {
   InputGroupContext,
+  type InputAdornmentPosition,
+  type InputGroupDescendantState,
 } from "./input-group-context";
 
 import {
   useFieldState,
 } from "./use-field-control";
-import { setRef } from "../../core/interaction/events";
+
 
 export type InputGroupSlot =
   "root";
@@ -35,6 +40,7 @@ export type InputGroupStyles =
 
 export type InputGroupSlotProps =
   SlotPropsMap<InputGroupSlot>;
+
 
 export interface InputGroupProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -49,198 +55,102 @@ export interface InputGroupProps
   readOnly?: boolean;
 
   rounded?:
-  React.CSSProperties["borderRadius"];
+    React.CSSProperties["borderRadius"];
 
   styles?: InputGroupStyles;
   slotProps?: InputGroupSlotProps;
 }
 
-type MeasuredNodeMap =
-  Map<number, HTMLDivElement>;
 
-type SupportedControlKind =
-  | "input"
-  | "textarea"
-  | "select";
+type AdornmentRegistration = {
+  id: string;
 
-type InputSlotKind =
-  "input-right-element";
+  position:
+    InputAdornmentPosition;
 
-type ControlSize =
-  | "sm"
-  | "md"
-  | "lg";
+  node:
+    HTMLDivElement;
 
-const CONTROL_BASE_RIGHT_PADDING:
-  Record<ControlSize, string> = {
-  sm: "0.75rem",
-  md: "0.9rem",
-  lg: "1rem",
+  width:
+    number;
+
+  dispose:
+    () => void;
 };
 
-type SupportedControlProps = {
-  size?: ControlSize;
 
-  rightPadding?:
-  | number
-  | string;
+type AdornmentLayout = {
+  startWidth: number;
+  endWidth: number;
 
-  indicatorOffset?:
-  | number
-  | string;
-
-  rounded?:
-  React.CSSProperties["borderRadius"];
-
-  variant?:
-  | "outline"
-  | "unstyled";
+  offsets:
+    Readonly<Record<string, number>>;
 };
 
-type RightElementProps = {
-  ref?: React.Ref<HTMLDivElement>;
+
+type AggregatedInteractionState = {
+  focused: boolean;
+  focusVisible: boolean;
 };
 
-type UIElementType =
-  React.ElementType & {
-    __UI_CONTROL_KIND?:
-    SupportedControlKind;
 
-    __UI_SLOT_KIND?:
-    InputSlotKind;
+type InputGroupCSSProperties =
+  React.CSSProperties & {
+    "--ui-input-group-radius"?:
+      React.CSSProperties["borderRadius"];
 
-    displayName?: string;
-    name?: string;
+    "--ui-input-group-start-size"?:
+      string;
+
+    "--ui-input-group-end-size"?:
+      string;
   };
 
-type UIElementWithMarkers<
-  P = Record<string, unknown>,
-> = React.ReactElement<P> & {
-  type: UIElementType;
-};
 
-function isReactElementWithMarkers(
-  value: React.ReactNode
-): value is UIElementWithMarkers {
-  return (
-    isValidElement(value) &&
-    typeof value.type !== "string"
-  );
+const EMPTY_ADORNMENT_LAYOUT:
+  AdornmentLayout = {
+    startWidth: 0,
+    endWidth: 0,
+    offsets: {},
+  };
+
+
+function sortByDocumentOrder(
+  first:
+    AdornmentRegistration,
+  second:
+    AdornmentRegistration
+): number {
+  if (
+    first.node ===
+    second.node
+  ) {
+    return 0;
+  }
+
+  const position =
+    first.node
+      .compareDocumentPosition(
+        second.node
+      );
+
+  if (
+    position &
+    4
+  ) {
+    return -1;
+  }
+
+  if (
+    position &
+    2
+  ) {
+    return 1;
+  }
+
+  return 0;
 }
 
-function getControlKind(
-  element: UIElementWithMarkers
-):
-  | SupportedControlKind
-  | undefined {
-  return element.type
-    .__UI_CONTROL_KIND;
-}
-
-function getSlotKind(
-  element: UIElementWithMarkers
-):
-  | InputSlotKind
-  | undefined {
-  return element.type
-    .__UI_SLOT_KIND;
-}
-
-function isRightElement(
-  element: UIElementWithMarkers
-): element is UIElementWithMarkers<RightElementProps> {
-  return (
-    getSlotKind(element) ===
-    "input-right-element"
-  );
-}
-
-function isSupportedControl(
-  element: UIElementWithMarkers
-): element is UIElementWithMarkers<SupportedControlProps> {
-  const kind =
-    getControlKind(element);
-
-  return (
-    kind === "input" ||
-    kind === "textarea" ||
-    kind === "select"
-  );
-}
-
-function getControlSize(
-  element:
-    UIElementWithMarkers<SupportedControlProps>
-): ControlSize {
-  const size =
-    element.props.size;
-
-  return size === "sm" ||
-    size === "lg"
-    ? size
-    : "md";
-}
-
-type InputGroupRecipeVariants =
-  Record<never, never>;
-
-type InputGroupRecipeState = {
-  rounded:
-  React.CSSProperties["borderRadius"];
-
-  invalid: boolean;
-  disabled: boolean;
-};
-
-const inputGroupRecipe =
-  defineSlotRecipe<
-    InputGroupSlot,
-    InputGroupRecipeVariants,
-    InputGroupRecipeState
-  >({
-    base: {
-      root: {
-        position: "relative",
-
-        width: "100%",
-
-        display: "flex",
-        alignItems: "stretch",
-
-        minWidth: 0,
-
-        background:
-          "var(--ui-surface)",
-
-        transition:
-          "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "background var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-    },
-
-    resolve: ({
-      rounded,
-      invalid,
-      disabled,
-    }) => ({
-      root: {
-        borderRadius:
-          rounded,
-
-        border:
-          `1px solid ${invalid
-            ? "var(--ui-danger)"
-            : "var(--ui-border)"
-          }`,
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-      },
-    }),
-  });
 
 export const InputGroup =
   forwardRef<
@@ -260,7 +170,7 @@ export const InputGroup =
         readOnly,
 
         rounded =
-        "var(--ui-radius-md)",
+          "var(--ui-radius-md)",
 
         styles,
         slotProps,
@@ -277,256 +187,356 @@ export const InputGroup =
           readOnly,
         });
 
-      const [
-        rightWidth,
-        setRightWidth,
-      ] = useState(0);
 
-      const rightElementNodesRef =
-        useRef<MeasuredNodeMap>(
+      const descendantsRef =
+        useRef<
+          Map<
+            string,
+            InputGroupDescendantState
+          >
+        >(
           new Map()
         );
 
-      const rightElementCount =
-        useMemo(() => {
-          let count = 0;
 
-          Children.forEach(
-            children,
-            (child) => {
-              if (
-                isReactElementWithMarkers(
-                  child
-                ) &&
-                isRightElement(
-                  child
-                )
-              ) {
-                count += 1;
+      const adornmentsRef =
+        useRef<
+          Map<
+            string,
+            AdornmentRegistration
+          >
+        >(
+          new Map()
+        );
+
+
+      const [
+        interaction,
+        setInteraction,
+      ] =
+        useState<
+          AggregatedInteractionState
+        >({
+          focused: false,
+          focusVisible: false,
+        });
+
+
+      const [
+        adornmentLayout,
+        setAdornmentLayout,
+      ] =
+        useState<AdornmentLayout>(
+          EMPTY_ADORNMENT_LAYOUT
+        );
+
+
+      const synchronizeInteraction =
+        useCallback(() => {
+          let focused = false;
+          let focusVisible = false;
+
+          descendantsRef.current
+            .forEach(
+              (descendant) => {
+                focused =
+                  focused ||
+                  descendant.focused;
+
+                focusVisible =
+                  focusVisible ||
+                  descendant.focusVisible;
               }
+            );
+
+          setInteraction(
+            (current) =>
+              current.focused ===
+                focused &&
+              current.focusVisible ===
+                focusVisible
+                ? current
+                : {
+                    focused,
+                    focusVisible,
+                  }
+          );
+        }, []);
+
+
+      const updateDescendantState =
+        useCallback(
+          (
+            id: string,
+            nextState:
+              InputGroupDescendantState
+          ) => {
+            descendantsRef.current
+              .set(
+                id,
+                nextState
+              );
+
+            synchronizeInteraction();
+          },
+          [
+            synchronizeInteraction,
+          ]
+        );
+
+
+      const removeDescendantState =
+        useCallback(
+          (
+            id: string
+          ) => {
+            descendantsRef.current
+              .delete(id);
+
+            synchronizeInteraction();
+          },
+          [
+            synchronizeInteraction,
+          ]
+        );
+
+
+      const recalculateAdornmentLayout =
+        useCallback(() => {
+          const registrations =
+            Array.from(
+              adornmentsRef.current
+                .values()
+            );
+
+          const start =
+            registrations
+              .filter(
+                (registration) =>
+                  registration.position ===
+                  "start"
+              )
+              .sort(
+                sortByDocumentOrder
+              );
+
+          const end =
+            registrations
+              .filter(
+                (registration) =>
+                  registration.position ===
+                  "end"
+              )
+              .sort(
+                sortByDocumentOrder
+              );
+
+          const offsets:
+            Record<string, number> = {};
+
+          let startWidth = 0;
+
+          start.forEach(
+            (registration) => {
+              offsets[
+                registration.id
+              ] =
+                startWidth;
+
+              startWidth +=
+                registration.width;
             }
           );
 
-          return count;
-        }, [children]);
+          let endWidth = 0;
 
-      useEffect(() => {
-        const nodes =
-          Array.from(
-            rightElementNodesRef
-              .current
-              .values()
-          );
+          [...end]
+            .reverse()
+            .forEach(
+              (registration) => {
+                offsets[
+                  registration.id
+                ] =
+                  endWidth;
 
-        const update = () => {
-          const total =
-            nodes.reduce(
-              (
-                accumulated,
-                node
-              ) =>
-                accumulated +
+                endWidth +=
+                  registration.width;
+              }
+            );
+
+          setAdornmentLayout({
+            startWidth,
+            endWidth,
+            offsets,
+          });
+        }, []);
+
+
+      const registerAdornment =
+        useCallback(
+          (
+            id: string,
+            position:
+              InputAdornmentPosition,
+            node:
+              HTMLDivElement
+          ) => {
+            const previous =
+              adornmentsRef.current
+                .get(id);
+
+            previous?.dispose();
+
+            const registration:
+              AdornmentRegistration = {
+                id,
+                position,
+                node,
+                width: 0,
+                dispose: () => {
+                  // Se sustituye después
+                  // de crear el observer.
+                },
+              };
+
+
+            const update = () => {
+              const nextWidth =
                 Math.ceil(
                   getElementSize(
                     node
                   ).width
-                ),
-              0
-            );
+                );
 
-          setRightWidth(
-            (currentWidth) =>
-              currentWidth === total
-                ? currentWidth
-                : total
-          );
+              if (
+                registration.width ===
+                nextWidth
+              ) {
+                return;
+              }
+
+              registration.width =
+                nextWidth;
+
+              recalculateAdornmentLayout();
+            };
+
+
+            adornmentsRef.current
+              .set(
+                id,
+                registration
+              );
+
+            registration.dispose =
+              observeElementSizes(
+                [node],
+                update
+              );
+
+            update();
+
+            return () => {
+              const current =
+                adornmentsRef.current
+                  .get(id);
+
+              if (
+                current !==
+                registration
+              ) {
+                return;
+              }
+
+              current.dispose();
+
+              adornmentsRef.current
+                .delete(id);
+
+              recalculateAdornmentLayout();
+            };
+          },
+          [
+            recalculateAdornmentLayout,
+          ]
+        );
+
+
+      const getAdornmentOffset =
+        useCallback(
+          (
+            id: string
+          ) =>
+            adornmentLayout
+              .offsets[id] ??
+            0,
+          [
+            adornmentLayout.offsets,
+          ]
+        );
+
+
+      const contextValue =
+        useMemo(
+          () => ({
+            disabled:
+              state.disabled,
+
+            invalid:
+              state.invalid,
+
+            required:
+              state.required,
+
+            readOnly:
+              state.readOnly,
+
+            updateDescendantState,
+            removeDescendantState,
+
+            registerAdornment,
+            getAdornmentOffset,
+
+            startAdornmentWidth:
+              adornmentLayout
+                .startWidth,
+
+            endAdornmentWidth:
+              adornmentLayout
+                .endWidth,
+          }),
+          [
+            adornmentLayout.endWidth,
+            adornmentLayout.startWidth,
+            getAdornmentOffset,
+            registerAdornment,
+            removeDescendantState,
+            state.disabled,
+            state.invalid,
+            state.readOnly,
+            state.required,
+            updateDescendantState,
+          ]
+        );
+
+
+      const groupVariables:
+        InputGroupCSSProperties = {
+          "--ui-input-group-radius":
+            rounded,
+
+          "--ui-input-group-start-size":
+            `${adornmentLayout.startWidth}px`,
+
+          "--ui-input-group-end-size":
+            `${adornmentLayout.endWidth}px`,
         };
 
-        update();
-
-        return observeElementSizes(
-          nodes,
-          update
-        );
-      }, [
-        children,
-        rightElementCount,
-      ]);
-
-      const resolvedChildren =
-        useMemo(() => {
-          const extraRightSpace =
-            rightWidth > 0
-              ? `${rightWidth + 12}px`
-              : undefined;
-
-          return Children.map(
-            children,
-            (
-              child,
-              index
-            ) => {
-              if (
-                !isReactElementWithMarkers(
-                  child
-                )
-              ) {
-                return child;
-              }
-
-              if (
-                isRightElement(
-                  child
-                )
-              ) {
-                const originalRef =
-                  child.props.ref;
-
-                return React.cloneElement(
-                  child,
-                  {
-                    ref: (
-                      node:
-                        | HTMLDivElement
-                        | null
-                    ) => {
-                      if (node) {
-                        rightElementNodesRef
-                          .current
-                          .set(
-                            index,
-                            node
-                          );
-                      } else {
-                        rightElementNodesRef
-                          .current
-                          .delete(
-                            index
-                          );
-                      }
-
-                      setRef(
-                        originalRef,
-                        node
-                      );
-                    },
-                  }
-                );
-              }
-
-              if (
-                !isSupportedControl(
-                  child
-                )
-              ) {
-                return child;
-              }
-
-              const controlKind =
-                getControlKind(
-                  child
-                );
-
-              const size =
-                getControlSize(
-                  child
-                );
-
-              const basePadding =
-                CONTROL_BASE_RIGHT_PADDING[
-                size
-                ];
-
-              const currentRightPadding =
-                child.props
-                  .rightPadding;
-
-              const commonInjectedProps:
-                SupportedControlProps = {
-                variant:
-                  child.props
-                    .variant ??
-                  "unstyled",
-              };
-
-              if (
-                controlKind ===
-                "select"
-              ) {
-                return React.cloneElement(
-                  child,
-                  {
-                    ...commonInjectedProps,
-
-                    rightPadding:
-                      currentRightPadding ??
-                      (
-                        extraRightSpace
-                          ? `calc(${extraRightSpace} + ${basePadding} + 1rem)`
-                          : undefined
-                      ),
-
-                    indicatorOffset:
-                      extraRightSpace
-                        ? `calc(${extraRightSpace} + 10px)`
-                        : child.props
-                          .indicatorOffset,
-
-                    rounded:
-                      child.props
-                        .rounded ??
-                      rounded,
-                  }
-                );
-              }
-
-              if (
-                controlKind ===
-                "input" ||
-                controlKind ===
-                "textarea"
-              ) {
-                return React.cloneElement(
-                  child,
-                  {
-                    ...commonInjectedProps,
-
-                    rightPadding:
-                      currentRightPadding ??
-                      (
-                        extraRightSpace
-                          ? `calc(${extraRightSpace} + ${basePadding})`
-                          : undefined
-                      ),
-                  }
-                );
-              }
-
-              return child;
-            }
-          );
-        }, [
-          children,
-          rightWidth,
-          state.invalid,
-          state.disabled,
-          rounded,
-        ]);
-
-      const recipeStyles =
-        inputGroupRecipe({
-          rounded,
-
-          invalid:
-            state.invalid,
-
-          disabled:
-            state.disabled,
-        });
 
       const rootSlot =
         resolveSlot<InputGroupSlot>({
-          slot: "root",
+          slot:
+            "root",
 
           styles,
           slotProps,
@@ -539,41 +549,90 @@ export const InputGroup =
               "input-group",
 
             "data-invalid":
-              state.invalid ||
-              undefined,
+              dataAttr(
+                state.invalid
+              ),
 
             "data-disabled":
-              state.disabled ||
-              undefined,
+              dataAttr(
+                state.disabled
+              ),
 
             "data-required":
-              state.required ||
-              undefined,
+              dataAttr(
+                state.required
+              ),
 
             "data-readonly":
-              state.readOnly ||
-              undefined,
+              dataAttr(
+                state.readOnly
+              ),
+
+            "data-focused":
+              dataAttr(
+                interaction.focused
+              ),
+
+            "data-focus-visible":
+              dataAttr(
+                interaction
+                  .focusVisible
+              ),
+
+            "data-has-start-adornment":
+              dataAttr(
+                adornmentLayout
+                  .startWidth >
+                  0
+              ),
+
+            "data-has-end-adornment":
+              dataAttr(
+                adornmentLayout
+                  .endWidth >
+                  0
+              ),
           },
 
-          baseStyle:
-            recipeStyles.root,
+          baseStyle: {
+            position:
+              "relative",
+
+            width:
+              "100%",
+
+            display:
+              "flex",
+
+            alignItems:
+              "stretch",
+
+            minWidth:
+              0,
+
+            ...groupVariables,
+          },
         });
+
 
       return (
         <InputGroupContext.Provider
-          value={state}
+          value={
+            contextValue
+          }
         >
           <div
             {...rootSlot}
             ref={ref}
             {...rest}
           >
-            {resolvedChildren}
+            {children}
           </div>
         </InputGroupContext.Provider>
       );
     }
   );
+
 
 InputGroup.displayName =
   "InputGroup";

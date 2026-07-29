@@ -28,6 +28,10 @@ import {
 } from "./control-types";
 
 import {
+  useInputGroupDescendantState,
+} from "./input-group-context";
+
+import {
   useFieldControl,
 } from "./use-field-control";
 
@@ -74,16 +78,6 @@ export interface TextareaProps
   styles?: TextareaStyles;
   slotProps?: TextareaSlotProps;
 }
-
-
-type TextareaComponent =
-  React.ForwardRefExoticComponent<
-    TextareaProps &
-    React.RefAttributes<HTMLTextAreaElement>
-  > & {
-    __UI_CONTROL_KIND?:
-      "textarea";
-  };
 
 
 export const Textarea =
@@ -277,6 +271,16 @@ export const Textarea =
             ),
         });
 
+      const inputGroup =
+        useInputGroupDescendantState({
+          focused:
+            focus.focused,
+
+          focusVisible:
+            focus.focusVisible,
+        });
+
+
       return (
         <textarea
           {...resolvedRootSlot}
@@ -325,6 +329,14 @@ export const Textarea =
 
           data-ui="textarea"
 
+          data-in-group={
+            dataAttr(
+              Boolean(
+                inputGroup
+              )
+            )
+          }
+
           data-size={size}
 
           data-variant={
@@ -369,11 +381,8 @@ export const Textarea =
         />
       );
     }
-  ) as TextareaComponent;
+  );
 
 
 Textarea.displayName =
   "Textarea";
-
-Textarea.__UI_CONTROL_KIND =
-  "textarea";

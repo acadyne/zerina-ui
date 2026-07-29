@@ -342,55 +342,459 @@
 }
 
 
-/*
- * Contrato transitorio de InputGroup.
- * El Bloque 5 elimina :focus-within y transfiere
- * el frame al InputGroupContext canónico.
- */
 
-[data-ui="input-group"]:focus-within {
+
+/* InputGroup — canonical frame ownership */
+
+:where(
+  [data-ui="input-group"]
+) {
+  --ui-input-group-start-inset:
+    0px;
+
+  --ui-input-group-end-inset:
+    0px;
+
+  background:
+    var(--ui-surface);
+
+  border:
+    1px solid
+    var(--ui-border);
+
+  border-radius:
+    var(
+      --ui-input-group-radius,
+      var(--ui-radius-md)
+    );
+
+  transition:
+    border-color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    opacity
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="input-group"][data-has-start-adornment]
+) {
+  --ui-input-group-start-inset:
+    var(
+      --ui-input-group-start-size
+    );
+}
+
+
+:where(
+  [data-ui="input-group"][data-has-end-adornment]
+) {
+  --ui-input-group-end-inset:
+    var(
+      --ui-input-group-end-size
+    );
+}
+
+
+:where(
+  [data-ui="input-group"][data-invalid]
+) {
+  border-color:
+    var(--ui-danger);
+}
+
+
+:where(
+  [data-ui="input-group"][data-focus-visible]:not(
+    [data-disabled]
+  )
+) {
   border-color:
     var(--ui-primary);
 
   box-shadow:
     0 0 0
-    var(--ui-interaction-focus-ring-offset)
+    var(
+      --ui-interaction-focus-ring-offset
+    )
     var(--ui-surface),
     0 0 0
     calc(
-      var(--ui-interaction-focus-ring-offset)
+      var(
+        --ui-interaction-focus-ring-offset
+      )
       +
-      var(--ui-interaction-focus-ring-width)
+      var(
+        --ui-interaction-focus-ring-width
+      )
     )
-    var(--ui-interaction-focus-ring-color);
+    var(
+      --ui-interaction-focus-ring-color
+    );
 }
 
 
-[data-ui="input-group"][data-invalid="true"] {
-  border-color:
-    var(--ui-danger);
-}
-
-
-[data-ui="input-group"][data-invalid="true"]:focus-within {
+:where(
+  [data-ui="input-group"][data-invalid][data-focus-visible]:not(
+    [data-disabled]
+  )
+) {
   border-color:
     var(--ui-danger);
 
   box-shadow:
     0 0 0
-    var(--ui-interaction-focus-ring-offset)
+    var(
+      --ui-interaction-focus-ring-offset
+    )
     var(--ui-surface),
     0 0 0
     calc(
-      var(--ui-interaction-focus-ring-offset)
+      var(
+        --ui-interaction-focus-ring-offset
+      )
       +
-      var(--ui-interaction-focus-ring-width)
+      var(
+        --ui-interaction-focus-ring-width
+      )
     )
-    var(--ui-interaction-focus-ring-danger-color);
+    var(
+      --ui-interaction-focus-ring-danger-color
+    );
 }
 
 
-[data-ui="input-group"][data-disabled="true"] {
+:where(
+  [data-ui="input-group"][data-disabled]
+) {
   opacity:
-    var(--ui-interaction-disabled-opacity);
+    var(
+      --ui-interaction-disabled-opacity
+    );
+}
+
+
+/* Controls hosted by InputGroup */
+
+:where(
+  [data-ui="input-group"]
+  [data-ui-control][data-in-group]
+) {
+  background:
+    transparent;
+
+  border:
+    none;
+
+  border-radius:
+    0;
+
+  box-shadow:
+    none;
+
+  opacity:
+    1;
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="input"][data-in-group][data-size="sm"],
+  [data-ui="input-group"]
+  [data-ui="textarea"][data-in-group][data-size="sm"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-sm)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-sm)
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="input"][data-in-group][data-size="md"],
+  [data-ui="input-group"]
+  [data-ui="textarea"][data-in-group][data-size="md"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-md)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-md)
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="input"][data-in-group][data-size="lg"],
+  [data-ui="input-group"]
+  [data-ui="textarea"][data-in-group][data-size="lg"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-lg)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-lg)
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="select"][data-in-group][data-size="sm"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-sm)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-sm)
+      +
+      1rem
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="select"][data-in-group][data-size="md"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-md)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-md)
+      +
+      1rem
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="select"][data-in-group][data-size="lg"]
+) {
+  padding-inline-start:
+    calc(
+      var(--ui-control-padding-x-lg)
+      +
+      var(--ui-input-group-start-inset)
+    );
+
+  padding-inline-end:
+    calc(
+      var(--ui-control-padding-x-lg)
+      +
+      1rem
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+:where(
+  [data-ui="select-indicator"]
+) {
+  right:
+    10px;
+}
+
+
+:where(
+  [data-ui="input-group"]
+  [data-ui="select-indicator"]
+) {
+  right:
+    calc(
+      10px
+      +
+      var(--ui-input-group-end-inset)
+    );
+}
+
+
+/* Internal actions hosted by compound controls */
+
+:where(
+  [data-ui="control-action"]
+) {
+  appearance:
+    none;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex:
+    none;
+
+  padding:
+    0;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius:
+    var(--ui-radius-full);
+
+  background:
+    transparent;
+
+  color:
+    var(--ui-text-muted);
+
+  cursor:
+    pointer;
+
+  transition:
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    opacity
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="control-action"][data-size="sm"]
+) {
+  width:
+    1.625rem;
+
+  height:
+    1.625rem;
+}
+
+
+:where(
+  [data-ui="control-action"][data-size="md"]
+) {
+  width:
+    1.75rem;
+
+  height:
+    1.75rem;
+}
+
+
+:where(
+  [data-ui="control-action"][data-hovered]:not(
+    [data-disabled]
+  ),
+  [data-ui="control-action"][data-pressed]:not(
+    [data-disabled]
+  )
+) {
+  background:
+    var(--ui-surface-hover);
+
+  color:
+    var(--ui-text);
+}
+
+
+:where(
+  [data-ui="control-action"][data-focus-visible]:not(
+    [data-disabled]
+  )
+) {
+  box-shadow:
+    0 0 0
+    var(
+      --ui-interaction-focus-ring-offset
+    )
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(
+        --ui-interaction-focus-ring-offset
+      )
+      +
+      var(
+        --ui-interaction-focus-ring-width
+      )
+    )
+    var(
+      --ui-interaction-focus-ring-color
+    );
+}
+
+
+:where(
+  [data-ui="control-action"][data-disabled]
+) {
+  cursor:
+    not-allowed;
+
+  opacity:
+    var(
+      --ui-interaction-disabled-opacity
+    );
+}
+
+
+:where(
+  [data-ui="input-group"][data-disabled]
+  [data-ui="control-action"][data-disabled]
+) {
+  opacity:
+    1;
 }

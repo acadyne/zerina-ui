@@ -28,6 +28,10 @@ import {
 } from "./control-types";
 
 import {
+  useInputGroupDescendantState,
+} from "./input-group-context";
+
+import {
   useFieldControl,
 } from "./use-field-control";
 
@@ -74,16 +78,6 @@ export interface InputProps
   styles?: InputStyles;
   slotProps?: InputSlotProps;
 }
-
-
-type InputComponent =
-  React.ForwardRefExoticComponent<
-    InputProps &
-    React.RefAttributes<HTMLInputElement>
-  > & {
-    __UI_CONTROL_KIND?:
-      "input";
-  };
 
 
 export const Input =
@@ -284,6 +278,16 @@ export const Input =
             ),
         });
 
+      const inputGroup =
+        useInputGroupDescendantState({
+          focused:
+            focus.focused,
+
+          focusVisible:
+            focus.focusVisible,
+        });
+
+
       return (
         <input
           {...resolvedRootSlot}
@@ -334,6 +338,14 @@ export const Input =
 
           data-ui="input"
 
+          data-in-group={
+            dataAttr(
+              Boolean(
+                inputGroup
+              )
+            )
+          }
+
           data-size={size}
 
           data-variant={
@@ -378,11 +390,8 @@ export const Input =
         />
       );
     }
-  ) as InputComponent;
+  );
 
 
 Input.displayName =
   "Input";
-
-Input.__UI_CONTROL_KIND =
-  "input";

@@ -28,6 +28,10 @@ import {
 } from "./control-types";
 
 import {
+  useInputGroupDescendantState,
+} from "./input-group-context";
+
+import {
   useFieldControl,
 } from "./use-field-control";
 
@@ -106,16 +110,6 @@ export interface SelectProps
 }
 
 
-type SelectComponent =
-  React.ForwardRefExoticComponent<
-    SelectProps &
-    React.RefAttributes<HTMLSelectElement>
-  > & {
-    __UI_CONTROL_KIND?:
-      "select";
-  };
-
-
 export const Select =
   forwardRef<
     HTMLSelectElement,
@@ -149,8 +143,7 @@ export const Select =
         placeholder,
         rightPadding,
 
-        indicatorOffset =
-          10,
+        indicatorOffset,
 
         id,
 
@@ -423,6 +416,16 @@ export const Select =
           onChange
         );
 
+      const inputGroup =
+        useInputGroupDescendantState({
+          focused:
+            focus.focused,
+
+          focusVisible:
+            focus.focusVisible,
+        });
+
+
       return (
         <div
           {...rootSlot}
@@ -484,6 +487,14 @@ export const Select =
             data-ui-control=""
 
             data-ui="select"
+
+            data-in-group={
+              dataAttr(
+                Boolean(
+                  inputGroup
+                )
+              )
+            }
 
             data-size={size}
 
@@ -565,11 +576,8 @@ export const Select =
         </div>
       );
     }
-  ) as SelectComponent;
+  );
 
 
 Select.displayName =
   "Select";
-
-Select.__UI_CONTROL_KIND =
-  "select";

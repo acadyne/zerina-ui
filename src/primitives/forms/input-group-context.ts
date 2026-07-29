@@ -1,5 +1,8 @@
 import {
   createContext,
+  useContext,
+  useEffect,
+  useId,
 } from "react";
 
 import type {
@@ -7,14 +10,113 @@ import type {
 } from "./field-semantics";
 
 
+export type InputAdornmentPosition =
+  | "start"
+  | "end";
+
+
+export interface InputGroupDescendantState {
+  focused: boolean;
+  focusVisible: boolean;
+}
+
+
+export interface InputGroupContextValue
+  extends FieldState {
+  updateDescendantState: (
+    id: string,
+    state: InputGroupDescendantState
+  ) => void;
+
+  removeDescendantState: (
+    id: string
+  ) => void;
+
+  registerAdornment: (
+    id: string,
+    position: InputAdornmentPosition,
+    node: HTMLDivElement
+  ) => () => void;
+
+  getAdornmentOffset: (
+    id: string
+  ) => number;
+
+  startAdornmentWidth: number;
+  endAdornmentWidth: number;
+}
+
+
 /**
- * Propaga exclusivamente estados semánticos restrictivos.
+ * Contexto canónico de InputGroup.
  *
- * La composición visual de InputGroup permanece separada:
- * padding, radios, indicadores y variantes no forman parte
- * de este contexto.
+ * Propaga la semántica restrictiva y coordina
+ * la estructura visual del grupo:
+ *
+ * - descendientes enfocados;
+ * - focus-visible agregado;
+ * - adornments dinámicos;
+ * - medidas e insets.
  */
 export const InputGroupContext =
   createContext<
-    FieldState | null
+    InputGroupContextValue | null
   >(null);
+
+
+export function useInputGroupContext():
+  InputGroupContextValue | null {
+  return useContext(
+    InputGroupContext
+  );
+}
+
+
+export function useInputGroupDescendantState({
+  focused,
+  focusVisible,
+}: InputGroupDescendantState):
+  InputGroupContextValue | null {
+  const context =
+    useInputGroupContext();
+
+  const descendantId =
+    useId();
+
+  const updateDescendantState =
+    context?.updateDescendantState;
+
+  const removeDescendantState =
+    context?.removeDescendantState;
+
+
+  useEffect(() => {
+    updateDescendantState?.(
+      descendantId,
+      {
+        focused,
+        focusVisible,
+      }
+    );
+  }, [
+    descendantId,
+    focusVisible,
+    focused,
+    updateDescendantState,
+  ]);
+
+
+  useEffect(() => {
+    return () => {
+      removeDescendantState?.(
+        descendantId
+      );
+    };
+  }, [
+    descendantId,
+    removeDescendantState,
+  ]);
+
+
+  return context;
+}
