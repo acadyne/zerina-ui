@@ -155,6 +155,24 @@ function createSystemDefaultTokens(
         md: "2.5rem",
         lg: "3rem",
       },
+
+      paddingX: {
+        sm: "0.75rem",
+        md: "0.9rem",
+        lg: "1rem",
+      },
+
+      paddingY: {
+        sm: "0.45rem",
+        md: "0.6rem",
+        lg: "0.75rem",
+      },
+
+      textareaMinHeight: {
+        sm: "84px",
+        md: "108px",
+        lg: "132px",
+      },
     },
 
     interaction: {

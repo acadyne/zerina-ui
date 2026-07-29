@@ -1,110 +1,352 @@
 /* src/styles/controls.css */
 
 
-/* Control states */
+/* Text control metrics */
 
-input:where([data-ui="input"])[data-focus="true"],
-textarea:where([data-ui="textarea"])[data-focus="true"],
-select:where([data-ui="select"])[data-focus="true"] {
+:where(
+  [data-ui-control][data-size="sm"]
+) {
+  --ui-control-min-height:
+    var(--ui-control-h-sm);
+
+  --ui-control-font-size:
+    var(--ui-font-size-sm);
+
+  --ui-control-radius:
+    var(--ui-radius-sm);
+
+  --ui-control-padding-x:
+    var(--ui-control-padding-x-sm);
+
+  --ui-control-padding-y:
+    var(--ui-control-padding-y-sm);
+}
+
+
+:where(
+  [data-ui-control][data-size="md"]
+) {
+  --ui-control-min-height:
+    var(--ui-control-h-md);
+
+  --ui-control-font-size:
+    var(--ui-font-size-md);
+
+  --ui-control-radius:
+    var(--ui-radius-md);
+
+  --ui-control-padding-x:
+    var(--ui-control-padding-x-md);
+
+  --ui-control-padding-y:
+    var(--ui-control-padding-y-md);
+}
+
+
+:where(
+  [data-ui-control][data-size="lg"]
+) {
+  --ui-control-min-height:
+    var(--ui-control-h-lg);
+
+  --ui-control-font-size:
+    var(--ui-font-size-lg);
+
+  --ui-control-radius:
+    var(--ui-radius-lg);
+
+  --ui-control-padding-x:
+    var(--ui-control-padding-x-lg);
+
+  --ui-control-padding-y:
+    var(--ui-control-padding-y-lg);
+}
+
+
+/* Text control frame */
+
+:where([data-ui-control]) {
+  --ui-control-focus-ring-color:
+    var(
+      --ui-interaction-focus-ring-color
+    );
+
+  box-sizing:
+    border-box;
+
+  outline:
+    none;
+
+  min-width:
+    0;
+
+  min-height:
+    var(--ui-control-min-height);
+
+  padding-block:
+    var(--ui-control-padding-y);
+
+  padding-inline:
+    var(--ui-control-padding-x);
+
+  color:
+    var(--ui-text);
+
+  font-size:
+    var(--ui-control-font-size);
+
+  line-height:
+    1.2;
+
+  background:
+    var(--ui-surface);
+
+  border:
+    1px solid
+    var(--ui-border);
+
+  border-radius:
+    var(--ui-control-radius);
+
+  box-shadow:
+    none;
+
+  transition:
+    border-color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    opacity
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  input[data-ui-control]:not(
+    [data-disabled]
+  ),
+  textarea[data-ui-control]:not(
+    [data-disabled]
+  )
+) {
+  cursor:
+    text;
+}
+
+
+:where(
+  select[data-ui-control]:not(
+    [data-disabled]
+  ):not(
+    [data-readonly]
+  )
+) {
+  cursor:
+    pointer;
+}
+
+
+:where(
+  select[data-ui-control][data-readonly]
+) {
+  cursor:
+    default;
+}
+
+
+/* Textarea metrics */
+
+:where(
+  textarea[data-ui-control][data-size="sm"]
+) {
+  min-height:
+    var(
+      --ui-control-textarea-min-height-sm
+    );
+
+  line-height:
+    1.5;
+}
+
+
+:where(
+  textarea[data-ui-control][data-size="md"]
+) {
+  min-height:
+    var(
+      --ui-control-textarea-min-height-md
+    );
+
+  line-height:
+    1.5;
+}
+
+
+:where(
+  textarea[data-ui-control][data-size="lg"]
+) {
+  min-height:
+    var(
+      --ui-control-textarea-min-height-lg
+    );
+
+  line-height:
+    1.5;
+}
+
+
+/* Select */
+
+:where(
+  select[data-ui-control]
+) {
+  padding-right:
+    2.2rem;
+}
+
+
+:where(
+  [data-ui="select-indicator"]
+) {
+  opacity:
+    0.8;
+
+  transition:
+    opacity
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  select[data-ui-control][data-disabled]
+  +
+  [data-ui="select-indicator"]
+) {
+  opacity:
+    0.55;
+}
+
+
+/* Invalid */
+
+:where(
+  [data-ui-control][data-invalid]
+) {
+  --ui-control-focus-ring-color:
+    var(
+      --ui-interaction-focus-ring-danger-color
+    );
+
+  border-color:
+    var(--ui-danger);
+}
+
+
+/* Focus visible */
+
+:where(
+  [data-ui-control][data-focus-visible]:not(
+    [data-variant="unstyled"]
+  )
+),
+:where(
+  [data-ui-control]:focus-visible:not(
+    [data-focused]
+  ):not(
+    [data-variant="unstyled"]
+  )
+) {
   border-color:
     var(--ui-primary);
 
   box-shadow:
     0 0 0
-    var(--ui-interaction-focus-ring-offset)
+    var(
+      --ui-interaction-focus-ring-offset
+    )
     var(--ui-surface),
     0 0 0
     calc(
-      var(--ui-interaction-focus-ring-offset)
+      var(
+        --ui-interaction-focus-ring-offset
+      )
       +
-      var(--ui-interaction-focus-ring-width)
+      var(
+        --ui-interaction-focus-ring-width
+      )
     )
-    var(--ui-interaction-focus-ring-color);
+    var(
+      --ui-control-focus-ring-color
+    );
 }
 
 
-input:where([data-ui="input"])[data-invalid="true"],
-textarea:where([data-ui="textarea"])[data-invalid="true"],
-select:where([data-ui="select"])[data-invalid="true"] {
+:where(
+  [data-ui-control][data-focus-visible][data-invalid]:not(
+    [data-variant="unstyled"]
+  )
+),
+:where(
+  [data-ui-control][data-invalid]:focus-visible:not(
+    [data-focused]
+  ):not(
+    [data-variant="unstyled"]
+  )
+) {
   border-color:
     var(--ui-danger);
 }
 
 
-input:where([data-ui="input"])[data-focus="true"][data-invalid="true"],
-textarea:where([data-ui="textarea"])[data-focus="true"][data-invalid="true"],
-select:where([data-ui="select"])[data-focus="true"][data-invalid="true"] {
-  border-color:
-    var(--ui-danger);
+/* Disabled */
 
-  box-shadow:
-    0 0 0
-    var(--ui-interaction-focus-ring-offset)
-    var(--ui-surface),
-    0 0 0
-    calc(
-      var(--ui-interaction-focus-ring-offset)
-      +
-      var(--ui-interaction-focus-ring-width)
-    )
-    var(--ui-interaction-focus-ring-danger-color);
-}
-
-
-input:where([data-ui="input"])[data-disabled="true"],
-textarea:where([data-ui="textarea"])[data-disabled="true"],
-select:where([data-ui="select"])[data-disabled="true"] {
+:where(
+  [data-ui-control][data-disabled]
+) {
   opacity:
-    var(--ui-interaction-disabled-opacity);
+    var(
+      --ui-interaction-disabled-opacity
+    );
 
   cursor:
     not-allowed;
 }
 
 
-/* Native focus fallback */
+/* Unstyled */
 
-input:where([data-ui="input"]):focus,
-textarea:where([data-ui="textarea"]):focus,
-select:where([data-ui="select"]):focus {
-  border-color:
-    var(--ui-primary);
+:where(
+  [data-ui-control][data-variant="unstyled"]
+) {
+  background:
+    transparent;
+
+  border:
+    none;
+
+  border-radius:
+    0;
 
   box-shadow:
-    0 0 0
-    var(--ui-interaction-focus-ring-offset)
-    var(--ui-surface),
-    0 0 0
-    calc(
-      var(--ui-interaction-focus-ring-offset)
-      +
-      var(--ui-interaction-focus-ring-width)
-    )
-    var(--ui-interaction-focus-ring-color);
+    none;
 }
 
 
-input:where([data-ui="input"])[data-invalid="true"]:focus,
-textarea:where([data-ui="textarea"])[data-invalid="true"]:focus,
-select:where([data-ui="select"])[data-invalid="true"]:focus {
-  border-color:
-    var(--ui-danger);
-
-  box-shadow:
-    0 0 0
-    var(--ui-interaction-focus-ring-offset)
-    var(--ui-surface),
-    0 0 0
-    calc(
-      var(--ui-interaction-focus-ring-offset)
-      +
-      var(--ui-interaction-focus-ring-width)
-    )
-    var(--ui-interaction-focus-ring-danger-color);
-}
-
-
-/* InputGroup */
+/*
+ * Contrato transitorio de InputGroup.
+ * El Bloque 5 elimina :focus-within y transfiere
+ * el frame al InputGroupContext canónico.
+ */
 
 [data-ui="input-group"]:focus-within {
   border-color:

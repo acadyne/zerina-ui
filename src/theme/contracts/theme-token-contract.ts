@@ -335,6 +335,66 @@ export const THEME_TOKEN_MANIFEST = {
         cssVariable: "--ui-control-h-lg",
       },
     },
+
+    paddingX: {
+      sm: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-x-sm",
+      },
+
+      md: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-x-md",
+      },
+
+      lg: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-x-lg",
+      },
+    },
+
+    paddingY: {
+      sm: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-y-sm",
+      },
+
+      md: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-y-md",
+      },
+
+      lg: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-padding-y-lg",
+      },
+    },
+
+    textareaMinHeight: {
+      sm: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-textarea-min-height-sm",
+      },
+
+      md: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-textarea-min-height-md",
+      },
+
+      lg: {
+        kind: "string",
+        cssVariable:
+          "--ui-control-textarea-min-height-lg",
+      },
+    },
   },
 
   interaction: {

@@ -1,41 +1,78 @@
-// src/primitives/forms/Select.tsx
-import React, { forwardRef, useState } from "react";
-import { useFieldControl } from "./use-field-control";
+import React, {
+  forwardRef,
+} from "react";
+
 import {
-  getControlBaseStyles,
-  getControlDataAttributes,
-  getControlSizeStyles,
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import {
+  useFocusVisible,
+} from "../../core/interaction/focus/useFocusVisible";
+
+import {
+  dataAttr,
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
+
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
+import {
+  type TextControlSize,
+  type TextControlVariant,
+} from "./control-types";
+
+import {
+  useFieldControl,
+} from "./use-field-control";
+
+
 export interface Option {
   label: string;
   value: string;
 }
 
-type SelectSize = "sm" | "md" | "lg";
-type SelectVariant = "outline" | "unstyled";
 
-export type SelectSlot = "root" | "control" | "indicator";
+type SelectSize =
+  TextControlSize;
 
-export type SelectStyles = SlotStyleMap<SelectSlot>;
+type SelectVariant =
+  TextControlVariant;
 
-export type SelectSlotProps = SlotPropsMap<SelectSlot>;
+
+export type SelectSlot =
+  | "root"
+  | "control"
+  | "indicator";
+
+export type SelectStyles =
+  SlotStyleMap<SelectSlot>;
+
+export type SelectSlotProps =
+  SlotPropsMap<SelectSlot>;
+
 
 export interface SelectProps
   extends Omit<
       React.SelectHTMLAttributes<HTMLSelectElement>,
-      "value" | "onChange" | "size" | "style" | "className"
+      | "value"
+      | "onChange"
+      | "size"
+      | "style"
+      | "className"
     >,
     SpaceProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+
+  onChange: (
+    event:
+      React.ChangeEvent<HTMLSelectElement>
+  ) => void;
 
   options?: Option[];
   children?: React.ReactNode;
@@ -45,128 +82,142 @@ export interface SelectProps
 
   invalid?: boolean;
   readOnly?: boolean;
-  rounded?: React.CSSProperties["borderRadius"];
-  minW?: React.CSSProperties["minWidth"];
+
+  rounded?:
+    React.CSSProperties["borderRadius"];
+
+  minW?:
+    React.CSSProperties["minWidth"];
+
   size?: SelectSize;
   variant?: SelectVariant;
+
   fullWidth?: boolean;
   placeholder?: string;
-  rightPadding?: number | string;
-  indicatorOffset?: number | string;
+
+  rightPadding?:
+    React.CSSProperties["paddingRight"];
+
+  indicatorOffset?:
+    React.CSSProperties["right"];
 
   styles?: SelectStyles;
   slotProps?: SelectSlotProps;
 }
 
-type SelectComponent = React.ForwardRefExoticComponent<
-  SelectProps & React.RefAttributes<HTMLSelectElement>
-> & {
-  __UI_CONTROL_KIND?: "select";
-};
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  (
-    {
-      value,
-      onChange,
-      options,
-      children,
-      className = "",
-      style,
-      invalid,
-      readOnly,
-      rounded,
-      minW,
-      size = "md",
-      variant = "outline",
-      fullWidth = true,
-      disabled = false,
-      required,
-      placeholder,
-      rightPadding,
-      indicatorOffset = 10,
-      id,
-      onFocus,
-      onBlur,
-      "aria-invalid": ariaInvalid,
-      "aria-required": ariaRequired,
-      "aria-readonly": ariaReadOnly,
-      "aria-labelledby": ariaLabelledBy,
-      "aria-describedby": ariaDescribedBy,
+type SelectComponent =
+  React.ForwardRefExoticComponent<
+    SelectProps &
+    React.RefAttributes<HTMLSelectElement>
+  > & {
+    __UI_CONTROL_KIND?:
+      "select";
+  };
 
-      p,
-      px,
-      py,
-      pt,
-      pb,
-      pl,
-      pr,
-      m,
-      mx,
-      my,
-      mt,
-      mb,
-      ml,
-      mr,
 
-      styles,
-      slotProps,
+export const Select =
+  forwardRef<
+    HTMLSelectElement,
+    SelectProps
+  >(
+    (
+      {
+        value,
+        onChange,
 
-      ...props
-    },
-    ref
-  ) => {
-    const [isFocused, setIsFocused] =
-      useState(false);
+        options,
+        children,
 
-    const fieldControl =
-      useFieldControl({
-        id,
+        className = "",
+        style,
 
-        disabled,
         invalid,
-        required,
         readOnly,
 
-        ariaInvalid,
-        ariaRequired,
-        ariaReadOnly,
+        rounded,
+        minW,
 
-        ariaLabelledBy,
-        ariaDescribedBy,
-      });
+        size = "md",
+        variant = "outline",
 
-    const hasPlaceholder =
-      placeholder !== undefined;
+        fullWidth = true,
 
-    const sizeStyles = getControlSizeStyles(size);
-    const controlStyles = getControlBaseStyles(size, variant, {
-      invalid: fieldControl.invalid,
-      disabled: fieldControl.disabled,
-      focused: isFocused,
-    });
+        disabled = false,
+        required,
 
-    const rootSlot = resolveSlot<SelectSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseStyle: {
-        position: "relative",
-        display: fullWidth ? "flex" : "inline-flex",
-        width: fullWidth ? "100%" : undefined,
-        minWidth: fullWidth ? 0 : minW,
-        maxWidth: "100%",
+        placeholder,
+        rightPadding,
 
-        ...getSpacingStyles({
-          p,
-          px,
-          py,
-          pt,
-          pb,
-          pl,
-          pr,
+        indicatorOffset =
+          10,
+
+        id,
+
+        onFocus,
+        onBlur,
+
+        "aria-invalid":
+          ariaInvalid,
+
+        "aria-required":
+          ariaRequired,
+
+        "aria-readonly":
+          ariaReadOnly,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
+
+        p,
+        px,
+        py,
+        pt,
+        pb,
+        pl,
+        pr,
+
+        m,
+        mx,
+        my,
+        mt,
+        mb,
+        ml,
+        mr,
+
+        styles,
+        slotProps,
+
+        ...props
+      },
+      ref
+    ) => {
+      const fieldControl =
+        useFieldControl({
+          id,
+
+          disabled,
+          invalid,
+          required,
+          readOnly,
+
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
+
+          ariaLabelledBy,
+          ariaDescribedBy,
+        });
+
+      const hasPlaceholder =
+        placeholder !==
+        undefined;
+
+      const spacingStyles =
+        getSpacingStyles({
           m,
           mx,
           my,
@@ -174,136 +225,351 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           mb,
           ml,
           mr,
-        }),
-      },
-    });
+        });
 
-    const controlSlot = resolveSlot<SelectSlot>({
-      slot: "control",
-      styles,
-      slotProps,
-      baseStyle: {
-        width: fullWidth ? "100%" : undefined,
-        minWidth: fullWidth ? 0 : minW,
-        maxWidth: "100%",
-        lineHeight: 1.2,
-        appearance: "none",
-        WebkitAppearance: "none",
-        MozAppearance: "none",
+      const rootSlot =
+        resolveSlot<SelectSlot>({
+          slot:
+            "root",
 
-        ...controlStyles,
-        borderRadius: rounded ?? sizeStyles.borderRadius,
-        paddingRight: rightPadding ?? "2.2rem",
-      },
-    });
+          styles,
+          slotProps,
 
-    const indicatorSlot = resolveSlot<SelectSlot>({
-      slot: "indicator",
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-      },
-      baseStyle: {
-        position: "absolute",
-        right: indicatorOffset,
-        top: "50%",
-        transform: "translateY(-50%)",
-        pointerEvents: "none",
-        opacity: fieldControl.disabled ? 0.55 : 0.8,
-        fontSize: 12,
-        color: "var(--ui-text-muted)",
-        lineHeight: 1,
-      },
-    });
+          className,
+          style,
 
-    return (
-      <div {...rootSlot}>
-        <select
-          {...controlSlot}
-          ref={ref}
-          id={fieldControl.id}
-          value={value}
+          baseStyle: {
+            position:
+              "relative",
 
-          onChange={(event) => {
-            if (
-              fieldControl.readOnly
-            ) {
-              event.preventDefault();
-              return;
+            display:
+              fullWidth
+                ? "flex"
+                : "inline-flex",
+
+            width:
+              fullWidth
+                ? "100%"
+                : undefined,
+
+            minWidth:
+              fullWidth
+                ? 0
+                : minW,
+
+            maxWidth:
+              "100%",
+
+            marginTop:
+              spacingStyles.marginTop,
+
+            marginBottom:
+              spacingStyles.marginBottom,
+
+            marginLeft:
+              spacingStyles.marginLeft,
+
+            marginRight:
+              spacingStyles.marginRight,
+          },
+        });
+
+      const controlSlot =
+        resolveSlot<SelectSlot>({
+          slot:
+            "control",
+
+          styles,
+          slotProps,
+
+          baseStyle: {
+            width:
+              fullWidth
+                ? "100%"
+                : undefined,
+
+            minWidth:
+              fullWidth
+                ? 0
+                : minW,
+
+            maxWidth:
+              "100%",
+
+            appearance:
+              "none",
+
+            WebkitAppearance:
+              "none",
+
+            MozAppearance:
+              "none",
+
+            borderRadius:
+              rounded,
+
+            paddingTop:
+              pt ??
+              py ??
+              p,
+
+            paddingBottom:
+              pb ??
+              py ??
+              p,
+
+            paddingLeft:
+              pl ??
+              px ??
+              p,
+
+            paddingRight:
+              rightPadding ??
+              pr ??
+              px ??
+              p,
+          },
+        });
+
+      const indicatorSlot =
+        resolveSlot<SelectSlot>({
+          slot:
+            "indicator",
+
+          styles,
+          slotProps,
+
+          baseProps: {
+            "aria-hidden":
+              true,
+          },
+
+          baseStyle: {
+            position:
+              "absolute",
+
+            right:
+              indicatorOffset,
+
+            top:
+              "50%",
+
+            transform:
+              "translateY(-50%)",
+
+            pointerEvents:
+              "none",
+
+            fontSize:
+              12,
+
+            color:
+              "var(--ui-text-muted)",
+
+            lineHeight:
+              1,
+          },
+        });
+
+      const {
+        onFocus:
+          slotOnFocus,
+
+        onBlur:
+          slotOnBlur,
+
+        onChange:
+          slotOnChange,
+
+        ...resolvedControlSlot
+      } = controlSlot;
+
+      const focus =
+        useFocusVisible<HTMLSelectElement>({
+          disabled:
+            fieldControl.disabled,
+
+          onFocus:
+            composeEventHandlers<
+              React.FocusEvent<HTMLSelectElement>
+            >(
+              slotOnFocus as
+                | React.FocusEventHandler<HTMLSelectElement>
+                | undefined,
+
+              onFocus
+            ),
+
+          onBlur:
+            composeEventHandlers<
+              React.FocusEvent<HTMLSelectElement>
+            >(
+              slotOnBlur as
+                | React.FocusEventHandler<HTMLSelectElement>
+                | undefined,
+
+              onBlur
+            ),
+        });
+
+      const handleChange =
+        composeEventHandlers<
+          React.ChangeEvent<HTMLSelectElement>
+        >(
+          slotOnChange as
+            | React.ChangeEventHandler<HTMLSelectElement>
+            | undefined,
+
+          onChange
+        );
+
+      return (
+        <div
+          {...rootSlot}
+        >
+          <select
+            {...resolvedControlSlot}
+            {...props}
+            {...focus.focusProps}
+
+            ref={ref}
+
+            id={
+              fieldControl.id
             }
 
-            onChange(event);
-          }}
+            value={value}
 
-          disabled={
-            fieldControl.disabled
-          }
+            onChange={(event) => {
+              if (
+                fieldControl.readOnly
+              ) {
+                event.preventDefault();
+                return;
+              }
 
-          required={
-            fieldControl.required
-          }
+              handleChange(
+                event
+              );
+            }}
 
-          aria-invalid={
-            fieldControl.ariaInvalid
-          }
+            disabled={
+              fieldControl.disabled
+            }
 
-          aria-required={
-            fieldControl.ariaRequired
-          }
+            required={
+              fieldControl.required
+            }
 
-          aria-readonly={
-            fieldControl.ariaReadOnly
-          }
+            aria-invalid={
+              fieldControl.ariaInvalid
+            }
 
-          aria-labelledby={
-            fieldControl.ariaLabelledBy
-          }
+            aria-required={
+              fieldControl.ariaRequired
+            }
 
-          aria-describedby={
-            fieldControl.ariaDescribedBy
-          }
+            aria-readonly={
+              fieldControl.ariaReadOnly
+            }
 
-          data-readonly={
-            fieldControl.readOnly ||
-            undefined
-          }
-          {...getControlDataAttributes({
-            focused: isFocused,
-            invalid: fieldControl.invalid,
-            disabled: fieldControl.disabled,
-          })}
-          onFocus={(event) => {
-            setIsFocused(true);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setIsFocused(false);
-            onBlur?.(event);
-          }}
-          {...props}
-          data-ui="select"
-        >
-          {hasPlaceholder ? (
-            <option value="" disabled hidden>
-              {placeholder}
-            </option>
-          ) : null}
+            aria-labelledby={
+              fieldControl.ariaLabelledBy
+            }
 
-          {options
-            ? options.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))
-            : children}
-        </select>
+            aria-describedby={
+              fieldControl.ariaDescribedBy
+            }
 
-        <span {...indicatorSlot}>▼</span>
-      </div>
-    );
-  }
-) as SelectComponent;
+            data-ui-control=""
 
-Select.displayName = "Select";
-Select.__UI_CONTROL_KIND = "select";
+            data-ui="select"
+
+            data-size={size}
+
+            data-variant={
+              variant
+            }
+
+            data-focused={
+              dataAttr(
+                focus.focused
+              )
+            }
+
+            data-focus-visible={
+              dataAttr(
+                focus.focusVisible
+              )
+            }
+
+            data-invalid={
+              dataAttr(
+                fieldControl.invalid
+              )
+            }
+
+            data-disabled={
+              dataAttr(
+                fieldControl.disabled
+              )
+            }
+
+            data-required={
+              dataAttr(
+                fieldControl.required
+              )
+            }
+
+            data-readonly={
+              dataAttr(
+                fieldControl.readOnly
+              )
+            }
+          >
+            {hasPlaceholder ? (
+              <option
+                value=""
+                disabled
+                hidden
+              >
+                {placeholder}
+              </option>
+            ) : null}
+
+            {options
+              ? options.map(
+                  (option) => (
+                    <option
+                      key={
+                        option.value
+                      }
+
+                      value={
+                        option.value
+                      }
+                    >
+                      {option.label}
+                    </option>
+                  )
+                )
+              : children}
+          </select>
+
+          <span
+            {...indicatorSlot}
+            data-ui="select-indicator"
+          >
+            ▼
+          </span>
+        </div>
+      );
+    }
+  ) as SelectComponent;
+
+
+Select.displayName =
+  "Select";
+
+Select.__UI_CONTROL_KIND =
+  "select";

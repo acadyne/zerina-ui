@@ -408,6 +408,13 @@ export const MenuItem =
       const isFocused =
         ctx.focusedIndex === itemIndex;
 
+      const focused =
+        isFocused ||
+        press.state.focused;
+
+      const focusVisible =
+        press.state.focusVisible;
+
       const itemSlot =
         resolveSlot<MenuSlot>({
           slot: "item",
@@ -448,12 +455,14 @@ export const MenuItem =
               undefined,
 
             "data-focused":
-              isFocused ||
-              undefined,
+              focused
+                ? ""
+                : undefined,
 
             "data-focus-visible":
-              isFocused ||
-              undefined,
+              focusVisible
+                ? ""
+                : undefined,
 
             "data-disabled":
               disabled ||
@@ -468,8 +477,7 @@ export const MenuItem =
               pressed:
                 press.state.pressed,
 
-              focusVisible:
-                isFocused,
+              focusVisible,
 
               disabled,
             }).item,
