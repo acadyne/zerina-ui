@@ -9,19 +9,17 @@ import {
   deepFreeze,
 } from "../internal/theme-object-utils";
 
-
 function createSystemDefaultTokens(
   colorScheme: ThemeColorScheme
 ): ResolvedThemeTokens {
   const isLight =
     colorScheme === "light";
 
-
   return {
     color: {
       primary: "#2f8c79",
       primaryHover: "#267564",
-      primaryContrast: "#ffffff",
+      primaryContrast: "#000000",
 
       secondary: "#6b7280",
       secondaryHover: "#4b5563",
@@ -29,15 +27,15 @@ function createSystemDefaultTokens(
 
       success: "#22c55e",
       successStrong: "#15803d",
-      successContrast: "#ffffff",
+      successContrast: "#111827",
 
       warning: "#f59e0b",
       warningStrong: "#b45309",
-      warningContrast: "#ffffff",
+      warningContrast: "#111827",
 
       danger: "#ef4444",
       dangerHover: "#dc2626",
-      dangerContrast: "#ffffff",
+      dangerContrast: "#111827",
     },
 
     surface: isLight
@@ -94,26 +92,47 @@ function createSystemDefaultTokens(
       full: "9999px",
     },
 
-    shadow: {
-      sm:
-        "0 4px 12px rgba(0,0,0,0.12)",
-      md:
-        "0 10px 28px rgba(0,0,0,0.22)",
-      lg:
-        "0 18px 48px rgba(0,0,0,0.35)",
+    shadow: isLight
+      ? {
+          sm:
+            "0 4px 12px rgba(0,0,0,0.12)",
+          md:
+            "0 10px 28px rgba(0,0,0,0.22)",
+          lg:
+            "0 18px 48px rgba(0,0,0,0.35)",
 
-      control:
-        "0 1px 3px rgba(0,0,0,0.25)",
+          control:
+            "0 1px 3px rgba(0,0,0,0.25)",
 
-      action:
-        "0 6px 14px rgba(0,0,0,0.14)",
-      actionHover:
-        "0 8px 18px rgba(0,0,0,0.18)",
-      actionSubtleHover:
-        "0 4px 12px rgba(0,0,0,0.08)",
-      actionOutlineHover:
-        "0 4px 12px rgba(0,0,0,0.1)",
-    },
+          action:
+            "0 6px 14px rgba(0,0,0,0.14)",
+          actionHover:
+            "0 8px 18px rgba(0,0,0,0.18)",
+          actionSubtleHover:
+            "0 4px 12px rgba(0,0,0,0.08)",
+          actionOutlineHover:
+            "0 4px 12px rgba(0,0,0,0.1)",
+        }
+      : {
+          sm:
+            "0 4px 14px rgba(0,0,0,0.32)",
+          md:
+            "0 12px 32px rgba(0,0,0,0.48)",
+          lg:
+            "0 22px 56px rgba(0,0,0,0.62)",
+
+          control:
+            "0 1px 4px rgba(0,0,0,0.45)",
+
+          action:
+            "0 8px 18px rgba(0,0,0,0.32)",
+          actionHover:
+            "0 10px 24px rgba(0,0,0,0.42)",
+          actionSubtleHover:
+            "0 4px 14px rgba(0,0,0,0.24)",
+          actionOutlineHover:
+            "0 4px 14px rgba(0,0,0,0.28)",
+        },
 
     typography: {
       fontSize: {
@@ -139,15 +158,28 @@ function createSystemDefaultTokens(
     },
 
     interaction: {
-      overlay: "rgba(0,0,0,0.55)",
-      focusRing:
-        "rgba(47,140,121,0.35)",
+      overlay:
+        "rgba(0,0,0,0.55)",
+
+      focusRingColor:
+        "color-mix(in srgb, var(--ui-primary) 35%, transparent)",
+
+      focusRingDangerColor:
+        "color-mix(in srgb, var(--ui-danger) 35%, transparent)",
+
+      focusRingWidth:
+        "3px",
+
+      focusRingOffset:
+        "0px",
+
+      disabledOpacity:
+        "0.65",
     },
 
     extensions: {},
   };
 }
-
 
 export const SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME:
   Readonly<

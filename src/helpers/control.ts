@@ -132,7 +132,7 @@ export function getControlBaseStyles(
     paddingRight: sizeStyle.paddingRight,
 
     opacity: disabled
-      ? "var(--ui-state-disabled-opacity)"
+      ? "var(--ui-interaction-disabled-opacity)"
       : 1,
 
     cursor: disabled

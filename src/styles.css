@@ -4,8 +4,6 @@
 
 @import "./core/motion/motion.css";
 
-@import "./core/interaction/interaction.css";
-
 @import "./styles/controls.css";
 
 @import "./components/feedback/skeleton.css";

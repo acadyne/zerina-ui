@@ -10,8 +10,16 @@ select:where([data-ui="select"])[data-focus="true"] {
     var(--ui-primary);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-color);
 }
 
 
@@ -30,8 +38,16 @@ select:where([data-ui="select"])[data-focus="true"][data-invalid="true"] {
     var(--ui-danger);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus-danger);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-danger-color);
 }
 
 
@@ -39,7 +55,7 @@ input:where([data-ui="input"])[data-disabled="true"],
 textarea:where([data-ui="textarea"])[data-disabled="true"],
 select:where([data-ui="select"])[data-disabled="true"] {
   opacity:
-    var(--ui-state-disabled-opacity);
+    var(--ui-interaction-disabled-opacity);
 
   cursor:
     not-allowed;
@@ -55,8 +71,16 @@ select:where([data-ui="select"]):focus {
     var(--ui-primary);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-color);
 }
 
 
@@ -67,8 +91,16 @@ select:where([data-ui="select"])[data-invalid="true"]:focus {
     var(--ui-danger);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus-danger);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-danger-color);
 }
 
 
@@ -79,8 +111,16 @@ select:where([data-ui="select"])[data-invalid="true"]:focus {
     var(--ui-primary);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-color);
 }
 
 
@@ -95,12 +135,20 @@ select:where([data-ui="select"])[data-invalid="true"]:focus {
     var(--ui-danger);
 
   box-shadow:
-    0 0 0 3px
-    var(--ui-state-focus-danger);
+    0 0 0
+    var(--ui-interaction-focus-ring-offset)
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(--ui-interaction-focus-ring-offset)
+      +
+      var(--ui-interaction-focus-ring-width)
+    )
+    var(--ui-interaction-focus-ring-danger-color);
 }
 
 
 [data-ui="input-group"][data-disabled="true"] {
   opacity:
-    var(--ui-state-disabled-opacity);
+    var(--ui-interaction-disabled-opacity);
 }

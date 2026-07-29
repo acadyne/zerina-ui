@@ -228,7 +228,7 @@ function getItemBorderColor({
   }
 
   if (focused) {
-    return "var(--ui-interaction-focus-ring)";
+    return "var(--ui-interaction-focus-ring-color)";
   }
 
   return "transparent";
@@ -508,7 +508,7 @@ const navigationListRecipe =
             : "var(--ui-text-muted)",
 
           opacity: disabled
-            ? "var(--ui-state-disabled-opacity)"
+            ? "var(--ui-interaction-disabled-opacity)"
             : 1,
         },
       };

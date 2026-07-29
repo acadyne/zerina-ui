@@ -233,7 +233,7 @@ const checkboxRecipe =
 
         boxShadow:
           focusVisible
-            ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+            ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
             : "none",
 
         cursor: disabled
@@ -241,7 +241,7 @@ const checkboxRecipe =
           : "pointer",
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity)"
+          ? "var(--ui-interaction-disabled-opacity)"
           : 1,
       },
 
@@ -289,7 +289,7 @@ const checkboxRecipe =
 
       label: {
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity)"
+          ? "var(--ui-interaction-disabled-opacity)"
           : 1,
       },
     }),

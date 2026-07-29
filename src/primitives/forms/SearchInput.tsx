@@ -133,7 +133,7 @@ const searchInputRecipe =
           : "pointer",
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity)"
+          ? "var(--ui-interaction-disabled-opacity)"
           : 1,
       },
     }),

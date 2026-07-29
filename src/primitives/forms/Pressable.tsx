@@ -248,7 +248,7 @@ const PressableImpl = (
           : "pointer",
 
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity)"
+          ? "var(--ui-interaction-disabled-opacity)"
           : undefined,
 
         userSelect: "none",
@@ -398,7 +398,7 @@ const PressableImpl = (
 
     boxShadow:
       press.state.focusVisible
-        ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+        ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
         : rootSlotRest.style
             ?.boxShadow,
 

@@ -338,13 +338,13 @@ const buttonRecipe = defineSlotRecipe<
     return {
       root: {
         opacity: disabled
-          ? "var(--ui-state-disabled-opacity)"
+          ? "var(--ui-interaction-disabled-opacity)"
           : 1,
 
         cursor: disabled ? "not-allowed" : "pointer",
 
         boxShadow: focusVisible
-          ? `0 0 0 3px var(--ui-interaction-focus-ring), ${shadow}`
+          ? `0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color), ${shadow}`
           : shadow,
 
         background:

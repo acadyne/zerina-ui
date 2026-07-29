@@ -19,41 +19,6 @@ const builtInThemes: ThemeDefinition[] = [
       icon: "sun",
       colorScheme: "light",
     },
-    tokens: {
-      color: {
-        primary: "#2f8c79",
-        primaryHover: "#267564",
-        primaryContrast: "#ffffff",
-
-        secondary: "#6b7280",
-        secondaryHover: "#4b5563",
-        secondaryContrast: "#ffffff",
-
-        danger: "#ef4444",
-        dangerHover: "#dc2626",
-        dangerContrast: "#ffffff",
-      },
-
-      surface: {
-        bg: "#f6f7f9",
-        surface: "#ffffff",
-        surface2: "#f1f3f5",
-        surface3: "#e9edf1",
-        surfaceHover: "rgba(15, 23, 42, 0.05)",
-      },
-
-      text: {
-        text: "#111827",
-        textMuted: "#4b5563",
-        textSoft: "#6b7280",
-        textInverse: "#ffffff",
-      },
-
-      border: {
-        border: "rgba(17, 24, 39, 0.12)",
-        borderStrong: "rgba(17, 24, 39, 0.2)",
-      },
-    },
   },
 
   {
@@ -64,42 +29,8 @@ const builtInThemes: ThemeDefinition[] = [
       icon: "moon",
       colorScheme: "dark",
     },
-    tokens: {
-      color: {
-        primary: "#2f8c79",
-        primaryHover: "#267564",
-        primaryContrast: "#ffffff",
-
-        secondary: "#6b7280",
-        secondaryHover: "#4b5563",
-        secondaryContrast: "#ffffff",
-
-        danger: "#ef4444",
-        dangerHover: "#dc2626",
-        dangerContrast: "#ffffff",
-      },
-
-      surface: {
-        bg: "#0b0d10",
-        surface: "#111315",
-        surface2: "#171a1d",
-        surface3: "#1d2125",
-        surfaceHover: "rgba(255,255,255,0.08)",
-      },
-
-      text: {
-        text: "#f3f4f6",
-        textMuted: "#c4c7cc",
-        textSoft: "#9ca3af",
-        textInverse: "#111827",
-      },
-
-      border: {
-        border: "rgba(255,255,255,0.12)",
-        borderStrong: "rgba(255,255,255,0.2)",
-      },
-    },
   },
+
   {
     name: "spring",
     source: "builtin",
@@ -112,11 +43,11 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#5aa469",
         primaryHover: "#4a8c58",
-        primaryContrast: "#ffffff",
+        primaryContrast: "#111827",
 
         secondary: "#d97706",
         secondaryHover: "#b45309",
-        secondaryContrast: "#ffffff",
+        secondaryContrast: "#111827",
 
         danger: "#dc2626",
         dangerHover: "#b91c1c",
@@ -157,11 +88,11 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#f59e0b",
         primaryHover: "#d97706",
-        primaryContrast: "#ffffff",
+        primaryContrast: "#111827",
 
         secondary: "#0ea5a4",
         secondaryHover: "#0f766e",
-        secondaryContrast: "#ffffff",
+        secondaryContrast: "#111827",
 
         danger: "#e11d48",
         dangerHover: "#be123c",
@@ -202,7 +133,7 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#c0652a",
         primaryHover: "#a94f1b",
-        primaryContrast: "#ffffff",
+        primaryContrast: "#000000",
 
         secondary: "#8b5e3c",
         secondaryHover: "#6f4b2f",
@@ -247,15 +178,15 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#60a5fa",
         primaryHover: "#3b82f6",
-        primaryContrast: "#ffffff",
+        primaryContrast: "#111827",
 
         secondary: "#94a3b8",
         secondaryHover: "#64748b",
-        secondaryContrast: "#ffffff",
+        secondaryContrast: "#111827",
 
         danger: "#ef4444",
         dangerHover: "#dc2626",
-        dangerContrast: "#ffffff",
+        dangerContrast: "#111827",
       },
 
       surface: {
@@ -291,7 +222,7 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#ff4fd8",
         primaryHover: "#e13fc0",
-        primaryContrast: "#ffffff",
+        primaryContrast: "#06202a",
 
         secondary: "#22d3ee",
         secondaryHover: "#06b6d4",
@@ -299,7 +230,7 @@ const builtInThemes: ThemeDefinition[] = [
 
         danger: "#ff5c7a",
         dangerHover: "#e11d48",
-        dangerContrast: "#ffffff",
+        dangerContrast: "#06202a",
       },
 
       surface: {
@@ -336,7 +267,7 @@ const builtInThemes: ThemeDefinition[] = [
       color: {
         primary: "#c08a3e",
         primaryHover: "#a9742f",
-        primaryContrast: "#fff8ea",
+        primaryContrast: "#2b2117",
 
         secondary: "#7c5a3a",
         secondaryHover: "#64472d",

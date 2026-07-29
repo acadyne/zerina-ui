@@ -344,10 +344,34 @@ export const THEME_TOKEN_MANIFEST = {
         "--ui-interaction-overlay",
     },
 
-    focusRing: {
+    focusRingColor: {
       kind: "string",
       cssVariable:
-        "--ui-interaction-focus-ring",
+        "--ui-interaction-focus-ring-color",
+    },
+
+    focusRingDangerColor: {
+      kind: "string",
+      cssVariable:
+        "--ui-interaction-focus-ring-danger-color",
+    },
+
+    focusRingWidth: {
+      kind: "string",
+      cssVariable:
+        "--ui-interaction-focus-ring-width",
+    },
+
+    focusRingOffset: {
+      kind: "string",
+      cssVariable:
+        "--ui-interaction-focus-ring-offset",
+    },
+
+    disabledOpacity: {
+      kind: "string",
+      cssVariable:
+        "--ui-interaction-disabled-opacity",
     },
   },
 } as const satisfies

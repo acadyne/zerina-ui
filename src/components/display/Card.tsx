@@ -120,7 +120,7 @@ const cardRecipe = defineSlotRecipe<
   }) => ({
     root: {
       boxShadow: focusVisible
-        ? "0 0 0 3px var(--ui-interaction-focus-ring)"
+        ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
         : hovered && !disabled
           ? "var(--ui-shadow-md)"
           : shadow,

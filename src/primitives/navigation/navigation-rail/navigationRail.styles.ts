@@ -688,7 +688,7 @@ export const navigationRailItemRecipe =
             : "var(--ui-text-muted)",
 
           opacity: disabled
-            ? "var(--ui-state-disabled-opacity)"
+            ? "var(--ui-interaction-disabled-opacity)"
             : 1,
         },
 

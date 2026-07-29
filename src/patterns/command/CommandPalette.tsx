@@ -852,7 +852,18 @@ export function CommandTrigger({
         outline: "none",
         boxShadow:
           press.state.focusVisible
-            ? "0 0 0 3px color-mix(in srgb, var(--ui-primary) 18%, transparent)"
+            ? [
+            "0 0 0",
+            "var(--ui-interaction-focus-ring-offset)",
+            "var(--ui-surface),",
+            "0 0 0",
+            "calc(",
+            "var(--ui-interaction-focus-ring-offset)",
+            "+",
+            "var(--ui-interaction-focus-ring-width)",
+            ")",
+            "var(--ui-interaction-focus-ring-color)",
+          ].join(" ")
             : "none",
         transition:
           "border-color var(--ui-duration-fast) var(--ui-ease-standard), background var(--ui-duration-fast) var(--ui-ease-standard), color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard)",
