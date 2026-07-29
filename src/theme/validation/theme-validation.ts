@@ -1,7 +1,6 @@
 // src/theme/validation/theme-validation.ts
 
 import type {
-  CSSFontWeight,
   ThemeDefinition,
   ThemeExtensionTokens,
   ThemeExtensionValue,
@@ -11,6 +10,17 @@ import type {
   ThemeValidationDiagnostic,
   ThemeValidationResult,
 } from "../contracts/theme.types";
+
+import type {
+  ThemeTokenDescriptor,
+  ThemeTokenManifestBranch,
+  ThemeTokenManifestNode,
+} from "../contracts/theme-token-contract";
+
+import {
+  isThemeTokenDescriptor,
+  THEME_TOKEN_MANIFEST,
+} from "../contracts/theme-token-contract";
 
 
 type DataProperties =
@@ -48,135 +58,6 @@ const METADATA_KEYS =
     "description",
     "icon",
     "colorScheme",
-  ]);
-
-
-const TOKEN_KEYS =
-  new Set([
-    "color",
-    "surface",
-    "text",
-    "border",
-    "radius",
-    "shadow",
-    "typography",
-    "control",
-    "extensions",
-    "interaction",
-  ]);
-
-
-const COLOR_KEYS =
-  new Set([
-    "primary",
-    "primaryHover",
-    "primaryContrast",
-    "secondary",
-    "secondaryHover",
-    "secondaryContrast",
-    "success",
-    "successStrong",
-    "successContrast",
-    "warning",
-    "warningStrong",
-    "warningContrast",
-    "danger",
-    "dangerHover",
-    "dangerContrast",
-  ]);
-
-
-const SURFACE_KEYS =
-  new Set([
-    "bg",
-    "surface",
-    "surface2",
-    "surface3",
-    "surfaceHover",
-  ]);
-
-
-const TEXT_KEYS =
-  new Set([
-    "text",
-    "textMuted",
-    "textSoft",
-    "textInverse",
-  ]);
-
-
-const BORDER_KEYS =
-  new Set([
-    "border",
-    "borderStrong",
-  ]);
-
-
-const RADIUS_KEYS =
-  new Set([
-    "sm",
-    "md",
-    "lg",
-    "xl",
-    "full",
-  ]);
-
-
-const SHADOW_KEYS =
-  new Set([
-    "sm",
-    "md",
-    "lg",
-    "control",
-    "action",
-    "actionHover",
-    "actionSubtleHover",
-    "actionOutlineHover",
-  ]);
-
-
-const TYPOGRAPHY_KEYS =
-  new Set([
-    "fontSize",
-    "fontWeight",
-  ]);
-
-
-const FONT_SIZE_KEYS =
-  new Set([
-    "xs",
-    "sm",
-    "md",
-    "lg",
-    "xl",
-  ]);
-
-
-const FONT_WEIGHT_KEYS =
-  new Set([
-    "medium",
-    "bold",
-  ]);
-
-
-const CONTROL_KEYS =
-  new Set([
-    "height",
-  ]);
-
-
-const CONTROL_HEIGHT_KEYS =
-  new Set([
-    "sm",
-    "md",
-    "lg",
-  ]);
-
-
-const INTERACTION_KEYS =
-  new Set([
-    "overlay",
-    "focusRing",
   ]);
 
 
@@ -559,16 +440,116 @@ function readRequiredThemeIdentifier(
 }
 
 
-function normalizeStringTokenGroup(
+function normalizeThemeTokenLeaf(
   value: unknown,
   path: string,
-  allowedKeys: ReadonlySet<string>,
+  descriptor:
+    ThemeTokenDescriptor,
   diagnostics:
     ThemeValidationDiagnostic[]
-): Record<string, string> | undefined {
+): string | number | undefined {
+  if (
+    descriptor.kind ===
+    "fontWeight"
+  ) {
+    if (
+      typeof value === "string" &&
+      value.trim().length > 0
+    ) {
+      return value;
+    }
+
+
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value)
+    ) {
+      return value;
+    }
+
+
+    addDiagnostic(
+      diagnostics,
+      "theme.typography.font_weight.invalid",
+      `${path} must be a non-empty string or a finite number.`,
+      path
+    );
+
+
+    return undefined;
+  }
+
+
+  if (
+    typeof value === "string" &&
+    value.trim().length > 0
+  ) {
+    return value;
+  }
+
+
+  addDiagnostic(
+    diagnostics,
+    "theme.token.invalid",
+    `${path} must be a non-empty string.`,
+    path
+  );
+
+
+  return undefined;
+}
+
+
+function normalizeThemeTokenNode(
+  value: unknown,
+  path: string,
+  node:
+    ThemeTokenManifestNode,
+  diagnostics:
+    ThemeValidationDiagnostic[]
+): unknown {
+  if (
+    isThemeTokenDescriptor(
+      node
+    )
+  ) {
+    return normalizeThemeTokenLeaf(
+      value,
+      path,
+      node,
+      diagnostics
+    );
+  }
+
+
+  return normalizeThemeTokenBranch(
+    value,
+    path,
+    node,
+    diagnostics
+  );
+}
+
+
+function normalizeThemeTokenBranch(
+  value: unknown,
+  path: string,
+  manifest:
+    ThemeTokenManifestBranch,
+  diagnostics:
+    ThemeValidationDiagnostic[]
+): Record<string, unknown> | undefined {
   if (value === undefined) {
     return undefined;
   }
+
+
+  const allowedKeys =
+    new Set(
+      Object.keys(
+        manifest
+      )
+    );
 
 
   const properties =
@@ -586,239 +567,51 @@ function normalizeStringTokenGroup(
 
 
   const result:
-    Record<string, string> = {};
+    Record<string, unknown> = {};
 
 
   for (
     const [
       key,
-      tokenValue,
-    ] of properties
+      node,
+    ] of Object.entries(
+      manifest
+    ) as Array<
+      [
+        string,
+        ThemeTokenManifestNode,
+      ]
+    >
   ) {
-    if (!allowedKeys.has(key)) {
+    if (
+      !properties.has(key)
+    ) {
       continue;
     }
+
+
+    const normalized =
+      normalizeThemeTokenNode(
+        properties.get(key),
+        `${path}.${key}`,
+        node,
+        diagnostics
+      );
 
 
     if (
-      typeof tokenValue !== "string" ||
-      tokenValue.trim().length === 0
+      normalized !== undefined
     ) {
-      addDiagnostic(
-        diagnostics,
-        "theme.token.invalid",
-        `${path}.${key} must be a non-empty string.`,
-        `${path}.${key}`
+      defineValue(
+        result,
+        key,
+        normalized
       );
-
-      continue;
-    }
-
-
-    defineValue(
-      result,
-      key,
-      tokenValue
-    );
-  }
-
-
-  return result;
-}
-
-
-function normalizeFontWeight(
-  value: unknown,
-  path: string,
-  diagnostics:
-    ThemeValidationDiagnostic[]
-): CSSFontWeight | undefined {
-  if (
-    typeof value === "string" &&
-    value.trim().length > 0
-  ) {
-    return value;
-  }
-
-
-  if (
-    typeof value === "number" &&
-    Number.isFinite(value)
-  ) {
-    return value;
-  }
-
-
-  addDiagnostic(
-    diagnostics,
-    "theme.typography.font_weight.invalid",
-    `${path} must be a non-empty string or a finite number.`,
-    path
-  );
-
-
-  return undefined;
-}
-
-
-function normalizeTypography(
-  value: unknown,
-  diagnostics:
-    ThemeValidationDiagnostic[]
-): ThemeTokens["typography"] {
-  if (value === undefined) {
-    return undefined;
-  }
-
-
-  const path =
-    "tokens.typography";
-
-
-  const properties =
-    inspectDataObject(
-      value,
-      path,
-      diagnostics,
-      TYPOGRAPHY_KEYS
-    );
-
-
-  if (!properties) {
-    return undefined;
-  }
-
-
-  const result:
-    NonNullable<
-      ThemeTokens["typography"]
-    > = {};
-
-
-  const fontSize =
-    normalizeStringTokenGroup(
-      properties.get("fontSize"),
-      `${path}.fontSize`,
-      FONT_SIZE_KEYS,
-      diagnostics
-    );
-
-
-  if (fontSize) {
-    result.fontSize =
-      fontSize;
-  }
-
-
-  if (
-    properties.has("fontWeight") &&
-    properties.get("fontWeight") !==
-    undefined
-  ) {
-    const weightPath =
-      `${path}.fontWeight`;
-
-
-    const weights =
-      inspectDataObject(
-        properties.get("fontWeight"),
-        weightPath,
-        diagnostics,
-        FONT_WEIGHT_KEYS
-      );
-
-
-    if (weights) {
-      const normalizedWeights:
-        Record<
-          string,
-          CSSFontWeight
-        > = {};
-
-
-      for (
-        const [
-          key,
-          weight,
-        ] of weights
-      ) {
-        if (
-          !FONT_WEIGHT_KEYS.has(key)
-        ) {
-          continue;
-        }
-
-
-        const normalized =
-          normalizeFontWeight(
-            weight,
-            `${weightPath}.${key}`,
-            diagnostics
-          );
-
-
-        if (normalized !== undefined) {
-          defineValue(
-            normalizedWeights,
-            key,
-            normalized
-          );
-        }
-      }
-
-
-      result.fontWeight =
-        normalizedWeights;
     }
   }
 
 
   return result;
-}
-
-
-function normalizeControl(
-  value: unknown,
-  diagnostics:
-    ThemeValidationDiagnostic[]
-): ThemeTokens["control"] {
-  if (value === undefined) {
-    return undefined;
-  }
-
-
-  const path =
-    "tokens.control";
-
-
-  const properties =
-    inspectDataObject(
-      value,
-      path,
-      diagnostics,
-      CONTROL_KEYS
-    );
-
-
-  if (!properties) {
-    return undefined;
-  }
-
-
-  const height =
-    normalizeStringTokenGroup(
-      properties.get("height"),
-      `${path}.height`,
-      CONTROL_HEIGHT_KEYS,
-      diagnostics
-    );
-
-
-  return height
-    ? {
-      height,
-    }
-    : {};
 }
 
 
@@ -1354,12 +1147,22 @@ function normalizeTokens(
   }
 
 
+  const allowedKeys =
+    new Set([
+      ...Object.keys(
+        THEME_TOKEN_MANIFEST
+      ),
+
+      "extensions",
+    ]);
+
+
   const properties =
     inspectDataObject(
       value,
       "tokens",
       diagnostics,
-      TOKEN_KEYS
+      allowedKeys
     );
 
 
@@ -1372,54 +1175,38 @@ function normalizeTokens(
     ThemeTokens = {};
 
 
-  const groups = [
-    [
-      "color",
-      COLOR_KEYS,
-    ],
-    [
-      "surface",
-      SURFACE_KEYS,
-    ],
-    [
-      "text",
-      TEXT_KEYS,
-    ],
-    [
-      "border",
-      BORDER_KEYS,
-    ],
-    [
-      "radius",
-      RADIUS_KEYS,
-    ],
-    [
-      "shadow",
-      SHADOW_KEYS,
-    ],
-    [
-      "interaction",
-      INTERACTION_KEYS,
-    ],
-  ] as const;
-
-
   for (
     const [
       key,
-      allowedKeys,
-    ] of groups
+      node,
+    ] of Object.entries(
+      THEME_TOKEN_MANIFEST
+    ) as Array<
+      [
+        string,
+        ThemeTokenManifestNode,
+      ]
+    >
   ) {
+    if (
+      !properties.has(key)
+    ) {
+      continue;
+    }
+
+
     const normalized =
-      normalizeStringTokenGroup(
+      normalizeThemeTokenNode(
         properties.get(key),
         `tokens.${key}`,
-        allowedKeys,
+        node,
         diagnostics
       );
 
 
-    if (normalized) {
+    if (
+      normalized !== undefined
+    ) {
       defineValue(
         result,
         key,
@@ -1429,37 +1216,11 @@ function normalizeTokens(
   }
 
 
-  const typography =
-    normalizeTypography(
-      properties.get(
-        "typography"
-      ),
-      diagnostics
-    );
-
-
-  if (typography) {
-    result.typography =
-      typography;
-  }
-
-
-  const control =
-    normalizeControl(
-      properties.get("control"),
-      diagnostics
-    );
-
-
-  if (control) {
-    result.control =
-      control;
-  }
-
-
   const extensions =
     normalizeExtensions(
-      properties.get("extensions"),
+      properties.get(
+        "extensions"
+      ),
       diagnostics
     );
 

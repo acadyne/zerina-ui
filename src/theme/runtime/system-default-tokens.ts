@@ -1,8 +1,8 @@
 // src/theme/runtime/system-default-tokens.ts
 
 import type {
+  ResolvedThemeTokens,
   ThemeColorScheme,
-  ThemeTokens,
 } from "../contracts/theme.types";
 
 import {
@@ -12,7 +12,7 @@ import {
 
 function createSystemDefaultTokens(
   colorScheme: ThemeColorScheme
-): ThemeTokens {
+): ResolvedThemeTokens {
   const isLight =
     colorScheme === "light";
 
@@ -143,6 +143,8 @@ function createSystemDefaultTokens(
       focusRing:
         "rgba(47,140,121,0.35)",
     },
+
+    extensions: {},
   };
 }
 
@@ -151,7 +153,7 @@ export const SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME:
   Readonly<
     Record<
       ThemeColorScheme,
-      ThemeTokens
+      ResolvedThemeTokens
     >
   > =
   deepFreeze({

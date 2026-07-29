@@ -1,70 +1,148 @@
 // src/theme/runtime/resolve-theme-tokens.ts
 
 import type {
+  ResolvedStandardThemeTokens,
+  ThemeTokenManifestBranch,
+  ThemeTokenManifestNode,
+} from "../contracts/theme-token-contract";
+
+import {
+  isThemeTokenDescriptor,
+  THEME_TOKEN_MANIFEST,
+} from "../contracts/theme-token-contract";
+
+import type {
+  ResolvedThemeTokens,
   ThemeDefinition,
-  ThemeTokens,
   ThemeName,
+  ThemeTokens,
 } from "../contracts/theme.types";
 
+type TokenRecord =
+  Record<string, unknown>;
 
-function mergeTokens(
-  base: ThemeTokens,
+function readTokenRecord(
+  value: unknown,
+  path: string
+): TokenRecord {
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    throw new Error(
+      `Resolved theme token branch "${path}" is missing or invalid.`
+    );
+  }
+
+  return value as TokenRecord;
+}
+
+function mergeStandardTokenBranch(
+  manifest:
+    ThemeTokenManifestBranch,
+  base: TokenRecord,
+  override:
+    TokenRecord | undefined,
+  path: readonly string[]
+): TokenRecord {
+  const result:
+    TokenRecord = {};
+
+  for (
+    const [
+      key,
+      node,
+    ] of Object.entries(
+      manifest
+    ) as Array<
+      [
+        string,
+        ThemeTokenManifestNode,
+      ]
+    >
+  ) {
+    const nextPath = [
+      ...path,
+      key,
+    ];
+
+    const baseValue =
+      base[key];
+
+    const overrideValue =
+      override?.[key];
+
+    if (
+      isThemeTokenDescriptor(
+        node
+      )
+    ) {
+      const resolvedValue =
+        overrideValue !== undefined
+          ? overrideValue
+          : baseValue;
+
+      if (
+        resolvedValue === undefined
+      ) {
+        throw new Error(
+          `Resolved theme token "${nextPath.join(
+            "."
+          )}" is missing.`
+        );
+      }
+
+      result[key] =
+        resolvedValue;
+
+      continue;
+    }
+
+    result[key] =
+      mergeStandardTokenBranch(
+        node,
+        readTokenRecord(
+          baseValue,
+          nextPath.join(".")
+        ),
+        overrideValue ===
+          undefined
+          ? undefined
+          : readTokenRecord(
+              overrideValue,
+              nextPath.join(".")
+            ),
+        nextPath
+      );
+  }
+
+  return result;
+}
+
+function mergeStandardTokens(
+  base: ResolvedThemeTokens,
   override: ThemeTokens
-): ThemeTokens {
+): ResolvedStandardThemeTokens {
+  return mergeStandardTokenBranch(
+    THEME_TOKEN_MANIFEST,
+    base as unknown as
+      TokenRecord,
+    override as unknown as
+      TokenRecord,
+    []
+  ) as ResolvedStandardThemeTokens;
+}
+
+function mergeResolvedThemeTokens(
+  base: ResolvedThemeTokens,
+  override: ThemeTokens
+): ResolvedThemeTokens {
   return {
-    color: {
-      ...base.color,
-      ...override.color,
-    },
-
-    surface: {
-      ...base.surface,
-      ...override.surface,
-    },
-
-    text: {
-      ...base.text,
-      ...override.text,
-    },
-
-    border: {
-      ...base.border,
-      ...override.border,
-    },
-
-    radius: {
-      ...base.radius,
-      ...override.radius,
-    },
-
-    shadow: {
-      ...base.shadow,
-      ...override.shadow,
-    },
-
-    typography: {
-      fontSize: {
-        ...base.typography?.fontSize,
-        ...override.typography?.fontSize,
-      },
-
-      fontWeight: {
-        ...base.typography?.fontWeight,
-        ...override.typography?.fontWeight,
-      },
-    },
-
-    control: {
-      height: {
-        ...base.control?.height,
-        ...override.control?.height,
-      },
-    },
-
-    interaction: {
-      ...base.interaction,
-      ...override.interaction,
-    },
+    ...mergeStandardTokens(
+      base,
+      override
+    ),
 
     extensions: {
       ...base.extensions,
@@ -73,21 +151,25 @@ function mergeTokens(
   };
 }
 
-
 export interface ResolveThemeTokensOptions {
   theme: ThemeDefinition;
 
-  themes: Map<ThemeName, ThemeDefinition>;
+  themes:
+    ReadonlyMap<
+      ThemeName,
+      ThemeDefinition
+    >;
 
-  defaults?: ThemeTokens;
+  defaults:
+    ResolvedThemeTokens;
 }
-
 
 export function resolveThemeTokens({
   theme,
   themes,
-  defaults = {},
-}: ResolveThemeTokensOptions): ThemeTokens {
+  defaults,
+}: ResolveThemeTokensOptions):
+  ResolvedThemeTokens {
   return resolveThemeTokensInternal({
     theme,
     themes,
@@ -96,22 +178,22 @@ export function resolveThemeTokens({
   });
 }
 
-
 interface ResolveThemeTokensInternalOptions
   extends ResolveThemeTokensOptions {
   path: ThemeName[];
 }
 
-
 function resolveThemeTokensInternal({
   theme,
   themes,
-  defaults = {},
+  defaults,
   path,
-}: ResolveThemeTokensInternalOptions): ThemeTokens {
+}: ResolveThemeTokensInternalOptions):
+  ResolvedThemeTokens {
   const cycleStartIndex =
-    path.indexOf(theme.name);
-
+    path.indexOf(
+      theme.name
+    );
 
   if (cycleStartIndex >= 0) {
     const cyclePath = [
@@ -121,7 +203,6 @@ function resolveThemeTokensInternal({
 
       theme.name,
     ];
-
 
     throw new Error(
       `Circular theme inheritance detected: ${cyclePath
@@ -133,49 +214,48 @@ function resolveThemeTokensInternal({
     );
   }
 
-
   const nextPath = [
     ...path,
     theme.name,
   ];
 
+  const inheritedTokens =
+    theme.extends
+      ? resolveParentThemeTokens(
+          theme.extends,
+          themes,
+          defaults,
+          nextPath
+        )
+      : defaults;
 
-  const inheritedTokens = theme.extends
-    ? resolveParentThemeTokens(
-        theme.extends,
-        themes,
-        defaults,
-        nextPath
-      )
-    : {};
-
-
-  return mergeTokens(
-    mergeTokens(
-      defaults,
-      inheritedTokens
-    ),
+  return mergeResolvedThemeTokens(
+    inheritedTokens,
     theme.tokens ?? {}
   );
 }
 
-
 function resolveParentThemeTokens(
   parentName: ThemeName,
-  themes: Map<ThemeName, ThemeDefinition>,
-  defaults: ThemeTokens,
+  themes:
+    ReadonlyMap<
+      ThemeName,
+      ThemeDefinition
+    >,
+  defaults:
+    ResolvedThemeTokens,
   path: ThemeName[]
-): ThemeTokens {
+): ResolvedThemeTokens {
   const parent =
-    themes.get(parentName);
-
+    themes.get(
+      parentName
+    );
 
   if (!parent) {
     throw new Error(
       `Theme "${parentName}" does not exist`
     );
   }
-
 
   return resolveThemeTokensInternal({
     theme: parent,

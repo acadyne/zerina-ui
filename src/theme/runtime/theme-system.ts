@@ -5,7 +5,7 @@ import type {
   ThemeDefinition,
   ThemeMetadata,
   ThemeName,
-  ThemeTokens,
+  ResolvedThemeTokens,
 } from "../contracts/theme.types";
 
 import {
@@ -67,7 +67,7 @@ export interface ResolvedTheme {
     ThemeColorScheme;
   };
 
-  tokens: ThemeTokens;
+  tokens: ResolvedThemeTokens;
 }
 
 

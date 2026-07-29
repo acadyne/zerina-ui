@@ -59,6 +59,7 @@ export {
 
 export type {
   CSSFontWeight,
+  ResolvedThemeTokens,
   ThemeBorderTokens,
   ThemeColorScheme,
   ThemeColorTokens,
@@ -76,6 +77,7 @@ export type {
   ThemeSource,
   ThemeSurfaceTokens,
   ThemeTextTokens,
+  ThemeTokenCSSVariable,
   ThemeTokens,
   ThemeTypographyTokens,
   ThemeValidationDiagnostic,

@@ -10,7 +10,7 @@ import {
 import {
   applyThemeStyleDeclarations,
   createThemeStyleDeclarations,
-  type ThemeStyleDeclaration,
+  type StyleDeclaration,
 } from "../runtime/theme-style-declarations";
 
 import {
@@ -227,12 +227,12 @@ function applyOwnedStyleDeclarations(
   root: HTMLElement,
   ownedStyles: OwnedThemeStyles,
   declarations:
-    readonly ThemeStyleDeclaration[]
+    readonly StyleDeclaration[]
 ): void {
   const nextDeclarations =
     new Map<
       string,
-      ThemeStyleDeclaration
+      StyleDeclaration
     >();
 
 
@@ -841,7 +841,7 @@ export const UIThemeProvider: React.FC<
 
 
       const inlineDeclarations:
-        ThemeStyleDeclaration[] = [
+        StyleDeclaration[] = [
           ...declarations,
         ];
 

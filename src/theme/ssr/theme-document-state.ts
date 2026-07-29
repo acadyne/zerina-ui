@@ -4,6 +4,7 @@ import type {
   ThemeColorScheme,
   ThemeDefinition,
   ThemeName,
+  ThemeTokenCSSVariable,
 } from "../contracts/theme.types";
 
 import {
@@ -15,9 +16,9 @@ import {
 } from "../runtime/theme-system";
 
 import {
-  createThemeStyleDeclarations,
+  createThemeStyleRecord,
+  type ThemeStyleRecord,
 } from "../runtime/theme-style-declarations";
-
 
 export interface CreateThemeDocumentStateOptions {
   /**
@@ -36,20 +37,13 @@ export interface CreateThemeDocumentStateOptions {
   themes?: readonly ThemeDefinition[];
 }
 
-
 export type ThemeDocumentCustomProperty =
-  `--ui-${string}`;
-
+  ThemeTokenCSSVariable;
 
 export type ThemeDocumentStyle = {
-  colorScheme: ThemeColorScheme;
-} & Readonly<
-  Record<
-    ThemeDocumentCustomProperty,
-    string
-  >
->;
-
+  colorScheme:
+    ThemeColorScheme;
+} & ThemeStyleRecord;
 
 export interface ThemeDocumentState {
   /**
@@ -60,14 +54,15 @@ export interface ThemeDocumentState {
   /**
    * Effective color scheme resolved through theme inheritance.
    */
-  colorScheme: ThemeColorScheme;
+  colorScheme:
+    ThemeColorScheme;
 
   /**
    * React-compatible inline style object for the document root.
    */
-  style: ThemeDocumentStyle;
+  style:
+    ThemeDocumentStyle;
 }
-
 
 /**
  * Creates the deterministic theme state used by an SSR document.
@@ -100,48 +95,28 @@ export function createThemeDocumentState(
         false,
     });
 
-
   const activeTheme =
     system.getActiveTheme();
-
 
   const resolved =
     system.resolveTheme(
       activeTheme.name
     );
 
-
-  const customProperties:
-    Record<
-      ThemeDocumentCustomProperty,
-      string
-    > = {};
-
-
-  const declarations =
-    createThemeStyleDeclarations(
+  const customProperties =
+    createThemeStyleRecord(
       resolved.tokens
     );
 
-
-  for (const declaration of declarations) {
-    customProperties[
-      declaration.property as
-        ThemeDocumentCustomProperty
-    ] =
-      declaration.value;
-  }
-
-
   const style:
-    ThemeDocumentStyle = {
+    ThemeDocumentStyle =
+    Object.freeze({
       ...customProperties,
 
       colorScheme:
         resolved.metadata
           .colorScheme,
-    };
-
+    });
 
   return Object.freeze({
     themeName:
@@ -151,9 +126,6 @@ export function createThemeDocumentState(
       resolved.metadata
         .colorScheme,
 
-    style:
-      Object.freeze(
-        style
-      ),
+    style,
   });
 }

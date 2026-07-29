@@ -1,9 +1,33 @@
 // src/theme/contracts/theme.types.ts
 
+import type {
+  ThemeTokens,
+} from "./theme-token-contract";
+
+export type {
+  CSSFontWeight,
+  ResolvedThemeTokens,
+  ThemeBorderTokens,
+  ThemeColorTokens,
+  ThemeControlTokens,
+  ThemeExtensionPrimitive,
+  ThemeExtensionTokens,
+  ThemeExtensionValue,
+  ThemeInteractionTokens,
+  ThemeRadiusTokens,
+  ThemeShadowTokens,
+  ThemeSurfaceTokens,
+  ThemeTextTokens,
+  ThemeTokenCSSVariable,
+  ThemeTokens,
+  ThemeTypographyTokens,
+} from "./theme-token-contract";
+
 export type ThemeIconName =
   string;
 
-export type ThemeName = string;
+export type ThemeName =
+  string;
 
 export type ThemeSource =
   | "builtin"
@@ -13,10 +37,6 @@ export type ThemeSource =
 export type ThemeColorScheme =
   | "light"
   | "dark";
-
-export type CSSFontWeight =
-  | string
-  | number;
 
 export interface ThemeMetadata {
   label?: string;
@@ -40,139 +60,11 @@ export interface ThemeDefinition {
   tokens?: ThemeTokens;
 }
 
-export type ThemeExtensionPrimitive =
-  | string
-  | number
-  | boolean
-  | null;
-
-export type ThemeExtensionValue =
-  | ThemeExtensionPrimitive
-  | readonly ThemeExtensionValue[]
-  | {
-      readonly [key: string]:
-        ThemeExtensionValue;
-    };
-
-export type ThemeExtensionTokens =
-  Readonly<
-    Record<
-      string,
-      ThemeExtensionValue
-    >
-  >;
-
-
-export interface ThemeTokens {
-  color?: ThemeColorTokens;
-
-  surface?: ThemeSurfaceTokens;
-
-  text?: ThemeTextTokens;
-
-  border?: ThemeBorderTokens;
-
-  radius?: ThemeRadiusTokens;
-
-  shadow?: ThemeShadowTokens;
-
-  typography?: ThemeTypographyTokens;
-
-  control?: ThemeControlTokens;
-
-  extensions?: ThemeExtensionTokens;
-
-  interaction?: ThemeInteractionTokens;
-}
-
-export interface ThemeColorTokens {
-  primary?: string;
-  primaryHover?: string;
-  primaryContrast?: string;
-
-  secondary?: string;
-  secondaryHover?: string;
-  secondaryContrast?: string;
-
-  success?: string;
-  successStrong?: string;
-  successContrast?: string;
-
-  warning?: string;
-  warningStrong?: string;
-  warningContrast?: string;
-
-  danger?: string;
-  dangerHover?: string;
-  dangerContrast?: string;
-}
-
-export interface ThemeSurfaceTokens {
-  bg?: string;
-  surface?: string;
-  surface2?: string;
-  surface3?: string;
-  surfaceHover?: string;
-}
-
-export interface ThemeTextTokens {
-  text?: string;
-  textMuted?: string;
-  textSoft?: string;
-  textInverse?: string;
-}
-
-export interface ThemeBorderTokens {
-  border?: string;
-  borderStrong?: string;
-}
-
-export interface ThemeRadiusTokens {
-  sm?: string;
-  md?: string;
-  lg?: string;
-  xl?: string;
-  full?: string;
-}
-
-export interface ThemeShadowTokens {
-  sm?: string;
-  md?: string;
-  lg?: string;
-
-  control?: string;
-
-  action?: string;
-  actionHover?: string;
-  actionSubtleHover?: string;
-  actionOutlineHover?: string;
-}
-
-export interface ThemeTypographyTokens {
-  fontSize?: {
-    xs?: string;
-    sm?: string;
-    md?: string;
-    lg?: string;
-    xl?: string;
-  };
-
-  fontWeight?: {
-    medium?: CSSFontWeight;
-    bold?: CSSFontWeight;
-  };
-}
-
-export interface ThemeControlTokens {
-  height?: {
-    sm?: string;
-    md?: string;
-    lg?: string;
-  };
-}
-
 export interface ThemeValidationDiagnostic {
-  level: "error" | "warning" | "info";
+  level:
+    | "error"
+    | "warning"
+    | "info";
 
   code: string;
 
@@ -196,10 +88,3 @@ export type ThemeValidationResult =
       diagnostics:
         ThemeValidationDiagnostic[];
     };
-
-
-export interface ThemeInteractionTokens {
-  overlay?: string;
-
-  focusRing?: string;
-}
