@@ -693,23 +693,6 @@
 
   color:
     var(--ui-text-muted);
-
-  cursor:
-    pointer;
-
-  transition:
-    background
-    var(--ui-duration-normal)
-    var(--ui-ease-standard),
-    color
-    var(--ui-duration-normal)
-    var(--ui-ease-standard),
-    box-shadow
-    var(--ui-duration-normal)
-    var(--ui-ease-standard),
-    opacity
-    var(--ui-duration-normal)
-    var(--ui-ease-standard);
 }
 
 
@@ -751,34 +734,152 @@
 }
 
 
+
+/* Action controls */
+
 :where(
-  [data-ui="control-action"][data-focus-visible]:not(
-    [data-disabled]
-  )
+  [data-ui="button"],
+  [data-ui="icon-button"],
+  [data-ui="pressable"],
+  [data-ui="control-action"]
 ) {
+  outline:
+    none;
+
+  cursor:
+    pointer;
+
+  transition:
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    border-color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    opacity
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    outline-color
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    scale
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    translate
+    var(--ui-duration-fast)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="button"],
+  [data-ui="icon-button"]
+) {
+  box-sizing:
+    border-box;
+
+  background:
+    var(
+      --ui-action-background
+    );
+
+  color:
+    var(
+      --ui-action-color
+    );
+
+  border:
+    var(
+      --ui-action-border
+    );
+
   box-shadow:
-    0 0 0
     var(
-      --ui-interaction-focus-ring-offset
-    )
-    var(--ui-surface),
-    0 0 0
-    calc(
-      var(
-        --ui-interaction-focus-ring-offset
-      )
-      +
-      var(
-        --ui-interaction-focus-ring-width
-      )
-    )
-    var(
-      --ui-interaction-focus-ring-color
+      --ui-action-shadow
     );
 }
 
 
 :where(
+  [data-ui="button"][data-hovered]:not(
+    [data-disabled]
+  ),
+  [data-ui="icon-button"][data-hovered]:not(
+    [data-disabled]
+  )
+) {
+  background:
+    var(
+      --ui-action-hover-background
+    );
+
+  box-shadow:
+    var(
+      --ui-action-hover-shadow
+    );
+}
+
+
+:where(
+  [data-ui="button"][data-pressed]:not(
+    [data-disabled]
+  ),
+  [data-ui="icon-button"][data-pressed]:not(
+    [data-disabled]
+  )
+) {
+  background:
+    var(
+      --ui-action-pressed-background
+    );
+
+  box-shadow:
+    var(
+      --ui-action-pressed-shadow
+    );
+}
+
+
+:where(
+  [data-ui="button"][data-focus-visible]:not(
+    [data-disabled]
+  ),
+  [data-ui="icon-button"][data-focus-visible]:not(
+    [data-disabled]
+  ),
+  [data-ui="pressable"][data-focus-visible]:not(
+    [data-disabled]
+  ),
+  [data-ui="control-action"][data-focus-visible]:not(
+    [data-disabled]
+  )
+) {
+  outline:
+    var(
+      --ui-interaction-focus-ring-width
+    )
+    solid
+    var(
+      --ui-interaction-focus-ring-color
+    );
+
+  outline-offset:
+    var(
+      --ui-interaction-focus-ring-offset
+    );
+}
+
+
+:where(
+  [data-ui="button"][data-disabled],
+  [data-ui="icon-button"][data-disabled],
+  [data-ui="pressable"][data-disabled],
   [data-ui="control-action"][data-disabled]
 ) {
   cursor:
@@ -797,6 +898,15 @@
 ) {
   opacity:
     1;
+}
+
+
+:where(
+  [data-ui="button"][data-loading]
+  [data-ui="button-content"]
+) {
+  opacity:
+    0.95;
 }
 
 

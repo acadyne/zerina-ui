@@ -28,8 +28,8 @@
     var(--ui-duration-fast);
 }
 
-[data-ui-list-item][data-ui-pressable-hovered],
-[data-ui-list-item][data-ui-pressable-focus-visible] {
+[data-ui-list-item][data-hovered],
+[data-ui-list-item][data-focus-visible] {
   background:
     var(--ui-surface-hover);
 }
@@ -43,7 +43,7 @@
     );
 }
 
-[data-ui-list-item][data-ui-pressable-pressed] {
+[data-ui-list-item][data-pressed] {
   background:
     var(--ui-surface-3);
 }

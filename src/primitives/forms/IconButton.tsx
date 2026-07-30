@@ -1,35 +1,49 @@
-// src/primitives/forms/IconButton.tsx
 import React from "react";
-import { motion, type HTMLMotionProps } from "framer-motion";
-import { usePress, type UIPressEvent } from "../../core/interaction";
-import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
-import { useOptionalUIMotion } from "../../core/motion";
+
 import {
-  defineSlotRecipe,
+  motion,
+  type HTMLMotionProps,
+} from "framer-motion";
+
+import {
+  usePress,
+  type UIPressEvent,
+} from "../../core/interaction";
+
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import {
+  useOptionalUIMotion,
+} from "../../core/motion";
+
+import {
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-type IconButtonVariant =
+import {
+  getIconButtonActionRecipe,
+} from "./action-control-recipe";
+
+import {
+  getActionControlStateAttributes,
+} from "./action-control-state";
+
+import type {
+  ActionControlSize,
+} from "./action-control-types";
+
+export type IconButtonVariant =
   | "ghost"
   | "solid"
   | "unstyled";
 
-type IconButtonSize =
-  | "sm"
-  | "md"
-  | "lg"
-  | number;
-
-type IconButtonRounded =
-  | "none"
-  | "sm"
-  | "md"
-  | "lg"
-  | "full"
-  | string;
+export type IconButtonSize =
+  ActionControlSize;
 
 export type IconButtonSlot =
   | "root"
@@ -62,216 +76,35 @@ export interface IconButtonProps
     | "whileDrag"
     | "whileInView"
   > {
-  icon: React.ReactNode;
-  ariaLabel: string;
+  icon:
+    React.ReactNode;
 
-  variant?: IconButtonVariant;
-  size?: IconButtonSize;
-  rounded?: IconButtonRounded;
+  ariaLabel:
+    string;
+
+  variant?:
+    IconButtonVariant;
+
+  size?:
+    IconButtonSize;
 
   onPress?: (
-    event: UIPressEvent<HTMLElement>
+    event:
+      UIPressEvent<HTMLElement>
   ) => void;
 
-  className?: string;
-  style?: React.CSSProperties;
+  className?:
+    string;
 
-  styles?: IconButtonStyles;
-  slotProps?: IconButtonSlotProps;
+  style?:
+    React.CSSProperties;
+
+  styles?:
+    IconButtonStyles;
+
+  slotProps?:
+    IconButtonSlotProps;
 }
-
-const sizeMap: Record<
-  Exclude<IconButtonSize, number>,
-  number
-> = {
-  sm: 34,
-  md: 42,
-  lg: 50,
-};
-
-const radiusMap: Record<
-  "none" | "sm" | "md" | "lg" | "full",
-  string
-> = {
-  none: "0px",
-  sm: "var(--ui-radius-sm)",
-  md: "var(--ui-radius-md)",
-  lg: "var(--ui-radius-lg)",
-  full: "var(--ui-radius-full)",
-};
-
-const variantMap: Record<
-  IconButtonVariant,
-  {
-    background: string;
-    color: string;
-    hoverBackground: string;
-    activeBackground: string;
-    border: string;
-  }
-> = {
-  ghost: {
-    background: "transparent",
-    color: "var(--ui-text)",
-    hoverBackground:
-      "var(--ui-surface-hover)",
-    activeBackground:
-      "var(--ui-surface-hover)",
-    border:
-      "1px solid var(--ui-border)",
-  },
-
-  solid: {
-    background: "var(--ui-primary)",
-    color: "var(--ui-primary-contrast)",
-    hoverBackground:
-      "var(--ui-primary-hover)",
-    activeBackground:
-      "var(--ui-primary-hover)",
-    border:
-      "1px solid transparent",
-  },
-
-  unstyled: {
-    background: "transparent",
-    color: "inherit",
-    hoverBackground: "transparent",
-    activeBackground: "transparent",
-    border:
-      "1px solid transparent",
-  },
-};
-
-function resolveIconButtonSize(
-  size: IconButtonSize
-): number {
-  return typeof size === "number"
-    ? size
-    : sizeMap[size];
-}
-
-function resolveIconButtonRadius(
-  rounded: IconButtonRounded
-): React.CSSProperties["borderRadius"] {
-  if (
-    rounded === "none" ||
-    rounded === "sm" ||
-    rounded === "md" ||
-    rounded === "lg" ||
-    rounded === "full"
-  ) {
-    return radiusMap[rounded];
-  }
-
-  return rounded;
-}
-
-type IconButtonRecipeVariants = {
-  variant: IconButtonVariant;
-};
-
-type IconButtonRecipeState = {
-  size: IconButtonSize;
-  rounded: IconButtonRounded;
-  hovered: boolean;
-  pressed: boolean;
-  focusVisible: boolean;
-  disabled: boolean;
-};
-
-const iconButtonRecipe = defineSlotRecipe<
-  IconButtonSlot,
-  IconButtonRecipeVariants,
-  IconButtonRecipeState
->({
-  base: {
-    root: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-
-      outline: "none",
-
-      touchAction: "manipulation",
-      WebkitTapHighlightColor:
-        "transparent",
-
-      padding: 0,
-      flexShrink: 0,
-
-      transition:
-        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-    },
-
-    icon: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-
-      lineHeight: 1,
-      flexShrink: 0,
-    },
-  },
-
-  resolve: ({
-    variant,
-    size,
-    rounded,
-    hovered,
-    pressed,
-    focusVisible,
-    disabled,
-  }) => {
-    const resolvedSize =
-      resolveIconButtonSize(size);
-
-    const variantStyles =
-      variantMap[variant];
-
-    return {
-      root: {
-        width: resolvedSize,
-        height: resolvedSize,
-        minWidth: resolvedSize,
-        minHeight: resolvedSize,
-
-        borderRadius:
-          resolveIconButtonRadius(
-            rounded
-          ),
-
-        background:
-          pressed && !disabled
-            ? variantStyles.activeBackground
-            : hovered && !disabled
-              ? variantStyles.hoverBackground
-              : variantStyles.background,
-
-        color:
-          variantStyles.color,
-
-        border:
-          variantStyles.border,
-
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-
-        boxShadow: focusVisible
-          ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-          : "none",
-      },
-    };
-  },
-});
 
 export const IconButton =
   React.forwardRef<
@@ -282,12 +115,22 @@ export const IconButton =
       {
         icon,
         ariaLabel,
-        variant = "ghost",
-        size = "md",
-        rounded = "full",
-        disabled = false,
-        type = "button",
-        className = "",
+
+        variant =
+          "ghost",
+
+        size =
+          "md",
+
+        disabled =
+          false,
+
+        type =
+          "button",
+
+        className =
+          "",
+
         style,
 
         onPress,
@@ -356,7 +199,10 @@ export const IconButton =
       const press =
         usePress<HTMLButtonElement>({
           disabled,
-          nativeInteractive: true,
+
+          nativeInteractive:
+            true,
+
           onPress,
 
           onPointerEnter:
@@ -450,81 +296,65 @@ export const IconButton =
             )
           : undefined;
 
-      const recipeStyles =
-        iconButtonRecipe({
-          variant,
+      const recipe =
+        getIconButtonActionRecipe({
           size,
-          rounded,
-
-          hovered:
-            press.state.hovered,
-
-          pressed:
-            press.state.pressed,
-
-          focusVisible:
-            press.state.focusVisible,
-
-          disabled,
+          variant,
         });
 
       const rootSlot =
         resolveSlot<IconButtonSlot>({
-          slot: "root",
+          slot:
+            "root",
+
           styles,
           slotProps,
           className,
           style,
 
           baseProps: {
-            "data-ui-icon-button":
-              "",
+            "data-ui":
+              "icon-button",
 
-            "data-ui-icon-button-variant":
+            "data-variant":
               variant,
 
-            "data-ui-icon-button-size":
-              typeof size === "number"
-                ? size
-                : size,
+            "data-color-scheme":
+              "primary",
 
-            "data-disabled":
-              disabled ||
-              undefined,
+            "data-size":
+              size,
 
-            "data-hovered":
-              press.state.hovered ||
-              undefined,
-
-            "data-pressed":
-              press.state.pressed ||
-              undefined,
-
-            "data-focused":
-              press.state.focused ||
-              undefined,
-
-            "data-focus-visible":
-              press.state.focusVisible ||
-              undefined,
+            ...getActionControlStateAttributes(
+              press.state,
+              {
+                disabled,
+              }
+            ),
           },
 
           baseStyle:
-            recipeStyles.root,
+            recipe.root,
         });
 
       const iconSlot =
         resolveSlot<IconButtonSlot>({
-          slot: "icon",
+          slot:
+            "icon",
+
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden": true,
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "icon-button-icon",
           },
 
           baseStyle:
-            recipeStyles.icon,
+            recipe.icon,
         });
 
       return (
@@ -534,17 +364,33 @@ export const IconButton =
             rootSlot
           )}
           {...press.pressProps}
+
           ref={ref}
+
           type={type}
-          aria-label={ariaLabel}
-          disabled={disabled}
-          animate={pressMotion}
-          transition={motionState.getTransition(
-            motionState.effectiveLevel,
-            "press"
-          )}
+
+          aria-label={
+            ariaLabel
+          }
+
+          disabled={
+            disabled
+          }
+
+          animate={
+            pressMotion
+          }
+
+          transition={
+            motionState.getTransition(
+              motionState.effectiveLevel,
+              "press"
+            )
+          }
         >
-          <span {...iconSlot}>
+          <span
+            {...iconSlot}
+          >
             {icon}
           </span>
         </motion.button>

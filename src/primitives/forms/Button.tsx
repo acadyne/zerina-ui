@@ -1,31 +1,62 @@
-// src/primitives/forms/Button.tsx
 import React from "react";
-import { motion, type HTMLMotionProps } from "framer-motion";
-import { usePress, type UIPressEvent } from "../../core/interaction";
-import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
+
+import {
+  motion,
+  type HTMLMotionProps,
+} from "framer-motion";
+
+import {
+  usePress,
+  type UIPressEvent,
+} from "../../core/interaction";
+
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
 import {
   getSpinnerTransition,
   getSpinnerVariants,
   shouldAnimateSpinner,
   useOptionalUIMotion,
 } from "../../core/motion";
+
 import {
   type SizeProps,
   type SpaceProps,
   getSizeStyles,
   getSpacingStyles,
 } from "../../helpers";
+
 import {
-  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-type ButtonSize = "sm" | "md" | "lg";
-type ButtonVariant = "solid" | "outline" | "ghost";
-type ButtonColorScheme = "primary" | "secondary" | "danger";
+import {
+  getButtonActionRecipe,
+} from "./action-control-recipe";
+
+import {
+  getActionControlStateAttributes,
+} from "./action-control-state";
+
+import type {
+  ActionControlColorScheme,
+  ActionControlSize,
+  ActionControlVariant,
+} from "./action-control-types";
+
+export type ButtonSize =
+  ActionControlSize;
+
+export type ButtonVariant =
+  ActionControlVariant;
+
+export type ButtonColorScheme =
+  ActionControlColorScheme;
 
 export type ButtonSlot =
   | "root"
@@ -34,9 +65,11 @@ export type ButtonSlot =
   | "leftIcon"
   | "rightIcon";
 
-export type ButtonStyles = SlotStyleMap<ButtonSlot>;
+export type ButtonStyles =
+  SlotStyleMap<ButtonSlot>;
 
-export type ButtonSlotProps = SlotPropsMap<ButtonSlot>;
+export type ButtonSlotProps =
+  SlotPropsMap<ButtonSlot>;
 
 export interface ButtonProps
   extends Omit<
@@ -61,645 +94,555 @@ export interface ButtonProps
   >,
   SizeProps,
   SpaceProps {
-  children?: React.ReactNode;
+  children?:
+    React.ReactNode;
 
-  colorScheme?: ButtonColorScheme;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  colorScheme?:
+    ButtonColorScheme;
 
-  isLoading?: boolean;
-  loadingText?: React.ReactNode;
+  variant?:
+    ButtonVariant;
 
-  rounded?: React.CSSProperties["borderRadius"];
-  fullWidth?: boolean;
+  size?:
+    ButtonSize;
 
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  isLoading?:
+    boolean;
 
-  onPress?: (event: UIPressEvent<HTMLElement>) => void;
+  loadingText?:
+    React.ReactNode;
 
-  style?: React.CSSProperties;
+  fullWidth?:
+    boolean;
 
-  styles?: ButtonStyles;
-  slotProps?: ButtonSlotProps;
+  leftIcon?:
+    React.ReactNode;
+
+  rightIcon?:
+    React.ReactNode;
+
+  onPress?: (
+    event:
+      UIPressEvent<HTMLElement>
+  ) => void;
+
+  style?:
+    React.CSSProperties;
+
+  styles?:
+    ButtonStyles;
+
+  slotProps?:
+    ButtonSlotProps;
 }
 
-const sizeStyles: Record<
-  ButtonSize,
-  {
-    minHeight: React.CSSProperties["minHeight"];
-    paddingY: string;
-    paddingX: string;
-  }
-> = {
-  sm: {
-    minHeight: "var(--ui-control-h-sm)",
-    paddingY: "0.45rem",
-    paddingX: "0.8rem",
-  },
-  md: {
-    minHeight: "var(--ui-control-h-md)",
-    paddingY: "0.6rem",
-    paddingX: "0.95rem",
-  },
-  lg: {
-    minHeight: "var(--ui-control-h-lg)",
-    paddingY: "0.75rem",
-    paddingX: "1.1rem",
-  },
-};
+export const Button =
+  React.forwardRef<
+    HTMLButtonElement,
+    ButtonProps
+  >(
+    (
+      {
+        children,
 
-const schemeMap = {
-  primary: {
-    solidBg: "var(--ui-primary)",
-    solidHover: "var(--ui-primary-hover)",
-    solidText: "var(--ui-primary-contrast)",
+        colorScheme =
+          "primary",
 
-    outlineText: "var(--ui-primary)",
-    outlineBorder:
-      "color-mix(in srgb, var(--ui-primary) 42%, var(--ui-border))",
-    outlineHover:
-      "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
+        variant =
+          "solid",
 
-    ghostText: "var(--ui-primary)",
-    ghostHover:
-      "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
-  },
+        size =
+          "md",
 
-  secondary: {
-    solidBg: "var(--ui-secondary)",
-    solidHover: "var(--ui-secondary-hover)",
-    solidText: "var(--ui-secondary-contrast)",
+        isLoading =
+          false,
 
-    outlineText: "var(--ui-secondary)",
-    outlineBorder:
-      "color-mix(in srgb, var(--ui-secondary) 42%, var(--ui-border))",
-    outlineHover:
-      "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
+        loadingText =
+          "Cargando...",
 
-    ghostText: "var(--ui-secondary)",
-    ghostHover:
-      "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
-  },
+        disabled =
+          false,
 
-  danger: {
-    solidBg: "var(--ui-danger)",
-    solidHover: "var(--ui-danger-hover)",
-    solidText: "var(--ui-danger-contrast)",
+        type =
+          "button",
 
-    outlineText: "var(--ui-danger)",
-    outlineBorder:
-      "color-mix(in srgb, var(--ui-danger) 42%, var(--ui-border))",
-    outlineHover:
-      "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
+        className =
+          "",
 
-    ghostText: "var(--ui-danger)",
-    ghostHover:
-      "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
-  },
-} as const;
+        style,
 
-function getVariantStyles(
-  colorScheme: ButtonColorScheme,
-  variant: ButtonVariant
-): {
-  background: string;
-  color: string;
-  border: string;
-  hoverBackground: string;
-  activeBackground: string;
-  shadow: string;
-  hoverShadow: string;
-} {
-  const scheme = schemeMap[colorScheme];
+        w,
+        h,
+        minW,
+        maxW,
+        minH,
+        maxH,
 
-  if (variant === "outline") {
-    return {
-      background: "transparent",
-      color: scheme.outlineText,
-      border: `1px solid ${scheme.outlineBorder}`,
-      hoverBackground: scheme.outlineHover,
-      activeBackground: scheme.outlineHover,
-      shadow: "none",
-      hoverShadow: "var(--ui-shadow-action-outline-hover)",
-    };
-  }
+        p,
+        px,
+        py,
+        pt,
+        pb,
+        pl,
+        pr,
 
-  if (variant === "ghost") {
-    return {
-      background: "transparent",
-      color: scheme.ghostText,
-      border: "1px solid transparent",
-      hoverBackground: scheme.ghostHover,
-      activeBackground: scheme.ghostHover,
-      shadow: "none",
-      hoverShadow: "var(--ui-shadow-action-subtle-hover)",
-    };
-  }
+        m,
+        mx,
+        my,
+        mt,
+        mb,
+        ml,
+        mr,
 
-  return {
-    background: scheme.solidBg,
-    color: scheme.solidText,
-    border: "1px solid transparent",
-    hoverBackground: scheme.solidHover,
-    activeBackground: scheme.solidHover,
-    shadow: "var(--ui-shadow-action)",
-    hoverShadow: "var(--ui-shadow-action-hover)",
-  };
-}
+        fullWidth =
+          false,
 
-type ButtonRecipeVariants = {
-  variant: ButtonVariant;
-  size: ButtonSize;
-  colorScheme: ButtonColorScheme;
-};
+        leftIcon,
+        rightIcon,
 
-type ButtonRecipeState = {
-  hovered: boolean;
-  pressed: boolean;
-  focusVisible: boolean;
-  disabled: boolean;
-};
+        onPress,
 
-const buttonRecipe = defineSlotRecipe<
-  ButtonSlot,
-  ButtonRecipeVariants,
-  ButtonRecipeState
->({
-  base: {
-    root: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "0.55rem",
-
-      lineHeight: 1.1,
-      fontWeight: 700,
-      letterSpacing: "0.2px",
-
-      touchAction: "manipulation",
-      userSelect: "none",
-      WebkitTapHighlightColor: "transparent",
-
-      whiteSpace: "nowrap",
-      verticalAlign: "middle",
-
-      outline: "none",
-
-      transition:
-        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-    },
-
-    spinner: {
-      width: 16,
-      height: 16,
-      borderRadius: "var(--ui-radius-full)",
-      borderTopColor: "transparent",
-      flexShrink: 0,
-    },
-
-    content: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minWidth: 0,
-    },
-
-    leftIcon: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      lineHeight: 1,
-    },
-
-    rightIcon: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      lineHeight: 1,
-    },
-  },
-
-  variants: {
-    size: {
-      sm: {
-        root: {
-          minHeight: "var(--ui-control-h-sm)",
-          fontSize: "var(--ui-font-size-sm)",
-          paddingBlock: "0.45rem",
-          paddingInline: "0.8rem",
-          borderRadius: "var(--ui-radius-sm)",
-        },
-      },
-
-      md: {
-        root: {
-          minHeight: "var(--ui-control-h-md)",
-          fontSize: "var(--ui-font-size-md)",
-          paddingBlock: "0.6rem",
-          paddingInline: "0.95rem",
-          borderRadius: "var(--ui-radius-md)",
-        },
-      },
-
-      lg: {
-        root: {
-          minHeight: "var(--ui-control-h-lg)",
-          fontSize: "var(--ui-font-size-lg)",
-          paddingBlock: "0.75rem",
-          paddingInline: "1.1rem",
-          borderRadius: "var(--ui-radius-lg)",
-        },
-      },
-    },
-  },
-
-  resolve: ({
-    variant,
-    colorScheme,
-    hovered,
-    pressed,
-    focusVisible,
-    disabled,
-  }) => {
-    const variantStyle = getVariantStyles(colorScheme, variant);
-
-    const shadow =
-      hovered && !disabled
-        ? variantStyle.hoverShadow
-        : variantStyle.shadow;
-
-    return {
-      root: {
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-
-        cursor: disabled ? "not-allowed" : "pointer",
-
-        boxShadow: focusVisible
-          ? `0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color), ${shadow}`
-          : shadow,
-
-        background:
-          pressed && !disabled
-            ? variantStyle.activeBackground
-            : hovered && !disabled
-              ? variantStyle.hoverBackground
-              : variantStyle.background,
-
-        color: variantStyle.color,
-        border: variantStyle.border,
-      },
-    };
-  },
-});
-
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      children,
-      colorScheme = "primary",
-      variant = "solid",
-      size = "md",
-      isLoading = false,
-      loadingText = "Cargando...",
-      disabled = false,
-      type = "button",
-      className = "",
-      style,
-
-      w,
-      h,
-      minW,
-      maxW,
-      minH,
-      maxH,
-
-      p,
-      px,
-      py,
-      pt,
-      pb,
-      pl,
-      pr,
-
-      m,
-      mx,
-      my,
-      mt,
-      mb,
-      ml,
-      mr,
-
-      rounded,
-      fullWidth = false,
-
-      leftIcon,
-      rightIcon,
-
-      onPress,
-
-      onPointerEnter,
-      onPointerLeave,
-      onPointerDown,
-      onPointerUp,
-      onPointerCancel,
-      onLostPointerCapture,
-
-      onFocus,
-      onBlur,
-
-      onKeyDown,
-      onKeyUp,
-
-      styles,
-      slotProps,
-
-      ...rest
-    },
-    ref
-  ) => {
-    const motionState = useOptionalUIMotion();
-
-    const isDisabled = disabled || isLoading;
-    const sizeStyle = sizeStyles[size];
-    const rootSlotProps = slotProps?.root;
-
-    const {
-      onPointerEnter: slotOnPointerEnter,
-      onPointerLeave: slotOnPointerLeave,
-      onPointerDown: slotOnPointerDown,
-      onPointerUp: slotOnPointerUp,
-      onPointerCancel: slotOnPointerCancel,
-      onLostPointerCapture: slotOnLostPointerCapture,
-      onFocus: slotOnFocus,
-      onBlur: slotOnBlur,
-      onKeyDown: slotOnKeyDown,
-      onKeyUp: slotOnKeyUp,
-      onClick: slotOnClick,
-    } = rootSlotProps ?? {};
-
-    const press = usePress<HTMLButtonElement>({
-      disabled: isDisabled,
-      nativeInteractive: true,
-      onPress,
-
-      onPointerEnter: composeEventHandlers(
         onPointerEnter,
-        slotOnPointerEnter
-      ),
-
-      onPointerLeave: composeEventHandlers(
         onPointerLeave,
-        slotOnPointerLeave,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onPointerDown: composeEventHandlers(
         onPointerDown,
-        slotOnPointerDown
-      ),
-
-      onPointerUp: composeEventHandlers(
         onPointerUp,
-        slotOnPointerUp,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onPointerCancel: composeEventHandlers(
         onPointerCancel,
-        slotOnPointerCancel,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onLostPointerCapture: composeEventHandlers(
         onLostPointerCapture,
-        slotOnLostPointerCapture,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
 
-      onFocus: composeEventHandlers(
         onFocus,
-        slotOnFocus
-      ),
-
-      onBlur: composeEventHandlers(
         onBlur,
-        slotOnBlur,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
 
-      onKeyDown: composeEventHandlers(
         onKeyDown,
-        slotOnKeyDown
-      ),
-
-      onKeyUp: composeEventHandlers(
         onKeyUp,
-        slotOnKeyUp
-      ),
 
-      onClick: slotOnClick,
-    });
+        styles,
+        slotProps,
 
-    const pressMotion = press.state.pressed
-      ? motionState.getPressMotion(motionState.effectiveLevel)
-      : undefined;
+        ...rest
+      },
+      ref
+    ) => {
+      const motionState =
+        useOptionalUIMotion();
 
-    const spinnerAnimated =
-      shouldAnimateSpinner(
-        motionState.effectiveLevel
+      const isDisabled =
+        disabled ||
+        isLoading;
+
+      const rootSlotProps =
+        slotProps?.root;
+
+      const {
+        onPointerEnter:
+          slotOnPointerEnter,
+
+        onPointerLeave:
+          slotOnPointerLeave,
+
+        onPointerDown:
+          slotOnPointerDown,
+
+        onPointerUp:
+          slotOnPointerUp,
+
+        onPointerCancel:
+          slotOnPointerCancel,
+
+        onLostPointerCapture:
+          slotOnLostPointerCapture,
+
+        onFocus:
+          slotOnFocus,
+
+        onBlur:
+          slotOnBlur,
+
+        onKeyDown:
+          slotOnKeyDown,
+
+        onKeyUp:
+          slotOnKeyUp,
+
+        onClick:
+          slotOnClick,
+      } = rootSlotProps ?? {};
+
+      const press =
+        usePress<HTMLButtonElement>({
+          disabled:
+            isDisabled,
+
+          nativeInteractive:
+            true,
+
+          onPress,
+
+          onPointerEnter:
+            composeEventHandlers(
+              onPointerEnter,
+              slotOnPointerEnter
+            ),
+
+          onPointerLeave:
+            composeEventHandlers(
+              onPointerLeave,
+              slotOnPointerLeave,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerDown:
+            composeEventHandlers(
+              onPointerDown,
+              slotOnPointerDown
+            ),
+
+          onPointerUp:
+            composeEventHandlers(
+              onPointerUp,
+              slotOnPointerUp,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onPointerCancel:
+            composeEventHandlers(
+              onPointerCancel,
+              slotOnPointerCancel,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onLostPointerCapture:
+            composeEventHandlers(
+              onLostPointerCapture,
+              slotOnLostPointerCapture,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onFocus:
+            composeEventHandlers(
+              onFocus,
+              slotOnFocus
+            ),
+
+          onBlur:
+            composeEventHandlers(
+              onBlur,
+              slotOnBlur,
+              {
+                checkDefaultPrevented:
+                  false,
+              }
+            ),
+
+          onKeyDown:
+            composeEventHandlers(
+              onKeyDown,
+              slotOnKeyDown
+            ),
+
+          onKeyUp:
+            composeEventHandlers(
+              onKeyUp,
+              slotOnKeyUp
+            ),
+
+          onClick:
+            slotOnClick,
+        });
+
+      const pressMotion =
+        press.state.pressed
+          ? motionState.getPressMotion(
+              motionState.effectiveLevel
+            )
+          : undefined;
+
+      const spinnerAnimated =
+        shouldAnimateSpinner(
+          motionState.effectiveLevel
+        );
+
+      const recipe =
+        getButtonActionRecipe({
+          size,
+          variant,
+          colorScheme,
+        });
+
+      const rootSlot =
+        resolveSlot<ButtonSlot>({
+          slot:
+            "root",
+
+          styles,
+          slotProps,
+          className,
+          style,
+
+          baseProps: {
+            "data-ui":
+              "button",
+
+            "data-variant":
+              variant,
+
+            "data-color-scheme":
+              colorScheme,
+
+            "data-size":
+              size,
+
+            ...getActionControlStateAttributes(
+              press.state,
+              {
+                disabled:
+                  isDisabled,
+
+                loading:
+                  isLoading,
+              }
+            ),
+          },
+
+          baseStyle: {
+            ...recipe.root,
+
+            ...getSizeStyles({
+              w,
+              h,
+              minW,
+              maxW,
+
+              minH:
+                minH ??
+                recipe.metrics
+                  .minHeight,
+
+              maxH,
+            }),
+
+            ...getSpacingStyles({
+              p,
+
+              px:
+                px ??
+                recipe.metrics
+                  .paddingInline,
+
+              py:
+                py ??
+                recipe.metrics
+                  .paddingBlock,
+
+              pt,
+              pb,
+              pl,
+              pr,
+
+              m,
+              mx,
+              my,
+              mt,
+              mb,
+              ml,
+              mr,
+            }),
+
+            width:
+              fullWidth
+                ? "100%"
+                : w,
+
+            minWidth:
+              fullWidth
+                ? 0
+                : minW,
+          },
+        });
+
+      const spinnerSlot =
+        resolveSlot<ButtonSlot>({
+          slot:
+            "spinner",
+
+          styles,
+          slotProps,
+
+          baseProps: {
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "button-spinner",
+
+            "data-animated":
+              spinnerAnimated ||
+              undefined,
+          },
+
+          baseStyle:
+            recipe.spinner,
+        });
+
+      const contentSlot =
+        resolveSlot<ButtonSlot>({
+          slot:
+            "content",
+
+          styles,
+          slotProps,
+
+          baseProps: {
+            "data-ui":
+              "button-content",
+          },
+
+          baseStyle:
+            recipe.content,
+        });
+
+      const leftIconSlot =
+        resolveSlot<ButtonSlot>({
+          slot:
+            "leftIcon",
+
+          styles,
+          slotProps,
+
+          baseProps: {
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "button-left-icon",
+          },
+
+          baseStyle:
+            recipe.leftIcon,
+        });
+
+      const rightIconSlot =
+        resolveSlot<ButtonSlot>({
+          slot:
+            "rightIcon",
+
+          styles,
+          slotProps,
+
+          baseProps: {
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "button-right-icon",
+          },
+
+          baseStyle:
+            recipe.rightIcon,
+        });
+
+      return (
+        <motion.button
+          {...rest}
+          {...toMotionSlotProps(
+            rootSlot
+          )}
+          {...press.pressProps}
+
+          ref={ref}
+
+          type={type}
+
+          disabled={
+            isDisabled
+          }
+
+          aria-busy={
+            isLoading ||
+            undefined
+          }
+
+          animate={
+            pressMotion
+          }
+
+          transition={
+            motionState.getTransition(
+              motionState.effectiveLevel,
+              "press"
+            )
+          }
+        >
+          {isLoading ? (
+            <>
+              <motion.span
+                {...toMotionSlotProps(
+                  spinnerSlot
+                )}
+
+                variants={
+                  getSpinnerVariants(
+                    motionState.effectiveLevel
+                  )
+                }
+
+                initial="initial"
+
+                animate="animate"
+
+                transition={
+                  getSpinnerTransition(
+                    motionState.effectiveLevel
+                  )
+                }
+              />
+
+              <span
+                {...contentSlot}
+              >
+                {loadingText}
+              </span>
+            </>
+          ) : (
+            <>
+              {leftIcon ? (
+                <span
+                  {...leftIconSlot}
+                >
+                  {leftIcon}
+                </span>
+              ) : null}
+
+              <span
+                {...contentSlot}
+              >
+                {children}
+              </span>
+
+              {rightIcon ? (
+                <span
+                  {...rightIconSlot}
+                >
+                  {rightIcon}
+                </span>
+              ) : null}
+            </>
+          )}
+        </motion.button>
       );
+    }
+  );
 
-    const recipeStyles = buttonRecipe({
-      variant,
-      size,
-      colorScheme,
-      hovered: press.state.hovered,
-      pressed: press.state.pressed,
-      focusVisible: press.state.focusVisible,
-      disabled: isDisabled,
-    });
-
-    const spinnerColor =
-      variant === "solid"
-        ? "color-mix(in srgb, currentColor 78%, transparent)"
-        : "currentColor";
-
-    const rootSlot = resolveSlot<ButtonSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        "data-ui-button": "",
-        "data-ui-button-variant": variant,
-        "data-ui-button-color-scheme": colorScheme,
-        "data-ui-button-size": size,
-        "data-ui-button-loading": isLoading || undefined,
-        "data-disabled": isDisabled || undefined,
-        "data-hovered": press.state.hovered || undefined,
-        "data-pressed": press.state.pressed || undefined,
-        "data-focused": press.state.focused || undefined,
-        "data-focus-visible": press.state.focusVisible || undefined,
-      },
-      baseStyle: {
-        ...recipeStyles.root,
-
-        ...getSizeStyles({
-          w,
-          h,
-          minW,
-          maxW,
-          minH: minH ?? sizeStyle.minHeight,
-          maxH,
-        }),
-
-        ...getSpacingStyles({
-          p,
-          px: px ?? sizeStyle.paddingX,
-          py: py ?? sizeStyle.paddingY,
-          pt,
-          pb,
-          pl,
-          pr,
-          m,
-          mx,
-          my,
-          mt,
-          mb,
-          ml,
-          mr,
-        }),
-
-        width: fullWidth ? "100%" : w,
-        minWidth: fullWidth ? 0 : minW,
-
-        borderRadius:
-          rounded ?? recipeStyles.root?.borderRadius,
-      },
-    });
-
-    const spinnerSlot = resolveSlot<ButtonSlot>({
-      slot: "spinner",
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-        "data-ui-spinner": "true",
-        "data-animated":
-          spinnerAnimated ||
-          undefined,
-      },
-      baseStyle: {
-        ...recipeStyles.spinner,
-        border: `2px solid ${spinnerColor}`,
-      },
-    });
-
-    const contentSlot = resolveSlot<ButtonSlot>({
-      slot: "content",
-      styles,
-      slotProps,
-      baseStyle: {
-        ...recipeStyles.content,
-        opacity: isLoading ? 0.95 : undefined,
-      },
-    });
-
-    const leftIconSlot = resolveSlot<ButtonSlot>({
-      slot: "leftIcon",
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-      },
-      baseStyle: recipeStyles.leftIcon,
-    });
-
-    const rightIconSlot = resolveSlot<ButtonSlot>({
-      slot: "rightIcon",
-      styles,
-      slotProps,
-      baseProps: {
-        "aria-hidden": true,
-      },
-      baseStyle: recipeStyles.rightIcon,
-    });
-
-    return (
-      <motion.button
-        {...rest}
-        {...toMotionSlotProps(rootSlot)}
-        {...press.pressProps}
-        ref={ref}
-        type={type}
-        disabled={isDisabled}
-        aria-busy={isLoading || undefined}
-        animate={pressMotion}
-        transition={motionState.getTransition(
-          motionState.effectiveLevel,
-          "press"
-        )}
-      >
-        {isLoading ? (
-          <>
-            <motion.span
-              {...toMotionSlotProps(
-                spinnerSlot
-              )}
-              variants={
-                getSpinnerVariants(
-                  motionState.effectiveLevel
-                )
-              }
-              initial="initial"
-              animate="animate"
-              transition={
-                getSpinnerTransition(
-                  motionState.effectiveLevel
-                )
-              }
-            />
-
-            <span {...contentSlot}>
-              {loadingText}
-            </span>
-          </>
-        ) : (
-          <>
-            {leftIcon ? (
-              <span {...leftIconSlot}>{leftIcon}</span>
-            ) : null}
-
-            <span {...contentSlot}>{children}</span>
-
-            {rightIcon ? (
-              <span {...rightIconSlot}>{rightIcon}</span>
-            ) : null}
-          </>
-        )}
-      </motion.button>
-    );
-  }
-);
-
-Button.displayName = "Button";
+Button.displayName =
+  "Button";

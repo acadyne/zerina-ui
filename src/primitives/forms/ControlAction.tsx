@@ -8,19 +8,24 @@ import {
 } from "../../core/interaction";
 
 import {
-  dataAttr,
-} from "../../helpers";
-
-import {
   useInputGroupContext,
   useInputGroupDescendantState,
 } from "./input-group-context";
 
+import {
+  getActionControlStateAttributes,
+} from "./action-control-state";
+
+import type {
+  ActionControlSize,
+} from "./action-control-types";
 
 export type ControlActionSize =
-  | "sm"
-  | "md";
-
+  Extract<
+    ActionControlSize,
+    "sm" |
+    "md"
+  >;
 
 export interface ControlActionProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -32,7 +37,6 @@ export interface ControlActionProps
       UIPressEvent<HTMLButtonElement>
   ) => void;
 }
-
 
 export const ControlAction =
   forwardRef<
@@ -82,7 +86,8 @@ export const ControlAction =
       const resolvedDisabled =
         disabled ||
         Boolean(
-          inputGroupContext?.disabled
+          inputGroupContext
+            ?.disabled
         );
 
       const press =
@@ -111,7 +116,6 @@ export const ControlAction =
           onClick,
         });
 
-
       const descendantContext =
         useInputGroupDescendantState({
           focused:
@@ -121,7 +125,6 @@ export const ControlAction =
             press.state
               .focusVisible,
         });
-
 
       return (
         <button
@@ -140,57 +143,35 @@ export const ControlAction =
             className
           }
 
-          style={style}
+          style={
+            style
+          }
 
           data-ui="control-action"
 
-          data-size={size}
+          data-size={
+            size
+          }
 
           data-in-group={
-            dataAttr(
-              Boolean(
-                descendantContext
-              )
-            )
+            descendantContext
+              ? ""
+              : undefined
           }
 
-          data-hovered={
-            dataAttr(
-              press.state.hovered
-            )
-          }
-
-          data-pressed={
-            dataAttr(
-              press.state.pressed
-            )
-          }
-
-          data-focused={
-            dataAttr(
-              press.state.focused
-            )
-          }
-
-          data-focus-visible={
-            dataAttr(
-              press.state
-                .focusVisible
-            )
-          }
-
-          data-disabled={
-            dataAttr(
-              resolvedDisabled
-            )
-          }
+          {...getActionControlStateAttributes(
+            press.state,
+            {
+              disabled:
+                resolvedDisabled,
+            }
+          )}
         >
           {children}
         </button>
       );
     }
   );
-
 
 ControlAction.displayName =
   "ControlAction";

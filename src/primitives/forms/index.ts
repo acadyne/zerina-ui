@@ -1,5 +1,10 @@
 // src/primitives/forms/index.ts
 export * from "./Button";
+export type {
+  ActionControlColorScheme,
+  ActionControlSize,
+  ActionControlVariant,
+} from "./action-control-types";
 export * from "./Checkbox";
 export type {
   ChoiceControlColorScheme,

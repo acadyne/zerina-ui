@@ -1,13 +1,19 @@
-// src/primitives/forms/Pressable.tsx
-
 import React from "react";
+
 import {
   usePress,
   type UIPressEvent,
   type UIPressState,
 } from "../../core/interaction";
-import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
-import { useOptionalUIMotion } from "../../core/motion";
+
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import {
+  useOptionalUIMotion,
+} from "../../core/motion";
+
 import {
   resolveSlot,
   type SlotElementProps,
@@ -15,14 +21,19 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 
+import {
+  getActionControlStateAttributes,
+} from "./action-control-state";
+
 export type PressableRenderState =
   UIPressState;
 
 export type PressableChildren =
   | React.ReactNode
   | ((
-    state: PressableRenderState
-  ) => React.ReactNode);
+      state:
+        PressableRenderState
+    ) => React.ReactNode);
 
 export type PressableTouchAction =
   | "auto"
@@ -32,7 +43,8 @@ export type PressableTouchAction =
   | "pan-y"
   | "pan-x pan-y";
 
-export type PressableSlot = "root";
+export type PressableSlot =
+  "root";
 
 export type PressableStyles =
   SlotStyleMap<PressableSlot>;
@@ -49,49 +61,56 @@ export type PressableElement =
 type PressableElementInstance<
   TAs extends PressableElement,
 > =
-  React.ComponentRef<TAs> extends HTMLElement
-    ? React.ComponentRef<TAs>
-    : HTMLElement;
+  React.ComponentRef<TAs> extends
+    HTMLElement
+      ? React.ComponentRef<TAs>
+      : HTMLElement;
 
 interface PressableOwnProps<
   TElement extends HTMLElement =
     HTMLElement,
 > {
-  children?: PressableChildren;
+  children?:
+    PressableChildren;
 
-  disabled?: boolean;
+  disabled?:
+    boolean;
 
   onPress?: (
-    event: UIPressEvent<TElement>
+    event:
+      UIPressEvent<TElement>
   ) => void;
 
   onLongPress?: (
-    event: UIPressEvent<TElement>
+    event:
+      UIPressEvent<TElement>
   ) => void;
 
-  longPressDelay?: number;
+  longPressDelay?:
+    number;
 
-  /**
-   * Controla únicamente si se aplica feedback
-   * visual de presión.
-   *
-   * La intensidad procede del Motion System.
-   */
-  pressEffect?: boolean;
+  pressEffect?:
+    boolean;
 
-  touchAction?: PressableTouchAction;
+  touchAction?:
+    PressableTouchAction;
 
-  styles?: PressableStyles;
-  slotProps?: PressableSlotProps;
+  styles?:
+    PressableStyles;
+
+  slotProps?:
+    PressableSlotProps;
 }
 
 export type PressableProps<
-  TAs extends PressableElement = "button",
+  TAs extends PressableElement =
+    "button",
 > =
   PressableOwnProps<
     PressableElementInstance<TAs>
   > & {
-    as?: TAs;
+    as?:
+      TAs;
   } & Omit<
     React.ComponentPropsWithoutRef<TAs>,
     | keyof PressableOwnProps
@@ -105,41 +124,58 @@ type PressableImplementationProps =
   PressableOwnProps<HTMLElement> &
   Omit<
     React.HTMLAttributes<HTMLElement>,
-    "children" | "onClick"
+    "children" |
+    "onClick"
   > & {
-    as?: PressableElement;
+    as?:
+      PressableElement;
 
-    href?: string;
-    target?: React.HTMLAttributeAnchorTarget;
-    rel?: string;
-    download?: boolean | string;
+    href?:
+      string;
+
+    target?:
+      React.HTMLAttributeAnchorTarget;
+
+    rel?:
+      string;
+
+    download?:
+      boolean |
+      string;
 
     type?:
-    | "button"
-    | "submit"
-    | "reset";
+      | "button"
+      | "submit"
+      | "reset";
   };
 
 export interface PressableComponent {
   <
-    TAs extends PressableElement = "button",
+    TAs extends PressableElement =
+      "button",
   >(
     props:
       PressableProps<TAs> &
       React.RefAttributes<
         React.ComponentRef<TAs>
       >
-  ): React.ReactElement | null;
+  ):
+    React.ReactElement |
+    null;
 
-  displayName?: string;
+  displayName?:
+    string;
 }
 
 function isNativeInteractiveElement({
   as,
   href,
 }: {
-  as: PressableElement;
-  href?: unknown;
+  as:
+    PressableElement;
+
+  href?:
+    unknown;
 }): boolean {
   if (as === "button") {
     return true;
@@ -154,21 +190,33 @@ function isNativeInteractiveElement({
 
 const PressableImpl = (
   {
-    as = "button",
+    as =
+      "button",
+
     children,
-    disabled = false,
+
+    disabled =
+      false,
 
     onPress,
     onLongPress,
     longPressDelay,
 
-    pressEffect = true,
-    touchAction = "manipulation",
-    type = "button",
+    pressEffect =
+      true,
+
+    touchAction =
+      "manipulation",
+
+    type =
+      "button",
 
     tabIndex,
     role,
-    className = "",
+
+    className =
+      "",
+
     style,
 
     styles,
@@ -188,13 +236,20 @@ const PressableImpl = (
     onKeyUp,
 
     ...rest
-  }: PressableImplementationProps,
-  forwardedRef: React.ForwardedRef<HTMLElement>
-) => {
-  const Component = as;
-  const motion = useOptionalUIMotion();
+  }:
+    PressableImplementationProps,
 
-  const href = rest.href;
+  forwardedRef:
+    React.ForwardedRef<HTMLElement>
+) => {
+  const Component =
+    as;
+
+  const motion =
+    useOptionalUIMotion();
+
+  const href =
+    rest.href;
 
   const nativeInteractive =
     isNativeInteractiveElement({
@@ -220,169 +275,136 @@ const PressableImpl = (
             : undefined
         );
 
-  const rootSlot =
-    resolveSlot<PressableSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-
-      baseProps: {
-        role: resolvedRole,
-        tabIndex: resolvedTabIndex,
-        "aria-disabled":
-          disabled || undefined,
-        "data-ui-pressable": "",
-      },
-
-      baseStyle: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: 0,
-        minHeight: 0,
-
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : undefined,
-
-        userSelect: "none",
-        WebkitTapHighlightColor:
-          "transparent",
-
-        touchAction,
-        outline: "none",
-
-        transition:
-          "scale var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "translate var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-    });
+  const rootSlotProps =
+    slotProps?.root;
 
   const {
     onPointerEnter:
       slotOnPointerEnter,
+
     onPointerLeave:
       slotOnPointerLeave,
+
     onPointerDown:
       slotOnPointerDown,
+
     onPointerUp:
       slotOnPointerUp,
+
     onPointerCancel:
       slotOnPointerCancel,
+
     onLostPointerCapture:
       slotOnLostPointerCapture,
 
-    onFocus: slotOnFocus,
-    onBlur: slotOnBlur,
-
-    onKeyDown: slotOnKeyDown,
-    onKeyUp: slotOnKeyUp,
-
-    onClick: slotOnClick,
-
-    ...rootSlotRest
-  } = rootSlot as SlotElementProps;
-
-  const press = usePress<HTMLElement>({
-    disabled,
-    nativeInteractive,
-
-    onPress,
-    onLongPress,
-    longPressDelay,
-
-    onPointerEnter:
-      composeEventHandlers(
-        onPointerEnter,
-        slotOnPointerEnter
-      ),
-
-    onPointerLeave:
-      composeEventHandlers(
-        onPointerLeave,
-        slotOnPointerLeave,
-        {
-          checkDefaultPrevented:
-            false,
-        }
-      ),
-
-    onPointerDown:
-      composeEventHandlers(
-        onPointerDown,
-        slotOnPointerDown
-      ),
-
-    onPointerUp:
-      composeEventHandlers(
-        onPointerUp,
-        slotOnPointerUp,
-        {
-          checkDefaultPrevented:
-            false,
-        }
-      ),
-
-    onPointerCancel:
-      composeEventHandlers(
-        onPointerCancel,
-        slotOnPointerCancel,
-        {
-          checkDefaultPrevented:
-            false,
-        }
-      ),
-
-    onLostPointerCapture:
-      composeEventHandlers(
-        onLostPointerCapture,
-        slotOnLostPointerCapture,
-        {
-          checkDefaultPrevented:
-            false,
-        }
-      ),
-
     onFocus:
-      composeEventHandlers(
-        onFocus,
-        slotOnFocus
-      ),
+      slotOnFocus,
 
     onBlur:
-      composeEventHandlers(
-        onBlur,
-        slotOnBlur,
-        {
-          checkDefaultPrevented:
-            false,
-        }
-      ),
+      slotOnBlur,
 
     onKeyDown:
-      composeEventHandlers(
-        onKeyDown,
-        slotOnKeyDown
-      ),
+      slotOnKeyDown,
 
     onKeyUp:
-      composeEventHandlers(
-        onKeyUp,
-        slotOnKeyUp
-      ),
+      slotOnKeyUp,
 
-    onClick: slotOnClick,
-  });
+    onClick:
+      slotOnClick,
+  } = rootSlotProps ?? {};
+
+  const press =
+    usePress<HTMLElement>({
+      disabled,
+      nativeInteractive,
+
+      onPress,
+      onLongPress,
+      longPressDelay,
+
+      onPointerEnter:
+        composeEventHandlers(
+          onPointerEnter,
+          slotOnPointerEnter
+        ),
+
+      onPointerLeave:
+        composeEventHandlers(
+          onPointerLeave,
+          slotOnPointerLeave,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+
+      onPointerDown:
+        composeEventHandlers(
+          onPointerDown,
+          slotOnPointerDown
+        ),
+
+      onPointerUp:
+        composeEventHandlers(
+          onPointerUp,
+          slotOnPointerUp,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+
+      onPointerCancel:
+        composeEventHandlers(
+          onPointerCancel,
+          slotOnPointerCancel,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+
+      onLostPointerCapture:
+        composeEventHandlers(
+          onLostPointerCapture,
+          slotOnLostPointerCapture,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+
+      onFocus:
+        composeEventHandlers(
+          onFocus,
+          slotOnFocus
+        ),
+
+      onBlur:
+        composeEventHandlers(
+          onBlur,
+          slotOnBlur,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+
+      onKeyDown:
+        composeEventHandlers(
+          onKeyDown,
+          slotOnKeyDown
+        ),
+
+      onKeyUp:
+        composeEventHandlers(
+          onKeyUp,
+          slotOnKeyUp
+        ),
+
+      onClick:
+        slotOnClick,
+    });
 
   const pressMotion =
     pressEffect &&
@@ -392,87 +414,115 @@ const PressableImpl = (
         )
       : undefined;
 
-  const resolvedStyle:
-    React.CSSProperties = {
-    ...rootSlotRest.style,
+  const rootSlot =
+    resolveSlot<PressableSlot>({
+      slot:
+        "root",
 
-    boxShadow:
-      press.state.focusVisible
-        ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-        : rootSlotRest.style
-            ?.boxShadow,
+      styles,
+      slotProps,
+      className,
+      style,
 
-    /*
-     * scale y translate son propiedades
-     * individuales. No sobrescriben transform,
-     * por lo que placement y feedback no compiten.
-     */
-    scale:
-      pressMotion?.scale !== undefined
-        ? String(pressMotion.scale)
-        : rootSlotRest.style?.scale,
+      baseProps: {
+        role:
+          resolvedRole,
 
-    translate:
-      pressMotion?.y !== undefined
-        ? `0 ${pressMotion.y}px`
-        : rootSlotRest.style
-            ?.translate,
-  };
+        tabIndex:
+          resolvedTabIndex,
+
+        "aria-disabled":
+          disabled ||
+          undefined,
+
+        "data-ui":
+          "pressable",
+
+        ...getActionControlStateAttributes(
+          press.state,
+          {
+            disabled,
+          }
+        ),
+      },
+
+      baseStyle: {
+        display:
+          "inline-flex",
+
+        alignItems:
+          "center",
+
+        justifyContent:
+          "center",
+
+        minWidth:
+          0,
+
+        minHeight:
+          0,
+
+        userSelect:
+          "none",
+
+        WebkitTapHighlightColor:
+          "transparent",
+
+        touchAction,
+
+        scale:
+          pressMotion?.scale !==
+          undefined
+            ? String(
+                pressMotion.scale
+              )
+            : undefined,
+
+        translate:
+          pressMotion?.y !==
+          undefined
+            ? `0 ${pressMotion.y}px`
+            : undefined,
+      },
+    });
 
   const renderedChildren =
-    typeof children === "function"
-      ? children(press.state)
+    typeof children ===
+    "function"
+      ? children(
+          press.state
+        )
       : children;
 
   const elementProps:
     SlotElementProps & {
-      disabled?: boolean;
+      disabled?:
+        boolean;
+
       type?:
         | "button"
         | "submit"
         | "reset";
     } = {
-    ...rest,
-    ...rootSlotRest,
-
-    style: resolvedStyle,
-
-    "data-ui-pressable-pressed":
-      press.state.pressed ||
-      undefined,
-
-    "data-ui-pressable-hovered":
-      press.state.hovered ||
-      undefined,
-
-    "data-ui-pressable-focused":
-      press.state.focused ||
-      undefined,
-
-    "data-ui-pressable-focus-visible":
-      press.state.focusVisible ||
-      undefined,
-
-    "data-ui-pressable-disabled":
-      disabled || undefined,
-
-    "data-ui-pressable-pointer":
-      press.state.pointerType ??
-      undefined,
-
-    ...press.pressProps,
+      ...rest,
+      ...rootSlot,
+      ...press.pressProps,
   };
 
   if (as === "button") {
-    elementProps.disabled = disabled;
-    elementProps.type = type;
+    elementProps.disabled =
+      disabled;
+
+    elementProps.type =
+      type;
   }
 
   return React.createElement(
     Component,
     {
       ...elementProps,
-      ref: forwardedRef,
+      ref:
+        forwardedRef,
     },
     renderedChildren
   );
@@ -483,4 +533,5 @@ export const Pressable =
     PressableImpl
   ) as PressableComponent;
 
-Pressable.displayName = "Pressable";
+Pressable.displayName =
+  "Pressable";
