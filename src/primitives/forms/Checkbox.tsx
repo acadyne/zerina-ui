@@ -1,23 +1,41 @@
-// src/primitives/forms/Checkbox.tsx
 import React, {
   forwardRef,
   useEffect,
   useRef,
-  useState,
 } from "react";
+
 import {
-  defineSlotRecipe,
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import {
+  setRef,
+} from "../../core/interaction/events";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+
 import {
-  useFieldControl,
-} from "./use-field-control";
-import { setRef } from "../../core/interaction/events";
+  ChoiceControlRoot,
+} from "./ChoiceControlRoot";
+
 import {
-  useFocusVisible,
-} from "../../core/interaction/focus";
+  choiceControlRecipe,
+} from "./choice-control-recipe";
+
+import type {
+  ChoiceControlColorScheme,
+  ChoiceControlLabelPlacement,
+  ChoiceControlSize,
+} from "./choice-control-types";
+
+import {
+  useChoiceControl,
+} from "./use-choice-control";
+
 
 export type CheckboxSlot =
   | "root"
@@ -27,274 +45,47 @@ export type CheckboxSlot =
   | "mark"
   | "label";
 
+
 export type CheckboxStyles =
   SlotStyleMap<CheckboxSlot>;
+
 
 export type CheckboxSlotProps =
   SlotPropsMap<CheckboxSlot>;
 
+
 export interface CheckboxProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
-    "type" | "size"
+    | "color"
+    | "size"
+    | "type"
   > {
-  label?: React.ReactNode;
-  invalid?: boolean;
-  indeterminate?: boolean;
-  color?: string;
-  boxSize?: number;
-  radius?: number;
+  label?:
+    React.ReactNode;
+
+  invalid?:
+    boolean;
+
+  indeterminate?:
+    boolean;
+
+  size?:
+    ChoiceControlSize;
+
+  colorScheme?:
+    ChoiceControlColorScheme;
 
   labelPlacement?:
-  | "right"
-  | "left";
+    ChoiceControlLabelPlacement;
 
-  styles?: CheckboxStyles;
-  slotProps?: CheckboxSlotProps;
+  styles?:
+    CheckboxStyles;
+
+  slotProps?:
+    CheckboxSlotProps;
 }
 
-type CheckboxRecipeVariants = {
-  labelPlacement:
-  | "right"
-  | "left";
-
-  markKind:
-  | "checked"
-  | "indeterminate";
-};
-
-type CheckboxRecipeState = {
-  color: string;
-  boxSize: number;
-  radius: number;
-
-  checked: boolean;
-  marked: boolean;
-  focusVisible: boolean;
-  disabled: boolean;
-};
-
-/**
- * La recipe concentra la política visual del Checkbox.
- *
- * El estado funcional del input, su propiedad indeterminate,
- * la integración con FormControl y los eventos nativos
- * permanecen fuera de Styling.
- */
-const checkboxRecipe =
-  defineSlotRecipe<
-    CheckboxSlot,
-    CheckboxRecipeVariants,
-    CheckboxRecipeState
-  >({
-    base: {
-      root: {
-        display: "inline-flex",
-        alignItems: "center",
-
-        gap: "0.55rem",
-
-        userSelect: "none",
-
-        WebkitTapHighlightColor:
-          "transparent",
-      },
-
-      control: {
-        position: "relative",
-
-        display: "inline-grid",
-
-        flexShrink: 0,
-      },
-
-      input: {
-        appearance: "none",
-        WebkitAppearance: "none",
-
-        display: "grid",
-        placeItems: "center",
-
-        flexShrink: 0,
-
-        outline: "none",
-
-        transition:
-          "background var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "border-color var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "opacity var(--ui-duration-fast) var(--ui-ease-standard)",
-      },
-
-      indicator: {
-        position: "absolute",
-
-        pointerEvents: "none",
-
-        display: "grid",
-        placeItems: "center",
-      },
-
-      mark: {
-        display: "block",
-
-        background:
-          "var(--ui-primary-contrast)",
-
-        transformOrigin: "center",
-      },
-
-      label: {
-        fontSize: "0.95rem",
-
-        color:
-          "var(--ui-text)",
-
-        lineHeight: 1.1,
-      },
-    },
-
-    variants: {
-      labelPlacement: {
-        right: {
-          root: {
-            flexDirection: "row",
-          },
-        },
-
-        left: {
-          root: {
-            flexDirection:
-              "row-reverse",
-          },
-        },
-      },
-
-      markKind: {
-        indeterminate: {
-          mark: {
-            height: 3,
-
-            borderRadius:
-              "var(--ui-radius-full)",
-
-            opacity: 0.95,
-          },
-        },
-
-        checked: {
-          mark: {
-            background:
-              "transparent",
-
-            borderRight:
-              "3px solid var(--ui-primary-contrast)",
-
-            borderBottom:
-              "3px solid var(--ui-primary-contrast)",
-
-            transform:
-              "rotate(45deg)",
-
-            transition:
-              "transform var(--ui-duration-normal) var(--ui-ease-standard)",
-          },
-        },
-      },
-    },
-
-    resolve: ({
-      color,
-      boxSize,
-      radius,
-      checked,
-      marked,
-      focusVisible,
-      disabled,
-      markKind,
-    }) => ({
-      root: {
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-      },
-
-      input: {
-        width: boxSize,
-        height: boxSize,
-
-        border:
-          `2px solid ${color}`,
-
-        borderRadius: radius,
-
-        background: marked
-          ? `color-mix(in srgb, ${color} 22%, transparent)`
-          : "transparent",
-
-        boxShadow:
-          focusVisible
-            ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-            : "none",
-
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-      },
-
-      indicator: {
-        inset: 3,
-
-        borderRadius:
-          Math.max(
-            2,
-            radius - 2
-          ),
-
-        background: marked
-          ? `color-mix(in srgb, ${color} 22%, transparent)`
-          : "transparent",
-      },
-
-      mark:
-        markKind ===
-          "indeterminate"
-          ? {
-            width:
-              Math.max(
-                6,
-                boxSize - 8
-              ),
-          }
-          : {
-            width:
-              Math.max(
-                4,
-                boxSize - 10
-              ),
-
-            height:
-              Math.max(
-                7,
-                boxSize - 8
-              ),
-
-            transform: checked
-              ? "translateY(-1px) rotate(45deg) scale(1)"
-              : "translateY(-1px) rotate(45deg) scale(0)",
-          },
-
-      label: {
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-      },
-    }),
-  });
 
 export const Checkbox =
   forwardRef<
@@ -330,18 +121,21 @@ export const Checkbox =
         "aria-readonly":
           ariaReadOnly,
 
-        indeterminate = false,
+        indeterminate =
+          false,
 
-        color =
-        "var(--ui-primary)",
+        size =
+          "md",
 
-        boxSize = 16,
-        radius = 4,
+        colorScheme =
+          "primary",
 
         labelPlacement =
-        "right",
+          "end",
 
-        className = "",
+        className =
+          "",
+
         style,
 
         styles,
@@ -360,28 +154,71 @@ export const Checkbox =
           null
         );
 
-      const isControlled =
-        checked !== undefined;
 
-      const [
-        internalChecked,
-        setInternalChecked,
-      ] = useState(
-        Boolean(defaultChecked)
-      );
+      const inputSlotProps =
+        slotProps?.input;
 
-      const visualChecked =
-        isControlled
-          ? Boolean(checked)
-          : internalChecked;
 
-      const showMarked =
-        indeterminate ||
-        visualChecked;
+      const slotOnFocus =
+        inputSlotProps
+          ?.onFocus as
+          | React.FocusEventHandler<HTMLInputElement>
+          | undefined;
 
-      const fieldControl =
-        useFieldControl({
+
+      const slotOnBlur =
+        inputSlotProps
+          ?.onBlur as
+          | React.FocusEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const slotOnClick =
+        inputSlotProps
+          ?.onClick as
+          | React.MouseEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const slotOnChange =
+        inputSlotProps
+          ?.onChange as
+          | React.ChangeEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const externalOnFocus =
+        composeEventHandlers<
+          React.FocusEvent<HTMLInputElement>
+        >(
+          onFocus,
+          slotOnFocus,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const externalOnBlur =
+        composeEventHandlers<
+          React.FocusEvent<HTMLInputElement>
+        >(
+          onBlur,
+          slotOnBlur,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const choice =
+        useChoiceControl({
           id,
+
+          checked,
+          defaultChecked,
 
           disabled,
           invalid,
@@ -394,76 +231,64 @@ export const Checkbox =
 
           ariaLabelledBy,
           ariaDescribedBy,
+
+          onFocus:
+            externalOnFocus,
+
+          onBlur:
+            externalOnBlur,
         });
 
-      const {
-        focusVisible,
-        focusProps,
-      } =
-        useFocusVisible<HTMLInputElement>({
-          disabled:
-            fieldControl.disabled,
-
-          onFocus,
-          onBlur,
-        });
 
       useEffect(() => {
         if (
           innerRef.current
         ) {
-          innerRef.current.indeterminate =
+          innerRef
+            .current
+            .indeterminate =
             Boolean(
               indeterminate
             );
         }
-      }, [indeterminate]);
+      }, [
+        indeterminate,
+      ]);
 
-      const setRefs = React.useCallback(
-        (
-          node:
-            | HTMLInputElement
-            | null
-        ) => {
-          innerRef.current = node;
-          setRef(ref, node);
-        },
-        [ref]
-      );
 
-      const WrapperTag =
-        label
-          ? "label"
-          : "div";
+      const setRefs =
+        React.useCallback(
+          (
+            node:
+              | HTMLInputElement
+              | null
+          ) => {
+            innerRef.current =
+              node;
+
+            setRef(
+              ref,
+              node
+            );
+          },
+          [
+            ref,
+          ]
+        );
+
 
       const recipeStyles =
-        checkboxRecipe({
+        choiceControlRecipe({
+          size,
+          colorScheme,
           labelPlacement,
-
-          markKind:
-            indeterminate
-              ? "indeterminate"
-              : "checked",
-
-          color,
-          boxSize,
-          radius,
-
-          checked:
-            visualChecked,
-
-          marked:
-            showMarked,
-
-          focusVisible,
-
-          disabled:
-            fieldControl.disabled,
         });
+
 
       const rootSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "root",
+          slot:
+            "root",
 
           styles,
           slotProps,
@@ -472,27 +297,56 @@ export const Checkbox =
           style,
 
           baseProps: {
-            "data-ui-checkbox":
-              "",
+            "data-ui":
+              "checkbox",
 
-            "data-ui-checkbox-checked":
-              visualChecked ||
+            "data-size":
+              size,
+
+            "data-color-scheme":
+              colorScheme,
+
+            "data-label-placement":
+              labelPlacement,
+
+            "data-checked":
+              choice.checked ||
               undefined,
 
-            "data-ui-checkbox-indeterminate":
+            "data-indeterminate":
               indeterminate ||
               undefined,
 
-            "data-ui-checkbox-disabled":
-              fieldControl.disabled ||
+            "data-disabled":
+              choice
+                .fieldControl
+                .disabled ||
               undefined,
 
-            "data-ui-checkbox-invalid":
-              fieldControl.invalid ||
+            "data-invalid":
+              choice
+                .fieldControl
+                .invalid ||
               undefined,
 
-            "data-ui-checkbox-focus-visible":
-              focusVisible ||
+            "data-required":
+              choice
+                .fieldControl
+                .required ||
+              undefined,
+
+            "data-readonly":
+              choice
+                .fieldControl
+                .readOnly ||
+              undefined,
+
+            "data-focused":
+              choice.focused ||
+              undefined,
+
+            "data-focus-visible":
+              choice.focusVisible ||
               undefined,
           },
 
@@ -500,20 +354,37 @@ export const Checkbox =
             recipeStyles.root,
         });
 
+
       const controlSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "control",
+          slot:
+            "control",
 
           styles,
           slotProps,
 
-          baseStyle:
-            recipeStyles.control,
+          baseProps: {
+            "data-ui":
+              "checkbox-control",
+          },
+
+          baseStyle: {
+            position:
+              "relative",
+
+            display:
+              "inline-grid",
+
+            flexShrink:
+              0,
+          },
         });
+
 
       const inputSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "input",
+          slot:
+            "input",
 
           styles,
           slotProps,
@@ -522,61 +393,170 @@ export const Checkbox =
             recipeStyles.input,
         });
 
+
       const indicatorSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "indicator",
+          slot:
+            "indicator",
 
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden": true,
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "checkbox-indicator",
           },
 
-          baseStyle:
-            recipeStyles.indicator,
+          baseStyle: {
+            position:
+              "absolute",
+
+            inset:
+              0,
+
+            display:
+              "grid",
+
+            placeItems:
+              "center",
+
+            pointerEvents:
+              "none",
+          },
         });
+
 
       const markSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "mark",
+          slot:
+            "mark",
 
           styles,
           slotProps,
 
           baseProps: {
-            "data-ui-checkbox-mark":
-              indeterminate
-                ? "indeterminate"
-                : "checked",
+            "data-ui":
+              "checkbox-mark",
           },
 
-          baseStyle:
-            recipeStyles.mark,
+          baseStyle: {
+            display:
+              "block",
+
+            transformOrigin:
+              "center",
+          },
         });
+
 
       const labelSlot =
         resolveSlot<CheckboxSlot>({
-          slot: "label",
+          slot:
+            "label",
 
           styles,
           slotProps,
+
+          baseProps: {
+            "data-ui":
+              "choice-label",
+          },
 
           baseStyle:
             recipeStyles.label,
         });
 
+
+      const externalOnClick =
+        composeEventHandlers<
+          React.MouseEvent<HTMLInputElement>
+        >(
+          onClick,
+          slotOnClick,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const handleClick =
+        composeEventHandlers<
+          React.MouseEvent<HTMLInputElement>
+        >(
+          externalOnClick,
+          choice.handleClick
+        );
+
+
+      const externalOnChange =
+        composeEventHandlers<
+          React.ChangeEvent<HTMLInputElement>
+        >(
+          onChange,
+          slotOnChange,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const handleChange = (
+        event:
+          React.ChangeEvent<HTMLInputElement>
+      ): void => {
+        if (
+          choice
+            .fieldControl
+            .readOnly
+        ) {
+          event.preventDefault();
+
+          return;
+        }
+
+
+        externalOnChange(
+          event
+        );
+
+
+        if (
+          event.defaultPrevented
+        ) {
+          return;
+        }
+
+
+        choice.handleChange(
+          event
+        );
+      };
+
+
       return (
-        <WrapperTag
-          {...rootSlot}
-          {...(
+        <ChoiceControlRoot
+          controlId={
+            choice
+              .fieldControl
+              .id
+          }
+
+          label={
             label
-              ? {
-                htmlFor:
-                  fieldControl.id,
-              }
-              : {}
-          )}
+          }
+
+          rootProps={
+            rootSlot
+          }
+
+          labelProps={
+            labelSlot
+          }
         >
           <span
             {...controlSlot}
@@ -584,90 +564,98 @@ export const Checkbox =
             <input
               {...inputSlot}
               {...rest}
-              id={fieldControl.id}
-              ref={setRefs}
+
+              id={
+                choice
+                  .fieldControl
+                  .id
+              }
+
+              ref={
+                setRefs
+              }
+
               type="checkbox"
+
+              data-ui="choice-input"
+
               checked={
-                visualChecked
+                choice.checked
               }
 
               disabled={
-                fieldControl.disabled
+                choice
+                  .fieldControl
+                  .disabled
               }
 
               required={
-                fieldControl.required
+                choice
+                  .fieldControl
+                  .required
               }
 
               aria-checked={
                 indeterminate
                   ? "mixed"
-                  : visualChecked
+                  : choice.checked
               }
 
               aria-invalid={
-                fieldControl.ariaInvalid
+                choice
+                  .fieldControl
+                  .ariaInvalid
               }
 
               aria-required={
-                fieldControl.ariaRequired
+                choice
+                  .fieldControl
+                  .ariaRequired
               }
 
               aria-readonly={
-                fieldControl.ariaReadOnly
+                choice
+                  .fieldControl
+                  .ariaReadOnly
               }
 
               aria-describedby={
-                fieldControl
+                choice
+                  .fieldControl
                   .ariaDescribedBy
               }
 
               aria-labelledby={
-                fieldControl
+                choice
+                  .fieldControl
                   .ariaLabelledBy
               }
 
               data-readonly={
-                fieldControl.readOnly ||
+                choice
+                  .fieldControl
+                  .readOnly ||
                 undefined
               }
 
-              onClick={(event) => {
-                if (
-                  fieldControl.readOnly
-                ) {
-                  event.preventDefault();
-                }
-
-                onClick?.(event);
-              }}
-
-              onChange={(event) => {
-                if (
-                  fieldControl.readOnly
-                ) {
-                  event.preventDefault();
-                  return;
-                }
-
-                if (
-                  !isControlled
-                ) {
-                  setInternalChecked(
-                    event.currentTarget
-                      .checked
-                  );
-                }
-
-                onChange?.(
-                  event
-                );
-              }}
-              onFocus={
-                focusProps.onFocus
+              onClick={
+                handleClick
               }
+
+              onChange={
+                handleChange
+              }
+
+              onFocus={
+                choice
+                  .focusProps
+                  .onFocus
+              }
+
               onBlur={
-                focusProps.onBlur
+                choice
+                  .focusProps
+                  .onBlur
               }
             />
 
@@ -679,18 +667,11 @@ export const Checkbox =
               />
             </span>
           </span>
-
-          {label ? (
-            <span
-              {...labelSlot}
-            >
-              {label}
-            </span>
-          ) : null}
-        </WrapperTag>
+        </ChoiceControlRoot>
       );
     }
   );
+
 
 Checkbox.displayName =
   "Checkbox";

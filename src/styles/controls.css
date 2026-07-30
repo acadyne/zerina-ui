@@ -798,3 +798,526 @@
   opacity:
     1;
 }
+
+
+/* Choice controls */
+
+:where(
+  [data-ui="checkbox"],
+  [data-ui="radio"],
+  [data-ui="switch"]
+) {
+  --ui-choice-focus-ring-color:
+    var(
+      --ui-interaction-focus-ring-color
+    );
+
+  cursor:
+    pointer;
+}
+
+
+:where(
+  [data-ui="checkbox"][data-readonly]:not(
+    [data-disabled]
+  ),
+  [data-ui="radio"][data-readonly]:not(
+    [data-disabled]
+  ),
+  [data-ui="switch"][data-readonly]:not(
+    [data-disabled]
+  )
+) {
+  cursor:
+    default;
+}
+
+
+:where(
+  [data-ui="checkbox"][data-disabled],
+  [data-ui="radio"][data-disabled],
+  [data-ui="switch"][data-disabled]
+) {
+  cursor:
+    not-allowed;
+
+  opacity:
+    var(
+      --ui-interaction-disabled-opacity
+    );
+}
+
+
+:where(
+  [data-ui="checkbox"][data-invalid],
+  [data-ui="radio"][data-invalid],
+  [data-ui="switch"][data-invalid]
+) {
+  --ui-choice-focus-ring-color:
+    var(
+      --ui-interaction-focus-ring-danger-color
+    );
+}
+
+
+:where(
+  [data-ui="checkbox"]
+  [data-ui="choice-input"],
+  [data-ui="radio"]
+  [data-ui="choice-input"],
+  [data-ui="switch"]
+  [data-ui="choice-input"]
+) {
+  cursor:
+    inherit;
+}
+
+
+/* Checkbox and radio frames */
+
+:where(
+  [data-ui="checkbox"]
+  [data-ui="choice-input"],
+  [data-ui="radio"]
+  [data-ui="choice-input"]
+) {
+  appearance:
+    none;
+
+  -webkit-appearance:
+    none;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  width:
+    var(
+      --ui-choice-control-size
+    );
+
+  height:
+    var(
+      --ui-choice-control-size
+    );
+
+  flex-shrink:
+    0;
+
+  border:
+    2px solid
+    color-mix(
+      in srgb,
+      var(--ui-choice-accent)
+      56%,
+      var(--ui-border)
+    );
+
+  background:
+    transparent;
+
+  transition:
+    background
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    border-color
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-fast)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="checkbox"]
+  [data-ui="choice-input"]
+) {
+  border-radius:
+    var(--ui-radius-sm);
+}
+
+
+:where(
+  [data-ui="radio"]
+  [data-ui="choice-input"]
+) {
+  border-radius:
+    var(--ui-radius-full);
+}
+
+
+:where(
+  [data-ui="checkbox"][data-focus-visible]
+  [data-ui="choice-input"],
+  [data-ui="radio"][data-focus-visible]
+  [data-ui="choice-input"]
+) {
+  box-shadow:
+    0 0 0
+    var(
+      --ui-interaction-focus-ring-offset
+    )
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(
+        --ui-interaction-focus-ring-offset
+      )
+      +
+      var(
+        --ui-interaction-focus-ring-width
+      )
+    )
+    var(
+      --ui-choice-focus-ring-color
+    );
+}
+
+
+/* Checkbox */
+
+:where(
+  [data-ui="checkbox"]
+  [data-ui="checkbox-mark"]
+) {
+  width:
+    var(
+      --ui-checkbox-mark-width
+    );
+
+  height:
+    var(
+      --ui-checkbox-mark-height
+    );
+
+  border-right:
+    var(
+      --ui-checkbox-mark-thickness
+    )
+    solid
+    var(
+      --ui-choice-accent-contrast
+    );
+
+  border-bottom:
+    var(
+      --ui-checkbox-mark-thickness
+    )
+    solid
+    var(
+      --ui-choice-accent-contrast
+    );
+
+  background:
+    transparent;
+
+  opacity:
+    0;
+
+  transform:
+    translateY(-1px)
+    rotate(45deg)
+    scale(0);
+
+  transition:
+    opacity
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    transform
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="checkbox"][data-checked]
+  [data-ui="choice-input"],
+  [data-ui="checkbox"][data-indeterminate]
+  [data-ui="choice-input"]
+) {
+  border-color:
+    var(--ui-choice-accent);
+
+  background:
+    var(--ui-choice-accent);
+}
+
+
+:where(
+  [data-ui="checkbox"][data-checked]
+  [data-ui="checkbox-mark"]
+) {
+  opacity:
+    1;
+
+  transform:
+    translateY(-1px)
+    rotate(45deg)
+    scale(1);
+}
+
+
+:where(
+  [data-ui="checkbox"][data-indeterminate]
+  [data-ui="checkbox-mark"]
+) {
+  width:
+    calc(
+      var(
+        --ui-choice-control-size
+      )
+      -
+      0.5rem
+    );
+
+  height:
+    var(
+      --ui-checkbox-mark-thickness
+    );
+
+  border:
+    0;
+
+  border-radius:
+    var(--ui-radius-full);
+
+  background:
+    var(
+      --ui-choice-accent-contrast
+    );
+
+  opacity:
+    1;
+
+  transform:
+    scale(1);
+}
+
+
+/* Radio */
+
+:where(
+  [data-ui="radio"]
+  [data-ui="radio-dot"]
+) {
+  width:
+    var(
+      --ui-radio-dot-size
+    );
+
+  height:
+    var(
+      --ui-radio-dot-size
+    );
+
+  background:
+    var(--ui-choice-accent);
+
+  opacity:
+    0;
+
+  transform:
+    scale(0);
+
+  transition:
+    opacity
+    var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    transform
+    var(--ui-duration-fast)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="radio"][data-checked]
+  [data-ui="choice-input"]
+) {
+  border-color:
+    var(--ui-choice-accent);
+}
+
+
+:where(
+  [data-ui="radio"][data-checked]
+  [data-ui="radio-dot"]
+) {
+  opacity:
+    1;
+
+  transform:
+    scale(1);
+}
+
+
+:where(
+  [data-ui="checkbox"][data-invalid]
+  [data-ui="choice-input"],
+  [data-ui="radio"][data-invalid]
+  [data-ui="choice-input"]
+) {
+  border-color:
+    var(--ui-danger);
+}
+
+
+/* Switch */
+
+:where(
+  [data-ui="switch"]
+  [data-ui="switch-track"]
+) {
+  width:
+    var(
+      --ui-switch-track-width
+    );
+
+  height:
+    var(
+      --ui-switch-track-height
+    );
+
+  padding-inline:
+    var(
+      --ui-switch-offset
+    );
+
+  border:
+    1px solid
+    var(--ui-border);
+
+  border-radius:
+    var(--ui-radius-full);
+
+  background:
+    var(--ui-surface-3);
+
+  transition:
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    border-color
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="switch"]
+  [data-ui="switch-thumb"]
+) {
+  width:
+    var(
+      --ui-switch-thumb-size
+    );
+
+  height:
+    var(
+      --ui-switch-thumb-size
+    );
+
+  margin-inline-start:
+    0;
+
+  border-radius:
+    var(--ui-radius-full);
+
+  background:
+    var(--ui-surface);
+
+  box-shadow:
+    var(--ui-shadow-control);
+
+  transition:
+    margin-inline-start
+    var(--ui-duration-normal)
+    var(--ui-ease-standard),
+    background
+    var(--ui-duration-normal)
+    var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui="switch"][data-checked]
+  [data-ui="switch-track"]
+) {
+  border-color:
+    var(--ui-choice-accent);
+
+  background:
+    var(--ui-choice-accent);
+}
+
+
+:where(
+  [data-ui="switch"][data-checked]
+  [data-ui="switch-thumb"]
+) {
+  margin-inline-start:
+    calc(
+      var(
+        --ui-switch-track-width
+      )
+      -
+      var(
+        --ui-switch-thumb-size
+      )
+      -
+      var(
+        --ui-switch-offset
+      )
+      -
+      var(
+        --ui-switch-offset
+      )
+      -
+      2px
+    );
+
+  background:
+    var(
+      --ui-choice-accent-contrast
+    );
+}
+
+
+:where(
+  [data-ui="switch"][data-invalid]
+  [data-ui="switch-track"]
+) {
+  border-color:
+    var(--ui-danger);
+}
+
+
+:where(
+  [data-ui="switch"][data-focus-visible]
+  [data-ui="switch-track"]
+) {
+  box-shadow:
+    0 0 0
+    var(
+      --ui-interaction-focus-ring-offset
+    )
+    var(--ui-surface),
+    0 0 0
+    calc(
+      var(
+        --ui-interaction-focus-ring-offset
+      )
+      +
+      var(
+        --ui-interaction-focus-ring-width
+      )
+    )
+    var(
+      --ui-choice-focus-ring-color
+    );
+}

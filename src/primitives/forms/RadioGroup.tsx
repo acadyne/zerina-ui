@@ -274,22 +274,22 @@ export const RadioGroup =
             role:
               "radiogroup",
 
-            "data-ui-radio-group":
-              "",
+            "data-ui":
+              "radio-group",
 
-            "data-ui-radio-group-disabled":
+            "data-disabled":
               fieldControl.disabled ||
               undefined,
 
-            "data-ui-radio-group-invalid":
+            "data-invalid":
               fieldControl.invalid ||
               undefined,
 
-            "data-ui-radio-group-required":
+            "data-required":
               fieldControl.required ||
               undefined,
 
-            "data-ui-radio-group-readonly":
+            "data-readonly":
               fieldControl.readOnly ||
               undefined,
 

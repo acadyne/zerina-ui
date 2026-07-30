@@ -1,6 +1,11 @@
 // src/primitives/forms/index.ts
 export * from "./Button";
 export * from "./Checkbox";
+export type {
+  ChoiceControlColorScheme,
+  ChoiceControlLabelPlacement,
+  ChoiceControlSize,
+} from "./choice-control-types";
 export * from "./Field";
 export { FormControl } from "./FormControl";
 

@@ -1,21 +1,39 @@
-// src/primitives/forms/Radio.tsx
 import React, {
   forwardRef,
-  useState,
 } from "react";
+
 import {
-  defineSlotRecipe,
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+
 import {
-  useFieldControl,
-} from "./use-field-control";
-import { useRadioGroupContext } from "./RadioGroup";
+  ChoiceControlRoot,
+} from "./ChoiceControlRoot";
+
 import {
-  useFocusVisible,
-} from "../../core/interaction/focus";
+  choiceControlRecipe,
+} from "./choice-control-recipe";
+
+import type {
+  ChoiceControlColorScheme,
+  ChoiceControlLabelPlacement,
+  ChoiceControlSize,
+} from "./choice-control-types";
+
+import {
+  useChoiceControl,
+} from "./use-choice-control";
+
+import {
+  useRadioGroupContext,
+} from "./RadioGroup";
+
 
 export type RadioSlot =
   | "root"
@@ -25,207 +43,44 @@ export type RadioSlot =
   | "indicatorDot"
   | "label";
 
+
 export type RadioStyles =
   SlotStyleMap<RadioSlot>;
+
 
 export type RadioSlotProps =
   SlotPropsMap<RadioSlot>;
 
+
 export interface RadioProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
-    "type" | "size"
+    | "color"
+    | "size"
+    | "type"
   > {
-  label?: React.ReactNode;
+  label?:
+    React.ReactNode;
 
-  invalid?: boolean;
+  invalid?:
+    boolean;
 
-  color?: string;
-  boxSize?: number;
+  size?:
+    ChoiceControlSize;
+
+  colorScheme?:
+    ChoiceControlColorScheme;
 
   labelPlacement?:
-  | "right"
-  | "left";
+    ChoiceControlLabelPlacement;
 
-  styles?: RadioStyles;
-  slotProps?: RadioSlotProps;
+  styles?:
+    RadioStyles;
+
+  slotProps?:
+    RadioSlotProps;
 }
 
-type RadioRecipeVariants = {
-  labelPlacement:
-  | "right"
-  | "left";
-};
-
-type RadioRecipeState = {
-  color: string;
-  boxSize: number;
-
-  checked: boolean;
-  focusVisible: boolean;
-  disabled: boolean;
-};
-
-/**
- * La recipe concentra únicamente la política visual del Radio.
- *
- * La selección del valor, la integración con RadioGroup,
- * FormControl y los eventos nativos permanecen fuera de Styling.
- */
-const radioRecipe =
-  defineSlotRecipe<
-    RadioSlot,
-    RadioRecipeVariants,
-    RadioRecipeState
-  >({
-    base: {
-      root: {
-        display: "inline-flex",
-        alignItems: "center",
-
-        gap: "0.55rem",
-
-        userSelect: "none",
-
-        WebkitTapHighlightColor:
-          "transparent",
-      },
-
-      control: {
-        position: "relative",
-
-        display: "inline-grid",
-
-        flexShrink: 0,
-      },
-
-      input: {
-        appearance: "none",
-        WebkitAppearance: "none",
-
-        display: "grid",
-        placeItems: "center",
-
-        flexShrink: 0,
-
-        borderRadius: "50%",
-
-        background: "transparent",
-
-        outline: "none",
-
-        transition:
-          "border-color var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-fast) var(--ui-ease-standard), " +
-          "opacity var(--ui-duration-fast) var(--ui-ease-standard)",
-      },
-
-      indicator: {
-        position: "absolute",
-        inset: 0,
-
-        display: "grid",
-        placeItems: "center",
-
-        pointerEvents: "none",
-      },
-
-      indicatorDot: {
-        borderRadius: "50%",
-
-        transformOrigin: "center",
-
-        transition:
-          "transform var(--ui-duration-fast) var(--ui-ease-standard)",
-      },
-
-      label: {
-        fontSize: "0.95rem",
-
-        color:
-          "var(--ui-text)",
-
-        lineHeight: 1.1,
-      },
-    },
-
-    variants: {
-      labelPlacement: {
-        right: {
-          root: {
-            flexDirection: "row",
-          },
-        },
-
-        left: {
-          root: {
-            flexDirection:
-              "row-reverse",
-          },
-        },
-      },
-    },
-
-    resolve: ({
-      color,
-      boxSize,
-      checked,
-      focusVisible,
-      disabled,
-    }) => {
-      const dotSize =
-        Math.max(
-          6,
-          boxSize - 8
-        );
-
-      return {
-        root: {
-          cursor: disabled
-            ? "not-allowed"
-            : "pointer",
-        },
-
-        input: {
-          width: boxSize,
-          height: boxSize,
-
-          border:
-            `2px solid ${color}`,
-
-          boxShadow:
-            focusVisible
-              ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-              : "none",
-
-          cursor: disabled
-            ? "not-allowed"
-            : "pointer",
-
-          opacity: disabled
-            ? "var(--ui-interaction-disabled-opacity)"
-            : 1,
-        },
-
-        indicatorDot: {
-          width: dotSize,
-          height: dotSize,
-
-          background: color,
-
-          transform: checked
-            ? "scale(1)"
-            : "scale(0)",
-        },
-
-        label: {
-          opacity: disabled
-            ? "var(--ui-interaction-disabled-opacity)"
-            : 1,
-        },
-      };
-    },
-  });
 
 export const Radio =
   forwardRef<
@@ -262,15 +117,18 @@ export const Radio =
         "aria-readonly":
           ariaReadOnly,
 
-        color =
-        "var(--ui-primary)",
+        size =
+          "md",
 
-        boxSize = 16,
+        colorScheme =
+          "primary",
 
         labelPlacement =
-        "right",
+          "end",
 
-        className = "",
+        className =
+          "",
+
         style,
 
         styles,
@@ -289,25 +147,91 @@ export const Radio =
       const group =
         useRadioGroupContext();
 
+
       const groupManaged =
-        checked === undefined &&
-        group !== null &&
-        value !== undefined;
+        checked ===
+          undefined &&
+        group !==
+          null &&
+        value !==
+          undefined;
 
-      const externallyControlled =
-        checked !== undefined ||
-        groupManaged;
 
-      const [
-        internalChecked,
-        setInternalChecked,
-      ] = useState(
-        Boolean(defaultChecked)
-      );
+      const inputSlotProps =
+        slotProps?.input;
 
-      const fieldControl =
-        useFieldControl({
+
+      const slotOnFocus =
+        inputSlotProps
+          ?.onFocus as
+          | React.FocusEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const slotOnBlur =
+        inputSlotProps
+          ?.onBlur as
+          | React.FocusEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const slotOnClick =
+        inputSlotProps
+          ?.onClick as
+          | React.MouseEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const slotOnChange =
+        inputSlotProps
+          ?.onChange as
+          | React.ChangeEventHandler<HTMLInputElement>
+          | undefined;
+
+
+      const externalOnFocus =
+        composeEventHandlers<
+          React.FocusEvent<HTMLInputElement>
+        >(
+          onFocus,
+          slotOnFocus,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const externalOnBlur =
+        composeEventHandlers<
+          React.FocusEvent<HTMLInputElement>
+        >(
+          onBlur,
+          slotOnBlur,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const choice =
+        useChoiceControl({
           id,
+
+          checked,
+          defaultChecked,
+
+          managed:
+            groupManaged,
+
+          managedChecked:
+            groupManaged
+              ? group?.value ===
+                String(
+                  value
+                )
+              : undefined,
 
           disabled,
           invalid,
@@ -322,65 +246,60 @@ export const Radio =
           ariaDescribedBy,
 
           kind:
-            group === null
+            group ===
+              null
               ? "control"
               : "group-item",
 
           includeFieldDescription:
-            group === null,
+            group ===
+              null,
 
           additionalState:
             group?.state,
+
+          onFocus:
+            externalOnFocus,
+
+          onBlur:
+            externalOnBlur,
+
+          onCheckedChange: (
+            nextChecked,
+            event
+          ) => {
+            if (
+              groupManaged &&
+              nextChecked
+            ) {
+              group?.selectValue(
+                String(
+                  value
+                ),
+                event
+              );
+            }
+          },
         });
+
 
       const resolvedName =
         group?.name ??
         name;
 
-      const visualChecked =
-        checked !== undefined
-          ? Boolean(checked)
-          : groupManaged
-            ? group?.value ===
-              String(value)
-            : internalChecked;
-
-      const {
-        focusVisible,
-        focusProps,
-      } =
-        useFocusVisible<HTMLInputElement>({
-          disabled:
-            fieldControl.disabled,
-
-          onFocus,
-          onBlur,
-        });
-
-      const WrapperTag =
-        label
-          ? "label"
-          : "div";
 
       const recipeStyles =
-        radioRecipe({
+        choiceControlRecipe({
+          size,
+          colorScheme,
           labelPlacement,
-
-          color,
-          boxSize,
-
-          checked:
-            visualChecked,
-
-          focusVisible,
-
-          disabled:
-            fieldControl.disabled,
         });
+
 
       const rootSlot =
         resolveSlot<RadioSlot>({
-          slot: "root",
+          slot:
+            "root",
 
           styles,
           slotProps,
@@ -389,23 +308,52 @@ export const Radio =
           style,
 
           baseProps: {
-            "data-ui-radio":
-              "",
+            "data-ui":
+              "radio",
 
-            "data-ui-radio-checked":
-              visualChecked ||
+            "data-size":
+              size,
+
+            "data-color-scheme":
+              colorScheme,
+
+            "data-label-placement":
+              labelPlacement,
+
+            "data-checked":
+              choice.checked ||
               undefined,
 
-            "data-ui-radio-disabled":
-              fieldControl.disabled ||
+            "data-disabled":
+              choice
+                .fieldControl
+                .disabled ||
               undefined,
 
-            "data-ui-radio-invalid":
-              fieldControl.invalid ||
+            "data-invalid":
+              choice
+                .fieldControl
+                .invalid ||
               undefined,
 
-            "data-ui-radio-focus-visible":
-              focusVisible ||
+            "data-required":
+              choice
+                .fieldControl
+                .required ||
+              undefined,
+
+            "data-readonly":
+              choice
+                .fieldControl
+                .readOnly ||
+              undefined,
+
+            "data-focused":
+              choice.focused ||
+              undefined,
+
+            "data-focus-visible":
+              choice.focusVisible ||
               undefined,
           },
 
@@ -413,20 +361,37 @@ export const Radio =
             recipeStyles.root,
         });
 
+
       const controlSlot =
         resolveSlot<RadioSlot>({
-          slot: "control",
+          slot:
+            "control",
 
           styles,
           slotProps,
 
-          baseStyle:
-            recipeStyles.control,
+          baseProps: {
+            "data-ui":
+              "radio-control",
+          },
+
+          baseStyle: {
+            position:
+              "relative",
+
+            display:
+              "inline-grid",
+
+            flexShrink:
+              0,
+          },
         });
+
 
       const inputSlot =
         resolveSlot<RadioSlot>({
-          slot: "input",
+          slot:
+            "input",
 
           styles,
           slotProps,
@@ -435,20 +400,41 @@ export const Radio =
             recipeStyles.input,
         });
 
+
       const indicatorSlot =
         resolveSlot<RadioSlot>({
-          slot: "indicator",
+          slot:
+            "indicator",
 
           styles,
           slotProps,
 
           baseProps: {
-            "aria-hidden": true,
+            "aria-hidden":
+              true,
+
+            "data-ui":
+              "radio-indicator",
           },
 
-          baseStyle:
-            recipeStyles.indicator,
+          baseStyle: {
+            position:
+              "absolute",
+
+            inset:
+              0,
+
+            display:
+              "grid",
+
+            placeItems:
+              "center",
+
+            pointerEvents:
+              "none",
+          },
         });
+
 
       const indicatorDotSlot =
         resolveSlot<RadioSlot>({
@@ -459,37 +445,128 @@ export const Radio =
           slotProps,
 
           baseProps: {
-            "data-ui-radio-indicator-dot":
-              "",
+            "data-ui":
+              "radio-dot",
           },
 
-          baseStyle:
-            recipeStyles
-              .indicatorDot,
+          baseStyle: {
+            display:
+              "block",
+
+            borderRadius:
+              "var(--ui-radius-full)",
+
+            transformOrigin:
+              "center",
+          },
         });
+
 
       const labelSlot =
         resolveSlot<RadioSlot>({
-          slot: "label",
+          slot:
+            "label",
 
           styles,
           slotProps,
+
+          baseProps: {
+            "data-ui":
+              "choice-label",
+          },
 
           baseStyle:
             recipeStyles.label,
         });
 
+
+      const externalOnClick =
+        composeEventHandlers<
+          React.MouseEvent<HTMLInputElement>
+        >(
+          onClick,
+          slotOnClick,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const handleClick =
+        composeEventHandlers<
+          React.MouseEvent<HTMLInputElement>
+        >(
+          externalOnClick,
+          choice.handleClick
+        );
+
+
+      const externalOnChange =
+        composeEventHandlers<
+          React.ChangeEvent<HTMLInputElement>
+        >(
+          onChange,
+          slotOnChange,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        );
+
+
+      const handleChange = (
+        event:
+          React.ChangeEvent<HTMLInputElement>
+      ): void => {
+        if (
+          choice
+            .fieldControl
+            .readOnly
+        ) {
+          event.preventDefault();
+
+          return;
+        }
+
+
+        externalOnChange(
+          event
+        );
+
+
+        if (
+          event.defaultPrevented
+        ) {
+          return;
+        }
+
+
+        choice.handleChange(
+          event
+        );
+      };
+
+
       return (
-        <WrapperTag
-          {...rootSlot}
-          {...(
+        <ChoiceControlRoot
+          controlId={
+            choice
+              .fieldControl
+              .id
+          }
+
+          label={
             label
-              ? {
-                htmlFor:
-                  fieldControl.id,
-              }
-              : {}
-          )}
+          }
+
+          rootProps={
+            rootSlot
+          }
+
+          labelProps={
+            labelSlot
+          }
         >
           <span
             {...controlSlot}
@@ -497,96 +574,100 @@ export const Radio =
             <input
               {...inputSlot}
               {...rest}
-              ref={ref}
-              id={fieldControl.id}
+
+              ref={
+                ref
+              }
+
+              id={
+                choice
+                  .fieldControl
+                  .id
+              }
+
               type="radio"
-              name={resolvedName}
-              value={value}
+
+              data-ui="choice-input"
+
+              name={
+                resolvedName
+              }
+
+              value={
+                value
+              }
+
               checked={
-                visualChecked
+                choice.checked
               }
 
               disabled={
-                fieldControl.disabled
+                choice
+                  .fieldControl
+                  .disabled
               }
 
               required={
-                fieldControl.required
+                choice
+                  .fieldControl
+                  .required
               }
 
               aria-invalid={
-                fieldControl.ariaInvalid
+                choice
+                  .fieldControl
+                  .ariaInvalid
               }
 
               aria-required={
-                fieldControl.ariaRequired
+                choice
+                  .fieldControl
+                  .ariaRequired
               }
 
               aria-readonly={
-                fieldControl.ariaReadOnly
+                choice
+                  .fieldControl
+                  .ariaReadOnly
               }
 
               aria-describedby={
-                fieldControl.ariaDescribedBy
+                choice
+                  .fieldControl
+                  .ariaDescribedBy
               }
 
               aria-labelledby={
-                fieldControl
+                choice
+                  .fieldControl
                   .ariaLabelledBy
               }
 
               data-readonly={
-                fieldControl.readOnly ||
+                choice
+                  .fieldControl
+                  .readOnly ||
                 undefined
               }
 
-              onClick={(event) => {
-                if (
-                  fieldControl.readOnly
-                ) {
-                  event.preventDefault();
-                }
-
-                onClick?.(event);
-              }}
-
-              onChange={(event) => {
-                if (
-                  fieldControl.readOnly
-                ) {
-                  event.preventDefault();
-                  return;
-                }
-
-                if (
-                  !externallyControlled
-                ) {
-                  setInternalChecked(
-                    event.currentTarget
-                      .checked
-                  );
-                }
-
-                onChange?.(
-                  event
-                );
-
-                if (
-                  groupManaged &&
-                  event.currentTarget
-                    .checked
-                ) {
-                  group?.selectValue(
-                    String(value),
-                    event
-                  );
-                }
-              }}
-              onFocus={
-                focusProps.onFocus
+              onClick={
+                handleClick
               }
+
+              onChange={
+                handleChange
+              }
+
+              onFocus={
+                choice
+                  .focusProps
+                  .onFocus
+              }
+
               onBlur={
-                focusProps.onBlur
+                choice
+                  .focusProps
+                  .onBlur
               }
             />
 
@@ -598,17 +679,11 @@ export const Radio =
               />
             </span>
           </span>
-
-          {label ? (
-            <span
-              {...labelSlot}
-            >
-              {label}
-            </span>
-          ) : null}
-        </WrapperTag>
+        </ChoiceControlRoot>
       );
     }
   );
 
-Radio.displayName = "Radio";
+
+Radio.displayName =
+  "Radio";
