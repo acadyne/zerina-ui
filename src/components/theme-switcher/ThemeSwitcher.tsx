@@ -160,6 +160,11 @@ export function ThemeSwitcher({
                 key={
                   item.name
                 }
+                data-ui-theme-switcher-item=""
+                data-active={
+                  active ||
+                  undefined
+                }
                 onSelect={() => {
                   setTheme(
                     item.name
@@ -178,16 +183,6 @@ export function ThemeSwitcher({
 
                   gap:
                     "0.55rem",
-
-                  fontWeight:
-                    active
-                      ? 700
-                      : 500,
-
-                  background:
-                    active
-                      ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
-                      : undefined,
                 }}
               >
                 <Icon

@@ -19,7 +19,7 @@
 }
 
 [data-ui-data-table-desktop]
-  [data-ui-data-table-row][data-ui-data-table-row-selected] {
+  [data-ui-data-table-row][data-selected] {
   background: var(--ui-surface-2);
 }
 
@@ -39,8 +39,18 @@
 }
 
 [data-ui-data-table-editable-desktop]
-  [data-ui-data-table-row][data-ui-data-table-row-selected] {
+  [data-ui-data-table-row][data-selected] {
   background: var(--ui-surface);
+}
+
+[data-ui-data-table-mobile-card] {
+  border:
+    1px solid var(--ui-border);
+}
+
+[data-ui-data-table-mobile-card][data-selected] {
+  border-color:
+    var(--ui-primary);
 }
 
 @media (hover: hover) {

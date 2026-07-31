@@ -58,6 +58,8 @@ export const FormLabel =
       },
       ref
     ) => {
+      // FormControl owns field state. FormLabel reads semantic
+      // associations while CSS consumes the ancestor data attributes.
       const field =
         useContext(
           FieldContext
@@ -87,6 +89,11 @@ export const FormLabel =
           className,
           style,
 
+          baseProps: {
+            "data-ui-form-label":
+              "",
+          },
+
           baseStyle: {
             display:
               "block",
@@ -102,11 +109,6 @@ export const FormLabel =
 
             color:
               "var(--ui-text)",
-
-            opacity:
-              field?.disabled
-                ? 0.85
-                : 1,
 
             lineHeight:
               1.2,

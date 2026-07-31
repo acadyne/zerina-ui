@@ -55,7 +55,6 @@
     1px solid var(--ui-border);
 }
 
-/* BEGIN BLOCK 8 LIST INTERACTION */
 [data-ui-list-item][data-interactive]:not([data-disabled]) {
   cursor: pointer;
 }
@@ -67,4 +66,3 @@
 [data-ui-list-item][data-interactive][data-disabled] {
   cursor: not-allowed;
 }
-/* END BLOCK 8 LIST INTERACTION */

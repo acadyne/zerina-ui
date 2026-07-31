@@ -1,0 +1,16 @@
+[data-ui-theme-switcher-item] {
+  font-weight:
+    500;
+}
+
+[data-ui-theme-switcher-item][data-active] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 12%,
+      transparent
+    );
+
+  font-weight:
+    700;
+}

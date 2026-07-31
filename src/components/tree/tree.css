@@ -25,7 +25,7 @@
       var(--ui-ease-standard);
 }
 
-[data-ui-tree-item][data-ui-tree-item-selected]
+[data-ui-tree-item][data-selected]
   > [data-ui-tree-row] {
   background:
     color-mix(

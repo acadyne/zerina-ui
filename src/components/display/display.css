@@ -30,9 +30,7 @@
       )
       var(--ui-interaction-focus-ring-color);
 }
-/* END BLOCK 8 TAG INTERACTION */
 
-/* BEGIN BLOCK 8 CARD INTERACTION */
 [data-ui-card] {
   min-width: 0;
   border:
@@ -87,4 +85,3 @@
       )
       var(--ui-interaction-focus-ring-color);
 }
-/* END BLOCK 8 CARD INTERACTION */

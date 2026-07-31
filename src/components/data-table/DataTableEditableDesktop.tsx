@@ -350,7 +350,7 @@ export function DataTableEditableDesktop<
                 baseProps: {
                   "data-ui-data-table-row": "",
                   "data-ui-data-table-row-index": String(rowIndex),
-                  "data-ui-data-table-row-selected": isSelected || undefined,
+                  "data-selected": isSelected || undefined,
                 },
               });
 

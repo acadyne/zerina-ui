@@ -313,7 +313,7 @@ export function TreeItem<TNode>({
       "data-ui-tree-item-branch": branch || undefined,
       "data-ui-tree-item-expanded":
         branch && expanded ? "" : undefined,
-      "data-ui-tree-item-selected":
+      "data-selected":
         selected ? "" : undefined,
       "data-focused":
         focused ? "" : undefined,

@@ -95,6 +95,10 @@
   opacity: var(--ui-interaction-disabled-opacity);
 }
 
+/*
+ * data-focused preserves logical focus continuity.
+ * The keyboard-visible ring remains exclusive to data-focus-visible.
+ */
 [data-ui-command-trigger][data-hovered]:not([data-disabled]),
 [data-ui-command-trigger][data-pressed]:not([data-disabled]),
 [data-ui-command-trigger][data-focused]:not([data-disabled]) {

@@ -308,6 +308,17 @@
 }
 
 
+/* Field label */
+
+:where(
+  [data-ui="form-control"][data-disabled]
+  [data-ui-form-label]
+) {
+  opacity:
+    0.85;
+}
+
+
 /* Disabled */
 
 :where(

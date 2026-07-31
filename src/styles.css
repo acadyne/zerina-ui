@@ -10,6 +10,7 @@
 
 @import "./primitives/layout/list.css";
 @import "./components/display/display.css";
+@import "./components/theme-switcher/themeSwitcher.css";
 @import "./components/feedback/toast.css";
 @import "./components/image-viewer/imageViewer.css";
 @import "./primitives/overlay/menu/menu.css";

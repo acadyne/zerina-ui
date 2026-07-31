@@ -214,15 +214,12 @@ export function DataTableMobileCards<
             "aria-selected": selected || undefined,
             "data-ui-data-table-mobile-card": "",
             "data-ui-data-table-row-index": String(rowIndex),
-            "data-ui-data-table-row-selected": selected || undefined,
+            "data-selected": selected || undefined,
           },
           baseStyle: {
             padding: "0.85rem",
             minWidth: 0,
             borderRadius: "var(--ui-radius-xl)",
-            border: selected
-              ? "1px solid var(--ui-primary)"
-              : "1px solid var(--ui-border)",
             background: "var(--ui-surface)",
             boxShadow: "var(--ui-shadow-sm)",
           },
