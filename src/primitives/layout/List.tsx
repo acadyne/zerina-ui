@@ -499,17 +499,7 @@ const ListItem =
         color:
           "var(--ui-text)",
 
-        opacity:
-          disabled
-            ? 0.62
-            : undefined,
 
-        cursor:
-          interactive
-            ? disabled
-              ? "not-allowed"
-              : "pointer"
-            : undefined,
 
         ...getItemPadding(
           density
@@ -727,6 +717,7 @@ const ListItem =
                 className
               }
               data-ui-list-item=""
+              data-interactive=""
               data-selected={
                 selected ||
                 undefined

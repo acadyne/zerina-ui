@@ -1,0 +1,90 @@
+/* src/components/display/display.css */
+
+[data-ui-tag-remove] {
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.85;
+  outline: none;
+}
+
+[data-ui-tag-remove][data-disabled],
+[data-ui-tag-remove]:disabled {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-tag-remove][data-hovered]:not([data-disabled]) {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-tag-remove][data-focus-visible]:not([data-disabled]) {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+/* END BLOCK 8 TAG INTERACTION */
+
+/* BEGIN BLOCK 8 CARD INTERACTION */
+[data-ui-card] {
+  min-width: 0;
+  border:
+    1px solid
+    var(--ui-card-border-color);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: var(--ui-card-shadow);
+  outline: none;
+  transition:
+    box-shadow
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    border-color
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    background
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-normal)
+      var(--ui-ease-standard);
+}
+
+[data-ui-card][data-ui-card-interactive]:not([data-disabled]) {
+  cursor: pointer;
+}
+
+[data-ui-card][data-ui-card-interactive][data-disabled] {
+  cursor: not-allowed;
+}
+
+[data-ui-card][data-ui-card-interactive][data-hovered]:not(
+    [data-disabled]
+  ) {
+  border-color: var(--ui-border-strong);
+  box-shadow: var(--ui-shadow-md);
+}
+
+[data-ui-card][data-ui-card-interactive][data-focus-visible]:not(
+    [data-disabled]
+  ) {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+/* END BLOCK 8 CARD INTERACTION */

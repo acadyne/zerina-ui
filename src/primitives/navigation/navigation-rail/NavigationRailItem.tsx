@@ -198,7 +198,6 @@ export const NavigationRailItem =
             ctx.density,
 
           active,
-          disabled,
 
           indicator:
             resolvedIndicator,
@@ -245,10 +244,6 @@ export const NavigationRailItem =
 
             "data-ui-navigation-rail-item":
               "",
-
-            "data-ui-navigation-rail-item-active":
-              active ||
-              undefined,
 
             "data-ui-navigation-rail-item-badge-anchor":
               hasBadge

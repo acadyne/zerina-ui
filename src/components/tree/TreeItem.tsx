@@ -315,9 +315,9 @@ export function TreeItem<TNode>({
         branch && expanded ? "" : undefined,
       "data-ui-tree-item-selected":
         selected ? "" : undefined,
-      "data-ui-tree-item-focused":
+      "data-focused":
         focused ? "" : undefined,
-      "data-ui-tree-item-disabled":
+      "data-disabled":
         disabled ? "" : undefined,
       "data-ui-tree-item-loading":
         loading ? "" : undefined,
@@ -347,18 +347,6 @@ export function TreeItem<TNode>({
       padding: "0.375rem 0.5rem",
       paddingLeft: `calc(0.5rem + ${depth * 0.875}rem)`,
       borderRadius: "var(--ui-radius-md)",
-      cursor: disabled ? "not-allowed" : "pointer",
-      opacity: disabled ? 0.55 : 1,
-      background: selected
-        ? "color-mix(in srgb, var(--ui-primary) 10%, transparent)"
-        : "transparent",
-      color: selected
-        ? "var(--ui-text)"
-        : "var(--ui-text-muted)",
-      outline: focused
-        ? "2px solid color-mix(in srgb, var(--ui-primary) 45%, transparent)"
-        : "none",
-      outlineOffset: -2,
     },
   });
 
@@ -380,7 +368,6 @@ export function TreeItem<TNode>({
       border: 0,
       background: "transparent",
       color: "inherit",
-      cursor: disabled ? "not-allowed" : "pointer",
     },
   });
 
@@ -533,9 +520,7 @@ export function TreeItem<TNode>({
       padding: "0.2rem 0.4rem",
       border: "1px solid currentColor",
       borderRadius: "var(--ui-radius-sm)",
-      background: "transparent",
       color: "inherit",
-      cursor: "pointer",
       fontSize: "inherit",
     },
   });

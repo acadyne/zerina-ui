@@ -135,7 +135,7 @@ export const TransformableSurface = forwardRef<
       style,
       baseProps: {
         "data-ui-transformable-surface": "",
-        "data-ui-transformable-surface-disabled": disabled || undefined,
+        "data-disabled": disabled || undefined,
         "data-ui-transformable-surface-gesture": surface.gesture,
         "data-ui-transformable-surface-scale": surface.scale,
         "data-ui-transformable-surface-bounds": bounds,
@@ -161,6 +161,7 @@ export const TransformableSurface = forwardRef<
         "aria-label": keyboardControls ? viewportAriaLabel : undefined,
         "aria-disabled": disabled || undefined,
         "data-ui-transformable-surface-viewport": "",
+        "data-pan-enabled": panEnabled || undefined,
         "data-gesture": surface.gesture,
         "data-panning": surface.isPanning || undefined,
         "data-pinching": surface.isPinching || undefined,
@@ -184,14 +185,6 @@ export const TransformableSurface = forwardRef<
 
         touchAction:
           disabled || (!panEnabled && !pinchEnabled) ? "auto" : "none",
-
-        cursor: disabled
-          ? "default"
-          : surface.isPanning || surface.isPinching
-            ? "grabbing"
-            : panEnabled
-              ? "grab"
-              : "default",
 
         WebkitTapHighlightColor: "transparent",
       },

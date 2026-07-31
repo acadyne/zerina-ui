@@ -1,0 +1,76 @@
+[data-ui-navigation-list-item-button],
+[data-ui-navigation-list-toggle-button] {
+  cursor: pointer;
+}
+
+[data-ui-navigation-list-static] {
+  cursor: default;
+}
+
+[data-ui-navigation-list-item][data-disabled]
+  [data-ui-navigation-list-item-button],
+[data-ui-navigation-list-item][data-disabled]
+  [data-ui-navigation-list-toggle-button] {
+  cursor: not-allowed;
+}
+
+[data-ui-navigation-list-item][data-disabled]
+  [data-ui-navigation-list-item-content] {
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-navigation-list-item][data-ui-navigation-list-item-active]
+  [data-ui-navigation-list-item-content] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 10%,
+      transparent
+    );
+}
+
+[data-ui-navigation-list-item][data-ui-navigation-list-item-direct-active]
+  [data-ui-navigation-list-item-content] {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 32%,
+      var(--ui-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 17%,
+      transparent
+    );
+
+  color: var(--ui-text);
+}
+
+[data-ui-navigation-list-item]:not(
+  [data-ui-navigation-list-item-active]
+)
+  [data-ui-navigation-list-item-button][data-hovered]
+  [data-ui-navigation-list-item-content],
+[data-ui-navigation-list-item]:not(
+  [data-ui-navigation-list-item-active]
+)
+  [data-ui-navigation-list-item-button][data-focus-visible]
+  [data-ui-navigation-list-item-content] {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-navigation-list-item]:not(
+  [data-ui-navigation-list-item-direct-active]
+)
+  [data-ui-navigation-list-item-button][data-focus-visible]
+  [data-ui-navigation-list-item-content] {
+  border-color:
+    var(--ui-interaction-focus-ring-color);
+}
+
+[data-ui-navigation-list-item-button][data-pressed]
+  [data-ui-navigation-list-item-content] {
+  background: var(--ui-surface-3);
+}

@@ -318,7 +318,6 @@ type BottomNavigationItemRecipeVariants = {
 
 type BottomNavigationItemRecipeState = {
   active: boolean;
-  disabled: boolean;
 
   indicator:
   BottomNavigationIndicator;
@@ -524,7 +523,6 @@ export const bottomNavigationItemRecipe =
 
     resolve: ({
       active,
-      disabled,
       indicator,
       shape,
       iconPosition,
@@ -559,10 +557,6 @@ export const bottomNavigationItemRecipe =
         color: active
           ? "var(--ui-text)"
           : "var(--ui-text-muted)",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
       },
 
       content: {

@@ -1,3 +1,5 @@
+//  /src/components/image-viewer/ImageViewer.tsx
+
 import {
   forwardRef,
   useCallback,
@@ -499,13 +501,10 @@ export const ImageViewer = forwardRef<
           borderRadius:
             "var(--ui-radius-md)",
 
-          background:
-            "color-mix(in srgb, var(--ui-surface) 88%, transparent)",
           color: "var(--ui-text)",
           boxShadow:
             "var(--ui-shadow-sm)",
 
-          cursor: "pointer",
           font: "inherit",
           fontWeight: 700,
 
@@ -674,17 +673,6 @@ export const ImageViewer = forwardRef<
             }
 
             action();
-          }}
-          style={{
-            ...controlButtonRest.style,
-            opacity: disabled
-              ? 0.5
-              : controlButtonRest.style
-                ?.opacity,
-            cursor: disabled
-              ? "not-allowed"
-              : controlButtonRest.style
-                ?.cursor,
           }}
         >
           {content}
@@ -874,6 +862,7 @@ export const ImageViewer = forwardRef<
                   </span>
 
                   <button
+                    data-ui-image-viewer-retry=""
                     type="button"
                     onClick={retry}
                     style={{
@@ -883,10 +872,7 @@ export const ImageViewer = forwardRef<
                         "1px solid currentColor",
                       borderRadius:
                         "var(--ui-radius-md)",
-                      background:
-                        "transparent",
                       color: "inherit",
-                      cursor: "pointer",
                     }}
                   >
                     Reintentar

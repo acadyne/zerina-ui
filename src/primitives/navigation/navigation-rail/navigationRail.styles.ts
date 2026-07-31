@@ -438,7 +438,6 @@ type NavigationRailItemRecipeVariants = {
 
 type NavigationRailItemRecipeState = {
   active: boolean;
-  disabled: boolean;
 
   indicator:
   NavigationRailIndicator;
@@ -639,7 +638,6 @@ export const navigationRailItemRecipe =
 
     resolve: ({
       active,
-      disabled,
       indicator,
       shape,
       itemMinWidth,
@@ -686,10 +684,6 @@ export const navigationRailItemRecipe =
           color: active
             ? "var(--ui-text)"
             : "var(--ui-text-muted)",
-
-          opacity: disabled
-            ? "var(--ui-interaction-disabled-opacity)"
-            : 1,
         },
 
         iconWrap: {

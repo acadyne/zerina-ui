@@ -174,65 +174,7 @@ type NavigationListRecipeVariants = {
 
 type NavigationListRecipeState = {
   paddingLeft: string;
-
-  disabled: boolean;
-  active: boolean;
-  directlyActive: boolean;
-
-  hovered: boolean;
-  pressed: boolean;
-  focused: boolean;
 };
-
-function getItemBackground({
-  active,
-  directlyActive,
-  hovered,
-  pressed,
-  focused,
-}: {
-  active: boolean;
-  directlyActive: boolean;
-  hovered: boolean;
-  pressed: boolean;
-  focused: boolean;
-}): string {
-  if (pressed) {
-    return "var(--ui-surface-3)";
-  }
-
-  if (directlyActive) {
-    return "color-mix(in srgb, var(--ui-primary) 17%, transparent)";
-  }
-
-  if (active) {
-    return "color-mix(in srgb, var(--ui-primary) 10%, transparent)";
-  }
-
-  if (hovered || focused) {
-    return "var(--ui-surface-hover)";
-  }
-
-  return "transparent";
-}
-
-function getItemBorderColor({
-  directlyActive,
-  focused,
-}: {
-  directlyActive: boolean;
-  focused: boolean;
-}): string {
-  if (directlyActive) {
-    return "color-mix(in srgb, var(--ui-primary) 32%, var(--ui-border))";
-  }
-
-  if (focused) {
-    return "var(--ui-interaction-focus-ring-color)";
-  }
-
-  return "transparent";
-}
 
 /**
  * La recipe concentra la política visual de NavigationList.
@@ -459,57 +401,25 @@ const navigationListRecipe =
 
     resolve: ({
       paddingLeft,
-      disabled,
-      active,
-      directlyActive,
-      hovered,
-      pressed,
-      focused,
       collapsed,
     }) => {
       const isCollapsed =
         collapsed === "true";
 
       return {
-        itemButton: {
-          cursor: disabled
-            ? "not-allowed"
-            : "pointer",
-        },
-
-        toggleButton: {
-          cursor: disabled
-            ? "not-allowed"
-            : "pointer",
-        },
-
         itemContent: {
           paddingLeft: isCollapsed
             ? "0.4rem"
             : paddingLeft,
 
           border:
-            `1px solid ${getItemBorderColor({
-              directlyActive,
-              focused,
-            })}`,
+            "1px solid transparent",
 
           background:
-            getItemBackground({
-              active,
-              directlyActive,
-              hovered,
-              pressed,
-              focused,
-            }),
+            "transparent",
 
-          color: directlyActive
-            ? "var(--ui-text)"
-            : "var(--ui-text-muted)",
-
-          opacity: disabled
-            ? "var(--ui-interaction-disabled-opacity)"
-            : 1,
+          color:
+            "var(--ui-text-muted)",
         },
       };
     },
@@ -822,16 +732,6 @@ const NavigationListItem =
             : "false",
 
         paddingLeft,
-
-        disabled:
-          Boolean(item.disabled),
-
-        active,
-        directlyActive,
-
-        hovered: false,
-        pressed: false,
-        focused: false,
       });
 
     const itemSlot =
@@ -857,7 +757,7 @@ const NavigationListItem =
             directlyActive ||
             undefined,
 
-          "data-ui-navigation-list-item-disabled":
+          "data-disabled":
             item.disabled ||
             undefined,
 
@@ -897,6 +797,11 @@ const NavigationListItem =
         styles,
         slotProps,
 
+        baseProps: {
+          "data-ui-navigation-list-item-button":
+            "",
+        },
+
         baseStyle:
           baseRecipeStyles
             .itemButton,
@@ -908,6 +813,11 @@ const NavigationListItem =
 
         styles,
         slotProps,
+
+        baseProps: {
+          "data-ui-navigation-list-toggle-button":
+            "",
+        },
 
         baseStyle:
           baseRecipeStyles
@@ -1001,15 +911,7 @@ const NavigationListItem =
             .flyoutList,
       });
 
-    const renderItemContent = ({
-      hovered,
-      pressed,
-      focused,
-    }: {
-      hovered: boolean;
-      pressed: boolean;
-      focused: boolean;
-    }) => {
+    const renderItemContent = () => {
       const stateRecipeStyles =
         navigationListRecipe({
           variant,
@@ -1020,18 +922,6 @@ const NavigationListItem =
               : "false",
 
           paddingLeft,
-
-          disabled:
-            Boolean(
-              item.disabled
-            ),
-
-          active,
-          directlyActive,
-
-          hovered,
-          pressed,
-          focused,
         });
 
       const itemContentSlot =
@@ -1161,7 +1051,7 @@ const NavigationListItem =
           undefined
         }
       >
-        {renderItemContent}
+        {renderItemContent()}
       </Pressable>
     );
 
@@ -1183,28 +1073,20 @@ const NavigationListItem =
           undefined
         }
       >
-        {renderItemContent}
+        {renderItemContent()}
       </Pressable>
     );
 
     const staticCollapsedSurface = (
       <Box
         {...itemButtonSlot}
+        data-ui-navigation-list-static=""
         aria-disabled={
           item.disabled ||
           undefined
         }
-        style={{
-          ...itemButtonSlot.style,
-
-          cursor: "default",
-        }}
       >
-        {renderItemContent({
-          hovered: false,
-          pressed: false,
-          focused: false,
-        })}
+        {renderItemContent()}
       </Box>
     );
 
@@ -1589,15 +1471,6 @@ export const NavigationList =
 
         paddingLeft:
           "0.65rem",
-
-        disabled: false,
-        active: false,
-        directlyActive:
-          false,
-
-        hovered: false,
-        pressed: false,
-        focused: false,
       });
 
     const rootSlot =

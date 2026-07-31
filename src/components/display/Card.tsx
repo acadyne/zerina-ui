@@ -8,7 +8,6 @@ import {
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
-  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -78,68 +77,6 @@ export interface CardProps
   styles?: CardStyles;
   slotProps?: CardSlotProps;
 }
-
-type CardRecipeVariants = Record<never, never>;
-
-type CardRecipeState = {
-  bordered: boolean;
-  interactive: boolean;
-  hovered: boolean;
-  focusVisible: boolean;
-  disabled: boolean;
-  shadow: React.CSSProperties["boxShadow"];
-};
-
-const cardRecipe = defineSlotRecipe<
-  CardSlot,
-  CardRecipeVariants,
-  CardRecipeState
->({
-  base: {
-    root: {
-      minWidth: 0,
-      background: "var(--ui-surface)",
-      color: "var(--ui-text)",
-      outline: "none",
-
-      transition:
-        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "opacity var(--ui-duration-normal) var(--ui-ease-standard)",
-    },
-  },
-
-  resolve: ({
-    bordered,
-    interactive,
-    hovered,
-    focusVisible,
-    disabled,
-    shadow,
-  }) => ({
-    root: {
-      boxShadow: focusVisible
-        ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-        : hovered && !disabled
-          ? "var(--ui-shadow-md)"
-          : shadow,
-
-      border: bordered
-        ? `1px solid ${hovered && !disabled
-          ? "var(--ui-border-strong)"
-          : "var(--ui-border)"
-        }`
-        : "1px solid transparent",
-
-      cursor: interactive
-        ? disabled
-          ? "not-allowed"
-          : "pointer"
-        : undefined,
-    },
-  }),
-});
 
 function CardLoadingContent({
   lines = 3,
@@ -358,10 +295,11 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     } = rootSlotProps ?? {};
 
     const isInteractive = onPress !== undefined;
-    const isDisabled = loading || !isInteractive;
+    const isDisabled = isInteractive && loading;
+    const pressDisabled = !isInteractive || isDisabled;
 
     const press = usePress<HTMLDivElement>({
-      disabled: isDisabled,
+      disabled: pressDisabled,
       nativeInteractive: false,
       onPress,
 
@@ -437,15 +375,6 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ? motionState.getPressMotion(motionState.effectiveLevel)
       : undefined;
 
-    const recipeStyles = cardRecipe({
-      bordered,
-      interactive: isInteractive,
-      hovered: press.state.hovered,
-      focusVisible: press.state.focusVisible,
-      disabled: isDisabled,
-      shadow,
-    });
-
     const rootSlot = resolveSlot<CardSlot>({
       slot: "root",
       styles,
@@ -460,16 +389,20 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           loading && animateLoading
             ? true
             : undefined,
-        "data-ui-card-disabled":
-          isInteractive && loading ? true : undefined,
-        "data-ui-card-hovered": press.state.hovered || undefined,
-        "data-ui-card-pressed": press.state.pressed || undefined,
-        "data-ui-card-focused": press.state.focused || undefined,
-        "data-ui-card-focus-visible":
+        "data-disabled": isDisabled || undefined,
+        "data-hovered": press.state.hovered || undefined,
+        "data-pressed": press.state.pressed || undefined,
+        "data-focused": press.state.focused || undefined,
+        "data-focus-visible":
           press.state.focusVisible || undefined,
       },
       baseStyle: {
-        ...recipeStyles.root,
+        ...({
+          "--ui-card-shadow": shadow,
+          "--ui-card-border-color": bordered
+            ? "var(--ui-border)"
+            : "transparent",
+        } as React.CSSProperties),
         padding: p,
         borderRadius: rounded,
       },
@@ -498,7 +431,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
                 : tabIndex ?? 0
               : tabIndex
           }
-          aria-disabled={isInteractive && loading ? true : undefined}
+          aria-disabled={isDisabled || undefined}
           aria-busy={loading || undefined}
           animate={
             pressMotion ?? {

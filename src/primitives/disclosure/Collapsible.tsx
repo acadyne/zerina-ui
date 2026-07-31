@@ -12,7 +12,6 @@ import {
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
-  defineSlotRecipe,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -34,85 +33,54 @@ export type CollapsibleStyles =
 export type CollapsibleSlotProps =
   SlotPropsMap<CollapsibleSlot>;
 
-type CollapsibleRecipeVariants =
-  Record<never, never>;
+const COLLAPSIBLE_BASE_STYLES = {
+  trigger: {
+    width: "100%",
+    minWidth: 0,
 
-type CollapsibleRecipeState = {
-  disabled: boolean;
-  focused: boolean;
-};
+    border: "none",
+    borderRadius: "var(--ui-radius-sm)",
 
-const collapsibleRecipe =
-  defineSlotRecipe<
-    CollapsibleSlot,
-    CollapsibleRecipeVariants,
-    CollapsibleRecipeState
-  >({
-    base: {
-      trigger: {
-        width: "100%",
-        minWidth: 0,
+    background: "transparent",
+    color: "var(--ui-text)",
 
-        border: "none",
-        borderRadius: "var(--ui-radius-sm)",
+    padding: 0,
 
-        background: "transparent",
-        color: "var(--ui-text)",
+    textAlign: "left",
+    font: "inherit",
 
-        padding: 0,
+    outline: "none",
 
-        textAlign: "left",
-        font: "inherit",
+    WebkitTapHighlightColor: "transparent",
+  },
 
-        outline: "none",
+  triggerContent: {
+    flex: 1,
+    minWidth: 0,
+  },
 
-        WebkitTapHighlightColor: "transparent",
-      },
+  triggerIcon: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
 
-      triggerContent: {
-        flex: 1,
-        minWidth: 0,
-      },
+    flexShrink: 0,
 
-      triggerIcon: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
+    color: "var(--ui-text-muted)",
+  },
 
-        flexShrink: 0,
+  content: {
+    overflow: "hidden",
+    minWidth: 0,
+  },
 
-        color: "var(--ui-text-muted)",
-      },
-
-      content: {
-        overflow: "hidden",
-        minWidth: 0,
-      },
-
-      inner: {
-        minWidth: 0,
-      },
-    },
-
-    resolve: ({
-      disabled,
-      focused,
-    }) => ({
-      trigger: {
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-
-        boxShadow: focused
-          ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-          : "none",
-      },
-    }),
-  });
+  inner: {
+    minWidth: 0,
+  },
+} satisfies Record<
+  CollapsibleSlot,
+  React.CSSProperties
+>;
 
 type CollapsibleContextValue = {
   open: boolean;
@@ -149,6 +117,9 @@ function useCollapsibleContext() {
 type TriggerChildProps = {
   id?: string;
   disabled?: boolean;
+
+  className?: string;
+  style?: React.CSSProperties;
 
   "aria-expanded"?: boolean;
   "aria-controls"?: string;
@@ -325,11 +296,6 @@ export const CollapsibleTrigger =
       const motionState =
         useOptionalUIMotion();
 
-      const [
-        focused,
-        setFocused,
-      ] = React.useState(false);
-
       const handleToggle =
         React.useCallback(() => {
           ctx.onOpenChange?.(
@@ -348,14 +314,6 @@ export const CollapsibleTrigger =
           })
           : children;
 
-      const recipeStyles =
-        collapsibleRecipe({
-          disabled:
-            ctx.disabled,
-
-          focused,
-        });
-
       const triggerSlot =
         resolveSlot<CollapsibleSlot>({
           slot: "trigger",
@@ -370,21 +328,17 @@ export const CollapsibleTrigger =
             "data-ui-collapsible-trigger":
               "",
 
-            "data-ui-collapsible-open":
+            "data-open":
               ctx.open ||
               undefined,
 
-            "data-ui-collapsible-disabled":
+            "data-disabled":
               ctx.disabled ||
-              undefined,
-
-            "data-ui-collapsible-focused":
-              focused ||
               undefined,
           },
 
           baseStyle:
-            recipeStyles.trigger,
+            COLLAPSIBLE_BASE_STYLES.trigger,
         });
 
       const triggerContentSlot =
@@ -396,7 +350,7 @@ export const CollapsibleTrigger =
           slotProps,
 
           baseStyle:
-            recipeStyles
+            COLLAPSIBLE_BASE_STYLES
               .triggerContent,
         });
 
@@ -416,12 +370,20 @@ export const CollapsibleTrigger =
           },
 
           baseStyle:
-            recipeStyles
+            COLLAPSIBLE_BASE_STYLES
               .triggerIcon,
         });
 
       const triggerIconVariants =
         getCollapsibleTriggerIconVariants();
+
+      const {
+        onClick:
+        triggerSlotOnClick,
+        onKeyDown:
+        triggerSlotOnKeyDown,
+        ...triggerSlotRest
+      } = triggerSlot;
 
       if (
         asChild &&
@@ -429,9 +391,30 @@ export const CollapsibleTrigger =
           TriggerChildProps
         >(content)
       ) {
+        const childDisabled =
+          ctx.disabled ||
+          Boolean(
+            content.props.disabled
+          );
+
+        const mergedClassName = [
+          triggerSlotRest.className,
+          content.props.className,
+        ]
+          .filter(Boolean)
+          .join(" ") ||
+          undefined;
+
+        const mergedStyle = {
+          ...triggerSlotRest.style,
+          ...content.props.style,
+        };
+
         return React.cloneElement(
           content,
           {
+            ...triggerSlotRest,
+
             ref: (
               node:
                 | HTMLElement
@@ -455,15 +438,27 @@ export const CollapsibleTrigger =
             id: ctx.triggerId,
 
             disabled:
-              ctx.disabled ||
-              content.props
-                .disabled,
+              childDisabled,
+
+            "aria-disabled":
+              childDisabled ||
+              undefined,
 
             "aria-expanded":
               ctx.open,
 
             "aria-controls":
               ctx.contentId,
+
+            "data-disabled":
+              childDisabled ||
+              undefined,
+
+            className:
+              mergedClassName,
+
+            style:
+              mergedStyle,
 
             onClick: (
               event:
@@ -473,6 +468,23 @@ export const CollapsibleTrigger =
                 .onClick?.(
                   event
                 );
+
+              if (
+                event.defaultPrevented
+              ) {
+                return;
+              }
+
+              triggerSlotOnClick?.(
+                event
+              );
+
+              if (
+                event.defaultPrevented ||
+                childDisabled
+              ) {
+                return;
+              }
 
               handleToggle();
             },
@@ -487,13 +499,14 @@ export const CollapsibleTrigger =
                 );
 
               if (
-                event.key ===
-                "Enter" ||
-                event.key === " "
+                event.defaultPrevented
               ) {
-                event.preventDefault();
-                handleToggle();
+                return;
               }
+
+              triggerSlotOnKeyDown?.(
+                event
+              );
             },
           } as TriggerChildProps & {
             ref: React.Ref<HTMLElement>;
@@ -503,7 +516,7 @@ export const CollapsibleTrigger =
 
       return (
         <button
-          {...triggerSlot}
+          {...triggerSlotRest}
           ref={ref}
           id={ctx.triggerId}
           type="button"
@@ -516,15 +529,23 @@ export const CollapsibleTrigger =
           disabled={
             ctx.disabled
           }
-          onClick={
-            handleToggle
+          onClick={(event) => {
+            triggerSlotOnClick?.(
+              event
+            );
+
+            if (
+              event.defaultPrevented ||
+              ctx.disabled
+            ) {
+              return;
+            }
+
+            handleToggle();
+          }}
+          onKeyDown={
+            triggerSlotOnKeyDown
           }
-          onFocus={() => {
-            setFocused(true);
-          }}
-          onBlur={() => {
-            setFocused(false);
-          }}
         >
           <Flex
             align="center"
@@ -631,14 +652,6 @@ export const CollapsibleContent =
         ctx.open ||
         !unmountOnExit;
 
-      const recipeStyles =
-        collapsibleRecipe({
-          disabled:
-            ctx.disabled,
-
-          focused: false,
-        });
-
       const contentSlot =
         resolveSlot<CollapsibleSlot>({
           slot: "content",
@@ -653,13 +666,13 @@ export const CollapsibleContent =
             "data-ui-collapsible-content":
               "",
 
-            "data-ui-collapsible-open":
+            "data-open":
               ctx.open ||
               undefined,
           },
 
           baseStyle:
-            recipeStyles.content,
+            COLLAPSIBLE_BASE_STYLES.content,
         });
 
       const innerSlot =
@@ -675,7 +688,7 @@ export const CollapsibleContent =
           },
 
           baseStyle:
-            recipeStyles.inner,
+            COLLAPSIBLE_BASE_STYLES.inner,
         });
 
       const contentVariants =

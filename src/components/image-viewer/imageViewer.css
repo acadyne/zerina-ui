@@ -1,0 +1,51 @@
+ /* /src/components/image-viewer/imageViewer.css */
+
+[data-ui-image-viewer-control] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-surface) 88%,
+      transparent
+    );
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-image-viewer-control][data-disabled],
+[data-ui-image-viewer-control]:disabled {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-image-viewer-control]:hover:not(:disabled) {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-image-viewer-control]:focus-visible:not(:disabled) {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}
+
+[data-ui-image-viewer-retry] {
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-image-viewer-retry]:hover {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-image-viewer-retry]:focus-visible {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}
+/* END BLOCK 8 IMAGE VIEWER INTERACTION */

@@ -1,0 +1,27 @@
+/* src/components/feedback/toast.css */
+
+[data-ui-toast-close] {
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-toast-close][data-hovered] {
+  background: var(--ui-surface-hover);
+  color: var(--ui-text);
+}
+
+[data-ui-toast-close][data-focus-visible] {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}

@@ -1,0 +1,43 @@
+/* src/primitives/overlay/menu/menu.css */
+
+[data-ui-menu-item] {
+  background: transparent;
+  cursor: pointer;
+  opacity: 1;
+  outline: none;
+  transition:
+    background
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-normal)
+      var(--ui-ease-standard);
+}
+
+[data-ui-menu-item][data-hovered]:not([data-disabled]),
+[data-ui-menu-item][data-pressed]:not([data-disabled]),
+[data-ui-menu-item][data-focus-visible]:not([data-disabled]) {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-menu-item][data-focus-visible]:not([data-disabled]) {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+
+[data-ui-menu-item][data-disabled] {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}

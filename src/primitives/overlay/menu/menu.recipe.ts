@@ -16,14 +16,6 @@ export type MenuRecipeVariants =
 export type MenuRecipeState = {
   transformOrigin?:
     React.CSSProperties["transformOrigin"];
-
-  hovered?: boolean;
-
-  pressed?: boolean;
-
-  focusVisible?: boolean;
-
-  disabled?: boolean;
 };
 
 
@@ -116,53 +108,10 @@ export const menuRecipe =
 
     resolve: ({
       transformOrigin,
-
-      hovered = false,
-
-      pressed = false,
-
-      focusVisible = false,
-
-      disabled = false,
     }) => ({
       content: {
         transformOrigin,
       },
-
-
- item: {
-  background:
-    !disabled &&
-    (pressed || hovered || focusVisible)
-      ? "var(--ui-surface-hover)"
-      : "transparent",
-
-  cursor:
-    disabled
-      ? "not-allowed"
-      : "pointer",
-
-  opacity:
-    disabled
-      ? 0.55
-      : 1,
-
-boxShadow:
-  focusVisible
-    ? [
-            "0 0 0",
-            "var(--ui-interaction-focus-ring-offset)",
-            "var(--ui-surface),",
-            "0 0 0",
-            "calc(",
-            "var(--ui-interaction-focus-ring-offset)",
-            "+",
-            "var(--ui-interaction-focus-ring-width)",
-            ")",
-            "var(--ui-interaction-focus-ring-color)",
-          ].join(" ")
-    : "none",
-},
     }),
   });
 

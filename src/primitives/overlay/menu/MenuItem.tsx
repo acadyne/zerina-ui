@@ -470,17 +470,7 @@ export const MenuItem =
           },
 
           baseStyle:
-            menuRecipe({
-              hovered:
-                press.state.hovered,
-
-              pressed:
-                press.state.pressed,
-
-              focusVisible,
-
-              disabled,
-            }).item,
+            menuRecipe({}).item,
         });
 
 

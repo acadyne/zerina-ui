@@ -1,7 +1,6 @@
 // src/primitives/disclosure/Accordion.tsx
 import React from "react";
 import {
-  defineSlotRecipe,
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -72,82 +71,56 @@ function useOptionalAccordionContext() {
   );
 }
 
-type AccordionRecipeVariants =
-  Record<never, never>;
+const ACCORDION_BASE_STYLES = {
+  root: {
+    width: "100%",
+    minWidth: 0,
 
-type AccordionRecipeState = {
-  disabled: boolean;
-};
+    display: "flex",
+    flexDirection: "column",
+  },
 
-/**
- * La recipe concentra la política visual propia del Accordion.
- *
- * La apertura, presencia y transición siguen delegadas en Collapsible.
- */
-const accordionRecipe =
-  defineSlotRecipe<
-    AccordionSlot,
-    AccordionRecipeVariants,
-    AccordionRecipeState
-  >({
-    base: {
-      root: {
-        width: "100%",
-        minWidth: 0,
+  item: {
+    width: "100%",
+    minWidth: 0,
 
-        display: "flex",
-        flexDirection: "column",
-      },
+    borderBottom:
+      "1px solid var(--ui-border)",
+  },
 
-      item: {
-        width: "100%",
-        minWidth: 0,
+  trigger: {
+    minHeight: 48,
 
-        borderBottom:
-          "1px solid var(--ui-border)",
-      },
+    padding: "0.9rem 0",
 
-      trigger: {
-        minHeight: 48,
+    borderRadius:
+      "var(--ui-radius-sm)",
+  },
 
-        padding: "0.9rem 0",
+  triggerLabel: {
+    margin: 0,
 
-        borderRadius:
-          "var(--ui-radius-sm)",
-      },
+    color:
+      "var(--ui-text)",
+  },
 
-      triggerLabel: {
-        margin: 0,
+  content: {
+    minWidth: 0,
 
-        color:
-          "var(--ui-text)",
-      },
+    paddingBottom: "1rem",
 
-      content: {
-        minWidth: 0,
+    color:
+      "var(--ui-text-muted)",
 
-        paddingBottom: "1rem",
+    fontSize:
+      "var(--ui-font-size-sm)",
 
-        color:
-          "var(--ui-text-muted)",
-
-        fontSize:
-          "var(--ui-font-size-sm)",
-
-        lineHeight: 1.5,
-      },
-    },
-
-    resolve: ({
-      disabled,
-    }) => ({
-      item: {
-        opacity: disabled
-          ? "var(--ui-interaction-disabled-opacity)"
-          : 1,
-      },
-    }),
-  });
+    lineHeight: 1.5,
+  },
+} satisfies Record<
+  AccordionSlot,
+  React.CSSProperties
+>;
 
 export interface AccordionProps
   extends Omit<
@@ -361,11 +334,6 @@ export const Accordion =
           ]
         );
 
-      const recipeStyles =
-        accordionRecipe({
-          disabled,
-        });
-
       const rootSlot =
         resolveSlot<AccordionSlot>({
           slot: "root",
@@ -383,13 +351,13 @@ export const Accordion =
             "data-ui-accordion-type":
               type,
 
-            "data-ui-accordion-disabled":
+            "data-disabled":
               disabled ||
               undefined,
           },
 
           baseStyle:
-            recipeStyles.root,
+            ACCORDION_BASE_STYLES.root,
         });
 
       return (
@@ -531,12 +499,6 @@ export const AccordionItem =
           ]
         );
 
-      const recipeStyles =
-        accordionRecipe({
-          disabled:
-            finalDisabled,
-        });
-
       const itemSlot =
         resolveSlot<AccordionSlot>({
           slot: "item",
@@ -564,7 +526,7 @@ export const AccordionItem =
           },
 
           baseStyle:
-            recipeStyles.item,
+            ACCORDION_BASE_STYLES.item,
         });
 
       return (
@@ -657,12 +619,6 @@ export const AccordionTrigger =
             })
           : children;
 
-      const recipeStyles =
-        accordionRecipe({
-          disabled:
-            item.disabled,
-        });
-
       const triggerSlot =
         resolveSlot<AccordionSlot>({
           slot: "trigger",
@@ -682,7 +638,7 @@ export const AccordionTrigger =
           },
 
           baseStyle:
-            recipeStyles.trigger,
+            ACCORDION_BASE_STYLES.trigger,
         });
 
       const triggerLabelSlot =
@@ -702,19 +658,17 @@ export const AccordionTrigger =
           },
 
           baseStyle:
-            recipeStyles
+            ACCORDION_BASE_STYLES
               .triggerLabel,
         });
 
       return (
         <CollapsibleTrigger
           ref={ref}
-          className={
-            triggerSlot.className
-          }
-          style={
-            triggerSlot.style
-          }
+          slotProps={{
+            trigger:
+              triggerSlot,
+          }}
         >
           <Typography
             {...triggerLabelSlot}
@@ -778,14 +732,6 @@ export const AccordionContent =
         item?.slotProps ??
         accordion?.slotProps;
 
-      const recipeStyles =
-        accordionRecipe({
-          disabled:
-            item?.disabled ??
-            accordion?.disabled ??
-            false,
-        });
-
       const contentSlot =
         resolveSlot<AccordionSlot>({
           slot: "content",
@@ -805,24 +751,15 @@ export const AccordionContent =
           },
 
           baseStyle:
-            recipeStyles.content,
+            ACCORDION_BASE_STYLES.content,
         });
 
       return (
         <CollapsibleContent
           ref={ref}
-          styles={{
-            inner: {
-              ...contentSlot.style,
-            },
-          }}
           slotProps={{
-            inner: {
-              className:
-                contentSlot.className,
-
-              ...contentSlot,
-            },
+            inner:
+              contentSlot,
           }}
           {...rest}
         >

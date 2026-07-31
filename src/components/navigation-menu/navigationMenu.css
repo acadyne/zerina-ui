@@ -1,0 +1,78 @@
+/* src/components/navigation-menu/navigationMenu.css */
+
+[data-ui-navigation-menu-trigger] {
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  opacity: 1;
+  outline: none;
+  box-shadow: none;
+  transition:
+    background
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-navigation-menu-item][data-ui-navigation-menu-item-open]
+  > [data-ui-navigation-menu-trigger] {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-navigation-menu-item][data-ui-navigation-menu-item-active]
+  > [data-ui-navigation-menu-trigger] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 12%,
+      transparent
+    );
+  color: var(--ui-text);
+}
+
+[data-ui-navigation-menu-trigger][data-disabled],
+[data-ui-navigation-menu-trigger]:disabled {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-navigation-menu-trigger]:focus-visible:not(:disabled) {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+
+[data-ui-navigation-menu-retry] {
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-navigation-menu-retry]:hover {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-navigation-menu-retry]:focus-visible {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}

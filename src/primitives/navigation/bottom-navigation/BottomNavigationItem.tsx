@@ -176,7 +176,6 @@ export const BottomNavigationItem =
         bottomNavigationItemRecipe({
           density: ctx.density,
           active,
-          disabled,
 
           indicator:
             resolvedIndicator,
@@ -223,10 +222,6 @@ export const BottomNavigationItem =
 
             "data-ui-bottom-navigation-item":
               "",
-
-            "data-ui-bottom-navigation-item-active":
-              active ||
-              undefined,
 
             "data-ui-bottom-navigation-item-badge-anchor":
               hasBadge

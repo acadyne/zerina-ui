@@ -266,6 +266,8 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
       slotProps,
 
       baseProps: {
+        "data-ui-tag-remove": "",
+        "data-disabled": !onRemove || undefined,
         "aria-label": "Quitar",
 
         "data-hovered":
@@ -295,33 +297,16 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
         borderRadius: "var(--ui-radius-full)",
         border: "none",
 
-        background:
-          removePress.state.hovered
-            ? "var(--ui-surface-hover)"
-            : "transparent",
 
         color: "inherit",
 
-        cursor:
-          onRemove
-            ? "pointer"
-            : "not-allowed",
 
         padding: 0,
         lineHeight: 1,
 
-        opacity:
-          onRemove
-            ? 0.85
-            : "var(--ui-interaction-disabled-opacity)",
 
         flexShrink: 0,
-        outline: "none",
 
-        boxShadow:
-          removePress.state.focusVisible
-            ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-            : "none",
 
         transition:
           "background var(--ui-duration-normal) var(--ui-ease-standard), " +

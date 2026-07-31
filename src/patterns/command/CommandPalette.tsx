@@ -547,9 +547,9 @@ export function CommandPalette({
                             role: "option",
                             "aria-selected": active,
                             "data-ui-command-palette-item": "",
-                            "data-ui-command-palette-item-active":
+                            "data-active":
                               active || undefined,
-                            "data-ui-command-palette-item-disabled":
+                            "data-disabled":
                               item.disabled || undefined,
                           },
                           baseStyle: {
@@ -557,22 +557,10 @@ export function CommandPalette({
                             minWidth: 0,
                             display: "block",
                             textAlign: "left",
-                            border: "1px solid",
-                            borderColor: active
-                              ? "color-mix(in srgb, var(--ui-primary) 36%, var(--ui-border))"
-                              : "transparent",
+                            borderWidth: 1,
+                            borderStyle: "solid",
                             borderRadius: "var(--ui-radius-lg)",
                             padding: "0.65rem 0.7rem",
-                            background: item.disabled
-                              ? "transparent"
-                              : active
-                                ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
-                                : "transparent",
-                            color: item.disabled
-                              ? "var(--ui-text-muted)"
-                              : "var(--ui-text)",
-                            opacity: item.disabled ? 0.56 : 1,
-                            cursor: item.disabled ? "not-allowed" : "pointer",
                           },
                         });
 
@@ -774,10 +762,6 @@ export function CommandTrigger({
     onClick,
   });
 
-  const interactive =
-    press.state.hovered ||
-    press.state.focused;
-
   const SearchIcon = (
     <Search
       size={sizeStyles.iconSize}
@@ -797,17 +781,20 @@ export function CommandTrigger({
       data-ui-command-trigger=""
       data-ui-command-trigger-size={size}
       data-ui-command-trigger-tone={tone}
-      data-ui-command-trigger-hovered={
+      data-hovered={
         press.state.hovered || undefined
       }
-      data-ui-command-trigger-focused={
+      data-focused={
         press.state.focused || undefined
       }
-      data-ui-command-trigger-focus-visible={
+      data-focus-visible={
         press.state.focusVisible || undefined
       }
-      data-ui-command-trigger-pressed={
+      data-pressed={
         press.state.pressed || undefined
+      }
+      data-disabled={
+        disabled || undefined
       }
       style={{
         width: fullWidth
@@ -826,47 +813,10 @@ export function CommandTrigger({
         paddingInline:
           sizeStyles.paddingInline,
         borderRadius: "9999px",
-        border: "1px solid",
-        borderColor: interactive
-          ? "color-mix(in srgb, var(--ui-primary) 34%, var(--ui-border))"
-          : "var(--ui-border)",
-        background:
-          tone === "default"
-            ? interactive
-              ? "color-mix(in srgb, var(--ui-surface-2) 92%, var(--ui-primary) 8%)"
-              : "var(--ui-surface)"
-            : interactive
-              ? "color-mix(in srgb, var(--ui-primary) 8%, var(--ui-surface-2))"
-              : "color-mix(in srgb, var(--ui-surface-2) 76%, transparent)",
-        color: interactive
-          ? "var(--ui-text)"
-          : "var(--ui-text-muted)",
+        borderWidth: 1,
+        borderStyle: "solid",
         font: "inherit",
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
-        opacity: disabled
-          ? 0.56
-          : 1,
         boxSizing: "border-box",
-        outline: "none",
-        boxShadow:
-          press.state.focusVisible
-            ? [
-            "0 0 0",
-            "var(--ui-interaction-focus-ring-offset)",
-            "var(--ui-surface),",
-            "0 0 0",
-            "calc(",
-            "var(--ui-interaction-focus-ring-offset)",
-            "+",
-            "var(--ui-interaction-focus-ring-width)",
-            ")",
-            "var(--ui-interaction-focus-ring-color)",
-          ].join(" ")
-            : "none",
-        transition:
-          "border-color var(--ui-duration-fast) var(--ui-ease-standard), background var(--ui-duration-fast) var(--ui-ease-standard), color var(--ui-duration-fast) var(--ui-ease-standard), box-shadow var(--ui-duration-fast) var(--ui-ease-standard)",
         ...style,
       }}
     >
@@ -880,13 +830,11 @@ export function CommandTrigger({
       >
         <Box
           aria-hidden="true"
+          data-ui-command-trigger-icon=""
           style={{
             display: "inline-flex",
             alignItems: "center",
             flexShrink: 0,
-            opacity: interactive
-              ? 0.9
-              : 0.72,
           }}
         >
           {icon ?? SearchIcon}
@@ -912,6 +860,7 @@ export function CommandTrigger({
         <Box
           as="span"
           aria-hidden="true"
+          data-ui-command-trigger-shortcut=""
           style={{
             flexShrink: 0,
             minWidth: 0,
@@ -921,17 +870,11 @@ export function CommandTrigger({
               "var(--ui-radius-md)",
             border:
               "1px solid var(--ui-border)",
-            background: interactive
-              ? "color-mix(in srgb, var(--ui-surface) 86%, transparent)"
-              : "color-mix(in srgb, var(--ui-surface) 72%, transparent)",
             color:
               "var(--ui-text-muted)",
             fontSize:
               "var(--ui-font-size-xs)",
             lineHeight: 1.35,
-            boxShadow: interactive
-              ? "var(--ui-shadow-sm)"
-              : "none",
           }}
         >
           {shortcut}

@@ -260,10 +260,6 @@ export function NavigationMenuItem<TItem>({
         open || undefined,
       "data-ui-navigation-menu-item-active":
         active || undefined,
-      "data-ui-navigation-menu-item-focused":
-        focused || undefined,
-      "data-ui-navigation-menu-item-disabled":
-        disabled || undefined,
       "data-ui-navigation-menu-item-loading":
         loading || undefined,
       "data-ui-navigation-menu-item-refreshing":
@@ -284,6 +280,10 @@ export function NavigationMenuItem<TItem>({
     slotProps,
     baseProps: {
       "data-ui-navigation-menu-trigger": "",
+      "data-focused":
+        focused || undefined,
+      "data-disabled":
+        disabled || undefined,
     },
     baseStyle: {
       width: depth === 0 ? "auto" : "100%",
@@ -298,21 +298,7 @@ export function NavigationMenuItem<TItem>({
           : "0.5rem 0.6rem",
       border: 0,
       borderRadius: "var(--ui-radius-md)",
-      background: active
-        ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)"
-        : open
-          ? "var(--ui-surface-hover)"
-          : "transparent",
-      color: active
-        ? "var(--ui-text)"
-        : "var(--ui-text-muted)",
-      cursor: disabled ? "not-allowed" : "pointer",
-      opacity: disabled ? 0.55 : 1,
       textAlign: "left",
-      outline: focused
-        ? "2px solid color-mix(in srgb, var(--ui-primary) 45%, transparent)"
-        : "none",
-      outlineOffset: -2,
     },
   });
 
@@ -493,9 +479,7 @@ export function NavigationMenuItem<TItem>({
       padding: "0.2rem 0.4rem",
       border: "1px solid currentColor",
       borderRadius: "var(--ui-radius-sm)",
-      background: "transparent",
       color: "inherit",
-      cursor: "pointer",
       fontSize: "inherit",
     },
   });

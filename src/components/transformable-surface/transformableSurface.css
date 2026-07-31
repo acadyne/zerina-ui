@@ -1,0 +1,17 @@
+[data-ui-transformable-surface-viewport] {
+  cursor: default;
+}
+
+[data-ui-transformable-surface-viewport][data-pan-enabled] {
+  cursor: grab;
+}
+
+[data-ui-transformable-surface-viewport][data-panning],
+[data-ui-transformable-surface-viewport][data-pinching] {
+  cursor: grabbing;
+}
+
+[data-ui-transformable-surface][data-disabled]
+  [data-ui-transformable-surface-viewport] {
+  cursor: default;
+}

@@ -380,6 +380,9 @@ export const Toast = React.forwardRef<
       slotProps,
 
       baseProps: {
+
+        "data-ui-toast-close": "",
+
         "aria-label": "Cerrar notificación",
 
         "data-hovered":
@@ -413,25 +416,7 @@ export const Toast = React.forwardRef<
         border:
           "1px solid transparent",
 
-        background:
-          closePress.state.hovered
-            ? "var(--ui-surface-hover)"
-            : "transparent",
-
-        color:
-          closePress.state.hovered
-            ? "var(--ui-text)"
-            : "var(--ui-text-muted)",
-
-        cursor: "pointer",
         flexShrink: 0,
-        outline: "none",
-
-        boxShadow:
-          closePress.state.focusVisible
-            ? "0 0 0 var(--ui-interaction-focus-ring-offset) var(--ui-surface), 0 0 0 calc(var(--ui-interaction-focus-ring-offset) + var(--ui-interaction-focus-ring-width)) var(--ui-interaction-focus-ring-color)"
-            : "none",
-
         transition:
           "background var(--ui-duration-normal) var(--ui-ease-standard), " +
           "color var(--ui-duration-normal) var(--ui-ease-standard), " +

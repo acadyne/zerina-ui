@@ -1,0 +1,95 @@
+/* src/components/tree/tree.css */
+
+[data-ui-tree-item] {
+  outline: none;
+}
+
+[data-ui-tree-row] {
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  opacity: 1;
+  box-shadow: none;
+  transition:
+    background
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-tree-item][data-ui-tree-item-selected]
+  > [data-ui-tree-row] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 10%,
+      transparent
+    );
+  color: var(--ui-text);
+}
+
+[data-ui-tree-item][data-disabled]
+  > [data-ui-tree-row] {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-tree-item]:focus-visible
+  > [data-ui-tree-row] {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+
+[data-ui-tree-toggle] {
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-tree-toggle]:disabled {
+  cursor: not-allowed;
+}
+
+[data-ui-tree-toggle]:focus-visible {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}
+
+[data-ui-tree-retry] {
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-ui-tree-retry]:hover {
+  background: var(--ui-surface-hover);
+}
+
+[data-ui-tree-retry]:focus-visible {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}

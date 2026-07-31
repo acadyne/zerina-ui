@@ -1,0 +1,205 @@
+/* src/patterns/command/commandPalette.css */
+
+[data-ui-command-palette-item] {
+  appearance: none;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ui-text);
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  transition:
+    border-color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    background
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-command-palette-item][data-active]:not([data-disabled]) {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 36%,
+      var(--ui-border)
+    );
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 12%,
+      transparent
+    );
+}
+
+[data-ui-command-palette-item]:focus-visible:not(:disabled) {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(--ui-interaction-focus-ring-color);
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}
+
+[data-ui-command-palette-item][data-disabled],
+[data-ui-command-palette-item]:disabled {
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-command-trigger] {
+  appearance: none;
+  border-color: var(--ui-border);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    background
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    color
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-command-trigger][data-ui-command-trigger-tone="default"] {
+  background: var(--ui-surface);
+}
+
+[data-ui-command-trigger][data-ui-command-trigger-tone="subtle"] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-surface-2) 76%,
+      transparent
+    );
+}
+
+[data-ui-command-trigger][data-disabled],
+[data-ui-command-trigger]:disabled {
+  cursor: not-allowed;
+  opacity: var(--ui-interaction-disabled-opacity);
+}
+
+[data-ui-command-trigger][data-hovered]:not([data-disabled]),
+[data-ui-command-trigger][data-pressed]:not([data-disabled]),
+[data-ui-command-trigger][data-focused]:not([data-disabled]) {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 34%,
+      var(--ui-border)
+    );
+  color: var(--ui-text);
+}
+
+[data-ui-command-trigger][data-ui-command-trigger-tone="default"][data-hovered]:not(
+    [data-disabled]
+  ),
+[data-ui-command-trigger][data-ui-command-trigger-tone="default"][data-pressed]:not(
+    [data-disabled]
+  ),
+[data-ui-command-trigger][data-ui-command-trigger-tone="default"][data-focused]:not(
+    [data-disabled]
+  ) {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-surface-2) 92%,
+      var(--ui-primary) 8%
+    );
+}
+
+[data-ui-command-trigger][data-ui-command-trigger-tone="subtle"][data-hovered]:not(
+    [data-disabled]
+  ),
+[data-ui-command-trigger][data-ui-command-trigger-tone="subtle"][data-pressed]:not(
+    [data-disabled]
+  ),
+[data-ui-command-trigger][data-ui-command-trigger-tone="subtle"][data-focused]:not(
+    [data-disabled]
+  ) {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 8%,
+      var(--ui-surface-2)
+    );
+}
+
+[data-ui-command-trigger][data-focus-visible]:not([data-disabled]) {
+  box-shadow:
+    0 0 0
+      var(--ui-interaction-focus-ring-offset)
+      var(--ui-surface),
+    0 0 0
+      calc(
+        var(--ui-interaction-focus-ring-offset)
+        +
+        var(--ui-interaction-focus-ring-width)
+      )
+      var(--ui-interaction-focus-ring-color);
+}
+
+[data-ui-command-trigger-icon] {
+  opacity: 0.72;
+  transition:
+    opacity
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-command-trigger][data-hovered]:not([data-disabled])
+  [data-ui-command-trigger-icon],
+[data-ui-command-trigger][data-pressed]:not([data-disabled])
+  [data-ui-command-trigger-icon],
+[data-ui-command-trigger][data-focused]:not([data-disabled])
+  [data-ui-command-trigger-icon] {
+  opacity: 0.9;
+}
+
+[data-ui-command-trigger-shortcut] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-surface) 72%,
+      transparent
+    );
+  box-shadow: none;
+  transition:
+    background
+      var(--ui-duration-fast)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-fast)
+      var(--ui-ease-standard);
+}
+
+[data-ui-command-trigger][data-hovered]:not([data-disabled])
+  [data-ui-command-trigger-shortcut],
+[data-ui-command-trigger][data-pressed]:not([data-disabled])
+  [data-ui-command-trigger-shortcut],
+[data-ui-command-trigger][data-focused]:not([data-disabled])
+  [data-ui-command-trigger-shortcut] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-surface) 86%,
+      transparent
+    );
+  box-shadow: var(--ui-shadow-sm);
+}
