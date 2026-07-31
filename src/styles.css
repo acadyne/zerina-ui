@@ -19,6 +19,7 @@
 @import "./primitives/disclosure/disclosure.css";
 @import "./primitives/navigation/navigation.css";
 @import "./components/transformable-surface/transformableSurface.css";
+@import "./components/data-table/dataTable.css";
 
 
 /* ScrollArea */

@@ -166,8 +166,6 @@ export function DataTableEditableDesktop<
   styles,
   slotProps,
 }: DataTableEditableDesktopProps<T, IDType>) {
-  const [hoveredRowKey, setHoveredRowKey] = React.useState<string | null>(null);
-
   const cellPad = dense ? "8px" : "12px";
   const fontSize = dense ? "0.88rem" : "0.96rem";
 
@@ -345,12 +343,6 @@ export function DataTableEditableDesktop<
                   : rowKeyFallback?.(row, rowIndex) ??
                   createFallbackRowId(rowIndex);
 
-              const baseRowBg = isSelected
-                ? "var(--ui-surface)"
-                : rowIndex % 2 === 0
-                  ? "var(--ui-bg)"
-                  : "color-mix(in srgb, var(--ui-text) 2%, var(--ui-bg))";
-
               const rowSlot = resolveSlot<DataTableSlot>({
                 slot: "row",
                 styles,
@@ -360,28 +352,12 @@ export function DataTableEditableDesktop<
                   "data-ui-data-table-row-index": String(rowIndex),
                   "data-ui-data-table-row-selected": isSelected || undefined,
                 },
-                baseStyle: {
-                  background:
-                    hoveredRowKey === rowKey
-                      ? "var(--ui-surface-hover)"
-                      : baseRowBg,
-                  transition:
-                    "background var(--ui-duration-fast) var(--ui-ease-standard)",
-                },
               });
 
               return (
                 <tr
                   key={rowKey}
                   {...rowSlot}
-                  onMouseEnter={() => {
-                    setHoveredRowKey(rowKey);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredRowKey((current) =>
-                      current === rowKey ? null : current
-                    );
-                  }}
                 >
                   {enableSelection ? (
                     <td

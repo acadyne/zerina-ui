@@ -84,8 +84,6 @@ export function DataTableDesktop<
   styles,
   slotProps,
 }: DataTableDesktopProps<T, IDType>) {
-  const [hoveredRowKey, setHoveredRowKey] = React.useState<string | null>(null);
-
   const cellPad = dense ? "10px" : "14px";
   const fontSize = dense ? "0.90rem" : "0.98rem";
 
@@ -263,12 +261,6 @@ export function DataTableDesktop<
                   : rowKeyFallback?.(row, rowIndex) ??
                   createFallbackRowId(rowIndex);
 
-              const baseRowBg = isSelected
-                ? "var(--ui-surface-2)"
-                : rowIndex % 2 === 0
-                  ? "var(--ui-bg)"
-                  : "var(--ui-surface)";
-
               const rowSlot = resolveSlot<DataTableSlot>({
                 slot: "row",
                 styles,
@@ -278,28 +270,12 @@ export function DataTableDesktop<
                   "data-ui-data-table-row-index": String(rowIndex),
                   "data-ui-data-table-row-selected": isSelected || undefined,
                 },
-                baseStyle: {
-                  background:
-                    hoveredRowKey === rowKey
-                      ? "var(--ui-surface-hover)"
-                      : baseRowBg,
-                  transition:
-                    "background var(--ui-duration-fast) var(--ui-ease-standard)",
-                },
               });
 
               return (
                 <tr
                   key={rowKey}
                   {...rowSlot}
-                  onMouseEnter={() => {
-                    setHoveredRowKey(rowKey);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredRowKey((current) =>
-                      current === rowKey ? null : current
-                    );
-                  }}
                 >
                   {enableSelection ? (
                     <td
