@@ -411,6 +411,10 @@ export const TopAppBar =
 
 
 
+      /*
+       * La distribución pertenece a los slots: styles y slotProps deben
+       * poder reemplazarla sin que Flex vuelva a imponer defaults en JSX.
+       */
       const contentSlot =
         resolveSlot<TopAppBarSlot>({
           slot: "content",
@@ -434,6 +438,15 @@ export const TopAppBar =
 
             boxSizing:
               "border-box",
+
+            alignItems:
+              "center",
+
+            justifyContent:
+              "space-between",
+
+            gap:
+              "0.75rem",
           },
         });
 
@@ -461,12 +474,17 @@ export const TopAppBar =
                 ? "34%"
                 : undefined,
 
-
             position:
               "relative",
 
             zIndex:
               2,
+
+            alignItems:
+              "center",
+
+            gap:
+              "0.55rem",
           },
         });
 
@@ -567,6 +585,15 @@ export const TopAppBar =
 
             zIndex:
               2,
+
+            alignItems:
+              "center",
+
+            justifyContent:
+              "flex-end",
+
+            gap:
+              "0.35rem",
           },
         });
 
@@ -633,15 +660,10 @@ export const TopAppBar =
         >
 
           <Flex
-            align="center"
-            justify="space-between"
-            gap="0.75rem"
             {...contentSlot}
           >
 
             <Flex
-              align="center"
-              gap="0.55rem"
               {...leadingSlot}
             >
 
@@ -680,6 +702,10 @@ export const TopAppBar =
 
             {
               centerTitle ? (
+                /*
+                 * La capa exterior ignora eventos para no bloquear leading
+                 * ni actions; la interior los restaura para center interactivo.
+                 */
                 <Box
                   style={{
                     position:
@@ -725,9 +751,6 @@ export const TopAppBar =
 
 
             <Flex
-              align="center"
-              justify="flex-end"
-              gap="0.35rem"
               {...actionsSlot}
             >
               {actions}
