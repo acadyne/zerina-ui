@@ -692,8 +692,21 @@ export const ImageViewer = forwardRef<
         ? `${src ?? ""}:${retryKey}`
         : retryKey;
 
-    const mergedImageProps =
-      imageProps as ImgHTMLAttributes<HTMLImageElement> | undefined;
+    const mergedImageProps:
+      ImgHTMLAttributes<HTMLImageElement> =
+        imageProps ?? {};
+
+    const {
+      onLoad: imagePropsOnLoad,
+      onError: imagePropsOnError,
+      ...mergedImageRest
+    } = mergedImageProps;
+
+    const {
+      onLoad: imageSlotOnLoad,
+      onError: imageSlotOnError,
+      ...imageSlotRest
+    } = imageSlot;
 
     return (
       <div
@@ -773,8 +786,8 @@ export const ImageViewer = forwardRef<
             }
           >
             <img
-              {...mergedImageProps}
-              {...imageSlot}
+              {...mergedImageRest}
+              {...imageSlotRest}
               key={`${src}:${retryKey}`}
               ref={(node) => {
                 imageRef.current = node;
@@ -797,6 +810,10 @@ export const ImageViewer = forwardRef<
                 setLoaded(true);
                 setError(null);
 
+                // La carga ya ocurrió; se registra el estado antes de notificar.
+                imagePropsOnLoad?.(event);
+                imageSlotOnLoad?.(event);
+
                 requestAnimationFrame(
                   () => {
                     surfaceApiRef.current?.measure();
@@ -812,7 +829,7 @@ export const ImageViewer = forwardRef<
                     image.naturalHeight,
                 });
               }}
-              onError={() => {
+              onError={(event) => {
                 const nextError =
                   new Error(
                     `No se pudo cargar la imagen: ${src}`
@@ -821,6 +838,10 @@ export const ImageViewer = forwardRef<
                 setLoading(false);
                 setLoaded(false);
                 setError(nextError);
+
+                // El error ya ocurrió; los observadores no cancelan el fallback.
+                imagePropsOnError?.(event);
+                imageSlotOnError?.(event);
 
                 onError?.({
                   src,

@@ -146,6 +146,11 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       },
     });
 
+    const {
+      onError: imageOnError,
+      ...imageRest
+    } = imageSlot;
+
     const fallbackSlot = resolveSlot<AvatarSlot>({
       slot: "fallback",
       styles,
@@ -231,10 +236,14 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       >
         {showImage ? (
           <img
-            {...imageSlot}
+            {...imageRest}
             src={src}
             alt={accessibleLabel}
-            onError={() => setImgError(true)}
+            onError={(event) => {
+              // El error ya ocurrió; el observador externo no cancela el fallback.
+              setImgError(true);
+              imageOnError?.(event);
+            }}
           />
         ) : fallback ? (
           <span {...fallbackSlot}>{fallback}</span>
