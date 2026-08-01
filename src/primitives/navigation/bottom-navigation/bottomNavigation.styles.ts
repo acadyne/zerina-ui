@@ -317,8 +317,6 @@ type BottomNavigationItemRecipeVariants = {
 };
 
 type BottomNavigationItemRecipeState = {
-  active: boolean;
-
   indicator:
   BottomNavigationIndicator;
 
@@ -349,7 +347,8 @@ export const bottomNavigationItemRecipe =
         flex: "1 1 0",
         position: "relative",
 
-        border: "1px solid",
+        borderWidth: 1,
+        borderStyle: "solid",
 
         display: "flex",
         alignItems: "center",
@@ -522,7 +521,6 @@ export const bottomNavigationItemRecipe =
     },
 
     resolve: ({
-      active,
       indicator,
       shape,
       iconPosition,
@@ -536,27 +534,12 @@ export const bottomNavigationItemRecipe =
             ? cssSize(itemMinWidth)
             : 0,
 
-        borderColor:
-          getItemBorderColor({
-            active,
-            indicator,
-          }),
-
         borderRadius:
           getItemBorderRadius({
             indicator,
             shape,
           }),
 
-        background:
-          getItemBackground({
-            active,
-            indicator,
-          }),
-
-        color: active
-          ? "var(--ui-text)"
-          : "var(--ui-text-muted)",
       },
 
       content: {
@@ -581,45 +564,6 @@ export const bottomNavigationItemRecipe =
       },
     }),
   });
-
-export function getItemBackground({
-  active,
-  indicator,
-}: {
-  active: boolean;
-  indicator: BottomNavigationIndicator;
-}): string {
-  if (!active) {
-    return "transparent";
-  }
-
-  if (
-    indicator === "none" ||
-    indicator === "dot"
-  ) {
-    return "transparent";
-  }
-
-  return "color-mix(in srgb, var(--ui-primary) 16%, transparent)";
-}
-
-export function getItemBorderColor({
-  active,
-  indicator,
-}: {
-  active: boolean;
-  indicator: BottomNavigationIndicator;
-}): string {
-  if (!active) {
-    return "transparent";
-  }
-
-  if (indicator === "pill") {
-    return "color-mix(in srgb, var(--ui-primary) 32%, transparent)";
-  }
-
-  return "transparent";
-}
 
 export function getItemBorderRadius({
   indicator,

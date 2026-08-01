@@ -398,7 +398,7 @@ export const Drawer:
           "data-ui-drawer-root":
             "",
 
-          "data-ui-drawer-open":
+          "data-open":
             open ||
             undefined,
 

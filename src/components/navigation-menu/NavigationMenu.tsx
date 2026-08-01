@@ -906,7 +906,7 @@ function NavigationMenuInner<TItem>(
         "data-ui-navigation-menu": "",
         "data-ui-navigation-menu-orientation":
           orientation,
-        "data-ui-navigation-menu-open":
+        "data-open":
           menu.openPath.length > 0
             ? ""
             : undefined,

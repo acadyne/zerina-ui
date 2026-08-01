@@ -749,11 +749,11 @@ const NavigationListItem =
           "data-ui-navigation-list-item-id":
             item.id,
 
-          "data-ui-navigation-list-item-active":
+          "data-active":
             active ||
             undefined,
 
-          "data-ui-navigation-list-item-direct-active":
+          "data-current":
             directlyActive ||
             undefined,
 

@@ -19,7 +19,7 @@
   opacity: var(--ui-interaction-disabled-opacity);
 }
 
-[data-ui-navigation-list-item][data-ui-navigation-list-item-active]
+[data-ui-navigation-list-item][data-active]
   [data-ui-navigation-list-item-content] {
   background:
     color-mix(
@@ -29,7 +29,7 @@
     );
 }
 
-[data-ui-navigation-list-item][data-ui-navigation-list-item-direct-active]
+[data-ui-navigation-list-item][data-current]
   [data-ui-navigation-list-item-content] {
   border-color:
     color-mix(
@@ -49,12 +49,12 @@
 }
 
 [data-ui-navigation-list-item]:not(
-  [data-ui-navigation-list-item-active]
+  [data-active]
 )
   [data-ui-navigation-list-item-button][data-hovered]
   [data-ui-navigation-list-item-content],
 [data-ui-navigation-list-item]:not(
-  [data-ui-navigation-list-item-active]
+  [data-active]
 )
   [data-ui-navigation-list-item-button][data-focus-visible]
   [data-ui-navigation-list-item-content] {
@@ -62,7 +62,7 @@
 }
 
 [data-ui-navigation-list-item]:not(
-  [data-ui-navigation-list-item-direct-active]
+  [data-current]
 )
   [data-ui-navigation-list-item-button][data-focus-visible]
   [data-ui-navigation-list-item-content] {
@@ -73,4 +73,54 @@
 [data-ui-navigation-list-item-button][data-pressed]
   [data-ui-navigation-list-item-content] {
   background: var(--ui-surface-3);
+}
+
+[data-ui-bottom-navigation-item],
+[data-ui-navigation-rail-item] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ui-text-muted);
+}
+
+[data-ui-bottom-navigation-item][data-active],
+[data-ui-navigation-rail-item][data-active] {
+  color: var(--ui-text);
+}
+
+[data-ui-bottom-navigation-item-label],
+[data-ui-navigation-rail-item-label] {
+  font-weight: 700;
+}
+
+[data-ui-bottom-navigation-item][data-active]
+  [data-ui-bottom-navigation-item-label],
+[data-ui-navigation-rail-item][data-active]
+  [data-ui-navigation-rail-item-label] {
+  font-weight:
+    var(
+      --ui-navigation-active-label-weight,
+      700
+    );
+}
+
+[data-ui-bottom-navigation-item][data-active][data-ui-bottom-navigation-item-indicator="background"],
+[data-ui-bottom-navigation-item][data-active][data-ui-bottom-navigation-item-indicator="pill"],
+[data-ui-navigation-rail-item][data-active][data-ui-navigation-rail-item-indicator="background"],
+[data-ui-navigation-rail-item][data-active][data-ui-navigation-rail-item-indicator="pill"] {
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 16%,
+      transparent
+    );
+}
+
+[data-ui-bottom-navigation-item][data-active][data-ui-bottom-navigation-item-indicator="pill"],
+[data-ui-navigation-rail-item][data-active][data-ui-navigation-rail-item-indicator="pill"] {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ui-primary) 32%,
+      transparent
+    );
 }

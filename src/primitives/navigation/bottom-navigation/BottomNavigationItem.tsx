@@ -175,7 +175,6 @@ export const BottomNavigationItem =
       const recipeStyles =
         bottomNavigationItemRecipe({
           density: ctx.density,
-          active,
 
           indicator:
             resolvedIndicator,
@@ -220,6 +219,9 @@ export const BottomNavigationItem =
               active ||
               undefined,
 
+            "data-ui-bottom-navigation-item-indicator":
+              resolvedIndicator,
+
             "data-ui-bottom-navigation-item":
               "",
 
@@ -234,8 +236,14 @@ export const BottomNavigationItem =
                 : undefined,
           },
 
-          baseStyle:
-            recipeStyles.item,
+          baseStyle: {
+            ...recipeStyles.item,
+
+            "--ui-navigation-active-label-weight":
+              String(
+                resolvedActiveLabelWeight
+              ),
+          } as React.CSSProperties,
         });
 
       const contentSlot =
@@ -437,11 +445,7 @@ export const BottomNavigationItem =
               <Typography
                 as="span"
                 size="xs"
-                weight={
-                  active
-                    ? resolvedActiveLabelWeight
-                    : 700
-                }
+                color="inherit"
                 {...labelSlot}
                 style={
                   labelVisible

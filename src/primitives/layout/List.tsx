@@ -576,9 +576,7 @@ const ListItem =
                         "var(--ui-font-weight-medium)",
 
                       color:
-                        disabled
-                          ? "var(--ui-text-muted)"
-                          : "var(--ui-text)",
+                        "inherit",
                     }}
                   >
                     {title}

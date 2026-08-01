@@ -197,8 +197,6 @@ export const NavigationRailItem =
           density:
             ctx.density,
 
-          active,
-
           indicator:
             resolvedIndicator,
 
@@ -242,6 +240,9 @@ export const NavigationRailItem =
               active ||
               undefined,
 
+            "data-ui-navigation-rail-item-indicator":
+              resolvedIndicator,
+
             "data-ui-navigation-rail-item":
               "",
 
@@ -256,8 +257,14 @@ export const NavigationRailItem =
                 : undefined,
           },
 
-          baseStyle:
-            recipeStyles.item,
+          baseStyle: {
+            ...recipeStyles.item,
+
+            "--ui-navigation-active-label-weight":
+              String(
+                resolvedActiveLabelWeight
+              ),
+          } as React.CSSProperties,
         });
 
       const contentSlot =
@@ -460,11 +467,7 @@ export const NavigationRailItem =
               <Typography
                 as="span"
                 size="xs"
-                weight={
-                  active
-                    ? resolvedActiveLabelWeight
-                    : 700
-                }
+                color="inherit"
                 {...labelSlot}
                 style={
                   labelVisible

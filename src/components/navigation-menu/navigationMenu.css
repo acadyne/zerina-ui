@@ -22,12 +22,12 @@
       var(--ui-ease-standard);
 }
 
-[data-ui-navigation-menu-item][data-ui-navigation-menu-item-open]
+[data-ui-navigation-menu-item][data-open]
   > [data-ui-navigation-menu-trigger] {
   background: var(--ui-surface-hover);
 }
 
-[data-ui-navigation-menu-item][data-ui-navigation-menu-item-active]
+[data-ui-navigation-menu-item][data-active]
   > [data-ui-navigation-menu-trigger] {
   background:
     color-mix(

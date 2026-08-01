@@ -431,7 +431,7 @@ export const BottomSheet:
           "data-ui-bottom-sheet-root":
             "",
 
-          "data-ui-bottom-sheet-open":
+          "data-open":
             open ||
             undefined,
         },

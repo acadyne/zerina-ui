@@ -202,7 +202,7 @@ export const Progress = React.forwardRef<
         "data-ui-progress-variant":
           variant,
 
-        "data-ui-progress-indeterminate":
+        "data-indeterminate":
           indeterminate ||
           undefined,
 

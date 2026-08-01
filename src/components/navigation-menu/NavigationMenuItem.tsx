@@ -256,9 +256,9 @@ export function NavigationMenuItem<TItem>({
       "data-ui-navigation-menu-item-depth": depth,
       "data-ui-navigation-menu-item-branch":
         branch || undefined,
-      "data-ui-navigation-menu-item-open":
+      "data-open":
         open || undefined,
-      "data-ui-navigation-menu-item-active":
+      "data-active":
         active || undefined,
       "data-ui-navigation-menu-item-loading":
         loading || undefined,
