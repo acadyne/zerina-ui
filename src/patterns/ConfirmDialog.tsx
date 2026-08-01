@@ -1,5 +1,6 @@
 // src/layout/ui/patterns/ConfirmDialog.tsx
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../core/react/useIsomorphicLayoutEffect";
 import type { ModalState } from "./state";
 import { 
   Dialog,
@@ -85,12 +86,33 @@ export function ConfirmDialog<TTarget>({
   const target = state.isOpen ? state.target : null;
   const isActionDisabled = loading || disabled || !target;
 
+  const confirmOperationRef = React.useRef(0);
+  const dialogStateRef = React.useRef({
+    open,
+    target,
+  });
+
+  useIsomorphicLayoutEffect(() => {
+    // La identidad solo cambia tras un commit. Una renderización descartada
+    // no debe invalidar la confirmación perteneciente a la interfaz visible.
+    confirmOperationRef.current += 1;
+    dialogStateRef.current = {
+      open,
+      target,
+    };
+
+    return () => {
+      confirmOperationRef.current += 1;
+    };
+  }, [open, target]);
+
   const resolvedDescription = resolveRenderable(description, target);
   const resolvedTargetLabel = resolveRenderable(targetLabel, target);
   const resolvedChildren = resolveRenderable(children, target);
   const resolvedFooter = resolveRenderable(footer, target);
 
   const handleClose = React.useCallback(() => {
+    confirmOperationRef.current += 1;
     onOpenChange?.(false);
   }, [onOpenChange]);
 
@@ -104,10 +126,25 @@ export function ConfirmDialog<TTarget>({
       return;
     }
 
-    const result = onConfirm(target);
+    const operationId = confirmOperationRef.current + 1;
+    const confirmationTarget = target;
+
+    confirmOperationRef.current = operationId;
+
+    const result = onConfirm(confirmationTarget);
 
     if (result instanceof Promise) {
       await result;
+    }
+
+    const currentDialogState = dialogStateRef.current;
+
+    if (
+      confirmOperationRef.current !== operationId ||
+      !currentDialogState.open ||
+      currentDialogState.target !== confirmationTarget
+    ) {
+      return;
     }
 
     handleClose();
@@ -115,6 +152,8 @@ export function ConfirmDialog<TTarget>({
 
   const handleDialogOpenChange = React.useCallback(
     (nextOpen: boolean) => {
+      confirmOperationRef.current += 1;
+
       if (nextOpen) {
         onOpenChange?.(true);
         return;

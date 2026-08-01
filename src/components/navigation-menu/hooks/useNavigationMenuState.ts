@@ -7,6 +7,7 @@ import {
     useRef,
     useState,
 } from "react";
+import { useIsomorphicLayoutEffect } from "../../../core/react/useIsomorphicLayoutEffect";
 import type {
     NavigationMenuCloseReason,
     NavigationMenuItemId,
@@ -23,6 +24,19 @@ import {
 import {
     useTreeState,
 } from "../../tree/hooks";
+
+function areNavigationMenuPathsEqual(
+    left: readonly NavigationMenuItemId[],
+    right: readonly NavigationMenuItemId[]
+): boolean {
+    return (
+        left.length === right.length &&
+        left.every(
+            (itemId, index) =>
+                itemId === right[index]
+        )
+    );
+}
 
 export interface UseNavigationMenuStateOptions<TItem> {
     items: readonly TItem[];
@@ -212,6 +226,26 @@ export function useNavigationMenuState<TItem>({
 
     const openPathRef = useRef(openPath);
     const activeIdRef = useRef(activeId);
+    const observedOpenPathRef = useRef<
+        readonly NavigationMenuItemId[]
+    >([...openPath]);
+    const selectionOperationRef = useRef(0);
+
+    useIsomorphicLayoutEffect(() => {
+        if (
+            areNavigationMenuPathsEqual(
+                observedOpenPathRef.current,
+                openPath
+            )
+        ) {
+            return;
+        }
+
+        // Solo una ruta confirmada puede transferir el ownership. Incrementar
+        // durante render permitiría que un render descartado cancele la selección.
+        selectionOperationRef.current += 1;
+        observedOpenPathRef.current = [...openPath];
+    }, [openPath]);
 
     openPathRef.current = openPath;
     activeIdRef.current = activeId;
@@ -268,6 +302,8 @@ export function useNavigationMenuState<TItem>({
         ) => {
             const normalized = [...nextOpenPath];
 
+            selectionOperationRef.current += 1;
+            observedOpenPathRef.current = normalized;
             openPathRef.current = normalized;
 
             if (controlledOpenPath === undefined) {
@@ -625,6 +661,12 @@ export function useNavigationMenuState<TItem>({
                 return;
             }
 
+            const operationId =
+                selectionOperationRef.current + 1;
+
+            selectionOperationRef.current =
+                operationId;
+
             if (activateOnSelect) {
                 emitActiveId(itemId);
             }
@@ -634,6 +676,14 @@ export function useNavigationMenuState<TItem>({
                 itemId,
                 depth,
             });
+
+            // Solo la selección más reciente puede cerrar la ruta que conserva.
+            // Una navegación posterior no debe colapsarse por una promesa antigua.
+            if (
+                selectionOperationRef.current !== operationId
+            ) {
+                return;
+            }
 
             if (closeOnSelect) {
                 closeAll("selection");
@@ -744,6 +794,7 @@ export function useNavigationMenuState<TItem>({
 
     useEffect(() => {
         return () => {
+            selectionOperationRef.current += 1;
             cancelHoverTimers();
         };
     }, [cancelHoverTimers]);
