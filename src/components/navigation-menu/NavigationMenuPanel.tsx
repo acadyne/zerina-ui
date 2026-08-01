@@ -326,6 +326,9 @@ export const NavigationMenuPanel =
                   overlayId={resolvedPanelId}
                   layer={layer}
                   enabled={open}
+                  branches={[
+                    anchorRef,
+                  ]}
                   dismissOnEscape={false}
                   dismissOnPointerDownOutside={
                     false

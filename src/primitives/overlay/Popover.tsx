@@ -752,6 +752,9 @@ export const PopoverContent =
                   enabled={
                     ctx.open
                   }
+                  branches={[
+                    ctx.anchorRef,
+                  ]}
                   dismissOnEscape={
                     closeOnEscape
                   }

@@ -385,6 +385,9 @@ export const MenuContent =
                   enabled={
                     ctx.open
                   }
+                  branches={[
+                    anchorRef,
+                  ]}
                   dismissOnEscape={
                     closeOnEscape
                   }

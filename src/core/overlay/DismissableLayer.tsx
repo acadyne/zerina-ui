@@ -8,6 +8,34 @@ type DismissableLayerEvent = {
   preventDefault: () => void;
 };
 
+type DismissableLayerBranchRef =
+  React.RefObject<HTMLElement | null>;
+
+function isEventInsideNode(
+  event: PointerEvent,
+  node: Node
+): boolean {
+  /*
+   * composedPath conserva la pertenencia a través de shadow roots.
+   * contains cubre el DOM regular y targets que no aparezcan en el path.
+   */
+  const path =
+    typeof event.composedPath === "function"
+      ? event.composedPath()
+      : [];
+
+  if (path.includes(node)) {
+    return true;
+  }
+
+  const target = event.target;
+
+  return (
+    target instanceof Node &&
+    node.contains(target)
+  );
+}
+
 function createDismissableEvent(): DismissableLayerEvent {
   let prevented = false;
 
@@ -32,6 +60,12 @@ export interface DismissableLayerProps
   dismissOnEscape?: boolean;
   dismissOnPointerDownOutside?: boolean;
 
+  /*
+   * Nodos externos que pertenecen lógicamente al overlay, como su trigger.
+   * Una interacción dentro de una branch no debe emitirse como outside.
+   */
+  branches?: readonly DismissableLayerBranchRef[];
+
   onDismiss?: () => void;
   onEscapeKeyDown?: (event: KeyboardEvent, context: DismissableLayerEvent) => void;
   onPointerDownOutside?: (
@@ -52,6 +86,7 @@ export const DismissableLayer = React.forwardRef<
       enabled = true,
       dismissOnEscape = true,
       dismissOnPointerDownOutside = true,
+      branches,
       onDismiss,
       onEscapeKeyDown,
       onPointerDownOutside,
@@ -60,6 +95,18 @@ export const DismissableLayer = React.forwardRef<
     ref
   ) => {
     const localRef = React.useRef<HTMLDivElement | null>(null);
+
+    /*
+     * El listener documental debe permanecer estable, pero siempre consultar
+     * la lista más reciente y las refs vivas de las branches.
+     */
+    const branchesRef =
+      React.useRef<
+        readonly DismissableLayerBranchRef[]
+      >([]);
+
+    branchesRef.current =
+      branches ?? [];
 
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
@@ -82,8 +129,34 @@ export const DismissableLayer = React.forwardRef<
         const container = localRef.current;
         if (!container) return;
 
-        const target = event.target as Node | null;
-        if (target && container.contains(target)) return;
+        if (
+          isEventInsideNode(
+            event,
+            container
+          )
+        ) {
+          return;
+        }
+
+        const insideBranch =
+          branchesRef.current.some(
+            (branchRef) => {
+              const branch =
+                branchRef.current;
+
+              return (
+                branch !== null &&
+                isEventInsideNode(
+                  event,
+                  branch
+                )
+              );
+            }
+          );
+
+        if (insideBranch) {
+          return;
+        }
 
         const context = createDismissableEvent();
         onPointerDownOutside?.(event, context);
