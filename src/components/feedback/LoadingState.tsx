@@ -190,13 +190,14 @@ export const LoadingState = React.forwardRef<
       },
     });
 
+    // La variante spinner conserva su semántica de región viva.
     return (
       <div
         {...rootSlot}
+        {...rest}
         ref={ref}
         role="status"
         aria-live="polite"
-        {...rest}
       >
         <div {...contentSlot}>
         <Spinner

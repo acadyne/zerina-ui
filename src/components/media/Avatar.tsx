@@ -205,13 +205,13 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     });
 
     if (loading) {
+      // data-ui-avatar-loading es el marcador canónico de este estado.
       return (
         <div
           {...rootSlot}
+          {...rest}
           ref={ref}
           aria-busy="true"
-          data-ui="avatar-loading"
-          {...rest}
         >
           <SkeletonCircle
             size={px}

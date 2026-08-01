@@ -59,12 +59,13 @@ export const MenuSeparator =
         });
 
 
+      // El role constituye la semántica del componente.
       return (
         <div
           {...separatorSlot}
+          {...rest}
           ref={ref}
           role="separator"
-          {...rest}
         />
       );
     }

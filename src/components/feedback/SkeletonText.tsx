@@ -21,7 +21,7 @@ export type SkeletonTextSlotProps =
 export interface SkeletonTextProps
   extends Omit<
     React.HTMLAttributes<HTMLDivElement>,
-    "children"
+    "children" | "aria-hidden"
   > {
   lines?: number;
   spacing?: number | string;
@@ -74,12 +74,13 @@ export const SkeletonText = React.forwardRef<
       },
     });
 
+    // Las líneas son decorativas y no representan contenido disponible.
     return (
       <div
         {...rootSlot}
+        {...rest}
         ref={ref}
         aria-hidden="true"
-        {...rest}
       >
         {Array.from({
           length: safeLines,

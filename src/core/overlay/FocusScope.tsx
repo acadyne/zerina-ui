@@ -51,7 +51,11 @@ function getBestInitialFocusTarget(
 
 
 
-export interface FocusScopeProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface FocusScopeProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "tabIndex"
+  > {
   children?: React.ReactNode;
 
   overlayId: string;
@@ -208,8 +212,13 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
       };
     }, [enabled, restoreFocus]);
 
+    // Acepta foco programático sin entrar al orden secuencial.
     return (
-      <div ref={setRefs} tabIndex={-1} {...rest}>
+      <div
+        {...rest}
+        ref={setRefs}
+        tabIndex={-1}
+      >
         {children}
       </div>
     );

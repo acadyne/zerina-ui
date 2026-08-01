@@ -932,7 +932,10 @@ DialogFooter.displayName =
   "DialogFooter";
 
 export interface DialogTitleProps
-  extends React.HTMLAttributes<HTMLHeadingElement> {
+  extends Omit<
+    React.HTMLAttributes<HTMLHeadingElement>,
+    "id"
+  > {
   children?: React.ReactNode;
 
   as?: React.ElementType;
@@ -997,14 +1000,15 @@ export const DialogTitle =
               .title,
         });
 
+      // El panel referencia este id mediante aria-labelledby.
       return (
         <Comp
           {...titleSlot}
+          {...rest}
           ref={
             ref as React.Ref<HTMLElement>
           }
           id={ctx.titleId}
-          {...rest}
         >
           {children}
         </Comp>
@@ -1016,7 +1020,10 @@ DialogTitle.displayName =
   "DialogTitle";
 
 export interface DialogDescriptionProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {
+  extends Omit<
+    React.HTMLAttributes<HTMLParagraphElement>,
+    "id"
+  > {
   children?: React.ReactNode;
 
   styles?: DialogStyles;
@@ -1078,14 +1085,15 @@ export const DialogDescription =
               .description,
         });
 
+      // El panel referencia este id mediante aria-describedby.
       return (
         <p
           {...descriptionSlot}
+          {...rest}
           ref={ref}
           id={
             ctx.descriptionId
           }
-          {...rest}
         >
           {children}
         </p>

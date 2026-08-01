@@ -165,7 +165,10 @@ export interface MenuItemProps
 
 
 export interface MenuSeparatorProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "role"
+  > {
   styles?: MenuStyles;
 
   slotProps?: MenuSlotProps;
