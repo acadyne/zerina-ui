@@ -497,6 +497,22 @@ export function NavigationMenuItem<TItem>({
     ...triggerSlotRest
   } = triggerSlot;
 
+  /*
+   * El panel y el reintento conservan los observadores de sus slots.
+   * preventDefault() cancela solo la política interna; role, relaciones
+   * aria y type continúan bajo control del componente en el JSX.
+   */
+  const {
+    onMouseEnter: panelListOnMouseEnter,
+    onMouseLeave: panelListOnMouseLeave,
+    ...panelListSlotRest
+  } = panelListSlot;
+
+  const {
+    onClick: retryOnClick,
+    ...retrySlotRest
+  } = retrySlot;
+
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLLIElement>
   ): void => {
@@ -735,14 +751,36 @@ export function NavigationMenuItem<TItem>({
           }}
         >
           <ul
-            {...panelListSlot}
+            {...panelListSlotRest}
             role={usesMenuSemantics ? "menu" : undefined}
             aria-labelledby={triggerId}
-            onMouseEnter={() => {
+            onMouseEnter={(event) => {
+              panelListOnMouseEnter?.(
+                event
+              );
+
+              if (
+                event.defaultPrevented
+              ) {
+                return;
+              }
+
               menu.cancelHoverClose();
             }}
-            onMouseLeave={() => {
-              menu.scheduleCloseFromDepth(depth);
+            onMouseLeave={(event) => {
+              panelListOnMouseLeave?.(
+                event
+              );
+
+              if (
+                event.defaultPrevented
+              ) {
+                return;
+              }
+
+              menu.scheduleCloseFromDepth(
+                depth
+              );
             }}
           >
             {loading && children.length === 0 ? (
@@ -833,9 +871,19 @@ export function NavigationMenuItem<TItem>({
                       </span>
 
                       <button
-                        {...retrySlot}
+                        {...retrySlotRest}
                         type="button"
-                        onClick={() => {
+                        onClick={(event) => {
+                          retryOnClick?.(
+                            event
+                          );
+
+                          if (
+                            event.defaultPrevented
+                          ) {
+                            return;
+                          }
+
                           void reload();
                         }}
                       >

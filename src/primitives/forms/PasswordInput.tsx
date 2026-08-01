@@ -195,6 +195,19 @@ export const PasswordInput =
           ]
         );
 
+      /*
+       * La visibilidad pertenece al componente. El slot observa primero el
+       * press y puede cancelar el cambio sin reemplazar disabled ni aria.
+       */
+      const {
+        onPress:
+          toggleButtonSlotOnPress,
+        ...toggleButtonSlotRest
+      } = toggleButtonSlot as typeof toggleButtonSlot & {
+        onPress?:
+          typeof handleToggle;
+      };
+
 
       return (
         <InputGroup
@@ -274,7 +287,7 @@ export const PasswordInput =
             position="end"
           >
             <ControlAction
-              {...toggleButtonSlot}
+              {...toggleButtonSlotRest}
 
               size="md"
 
@@ -292,9 +305,21 @@ export const PasswordInput =
                 state.disabled
               }
 
-              onPress={
-                handleToggle
-              }
+              onPress={(event) => {
+                toggleButtonSlotOnPress?.(
+                  event
+                );
+
+                if (
+                  event.defaultPrevented
+                ) {
+                  return;
+                }
+
+                handleToggle(
+                  event
+                );
+              }}
             >
               {visible ? (
                 <EyeOff

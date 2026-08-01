@@ -902,7 +902,6 @@ function NavigationMenuInner<TItem>(
       className,
       style,
       baseProps: {
-        role: usesMenuSemantics ? undefined : "navigation",
         "data-ui-navigation-menu": "",
         "data-ui-navigation-menu-orientation":
           orientation,
@@ -966,11 +965,29 @@ function NavigationMenuInner<TItem>(
       },
     });
 
+  /*
+   * Los handlers del slot observan primero el límite completo del menú y
+   * pueden cancelar la política interna de hover mediante preventDefault().
+   *
+   * En modo navigation el role pertenece al componente. En modo menu el
+   * contenedor exterior conserva cualquier role explícito del consumidor.
+   */
+  const {
+    onMouseEnter: listSlotOnMouseEnter,
+    onMouseLeave: listSlotOnMouseLeave,
+    ...listSlotRest
+  } = listSlot;
+
   return (
     <div
       {...rootSlot}
       {...rest}
       ref={forwardedRef}
+      role={
+        usesMenuSemantics
+          ? rest.role
+          : "navigation"
+      }
     >
       {items.length === 0 ? (
         <div {...emptySlot}>
@@ -978,14 +995,36 @@ function NavigationMenuInner<TItem>(
         </div>
       ) : (
         <ul
-          {...listSlot}
+          {...listSlotRest}
           role={usesMenuSemantics ? "menubar" : undefined}
           aria-orientation={usesMenuSemantics ? orientation : undefined}
-          onMouseEnter={() => {
+          onMouseEnter={(event) => {
+            listSlotOnMouseEnter?.(
+              event
+            );
+
+            if (
+              event.defaultPrevented
+            ) {
+              return;
+            }
+
             menu.cancelHoverClose();
           }}
-          onMouseLeave={() => {
-            menu.scheduleCloseFromDepth(0);
+          onMouseLeave={(event) => {
+            listSlotOnMouseLeave?.(
+              event
+            );
+
+            if (
+              event.defaultPrevented
+            ) {
+              return;
+            }
+
+            menu.scheduleCloseFromDepth(
+              0
+            );
           }}
         >
           {items.map((item) => {

@@ -330,6 +330,20 @@ export const SearchInput =
         );
 
 
+      /*
+       * Limpiar es conducta interna del control. El slot observa primero y
+       * puede cancelarla sin reemplazar el estado disabled/readOnly ni aria.
+       */
+      const {
+        onPress:
+          clearButtonSlotOnPress,
+        ...clearButtonSlotRest
+      } = clearButtonSlot as typeof clearButtonSlot & {
+        onPress?:
+          typeof handleClear;
+      };
+
+
       return (
         <InputGroup
           {...groupSlot}
@@ -435,15 +449,27 @@ export const SearchInput =
               position="end"
             >
               <ControlAction
-                {...clearButtonSlot}
+                {...clearButtonSlotRest}
 
                 size="sm"
 
                 aria-label="Limpiar búsqueda"
 
-                onPress={
-                  handleClear
-                }
+                onPress={(event) => {
+                  clearButtonSlotOnPress?.(
+                    event
+                  );
+
+                  if (
+                    event.defaultPrevented
+                  ) {
+                    return;
+                  }
+
+                  handleClear(
+                    event
+                  );
+                }}
               >
                 <X
                   size={14}

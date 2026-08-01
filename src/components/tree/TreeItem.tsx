@@ -546,6 +546,15 @@ export function TreeItem<TNode>({
     ...actionsSlotRest
   } = actionsSlot;
 
+  /*
+   * El reintento es una acción interna, pero el slot puede observarla o
+   * cancelarla antes de iniciar otra carga. type permanece protegido.
+   */
+  const {
+    onClick: retrySlotOnClick,
+    ...retrySlotRest
+  } = retrySlot;
+
   const handleFocus = (
     event: FocusEvent<HTMLDivElement>
   ): void => {
@@ -814,9 +823,19 @@ export function TreeItem<TNode>({
                 </span>
 
                 <button
-                  {...retrySlot}
+                  {...retrySlotRest}
                   type="button"
-                  onClick={() => {
+                  onClick={(event) => {
+                    retrySlotOnClick?.(
+                      event
+                    );
+
+                    if (
+                      event.defaultPrevented
+                    ) {
+                      return;
+                    }
+
                     void reloadNode();
                   }}
                 >
