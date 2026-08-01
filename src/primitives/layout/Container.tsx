@@ -74,6 +74,10 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
   ) => {
     const maxWidth = fluid ? "100%" : resolveMaxWidth(size);
 
+    /*
+     * size, centered y los atajos de espaciado producen defaults;
+     * style queda al final como escape hatch público.
+     */
     return (
       <div
         ref={ref}

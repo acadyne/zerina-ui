@@ -2,6 +2,7 @@
 import React from "react";
 import {
   cssSize,
+  resolveMergedSlot,
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -241,65 +242,66 @@ export const ScreenContent = React.forwardRef<
       safeArea,
     });
 
-    const rootSlot = resolveSlot<ScreenContentSlot>({
-      slot: "root",
-      styles,
-      slotProps,
-      className,
-      style,
-      baseProps: {
-        "data-ui-screen-content": "",
-        "data-ui-screen-content-scrollable": scrollable || undefined,
-      },
-      baseStyle: {
-        width: "100%",
-        height: fill ? "100%" : undefined,
-        minWidth: 0,
-        minHeight: 0,
-        boxSizing: "border-box",
-      },
-    });
+    const rootBaseStyle: React.CSSProperties = {
+      width: "100%",
+      height: fill ? "100%" : undefined,
+      minWidth: 0,
+      minHeight: 0,
+      boxSizing: "border-box",
+    };
 
-    const scrollAreaSlot = resolveSlot<ScreenContentSlot>({
-      slot: "scrollArea",
-      styles,
-      slotProps,
-      baseStyle: {
-        width: "100%",
-        height: fill ? "100%" : undefined,
-        minWidth: 0,
-        minHeight: 0,
-        boxSizing: "border-box",
-      },
-    });
-
-    const contentSlot = resolveSlot<ScreenContentSlot>({
-      slot: "content",
-      styles,
-      slotProps,
-      baseProps: {
-        "data-ui-screen-content-inner": "",
-      },
-      baseStyle: {
-        width: "100%",
-        maxWidth:
-          maxContentWidth !== undefined
-            ? cssSize(maxContentWidth)
-            : undefined,
-        minWidth: 0,
-        minHeight: centered ? "100%" : 0,
-        boxSizing: "border-box",
-        marginLeft:
-          centerContent && maxContentWidth !== undefined ? "auto" : undefined,
-        marginRight:
-          centerContent && maxContentWidth !== undefined ? "auto" : undefined,
-        display: centered ? "grid" : undefined,
-        placeItems: centered ? "center" : undefined,
-        ...paddingStyles,
-      },
-    });
+    const contentBaseStyle: React.CSSProperties = {
+      width: "100%",
+      maxWidth:
+        maxContentWidth !== undefined
+          ? cssSize(maxContentWidth)
+          : undefined,
+      minWidth: 0,
+      minHeight: centered ? "100%" : 0,
+      boxSizing: "border-box",
+      marginLeft:
+        centerContent && maxContentWidth !== undefined ? "auto" : undefined,
+      marginRight:
+        centerContent && maxContentWidth !== undefined ? "auto" : undefined,
+      display: centered ? "grid" : undefined,
+      placeItems: centered ? "center" : undefined,
+      ...paddingStyles,
+    };
 
     if (scrollable) {
+      /*
+       * root y scrollArea comparten el nodo físico en esta rama.
+       * resolveMergedSlot conserva className, eventos, data/aria y estilos
+       * de ambos; className y style públicos permanecen como capa final.
+       */
+      const scrollableRootSlot =
+        resolveMergedSlot<ScreenContentSlot>({
+          slots: [
+            "root",
+            "scrollArea",
+          ],
+          styles,
+          slotProps,
+          className,
+          style,
+          baseProps: {
+            "data-ui-screen-content": "",
+            "data-ui-screen-content-scrollable": true,
+          },
+          baseStyle: rootBaseStyle,
+        });
+
+      const contentSlot =
+        resolveSlot<ScreenContentSlot>({
+          slot: "content",
+          styles,
+          slotProps,
+          baseProps: {
+            "data-ui-screen-content-inner": "",
+          },
+          baseStyle: contentBaseStyle,
+        });
+
       return (
         <ScrollArea
           ref={ref}
@@ -309,29 +311,45 @@ export const ScreenContent = React.forwardRef<
           momentum={momentum}
           touchAction={touchAction}
           {...rest}
-          {...rootSlot}
-          style={{
-            ...rootSlot.style,
-            ...scrollAreaSlot.style,
-          }}
+          {...scrollableRootSlot}
         >
           <Box {...contentSlot}>{children}</Box>
         </ScrollArea>
       );
     }
 
+    /*
+     * Sin scroll, root y content colapsan sobre el mismo Box. Fusionarlos
+     * preserva el contrato completo del slot content, incluido su data
+     * attribute, en lugar de reconstruir únicamente sus estilos en JSX.
+     */
+    const staticRootSlot =
+      resolveMergedSlot<ScreenContentSlot>({
+        slots: [
+          "root",
+          "content",
+        ],
+        styles,
+        slotProps,
+        className,
+        style,
+        baseProps: {
+          "data-ui-screen-content": "",
+          "data-ui-screen-content-scrollable": undefined,
+          "data-ui-screen-content-inner": "",
+        },
+        baseStyle: {
+          ...rootBaseStyle,
+          ...contentBaseStyle,
+          overflow: "hidden",
+        },
+      });
+
     return (
       <Box
         ref={ref}
         {...rest}
-        {...rootSlot}
-        style={{
-          ...rootSlot.style,
-          overflow: "hidden",
-          display: centered ? "grid" : undefined,
-          placeItems: centered ? "center" : undefined,
-          ...paddingStyles,
-        }}
+        {...staticRootSlot}
       >
         {children}
       </Box>

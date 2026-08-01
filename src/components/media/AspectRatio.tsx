@@ -60,6 +60,10 @@ export const AspectRatio = forwardRef<HTMLDivElement, AspectRatioProps>(
   ) => {
     const resolvedRatio = useMemo(() => normalizeRatio(ratio), [ratio]);
 
+    /*
+     * Las props abreviadas construyen los defaults del contenedor;
+     * style permanece al final como escape hatch público.
+     */
     return (
       <div
         ref={ref}

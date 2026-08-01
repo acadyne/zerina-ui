@@ -78,6 +78,10 @@ export const Flex = forwardRef<HTMLDivElement, FlexProps>(
     },
     ref
   ) => {
+    /*
+     * Las props de layout y los helpers compartidos producen defaults;
+     * style queda al final para permitir una sobrescritura explícita.
+     */
     return (
       <div
         ref={ref}

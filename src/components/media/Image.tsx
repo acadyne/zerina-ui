@@ -84,6 +84,10 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(
     },
     ref
   ) => {
+    /*
+     * Los atajos visuales construyen el estilo base; style se aplica al
+     * final para permitir ajustes que no forman parte de la API abreviada.
+     */
     const inlineStyle = useMemo<React.CSSProperties>(
       () => ({
         width: w,
@@ -149,6 +153,11 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(
       (e) => {
         const img = e.currentTarget;
 
+        /*
+         * El primer fallo cambia al fallback sin notificar todavía al
+         * consumidor. El marcador evita recursión y onError recibe el
+         * fallo definitivo cuando ya no existe otro fallback aplicable.
+         */
         if (fallbackSrc && img.dataset.fallbackApplied !== "1") {
           img.dataset.fallbackApplied = "1";
           img.src = fallbackSrc;

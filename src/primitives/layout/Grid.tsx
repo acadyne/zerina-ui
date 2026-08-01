@@ -94,6 +94,10 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(
         ? `repeat(${rows}, minmax(0, 1fr))`
         : rows;
 
+    /*
+     * Las props de grid y los helpers compartidos producen defaults;
+     * style queda al final para permitir una sobrescritura explícita.
+     */
     return (
       <div
         ref={ref}
