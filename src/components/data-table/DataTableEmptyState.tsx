@@ -10,20 +10,37 @@ import type {
   DataTableStyles,
 } from "./dataTable.types";
 
-export interface DataTableEmptyStateProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+interface DataTableEmptyStateBaseProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "title"
+  > {
   emptyState?: DataTableEmptyStateConfig;
-  colSpan?: number;
-  asTableRow?: boolean;
 
   styles?: DataTableStyles;
   slotProps?: DataTableSlotProps;
 }
 
+interface DataTableEmptyStateStandaloneProps
+  extends DataTableEmptyStateBaseProps {
+  asTableRow?: false;
+  colSpan?: never;
+}
+
+interface DataTableEmptyStateTableRowProps
+  extends DataTableEmptyStateBaseProps {
+  asTableRow: true;
+  colSpan: number;
+}
+
+export type DataTableEmptyStateProps =
+  | DataTableEmptyStateStandaloneProps
+  | DataTableEmptyStateTableRowProps;
+
 export function DataTableEmptyState({
   emptyState,
-  colSpan = 1,
   asTableRow = false,
+  colSpan,
   className = "",
   style,
   styles,
@@ -38,30 +55,32 @@ export function DataTableEmptyState({
     style,
   });
 
-  const emptyCellSlot = resolveSlot<DataTableSlot>({
-    slot: "emptyCell",
-    styles,
-    slotProps,
-    baseStyle: {
-      padding: "1rem",
-      borderBottom: "1px solid var(--ui-border)",
-    },
-  });
-
   const content = (
     <EmptyState
       compact
       bordered={false}
-      icon={emptyState?.icon ?? <SearchX size={22} />}
-      title={emptyState?.title ?? "Sin resultados"}
+      icon={
+        emptyState?.icon ??
+        <SearchX size={22} />
+      }
+      title={
+        emptyState?.title ??
+        "Sin resultados"
+      }
       description={
         emptyState?.description ??
         "No hay registros que coincidan con los criterios actuales."
       }
       action={emptyState?.action}
-      actionLabel={emptyState?.actionLabel}
-      onAction={emptyState?.onAction}
-      className={emptySlot.className}
+      actionLabel={
+        emptyState?.actionLabel
+      }
+      onAction={
+        emptyState?.onAction
+      }
+      className={
+        emptySlot.className
+      }
       style={emptySlot.style}
       {...rest}
     />
@@ -71,9 +90,33 @@ export function DataTableEmptyState({
     return content;
   }
 
+  const emptyCellSlot =
+    resolveSlot<DataTableSlot>({
+      slot: "emptyCell",
+      styles,
+      slotProps,
+      baseStyle: {
+        padding: "1rem",
+        borderBottom:
+          "1px solid var(--ui-border)",
+      },
+    });
+
+  /*
+   * tbody solo admite filas como descendientes directos. La fila permanece
+   * estructural y emptyCell conserva la personalización sobre la celda para
+   * que el modo móvil no herede elementos ni atributos exclusivos de tabla.
+   */
   return (
-    <td {...emptyCellSlot} colSpan={colSpan}>
-      {content}
-    </td>
+    <tr
+      data-ui-data-table-empty-row=""
+    >
+      <td
+        {...emptyCellSlot}
+        colSpan={colSpan}
+      >
+        {content}
+      </td>
+    </tr>
   );
 }
