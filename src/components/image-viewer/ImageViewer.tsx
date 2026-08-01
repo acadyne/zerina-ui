@@ -11,6 +11,9 @@ import {
   type ImgHTMLAttributes,
   type ReactElement,
 } from "react";
+import {
+  useIsomorphicLayoutEffect,
+} from "../../core/react/useIsomorphicLayoutEffect";
 import { resolveSlot } from "../../helpers/css";
 import {
   TransformableSurface,
@@ -181,6 +184,73 @@ export const ImageViewer = forwardRef<
 
     const [retryKey, setRetryKey] =
       useState(0);
+
+    const surfaceMeasureFrameRef =
+      useRef<number | null>(null);
+
+    const cancelSurfaceMeasureFrame =
+      useCallback((): void => {
+        if (
+          surfaceMeasureFrameRef.current ===
+          null
+        ) {
+          return;
+        }
+
+        cancelAnimationFrame(
+          surfaceMeasureFrameRef.current
+        );
+
+        surfaceMeasureFrameRef.current =
+          null;
+      }, []);
+
+    const scheduleSurfaceMeasurement =
+      useCallback(
+        (
+          image: HTMLImageElement
+        ): void => {
+          cancelSurfaceMeasureFrame();
+
+          /*
+           * La medición pertenece a la imagen que emitió load.
+           * Un cambio de fuente, retry o desmontaje no puede dejar un frame
+           * capaz de medir otro elemento con dimensiones obsoletas.
+           */
+          surfaceMeasureFrameRef.current =
+            requestAnimationFrame(() => {
+              surfaceMeasureFrameRef.current =
+                null;
+
+              if (
+                imageRef.current !== image ||
+                !image.isConnected
+              ) {
+                return;
+              }
+
+              surfaceApiRef.current?.measure();
+              surfaceApiRef.current?.constrain();
+            });
+        },
+        [
+          cancelSurfaceMeasureFrame,
+        ]
+      );
+
+    /*
+     * El cleanup de layout se ejecuta antes de que una fuente o retry nuevos
+     * puedan adquirir su propio frame de medición.
+     */
+    useIsomorphicLayoutEffect(() => {
+      return () => {
+        cancelSurfaceMeasureFrame();
+      };
+    }, [
+      cancelSurfaceMeasureFrame,
+      retryKey,
+      src,
+    ]);
 
     const failed = error !== null;
 
@@ -810,16 +880,17 @@ export const ImageViewer = forwardRef<
                 setLoaded(true);
                 setError(null);
 
+                /*
+                 * El frame se adquiere antes de notificar a consumidores.
+                 * Si un callback desmonta el visor, su cleanup podrá cancelarlo.
+                 */
+                scheduleSurfaceMeasurement(
+                  image
+                );
+
                 // La carga ya ocurrió; se registra el estado antes de notificar.
                 imagePropsOnLoad?.(event);
                 imageSlotOnLoad?.(event);
-
-                requestAnimationFrame(
-                  () => {
-                    surfaceApiRef.current?.measure();
-                    surfaceApiRef.current?.constrain();
-                  }
-                );
 
                 onLoad?.({
                   src,
@@ -830,6 +901,8 @@ export const ImageViewer = forwardRef<
                 });
               }}
               onError={(event) => {
+                cancelSurfaceMeasureFrame();
+
                 const nextError =
                   new Error(
                     `No se pudo cargar la imagen: ${src}`
