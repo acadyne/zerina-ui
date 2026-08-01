@@ -224,13 +224,17 @@ export function DataTableMobileCards<
         const selected =
           rowId !== undefined ? selectedIds.includes(rowId) : false;
 
+        /*
+         * El Checkbox posee la semántica y la interacción de selección.
+         * La tarjeta solo refleja visualmente ese estado mediante data-selected;
+         * role="listitem" no forma parte de un widget seleccionable.
+         */
         const cardSlot = resolveSlot<DataTableSlot>({
           slot: "mobileCard",
           styles,
           slotProps,
           baseProps: {
             role: "listitem",
-            "aria-selected": selected || undefined,
             "data-ui-data-table-mobile-card": "",
             "data-ui-data-table-row-index": String(rowIndex),
             "data-selected": selected || undefined,
