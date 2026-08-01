@@ -19,26 +19,6 @@ import {
   type ListVariant,
 } from "../../primitives/layout";
 
-export type SettingsCheckedChangeSource =
-  | "row"
-  | "control";
-
-export type SettingsCheckedChangeNativeEvent =
-  | UIPressEvent<HTMLElement>
-  | React.ChangeEvent<HTMLInputElement>;
-
-export interface SettingsCheckedChangeEvent {
-  source: SettingsCheckedChangeSource;
-
-  nativeEvent:
-    SettingsCheckedChangeNativeEvent;
-
-  readonly defaultPrevented: boolean;
-
-  preventDefault: () => void;
-  stopPropagation: () => void;
-}
-
 export interface SettingsListProps
   extends Omit<
     ListProps,
@@ -125,7 +105,7 @@ export interface SettingsListSwitchProps
 
   onCheckedChange?: (
     checked: boolean,
-    event: SettingsCheckedChangeEvent
+    event: React.ChangeEvent<HTMLInputElement>
   ) => void;
 
   rowValue?: React.ReactNode;
@@ -148,7 +128,7 @@ export interface SettingsListCheckboxProps
 
   onCheckedChange?: (
     checked: boolean,
-    event: SettingsCheckedChangeEvent
+    event: React.ChangeEvent<HTMLInputElement>
   ) => void;
 
   rowValue?: React.ReactNode;
@@ -212,12 +192,6 @@ type SettingsListComponent =
     >;
   };
 
-function stopPropagation(
-  event: React.SyntheticEvent
-): void {
-  event.stopPropagation();
-}
-
 function hasRenderableNode(
   node: React.ReactNode
 ): boolean {
@@ -228,49 +202,71 @@ function hasRenderableNode(
   );
 }
 
-function createRowCheckedChangeEvent(
-  nativeEvent: UIPressEvent<HTMLElement>
-): SettingsCheckedChangeEvent {
+function mergeAriaIds(
+  ...ids: Array<
+    string | undefined
+  >
+): string | undefined {
+  const merged = ids
+    .filter(
+      (
+        id
+      ): id is string =>
+        Boolean(id)
+    )
+    .join(" ");
+
+  return merged || undefined;
+}
+
+function useSettingsControlText(
+  label: React.ReactNode,
+  description:
+    | React.ReactNode
+    | undefined
+) {
+  const generatedId =
+    React.useId();
+
+  const labelId =
+    hasRenderableNode(label)
+      ? `${generatedId}-label`
+      : undefined;
+
+  const descriptionId =
+    hasRenderableNode(
+      description
+    )
+      ? `${generatedId}-description`
+      : undefined;
+
   return {
-    source: "row",
-    nativeEvent,
+    labelId,
+    descriptionId,
 
-    get defaultPrevented() {
-      return nativeEvent.defaultPrevented;
-    },
+    title: labelId ? (
+      <span id={labelId}>
+        {label}
+      </span>
+    ) : undefined,
 
-    preventDefault() {
-      nativeEvent.preventDefault();
-    },
-
-    stopPropagation() {
-      nativeEvent.stopPropagation();
-    },
+    description:
+      descriptionId ? (
+        <span
+          id={descriptionId}
+        >
+          {description}
+        </span>
+      ) : undefined,
   };
 }
 
-function createControlCheckedChangeEvent(
-  nativeEvent:
-    React.ChangeEvent<HTMLInputElement>
-): SettingsCheckedChangeEvent {
-  return {
-    source: "control",
-    nativeEvent,
-
-    get defaultPrevented() {
-      return nativeEvent.defaultPrevented;
-    },
-
-    preventDefault() {
-      nativeEvent.preventDefault();
-    },
-
-    stopPropagation() {
-      nativeEvent.stopPropagation();
-    },
-  };
-}
-
+/*
+ * Las filas con controles nativos permanecen estáticas.
+ * Convertir List.Item en Pressable introduciría un segundo foco y una segunda
+ * ruta de activación alrededor del input. El control conserva ownership del
+ * cambio y toma su nombre y descripción del texto visible mediante ARIA.
+ */
 const SettingsListRoot =
   React.forwardRef<
     HTMLDivElement,
@@ -413,10 +409,23 @@ const SettingsListSwitch =
         disabled = false,
         size = "sm",
         rowValue,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
+
         ...rest
       },
       ref
     ) => {
+      const rowText =
+        useSettingsControlText(
+          label,
+          description
+        );
+
       const isControlled =
         checked !== undefined;
 
@@ -436,17 +445,17 @@ const SettingsListSwitch =
         React.useCallback(
           (
             nextChecked: boolean,
-            changeEvent:
-              SettingsCheckedChangeEvent
+            event:
+              React.ChangeEvent<HTMLInputElement>
           ): void => {
             onCheckedChange?.(
               nextChecked,
-              changeEvent
+              event
             );
 
             if (
               !isControlled &&
-              !changeEvent.defaultPrevented
+              !event.defaultPrevented
             ) {
               setInternalChecked(
                 nextChecked
@@ -459,76 +468,57 @@ const SettingsListSwitch =
           ]
         );
 
-      const handleRowPress =
-        disabled
-          ? undefined
-          : (
-            event:
-              UIPressEvent<HTMLElement>
-          ): void => {
-            commitCheckedChange(
-              !resolvedChecked,
-              createRowCheckedChangeEvent(
-                event
-              )
-            );
-          };
-
-      const trailingControl = (
-        <Box
-          onClick={
-            stopPropagation
-          }
-          onPointerDown={
-            stopPropagation
-          }
-        >
-          <Switch
-            {...rest}
-            ref={ref}
-            size={size}
-            checked={
-              resolvedChecked
-            }
-            disabled={disabled}
-            onChange={(
-              event
-            ) => {
-              commitCheckedChange(
-                event.currentTarget
-                  .checked,
-                createControlCheckedChangeEvent(
-                  event
-                )
-              );
-            }}
-          />
-        </Box>
-      );
-
-      const commonProps = {
-        title: label,
-        description,
-        value: rowValue,
-        disabled,
-        trailing:
-          trailingControl,
-      };
-
-      if (handleRowPress) {
-        return (
-          <List.Item
-            {...commonProps}
-            onPress={
-              handleRowPress
-            }
-          />
-        );
-      }
-
       return (
         <List.Item
-          {...commonProps}
+          title={
+            rowText.title
+          }
+
+          description={
+            rowText.description
+          }
+
+          value={rowValue}
+          disabled={disabled}
+
+          trailing={
+            <Switch
+              {...rest}
+
+              ref={ref}
+              size={size}
+
+              checked={
+                resolvedChecked
+              }
+
+              disabled={disabled}
+
+              aria-labelledby={
+                mergeAriaIds(
+                  rowText.labelId,
+                  ariaLabelledBy
+                )
+              }
+
+              aria-describedby={
+                mergeAriaIds(
+                  rowText.descriptionId,
+                  ariaDescribedBy
+                )
+              }
+
+              onChange={(
+                event
+              ) => {
+                commitCheckedChange(
+                  event.currentTarget
+                    .checked,
+                  event
+                );
+              }}
+            />
+          }
         />
       );
     }
@@ -551,10 +541,23 @@ const SettingsListCheckbox =
         onCheckedChange,
         disabled = false,
         rowValue,
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
+
         ...rest
       },
       ref
     ) => {
+      const rowText =
+        useSettingsControlText(
+          label,
+          description
+        );
+
       const isControlled =
         checked !== undefined;
 
@@ -574,17 +577,17 @@ const SettingsListCheckbox =
         React.useCallback(
           (
             nextChecked: boolean,
-            changeEvent:
-              SettingsCheckedChangeEvent
+            event:
+              React.ChangeEvent<HTMLInputElement>
           ): void => {
             onCheckedChange?.(
               nextChecked,
-              changeEvent
+              event
             );
 
             if (
               !isControlled &&
-              !changeEvent.defaultPrevented
+              !event.defaultPrevented
             ) {
               setInternalChecked(
                 nextChecked
@@ -597,75 +600,56 @@ const SettingsListCheckbox =
           ]
         );
 
-      const handleRowPress =
-        disabled
-          ? undefined
-          : (
-            event:
-              UIPressEvent<HTMLElement>
-          ): void => {
-            commitCheckedChange(
-              !resolvedChecked,
-              createRowCheckedChangeEvent(
-                event
-              )
-            );
-          };
-
-      const trailingControl = (
-        <Box
-          onClick={
-            stopPropagation
-          }
-          onPointerDown={
-            stopPropagation
-          }
-        >
-          <Checkbox
-            {...rest}
-            ref={ref}
-            checked={
-              resolvedChecked
-            }
-            disabled={disabled}
-            onChange={(
-              event
-            ) => {
-              commitCheckedChange(
-                event.currentTarget
-                  .checked,
-                createControlCheckedChangeEvent(
-                  event
-                )
-              );
-            }}
-          />
-        </Box>
-      );
-
-      const commonProps = {
-        title: label,
-        description,
-        value: rowValue,
-        disabled,
-        trailing:
-          trailingControl,
-      };
-
-      if (handleRowPress) {
-        return (
-          <List.Item
-            {...commonProps}
-            onPress={
-              handleRowPress
-            }
-          />
-        );
-      }
-
       return (
         <List.Item
-          {...commonProps}
+          title={
+            rowText.title
+          }
+
+          description={
+            rowText.description
+          }
+
+          value={rowValue}
+          disabled={disabled}
+
+          trailing={
+            <Checkbox
+              {...rest}
+
+              ref={ref}
+
+              checked={
+                resolvedChecked
+              }
+
+              disabled={disabled}
+
+              aria-labelledby={
+                mergeAriaIds(
+                  rowText.labelId,
+                  ariaLabelledBy
+                )
+              }
+
+              aria-describedby={
+                mergeAriaIds(
+                  rowText.descriptionId,
+                  ariaDescribedBy
+                )
+              }
+
+              onChange={(
+                event
+              ) => {
+                commitCheckedChange(
+                  event.currentTarget
+                    .checked,
+                  event
+                );
+              }}
+            />
+          }
         />
       );
     }
@@ -690,40 +674,80 @@ const SettingsListSelect =
         disabled,
         selectWidth = 150,
         size = "sm",
+
+        "aria-labelledby":
+          ariaLabelledBy,
+
+        "aria-describedby":
+          ariaDescribedBy,
+
         ...rest
       },
       ref
     ) => {
+      const rowText =
+        useSettingsControlText(
+          label,
+          description
+        );
+
       const finalDisabled =
         Boolean(disabled);
 
       return (
         <List.Item
-          title={label}
-          description={description}
-          disabled={finalDisabled}
+          title={
+            rowText.title
+          }
+
+          description={
+            rowText.description
+          }
+
+          disabled={
+            finalDisabled
+          }
+
           trailing={
             <Box
-              onClick={stopPropagation}
-              onPointerDown={
-                stopPropagation
-              }
               style={{
-                width: selectWidth,
+                width:
+                  selectWidth,
+
                 minWidth: 0,
               }}
             >
               <Select
                 {...rest}
+
                 ref={ref}
                 size={size}
                 value={value}
                 options={options}
+
                 disabled={
                   finalDisabled
                 }
+
+                aria-labelledby={
+                  mergeAriaIds(
+                    rowText.labelId,
+                    ariaLabelledBy
+                  )
+                }
+
+                aria-describedby={
+                  mergeAriaIds(
+                    rowText.descriptionId,
+                    ariaDescribedBy
+                  )
+                }
+
                 fullWidth
-                onChange={(event) => {
+
+                onChange={(
+                  event
+                ) => {
                   onValueChange(
                     event.currentTarget
                       .value,
