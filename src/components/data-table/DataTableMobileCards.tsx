@@ -11,7 +11,11 @@ import type {
   DataTableStyles,
   EditableDataTableColumn,
 } from "./dataTable.types";
-import { getCellText, toRenderableValue } from "./dataTable.utils";
+import {
+  getCellText,
+  getEditableCellAriaLabel,
+  toRenderableValue,
+} from "./dataTable.utils";
 import { DataTableEmptyState } from "./DataTableEmptyState";
 
 interface DataTableMobileCardsProps<
@@ -87,6 +91,12 @@ function renderEditableControl<T extends Record<string, unknown>>(
   const textValue = value == null ? "" : String(value);
   const editable = column.editable !== false;
 
+  const editorAriaLabel =
+    getEditableCellAriaLabel(
+      column.header,
+      rowIndex
+    );
+
   if (!editable) {
     return (
       <span
@@ -105,6 +115,9 @@ function renderEditableControl<T extends Record<string, unknown>>(
   if (column.type === "boolean") {
     return (
       <Select
+        aria-label={
+          editorAriaLabel
+        }
         value={String(Boolean(value))}
         onChange={(event) =>
           onCellChange(row, rowIndex, column, event.currentTarget.value)
@@ -120,6 +133,9 @@ function renderEditableControl<T extends Record<string, unknown>>(
   if (column.type === "enum" && column.options?.length) {
     return (
       <Select
+        aria-label={
+          editorAriaLabel
+        }
         value={textValue}
         onChange={(event) =>
           onCellChange(row, rowIndex, column, event.currentTarget.value)
@@ -131,6 +147,9 @@ function renderEditableControl<T extends Record<string, unknown>>(
 
   return (
     <Input
+      aria-label={
+        editorAriaLabel
+      }
       value={textValue}
       placeholder={column.placeholder}
       onChange={(event) =>

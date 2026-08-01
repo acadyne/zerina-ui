@@ -15,6 +15,7 @@ import type {
 import {
   createFallbackRowId,
   getCellText,
+  getEditableCellAriaLabel,
   toRenderableValue,
 } from "./dataTable.utils";
 import { DataTableEmptyState } from "./DataTableEmptyState";
@@ -95,6 +96,12 @@ function renderCellEditor<T extends Record<string, unknown>>({
   const textValue = value == null ? "" : String(value);
   const editable = column.editable !== false;
 
+  const editorAriaLabel =
+    getEditableCellAriaLabel(
+      column.header,
+      rowIndex
+    );
+
   if (!editable) {
     return toRenderableValue(value);
   }
@@ -102,6 +109,9 @@ function renderCellEditor<T extends Record<string, unknown>>({
   if (column.type === "boolean") {
     return (
       <Select
+        aria-label={
+          editorAriaLabel
+        }
         value={String(Boolean(value))}
         onChange={(event) =>
           onChange(row, rowIndex, column, event.currentTarget.value)
@@ -118,6 +128,9 @@ function renderCellEditor<T extends Record<string, unknown>>({
   if (column.type === "enum" && column.options?.length) {
     return (
       <Select
+        aria-label={
+          editorAriaLabel
+        }
         value={textValue}
         onChange={(event) =>
           onChange(row, rowIndex, column, event.currentTarget.value)
@@ -130,6 +143,9 @@ function renderCellEditor<T extends Record<string, unknown>>({
 
   return (
     <Input
+      aria-label={
+        editorAriaLabel
+      }
       value={textValue}
       placeholder={column.placeholder}
       fullWidth={false}

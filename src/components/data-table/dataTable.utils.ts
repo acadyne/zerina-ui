@@ -204,6 +204,21 @@ export function coerceEditableValue(
   return rawValue;
 }
 
+/**
+ * Mantiene el mismo nombre accesible en tabla y tarjetas móviles sin depender
+ * del placeholder ni del valor actual, que pueden cambiar durante la edición.
+ */
+export function getEditableCellAriaLabel(
+  header: string,
+  rowIndex: number
+): string {
+  const normalizedHeader =
+    header.trim() ||
+    "Campo";
+
+  return `${normalizedHeader}, fila ${rowIndex + 1}`;
+}
+
 export function createFallbackRowId(index: number): string {
   return `row-${index}`;
 }
