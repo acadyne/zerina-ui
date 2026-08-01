@@ -23,6 +23,12 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { setRef } from "../../core/interaction/events";
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+import {
+  mergeTriggerProps,
+} from "./triggerProps";
 
 type PopoverPlacement =
   | "top"
@@ -379,34 +385,58 @@ export const PopoverTrigger =
           ]
         );
 
+      const handleClick =
+        React.useCallback(
+          () => {
+            ctx.onOpenChange?.(
+              !ctx.open
+            );
+          },
+          [
+            ctx.onOpenChange,
+            ctx.open,
+          ]
+        );
+
       if (
         asChild &&
         React.isValidElement<
           TriggerChildProps
         >(children)
       ) {
+        const {
+          className:
+            mergedClassName,
+
+          style:
+            mergedStyle,
+
+          onClick:
+            mergedOnClick,
+
+          ...mergedRest
+        } = mergeTriggerProps(
+          children.props,
+          triggerSlot
+        );
+
         return React.cloneElement(
           children,
           {
-            ref: setRefs,
+            /*
+             * El slot puede aportar atributos públicos, pero identidad y
+             * relaciones ARIA pertenecen al contrato interno del Popover.
+             */
+            ...mergedRest,
 
+            ref: setRefs,
             id: ctx.triggerId,
 
-            className: [
-              children.props
-                .className,
+            className:
+              mergedClassName,
 
-              triggerSlot.className,
-            ]
-              .filter(Boolean)
-              .join(" "),
-
-            style: {
-              ...children.props
-                .style,
-
-              ...triggerSlot.style,
-            },
+            style:
+              mergedStyle,
 
             "aria-haspopup":
               "dialog",
@@ -419,36 +449,43 @@ export const PopoverTrigger =
                 ? ctx.contentId
                 : undefined,
 
-            onClick: (
-              event:
-                React.MouseEvent<HTMLElement>
-            ) => {
-              children.props
-                .onClick?.(event);
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              ctx.onOpenChange?.(
-                !ctx.open
-              );
-            },
-          } as TriggerChildProps & {
-            ref: React.Ref<HTMLElement>;
-          }
+            onClick:
+              composeEventHandlers(
+                mergedOnClick,
+                handleClick
+              ),
+          } as TriggerChildProps &
+            React.HTMLAttributes<HTMLElement> & {
+              ref:
+                React.Ref<HTMLElement>;
+            }
         );
       }
 
+      const {
+        className:
+          triggerClassName,
+
+        style:
+          triggerStyle,
+
+        onClick:
+          triggerOnClick,
+
+        ...triggerRest
+      } = triggerSlot;
+
       return (
         <button
+          {...triggerRest}
+
           ref={
             setRefs as React.Ref<HTMLButtonElement>
           }
+
           id={ctx.triggerId}
           type="button"
+
           aria-haspopup="dialog"
           aria-expanded={ctx.open}
           aria-controls={
@@ -456,17 +493,21 @@ export const PopoverTrigger =
               ? ctx.contentId
               : undefined
           }
+
           className={
-            triggerSlot.className
+            triggerClassName
           }
+
           style={
-            triggerSlot.style
+            triggerStyle
           }
-          onClick={() => {
-            ctx.onOpenChange?.(
-              !ctx.open
-            );
-          }}
+
+          onClick={
+            composeEventHandlers(
+              triggerOnClick,
+              handleClick
+            )
+          }
         >
           {children}
         </button>

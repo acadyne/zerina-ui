@@ -22,6 +22,12 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { setRef } from "../../core/interaction/events";
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+import {
+  mergeTriggerProps,
+} from "./triggerProps";
 
 export type TooltipSlot =
   | "trigger"
@@ -542,7 +548,7 @@ export const TooltipTrigger =
               enableTouch &&
               event.detail !== 0 &&
               lastPointerTypeRef.current ===
-              "touch";
+                "touch";
 
             lastPointerTypeRef.current =
               null;
@@ -573,182 +579,196 @@ export const TooltipTrigger =
           TriggerChildProps
         >(children)
       ) {
+        const {
+          className:
+            mergedClassName,
+
+          style:
+            mergedStyle,
+
+          onPointerEnter:
+            mergedOnPointerEnter,
+
+          onPointerLeave:
+            mergedOnPointerLeave,
+
+          onPointerDown:
+            mergedOnPointerDown,
+
+          onFocus:
+            mergedOnFocus,
+
+          onBlur:
+            mergedOnBlur,
+
+          onClick:
+            mergedOnClick,
+
+          ...mergedRest
+        } = mergeTriggerProps(
+          children.props,
+          triggerSlot
+        );
+
         return React.cloneElement(
           children,
           {
-            ref: setRefs,
+            /*
+             * Los atributos del slot son públicos; la identidad y la relación
+             * con el contenido siguen siendo invariantes del Tooltip.
+             */
+            ...mergedRest,
 
+            ref: setRefs,
             id: triggerId,
 
-            className: [
-              children.props
-                .className,
+            className:
+              mergedClassName,
 
-              triggerSlot.className,
-            ]
-              .filter(Boolean)
-              .join(" "),
-
-            style: {
-              ...children.props
-                .style,
-
-              ...triggerSlot.style,
-            },
+            style:
+              mergedStyle,
 
             "aria-describedby":
               open
                 ? contentId
                 : undefined,
 
-            onPointerEnter: (
-              event:
-                React.PointerEvent<HTMLElement>
-            ) => {
-              children.props
-                .onPointerEnter?.(
-                  event
-                );
+            onPointerEnter:
+              composeEventHandlers(
+                mergedOnPointerEnter,
+                handlePointerEnter
+              ),
 
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
+            onPointerLeave:
+              composeEventHandlers(
+                mergedOnPointerLeave,
+                handlePointerLeave
+              ),
 
-              handlePointerEnter(
-                event
-              );
-            },
+            onPointerDown:
+              composeEventHandlers(
+                mergedOnPointerDown,
+                handlePointerDown
+              ),
 
-            onPointerLeave: (
-              event:
-                React.PointerEvent<HTMLElement>
-            ) => {
-              children.props
-                .onPointerLeave?.(
-                  event
-                );
+            onFocus:
+              composeEventHandlers(
+                mergedOnFocus,
+                handleFocus
+              ),
 
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
+            onBlur:
+              composeEventHandlers(
+                mergedOnBlur,
+                handleBlur
+              ),
 
-              handlePointerLeave(
-                event
-              );
-            },
-
-            onPointerDown: (
-              event:
-                React.PointerEvent<HTMLElement>
-            ) => {
-              children.props
-                .onPointerDown?.(
-                  event
-                );
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              handlePointerDown(
-                event
-              );
-            },
-
-            onFocus: (
-              event:
-                React.FocusEvent<HTMLElement>
-            ) => {
-              children.props
-                .onFocus?.(event);
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              handleFocus();
-            },
-
-            onBlur: (
-              event:
-                React.FocusEvent<HTMLElement>
-            ) => {
-              children.props
-                .onBlur?.(event);
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              handleBlur();
-            },
-
-            onClick: (
-              event:
-                React.MouseEvent<HTMLElement>
-            ) => {
-              children.props
-                .onClick?.(event);
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              handleClick(event);
-            },
-          } as TriggerChildProps & {
-            ref: React.Ref<HTMLElement>;
-          }
+            onClick:
+              composeEventHandlers(
+                mergedOnClick,
+                handleClick
+              ),
+          } as TriggerChildProps &
+            React.HTMLAttributes<HTMLElement> & {
+              ref:
+                React.Ref<HTMLElement>;
+            }
         );
       }
 
+      const {
+        className:
+          triggerClassName,
+
+        style:
+          triggerStyle,
+
+        onPointerEnter:
+          triggerOnPointerEnter,
+
+        onPointerLeave:
+          triggerOnPointerLeave,
+
+        onPointerDown:
+          triggerOnPointerDown,
+
+        onFocus:
+          triggerOnFocus,
+
+        onBlur:
+          triggerOnBlur,
+
+        onClick:
+          triggerOnClick,
+
+        ...triggerRest
+      } = triggerSlot;
+
       return (
         <button
+          {...triggerRest}
+
           ref={
             setRefs as React.Ref<HTMLButtonElement>
           }
+
           id={triggerId}
           type="button"
+
           aria-describedby={
             open
               ? contentId
               : undefined
           }
+
           className={
-            triggerSlot.className
+            triggerClassName
           }
+
           style={
-            triggerSlot.style
+            triggerStyle
           }
+
           onPointerEnter={
-            handlePointerEnter
+            composeEventHandlers(
+              triggerOnPointerEnter,
+              handlePointerEnter
+            )
           }
+
           onPointerLeave={
-            handlePointerLeave
+            composeEventHandlers(
+              triggerOnPointerLeave,
+              handlePointerLeave
+            )
           }
+
           onPointerDown={
-            handlePointerDown
+            composeEventHandlers(
+              triggerOnPointerDown,
+              handlePointerDown
+            )
           }
+
           onFocus={
-            handleFocus
+            composeEventHandlers(
+              triggerOnFocus,
+              handleFocus
+            )
           }
+
           onBlur={
-            handleBlur
+            composeEventHandlers(
+              triggerOnBlur,
+              handleBlur
+            )
           }
+
           onClick={
-            handleClick
+            composeEventHandlers(
+              triggerOnClick,
+              handleClick
+            )
           }
         >
           {children}
