@@ -1499,18 +1499,52 @@ export function useTransformableSurface({
 
     measure();
 
-    return observeElementSizes(
-      nodes,
-      () => {
-        measure();
+    let constrainFrameId:
+      number | null = null;
 
-        if (constrainOnResize) {
-          requestAnimationFrame(() => {
-            constrain();
-          });
+    const stopObserving =
+      observeElementSizes(
+        nodes,
+        () => {
+          measure();
+
+          if (!constrainOnResize) {
+            return;
+          }
+
+          if (
+            constrainFrameId !== null
+          ) {
+            cancelAnimationFrame(
+              constrainFrameId
+            );
+          }
+
+          /*
+           * ResizeObserver puede emitir varias veces antes de pintar.
+           * Se conserva solo la última restricción y el efecto posee su cleanup.
+           */
+          constrainFrameId =
+            requestAnimationFrame(() => {
+              constrainFrameId = null;
+              constrain();
+            });
         }
+      );
+
+    return () => {
+      stopObserving();
+
+      if (
+        constrainFrameId !== null
+      ) {
+        cancelAnimationFrame(
+          constrainFrameId
+        );
+
+        constrainFrameId = null;
       }
-    );
+    };
   }, [
     constrain,
     constrainOnResize,

@@ -299,6 +299,48 @@ function NavigationMenuInner<TItem>(
   const shouldMoveDomFocusRef =
     useRef(false);
 
+  const focusFrameRef =
+    useRef<number | null>(null);
+
+  /*
+   * Abrir o cerrar niveles puede programar foco varias veces en el mismo frame.
+   * Solo la transición más reciente pertenece al menú y debe llegar al DOM.
+   */
+  const scheduleFocusFrame = useCallback(
+    (
+      callback: () => void
+    ): void => {
+      if (
+        focusFrameRef.current !== null
+      ) {
+        cancelAnimationFrame(
+          focusFrameRef.current
+        );
+      }
+
+      focusFrameRef.current =
+        requestAnimationFrame(() => {
+          focusFrameRef.current = null;
+          callback();
+        });
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      if (
+        focusFrameRef.current !== null
+      ) {
+        cancelAnimationFrame(
+          focusFrameRef.current
+        );
+
+        focusFrameRef.current = null;
+      }
+    };
+  }, []);
+
   const registerItemRef = useCallback(
     (
       itemId: NavigationMenuItemId,
@@ -479,13 +521,14 @@ function NavigationMenuInner<TItem>(
           "keyboard"
         );
 
-        requestAnimationFrame(() => {
+        scheduleFocusFrame(() => {
           focusFirstChild(itemId);
         });
       },
       [
         focusFirstChild,
         menu.openItem,
+        scheduleFocusFrame,
       ]
     );
 
@@ -499,13 +542,14 @@ function NavigationMenuInner<TItem>(
           "keyboard"
         );
 
-        requestAnimationFrame(() => {
+        scheduleFocusFrame(() => {
           focusLastChild(itemId);
         });
       },
       [
         focusLastChild,
         menu.openItem,
+        scheduleFocusFrame,
       ]
     );
 
@@ -616,7 +660,7 @@ function NavigationMenuInner<TItem>(
         "escape"
       );
 
-      requestAnimationFrame(() => {
+      scheduleFocusFrame(() => {
         moveFocus(parentId);
       });
     },
@@ -625,6 +669,7 @@ function NavigationMenuInner<TItem>(
       menu.closeItem,
       menu.tree.nodeIndex,
       moveFocus,
+      scheduleFocusFrame,
     ]
   );
 

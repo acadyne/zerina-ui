@@ -52,6 +52,50 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const initialFocusAppliedRef =
     React.useRef(false);
 
+  const focusedIndexFrameRef =
+    React.useRef<number | null>(null);
+
+  const cancelFocusedIndexFrame =
+    React.useCallback((): void => {
+      if (
+        focusedIndexFrameRef.current ===
+        null
+      ) {
+        return;
+      }
+
+      cancelAnimationFrame(
+        focusedIndexFrameRef.current
+      );
+
+      focusedIndexFrameRef.current =
+        null;
+    }, []);
+
+  /*
+   * El segundo commit mantiene el índice alineado con el foco nativo.
+   * El menú posee ese frame y reemplaza cualquier sincronización anterior.
+   */
+  const scheduleFocusedIndexSync =
+    React.useCallback(
+      (
+        index: number
+      ): void => {
+        cancelFocusedIndexFrame();
+
+        focusedIndexFrameRef.current =
+          requestAnimationFrame(() => {
+            focusedIndexFrameRef.current =
+              null;
+
+            setFocusedIndex(index);
+          });
+      },
+      [
+        cancelFocusedIndexFrame,
+      ]
+    );
+
   const setAnchorNode =
     React.useCallback(
       (
@@ -179,12 +223,13 @@ export const MenuRoot: React.FC<MenuProps> = ({
           preventScroll: true,
         });
 
-        requestAnimationFrame(() => {
-          setFocusedIndex(clamped);
-        });
+        scheduleFocusedIndexSync(
+          clamped
+        );
       },
       [
         getItems,
+        scheduleFocusedIndexSync,
       ]
     );
 
@@ -316,6 +361,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
   React.useEffect(
     () => {
       if (!open) {
+        cancelFocusedIndexFrame();
+
         itemsRef.current = [];
 
         setFocusedIndex(0);
@@ -326,8 +373,11 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         initialFocusAppliedRef.current = false;
       }
+
+      return cancelFocusedIndexFrame;
     },
     [
+      cancelFocusedIndexFrame,
       open,
     ]
   );
