@@ -230,6 +230,15 @@ export const FloatingActionButton = React.forwardRef<
       },
     });
 
+    /*
+     * Pressable reserva onClick para sintetizar onPress.
+     * El click del slot debe entrar por su slot raíz para que usePress lo componga.
+     */
+    const {
+      onClick: rootSlotOnClick,
+      ...rootPressableProps
+    } = rootSlot;
+
     const iconSlot = resolveSlot<FloatingActionButtonSlot>({
       slot: "icon",
       styles,
@@ -269,7 +278,12 @@ export const FloatingActionButton = React.forwardRef<
         type="button"
         disabled={disabled}
         {...rest}
-        {...rootSlot}
+        {...rootPressableProps}
+        slotProps={{
+          root: {
+            onClick: rootSlotOnClick,
+          },
+        }}
         onPress={onPress}
       >
         {icon ? <Box {...iconSlot}>{icon}</Box> : null}
