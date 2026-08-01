@@ -1,6 +1,6 @@
 // src/components/data-table/DataTableMobileCards.tsx
 
-import { Button, Checkbox, Input, Select } from "../../primitives/forms";
+import { Checkbox, Input, Select } from "../../primitives/forms";
 import { resolveSlot } from "../../helpers/css";
 import type {
   DataTableColumn,
@@ -380,12 +380,6 @@ export function DataTableMobileCards<
 
             {rowId !== undefined ? (
               <div {...idSlot}>id: {String(rowId)}</div>
-            ) : null}
-
-            {!enableSelection && rowId !== undefined ? (
-              <Button type="button" size="sm" variant="ghost" disabled>
-                {String(rowId)}
-              </Button>
             ) : null}
           </div>
         );
