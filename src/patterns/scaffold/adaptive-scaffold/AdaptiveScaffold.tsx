@@ -9,6 +9,9 @@ import {
   useOptionalUIViewport,
 } from "../../../core/viewport";
 import { useElementSize } from "../../../core/dom";
+import {
+  setRef,
+} from "../../../core/interaction/events";
 import { Box } from "../../../primitives/layout";
 import {
   BottomNavigation,
@@ -61,47 +64,82 @@ function getContentSlot<TMeta = unknown>(
   });
 }
 
-export function AdaptiveScaffold<
+function AdaptiveScaffoldImpl<
   TMeta = unknown
->({
-  children,
+>(
+  {
+    children,
 
-  viewport = "window",
-  mode = "auto",
+    viewport = "window",
+    mode = "auto",
 
-  items,
+    items,
 
-  activeId,
-  defaultActiveId,
-  onActiveIdChange,
+    activeId,
+    defaultActiveId,
+    onActiveIdChange,
 
-  mobileNavigation = "bottom",
-  tabletNavigation = "rail",
-  desktopNavigation = "sidebar",
+    mobileNavigation = "bottom",
+    tabletNavigation = "rail",
+    desktopNavigation = "sidebar",
 
-  navigationSlots,
-  title,
-  subtitle,
+    navigationSlots,
+    title,
+    subtitle,
 
-  leading,
-  actions,
-  floating,
+    leading,
+    actions,
+    floating,
 
-  showAppBar = true,
+    showAppBar = true,
 
-  topAppBarProps,
-  scaffoldProps,
-  bottomNavigationProps,
-  navigationRailProps,
-  navigationListProps,
+    topAppBarProps,
+    scaffoldProps,
+    bottomNavigationProps,
+    navigationRailProps,
+    navigationListProps,
 
-  navigationWidth = 284,
-  styles,
-  slotProps,
+    navigationWidth = 284,
 
-}: AdaptiveScaffoldProps<TMeta>) {
-  const viewportInfo = useOptionalUIViewport();
-  const [, rootSize] = useElementSize<HTMLDivElement>();
+    className = "",
+    style,
+
+    styles,
+    slotProps,
+
+    ...rest
+  }: AdaptiveScaffoldProps<TMeta>,
+  ref: React.ForwardedRef<HTMLDivElement>
+) {
+  const viewportInfo =
+    useOptionalUIViewport();
+
+  const [
+    rootRef,
+    rootSize,
+  ] =
+    useElementSize<HTMLDivElement>();
+
+  const setRootRefs =
+    React.useCallback(
+      (
+        node:
+          | HTMLDivElement
+          | null
+      ) => {
+        /*
+         * El ref público y la medición deben observar el mismo nodo propietario.
+         * Separarlos permitiría que el modo contenido mida un layout distinto
+         * del que recibe id, eventos, estilos y atributos públicos.
+         */
+        rootRef.current = node;
+        setRef(ref, node);
+      },
+      [
+        ref,
+        rootRef,
+      ]
+    );
 
   const fallbackItem = React.useMemo(
     () => getFirstSelectableNavigationNode(items),
@@ -155,7 +193,11 @@ export function AdaptiveScaffold<
   const resolvedMode = resolveAdaptiveScaffoldMode({
     mode,
     width: responsiveWidth,
-    fallbackKind: viewportInfo?.kind ?? "mobile",
+    fallbackKind:
+      viewport === "contained"
+        ? "mobile"
+        : viewportInfo?.kind ??
+          "mobile",
     breakpoints:
       viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
   });
@@ -220,7 +262,73 @@ export function AdaptiveScaffold<
     activeItem?.label ??
     currentActiveId;
 
-  const resolvedSubtitle = resolveAdaptiveValue(subtitle, context);
+  const resolvedSubtitle =
+    resolveAdaptiveValue(
+      subtitle,
+      context
+    );
+
+  const rootSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot: "root",
+      styles,
+      slotProps,
+    });
+
+  const {
+    className:
+      adaptiveRootClassName = "",
+
+    style:
+      adaptiveRootStyle,
+
+    ...adaptiveRootRest
+  } = rootSlot;
+
+  /*
+   * Precedencia del root:
+   * scaffoldProps aporta la base, slotProps.root adapta el patrón y las props
+   * HTML directas son el contrato final del consumidor.
+   *
+   * Todo se entrega al slot root de Scaffold porque Scaffold lo aplica después
+   * de sus props generales sobre el mismo Screen que posee el layout.
+   */
+  const rootClassName = [
+    scaffoldProps?.className,
+    adaptiveRootClassName,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const rootStyle: React.CSSProperties = {
+    ...scaffoldProps?.style,
+    ...adaptiveRootStyle,
+    ...style,
+  };
+
+  const rootScaffoldSlotProps = {
+    ...scaffoldProps?.slotProps,
+
+    root: {
+      ...scaffoldProps?.slotProps?.root,
+      ...adaptiveRootRest,
+      ...rest,
+
+      "data-ui-adaptive-scaffold-root":
+        "",
+
+      "data-ui-adaptive-scaffold-mode":
+        resolvedMode,
+    },
+  };
+
+  const appBarSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot: "appBar",
+      styles,
+      slotProps,
+    });
 
   const bodySlot = resolveSlot({
     slot: "body",
@@ -235,36 +343,92 @@ export function AdaptiveScaffold<
     },
   });
 
-  const sidebarSlot = resolveSlot({
-    slot: "sidebar",
-    styles,
-    slotProps,
-    baseStyle: {
-      width: cssSize(navigationWidth),
-      minWidth: cssSize(navigationWidth),
-      maxWidth: cssSize(navigationWidth),
-      minHeight: 0,
-      overflow: "auto",
-      padding: "0.75rem",
-      boxSizing: "border-box",
-      borderRight: "1px solid var(--ui-border)",
-      background:
-        "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
-    },
-  });
+  /*
+   * El slot estructural se resuelve primero y el slot específico del modo
+   * después. Así tabletNavigation/desktopNavigation pueden especializar
+   * rail/sidebar sin añadir wrappers ni duplicar ownership del nodo.
+   */
+  const tabletRailSlot =
+    resolveMergedSlot<AdaptiveScaffoldSlot>({
+      slots: [
+        "rail",
+        "tabletNavigation",
+      ],
 
-  const railSlot = resolveSlot({
-    slot: "rail",
-    styles,
-    slotProps,
-    baseStyle: {
-      flex: "0 0 auto",
-      minHeight: 0,
-      borderRight: "1px solid var(--ui-border)",
-    },
-  });
+      styles,
+      slotProps,
 
-  const contentSlot = getContentSlot(resolvedMode, styles, slotProps);
+      baseStyle: {
+        flex: "0 0 auto",
+        minHeight: 0,
+        borderRight:
+          "1px solid var(--ui-border)",
+      },
+    });
+
+  const desktopRailSlot =
+    resolveMergedSlot<AdaptiveScaffoldSlot>({
+      slots: [
+        "rail",
+        "desktopNavigation",
+      ],
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        flex: "0 0 auto",
+        minHeight: 0,
+        borderRight:
+          "1px solid var(--ui-border)",
+      },
+    });
+
+  const desktopSidebarSlot =
+    resolveMergedSlot<AdaptiveScaffoldSlot>({
+      slots: [
+        "sidebar",
+        "desktopNavigation",
+      ],
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        width:
+          cssSize(
+            navigationWidth
+          ),
+
+        minWidth:
+          cssSize(
+            navigationWidth
+          ),
+
+        maxWidth:
+          cssSize(
+            navigationWidth
+          ),
+
+        minHeight: 0,
+        overflow: "auto",
+        padding: "0.75rem",
+        boxSizing: "border-box",
+
+        borderRight:
+          "1px solid var(--ui-border)",
+
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
+      },
+    });
+
+  const contentSlot =
+    getContentSlot(
+      resolvedMode,
+      styles,
+      slotProps
+    );
 
   const resolvedNavigation =
     navigationSlots?.[resolvedMode];
@@ -286,6 +450,8 @@ export function AdaptiveScaffold<
 
   const appBar = showAppBar ? (
     <Box
+      {...appBarSlot}
+
       data-ui-adaptive-scaffold-app-bar=""
     >
       <TopAppBar
@@ -348,6 +514,56 @@ export function AdaptiveScaffold<
       </BottomNavigation>
     ) : null;
 
+  const mobileNavigationSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot: "mobileNavigation",
+      styles,
+      slotProps,
+
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+      },
+    });
+
+  const tabletBottomNavigationSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot: "tabletNavigation",
+      styles,
+      slotProps,
+
+      baseStyle: {
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 0,
+      },
+    });
+
+  const mobileNavigationNode =
+    hasCustomNavigation ? (
+      <Box
+        {...mobileNavigationSlot}
+
+        data-ui-adaptive-scaffold-mobile-navigation=""
+        data-ui-adaptive-scaffold-navigation-placement={
+          navigationPlacement
+        }
+      >
+        {customNavigation}
+      </Box>
+    ) : mobileNavigation ===
+      "bottom" ? (
+      <Box
+        {...mobileNavigationSlot}
+
+        data-ui-adaptive-scaffold-mobile-navigation=""
+        data-ui-adaptive-scaffold-navigation-placement="bottom"
+      >
+        {bottomNavigation}
+      </Box>
+    ) : null;
+
   const railNavigation =
     tabletNavigation === "rail" || desktopNavigation === "rail" ? (
       <NavigationRail
@@ -405,49 +621,67 @@ export function AdaptiveScaffold<
   if (resolvedMode === "mobile") {
     return (
       <Scaffold
+        {...scaffoldProps}
+
+        ref={setRootRefs}
+
         viewport={viewport}
+
         appBar={appBar}
+
         footer={
-          hasCustomNavigation
-            ? navigationPlacement === "bottom"
-              ? customNavigation
-              : undefined
-            : mobileNavigation === "bottom"
-              ? bottomNavigation
-              : undefined
+          navigationPlacement ===
+          "bottom"
+            ? mobileNavigationNode
+            : undefined
         }
+
         floating={
           resolveAdaptiveValue(
             floating,
             context
           )
         }
+
         scrollable={false}
-        {...scaffoldProps}
+
+        className={
+          rootClassName
+        }
+
+        style={
+          rootStyle
+        }
+
+        slotProps={
+          rootScaffoldSlotProps
+        }
       >
         {
-          hasCustomNavigation &&
-            navigationPlacement === "top"
-            ? customNavigation
+          navigationPlacement ===
+          "top"
+            ? mobileNavigationNode
             : null
         }
 
         <Box
           {...contentSlot}
+
           data-ui-adaptive-scaffold-content=""
           data-ui-adaptive-scaffold-mobile-content=""
+
           style={{
             width: "100%",
             height: "100%",
             minWidth: 0,
             minHeight: 0,
             overflow: "hidden",
+
             ...contentSlot.style,
           }}
         >
           {content}
         </Box>
-
       </Scaffold>
     );
   }
@@ -519,26 +753,43 @@ export function AdaptiveScaffold<
     });
 
   const defaultNavigationNode =
-    showTabletRail || showDesktopRail ? (
+    showTabletRail ? (
       <Box
-        {...railSlot}
+        {...tabletRailSlot}
+
         data-ui-adaptive-scaffold-rail=""
+        data-ui-adaptive-scaffold-tablet-navigation=""
+      >
+        {railNavigation}
+      </Box>
+    ) : showDesktopRail ? (
+      <Box
+        {...desktopRailSlot}
+
+        data-ui-adaptive-scaffold-rail=""
+        data-ui-adaptive-scaffold-desktop-navigation=""
       >
         {railNavigation}
       </Box>
     ) : showDesktopSidebar ? (
       <Box
-        {...sidebarSlot}
+        {...desktopSidebarSlot}
+
         data-ui-adaptive-scaffold-sidebar=""
+        data-ui-adaptive-scaffold-desktop-navigation=""
       >
         <NavigationList
           items={items}
           activeId={currentActiveId}
           activeBehavior="contains"
           openActiveParents
+
           {...navigationListProps}
+
           onSelect={(item) => {
-            handleNavigationListSelect(item);
+            handleNavigationListSelect(
+              item
+            );
           }}
         />
       </Box>
@@ -577,16 +828,30 @@ export function AdaptiveScaffold<
     </Box>
   );
 
+  const tabletBottomNavigationNode =
+    showTabletBottom ? (
+      <Box
+        {...tabletBottomNavigationSlot}
+
+        data-ui-adaptive-scaffold-tablet-navigation=""
+        data-ui-adaptive-scaffold-navigation-placement="bottom"
+      >
+        {bottomNavigation}
+      </Box>
+    ) : undefined;
+
   return (
     <Scaffold
+      {...scaffoldProps}
+
+      ref={setRootRefs}
+
       viewport={viewport}
 
       appBar={appBar}
 
       footer={
-        showTabletBottom
-          ? bottomNavigation
-          : undefined
+        tabletBottomNavigationNode
       }
 
       floating={
@@ -598,19 +863,32 @@ export function AdaptiveScaffold<
 
       scrollable={false}
 
-      {...scaffoldProps}
+      className={
+        rootClassName
+      }
+
+      style={
+        rootStyle
+      }
+
+      slotProps={
+        rootScaffoldSlotProps
+      }
     >
       <Box
         {...bodySlot}
+
         data-ui-adaptive-scaffold-body=""
       >
-        {sideNavigationPlacement === "start"
+        {sideNavigationPlacement ===
+        "start"
           ? navigationNode
           : null}
 
         {contentNode}
 
-        {sideNavigationPlacement === "end"
+        {sideNavigationPlacement ===
+        "end"
           ? navigationNode
           : null}
       </Box>
@@ -618,4 +896,24 @@ export function AdaptiveScaffold<
   );
 }
 
-AdaptiveScaffold.displayName = "AdaptiveScaffold";
+type AdaptiveScaffoldComponent = <
+  TMeta = unknown,
+>(
+  props:
+    AdaptiveScaffoldProps<TMeta> &
+    React.RefAttributes<HTMLDivElement>
+) => React.ReactElement | null;
+
+const AdaptiveScaffoldWithRef =
+  React.forwardRef(
+    AdaptiveScaffoldImpl
+  ) as unknown as
+    AdaptiveScaffoldComponent & {
+      displayName?: string;
+    };
+
+AdaptiveScaffoldWithRef.displayName =
+  "AdaptiveScaffold";
+
+export const AdaptiveScaffold =
+  AdaptiveScaffoldWithRef;

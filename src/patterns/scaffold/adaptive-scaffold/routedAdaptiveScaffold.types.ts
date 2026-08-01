@@ -12,7 +12,9 @@ import type {
 
 export interface RoutedAdaptiveScaffoldProps
     extends Omit<
-        AdaptiveScaffoldProps,
+        AdaptiveScaffoldProps<
+            NavigationLinkMeta
+        >,
         "items" | "activeId" | "onActiveIdChange"
     > {
 

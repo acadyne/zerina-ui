@@ -2,87 +2,90 @@
 import React from "react";
 
 import {
-    findNavigationNode,
+  findNavigationNode,
 } from "../../navigation";
 
 import {
-    AdaptiveScaffold,
+  AdaptiveScaffold,
 } from "./AdaptiveScaffold";
 
 import type {
-    RoutedAdaptiveScaffoldProps,
+  RoutedAdaptiveScaffoldProps,
 } from "./routedAdaptiveScaffold.types";
 
 
-export function RoutedAdaptiveScaffold({
-    items,
+export const RoutedAdaptiveScaffold =
+  React.forwardRef<
+    HTMLDivElement,
+    RoutedAdaptiveScaffoldProps
+  >(
+    (
+      {
+        items,
 
-    activeId,
+        activeId,
 
-    navigate,
+        navigate,
 
-    onItemChange,
+        onItemChange,
 
-    ...props
-
-}: RoutedAdaptiveScaffoldProps) {
-
-    const handleChange =
+        ...props
+      },
+      ref
+    ) => {
+      const handleChange =
         React.useCallback(
-            (
-                id: string
-            ) => {
-
-                const item =
-                    findNavigationNode(
-                        items,
-                        id
-                    );
-
-                if (!item) {
-                    return;
-                }
-
-
-                onItemChange?.(
-                    item
-                );
-
-
-                const href =
-                    item.meta?.href;
-
-
-                if (href) {
-                    navigate?.(
-                        href,
-                        item
-                    );
-                }
-            },
-            [
+          (
+            id: string
+          ) => {
+            const item =
+              findNavigationNode(
                 items,
-                navigate,
-                onItemChange,
-            ]
+                id
+              );
+
+            if (!item) {
+              return;
+            }
+
+            onItemChange?.(
+              item
+            );
+
+            const href =
+              item.meta?.href;
+
+            if (href) {
+              navigate?.(
+                href,
+                item
+              );
+            }
+          },
+          [
+            items,
+            navigate,
+            onItemChange,
+          ]
         );
 
-
-    return (
+      return (
         <AdaptiveScaffold
-            {...props}
+          {...props}
 
-            items={items}
+          ref={ref}
 
-            activeId={activeId}
+          items={items}
 
-            onActiveIdChange={
-                handleChange
-            }
+          activeId={activeId}
+
+          onActiveIdChange={
+            handleChange
+          }
         />
-    );
-}
-
+      );
+    }
+  );
 
 RoutedAdaptiveScaffold.displayName =
-    "RoutedAdaptiveScaffold";
+  "RoutedAdaptiveScaffold";
