@@ -8,8 +8,8 @@ import type {
   DataTableColumn,
 } from "../dataTable.types";
 import {
-  createExportRows,
-  rowsToCsv,
+  createDataTableExportData,
+  dataTableExportToCsv,
 } from "../dataTable.utils";
 
 export interface UseDataTableExportOptions<
@@ -23,9 +23,58 @@ export interface UseDataTableExportOptions<
 function normalizeCsvFilename(
   filename: string
 ): string {
-  return filename.endsWith(".csv")
-    ? filename
-    : `${filename}.csv`;
+  const withoutExtension =
+    filename
+      .trim()
+      .replace(
+        /\.csv$/i,
+        ""
+      );
+
+  /*
+   * El atributo download no debe recibir rutas ni caracteres reservados.
+   * Se conserva el texto legible y solo se neutraliza lo que puede cambiar
+   * su interpretación entre navegadores y sistemas de archivos.
+   */
+  const sanitized =
+    withoutExtension
+      .replace(
+        /[\u0000-\u001f\u007f]/g,
+        ""
+      )
+      .replace(
+        /[\\/]+/g,
+        "-"
+      )
+      .replace(
+        /[<>:"|?*]+/g,
+        "-"
+      )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .replace(
+        /^[. ]+|[. ]+$/g,
+        ""
+      );
+
+  const base =
+    sanitized ||
+    "data-table";
+
+  /*
+   * Estos nombres están reservados en Windows incluso con extensión.
+   * El sufijo preserva intención sin producir una descarga inválida.
+   */
+  const safeBase =
+    /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(
+      base
+    )
+      ? `${base}-data`
+      : base;
+
+  return `${safeBase}.csv`;
 }
 
 export function useDataTableExport<
@@ -35,9 +84,9 @@ export function useDataTableExport<
   columns,
   filename,
 }: UseDataTableExportOptions<T>) {
-  const exportRows = useMemo(
+  const exportData = useMemo(
     () =>
-      createExportRows(
+      createDataTableExportData(
         rows,
         columns
       ),
@@ -49,35 +98,34 @@ export function useDataTableExport<
 
   const csv = useMemo(
     () =>
-      rowsToCsv(
-        exportRows
+      dataTableExportToCsv(
+        exportData
       ),
-    [exportRows]
+    [exportData]
   );
 
-  const download =
-    useMemo(
-      () =>
-        normalizeCsvFilename(
-          filename
-        ),
-      [filename]
-    );
+  const download = useMemo(
+    () =>
+      normalizeCsvFilename(
+        filename
+      ),
+    [filename]
+  );
 
   const [
     href,
     setHref,
-  ] =
-    useState<string | undefined>(
-      undefined
-    );
+  ] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
     if (
       !csv ||
+      typeof Blob === "undefined" ||
       typeof URL === "undefined" ||
       typeof URL.createObjectURL !==
-      "function"
+        "function"
     ) {
       setHref(undefined);
       return;
@@ -106,10 +154,11 @@ export function useDataTableExport<
   }, [csv]);
 
   return {
-    exportRows,
+    exportData,
 
     canExport:
-      exportRows.length > 0 &&
+      exportData.columns.length > 0 &&
+      exportData.rows.length > 0 &&
       href !== undefined,
 
     href,

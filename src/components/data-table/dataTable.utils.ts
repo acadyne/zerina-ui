@@ -247,66 +247,179 @@ export function getVisibleColumns<
   return columns.filter((column) => !column.hidden);
 }
 
-export function createExportRows<T extends object>(
-  rows: T[],
-  columns: DataTableColumn<T>[]
-): Record<string, unknown>[] {
-  const exportColumns = columns.filter(
-    (column) =>
-      !column.hidden &&
-      (column.accessor !== undefined || typeof column.exportValue === "function")
-  );
-
-  return rows.map((row) => {
-    const record: Record<string, unknown> = {};
-
-    exportColumns.forEach((column) => {
-      record[column.header] =
-        typeof column.exportValue === "function"
-          ? column.exportValue(row)
-          : column.accessor !== undefined
-            ? (row as Record<string, unknown>)[column.accessor as string]
-            : "";
-    });
-
-    return record;
-  });
+export interface DataTableExportColumn {
+  id: string;
+  header: string;
 }
 
-function escapeCsvValue(value: unknown): string {
-  if (value == null) return "";
+export interface DataTableExportData {
+  columns: DataTableExportColumn[];
+  rows: unknown[][];
+}
+
+function getDataTableExportValue<
+  T extends object,
+>(
+  row: T,
+  column: DataTableColumn<T>
+): unknown {
+  if (
+    typeof column.exportValue ===
+    "function"
+  ) {
+    return column.exportValue(row);
+  }
+
+  if (column.accessor !== undefined) {
+    return (
+      row as Record<string, unknown>
+    )[column.accessor as string];
+  }
+
+  return "";
+}
+
+/**
+ * Conserva la identidad y el orden de las columnas separados de sus etiquetas.
+ *
+ * Dos columnas pueden compartir el mismo encabezado visible sin sobrescribirse:
+ * cada fila se representa como una matriz alineada por posición e identidad.
+ */
+export function createDataTableExportData<
+  T extends object,
+>(
+  rows: T[],
+  columns: DataTableColumn<T>[]
+): DataTableExportData {
+  assertUniqueDataTableColumnIds(
+    columns
+  );
+
+  const exportColumns = columns
+    .filter(
+      (column) =>
+        !column.hidden &&
+        (
+          column.accessor !== undefined ||
+          typeof column.exportValue ===
+            "function"
+        )
+    )
+    .map((column) => ({
+      column,
+      id: getDataTableColumnId(
+        column
+      ),
+      header: column.header,
+    }));
+
+  return {
+    columns: exportColumns.map(
+      ({ id, header }) => ({
+        id,
+        header,
+      })
+    ),
+
+    rows: rows.map(
+      (row) =>
+        exportColumns.map(
+          ({ column }) =>
+            getDataTableExportValue(
+              row,
+              column
+            )
+        )
+    ),
+  };
+}
+
+function escapeCsvValue(
+  value: unknown
+): string {
+  if (value == null) {
+    return "";
+  }
 
   const raw =
-    typeof value === "object" && !(value instanceof Date)
+    typeof value === "object" &&
+    !(value instanceof Date)
       ? getCellText(value)
       : String(value);
 
-  /**
-   * Protege contra CSV injection cuando el archivo se abre en Excel,
-   * Google Sheets u otras hojas de cálculo.
+  /*
+   * trimStart solo participa en la detección. El valor original se conserva,
+   * pero se antepone un apóstrofo cuando espacios o controles ocultan una
+   * fórmula que una hoja de cálculo podría ejecutar.
    */
-  const safeRaw = /^[=+\-@]/.test(raw) ? `'${raw}` : raw;
+  const safeRaw =
+    /^[=+\-@]/.test(
+      raw.trimStart()
+    )
+      ? `'${raw}`
+      : raw;
 
   if (/[",\n\r]/.test(safeRaw)) {
-    return `"${safeRaw.replace(/"/g, '""')}"`;
+    return `"${safeRaw.replace(
+      /"/g,
+      '""'
+    )}"`;
   }
 
   return safeRaw;
 }
 
-export function rowsToCsv(
-  rows: Record<string, unknown>[]
+/**
+ * Usa CRLF y BOM UTF-8 para mantener interoperabilidad con hojas de cálculo.
+ */
+export function dataTableExportToCsv(
+  exportData: DataTableExportData
 ): string {
-  if (rows.length === 0) return "";
+  const {
+    columns,
+    rows,
+  } = exportData;
 
-  const headers = Object.keys(rows[0]);
+  if (
+    columns.length === 0 ||
+    rows.length === 0
+  ) {
+    return "";
+  }
+
+  const expectedCellCount =
+    columns.length;
+
+  for (const row of rows) {
+    if (
+      row.length !==
+      expectedCellCount
+    ) {
+      throw new Error(
+        "DataTable export rows must align with the exported columns."
+      );
+    }
+  }
 
   const lines = [
-    headers.map(escapeCsvValue).join(","),
-    ...rows.map((row) => headers.map((header) => escapeCsvValue(row[header])).join(",")),
+    columns
+      .map(
+        ({ header }) =>
+          escapeCsvValue(header)
+      )
+      .join(","),
+
+    ...rows.map(
+      (row) =>
+        row
+          .map(escapeCsvValue)
+          .join(",")
+    ),
   ];
 
-  return lines.join("\n");
+  return `\uFEFF${lines.join(
+    "\r\n"
+  )}`;
 }
 
 export function coerceEditableValue(

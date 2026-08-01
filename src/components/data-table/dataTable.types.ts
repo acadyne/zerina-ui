@@ -66,6 +66,12 @@ export type DataTableColumn<T> = {
    * No debe depender del encabezado visible ni de su posición.
    */
   id: string;
+
+  /**
+   * Etiqueta visible y encabezado CSV.
+   *
+   * Puede repetirse porque id conserva la identidad estructural.
+   */
   header: string;
   accessor?: keyof T;
   Cell?: (row: T) => React.ReactNode;
@@ -106,6 +112,9 @@ export interface DataTableProps<T extends object, IDType extends DataTableRowId>
   selectedIds?: IDType[];
   onSelectionChange?: (selectedIds: IDType[]) => void;
 
+  /**
+   * Nombre base de descarga. Se normaliza a un archivo .csv seguro.
+   */
   exportFilename?: string;
   enableExportCSV?: boolean;
   renderActions?: () => React.ReactNode;
@@ -193,6 +202,9 @@ export interface EditableDataTableProps<
    */
   createEmptyRow: () => T;
 
+  /**
+   * Nombre base de descarga. Se normaliza a un archivo .csv seguro.
+   */
   exportFilename?: string;
   enableExportCSV?: boolean;
   enableSearch?: boolean;
