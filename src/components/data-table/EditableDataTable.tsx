@@ -92,6 +92,7 @@ export function EditableDataTable<
 
   const selection = useDataTableSelection<T, IDType>({
     rows: table.paginatedData,
+    allRows: data,
     selectedIds,
     onSelectionChange,
     getRowId: getId,
@@ -137,6 +138,26 @@ export function EditableDataTable<
     const nextRows = [...data];
     nextRows[rowIndex] = nextRow;
 
+    /*
+     * La identidad de una fila es ownership estructural, no un valor editable.
+     * La colección se valida antes de cualquier callback para impedir estados
+     * duplicados, inválidos o parcialmente notificados.
+     */
+    const nextGetId =
+      createDataTableRowIdResolver(
+        nextRows,
+        getRowId
+      );
+
+    const nextRowId =
+      nextGetId(nextRow);
+
+    if (nextRowId !== rowId) {
+      throw new Error(
+        "EditableDataTable row identity cannot change during cell editing."
+      );
+    }
+
     onCellChange?.({
       rowId,
       column: column.accessor,
@@ -163,11 +184,13 @@ export function EditableDataTable<
   };
 
   const handleDeleteRows = () => {
-    if (!selectedIds.length) return;
+    if (!selection.selectedIds.length) {
+      return;
+    }
 
     const nextRows = data.filter(
       (row) =>
-        !selectedIds.includes(
+        !selection.selectedIdSet.has(
           getId(row)
         )
     );
@@ -222,7 +245,7 @@ export function EditableDataTable<
           enableDeleteRows
         }
         canDeleteRows={
-          selectedIds.length > 0
+          selection.selectedIds.length > 0
         }
         onDeleteRows={
           handleDeleteRows
@@ -244,7 +267,7 @@ export function EditableDataTable<
           editable
           rows={table.paginatedData}
           columns={table.visibleColumns}
-          selectedIds={selectedIds}
+          selectedIds={selection.selectedIds}
           enableSelection={enableSelection}
           getRowId={getId}
           onToggleRow={selection.toggleSelectRow}
@@ -257,7 +280,7 @@ export function EditableDataTable<
         <DataTableEditableDesktop
           rows={table.paginatedData}
           columns={table.visibleColumns}
-          selectedIds={selectedIds}
+          selectedIds={selection.selectedIds}
           enableSelection={enableSelection}
           getRowId={getId}
           onToggleRow={selection.toggleSelectRow}

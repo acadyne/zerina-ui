@@ -99,6 +99,10 @@ export interface DataTableProps<T extends object, IDType extends DataTableRowId>
   data: T[];
   columns: DataTableColumn<T>[] | (() => Promise<DataTableColumn<T>[]>);
 
+  /**
+   * Se deduplican y solo se conservan IDs presentes en data,
+   * incluidas las filas válidas de otras páginas.
+   */
   selectedIds?: IDType[];
   onSelectionChange?: (selectedIds: IDType[]) => void;
 
@@ -172,6 +176,10 @@ export interface EditableDataTableProps<
   onDataChange: (rows: T[]) => void;
   onCellChange?: (change: EditableDataTableChange<T, IDType>) => void;
 
+  /**
+   * Se deduplican y solo se conservan IDs presentes en data,
+   * incluidas las filas válidas de otras páginas.
+   */
   selectedIds?: IDType[];
   onSelectionChange?: (selectedIds: IDType[]) => void;
 

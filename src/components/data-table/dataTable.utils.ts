@@ -21,6 +21,36 @@ function isValidDataTableRowId(
 }
 
 /**
+ * Valida y deduplica selección sin convertir números en strings.
+ *
+ * La pertenencia a la colección se resuelve aparte porque una selección
+ * puede abarcar filas válidas que no están en la página visible.
+ */
+export function normalizeDataTableRowIds<
+  IDType extends DataTableRowId,
+>(
+  ids: readonly IDType[]
+): IDType[] {
+  const normalizedIds: IDType[] = [];
+  const seen = new Set<DataTableRowId>();
+
+  for (const id of ids) {
+    if (!isValidDataTableRowId(id)) {
+      throw new Error(
+        "DataTable selectedIds must contain non-empty strings or finite numbers."
+      );
+    }
+
+    if (!seen.has(id)) {
+      seen.add(id);
+      normalizedIds.push(id);
+    }
+  }
+
+  return normalizedIds;
+}
+
+/**
  * Captura la identidad de cada fila una vez por colección.
  *
  * Además de detectar IDs inválidos o duplicados, evita que un getRowId

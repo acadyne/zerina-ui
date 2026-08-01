@@ -78,6 +78,7 @@ export function DataTable<
 
   const selection = useDataTableSelection<T, IDType>({
     rows: table.paginatedData,
+    allRows: data,
     selectedIds,
     onSelectionChange,
     getRowId: getId,
@@ -143,7 +144,7 @@ export function DataTable<
         <DataTableMobileCards
           rows={table.paginatedData}
           columns={table.visibleColumns}
-          selectedIds={selectedIds}
+          selectedIds={selection.selectedIds}
           enableSelection={enableSelection}
           getRowId={getId}
           onToggleRow={selection.toggleSelectRow}
@@ -155,7 +156,7 @@ export function DataTable<
         <DataTableDesktop
           rows={table.paginatedData}
           columns={table.visibleColumns}
-          selectedIds={selectedIds}
+          selectedIds={selection.selectedIds}
           enableSelection={enableSelection}
           getRowId={getId}
           onToggleRow={selection.toggleSelectRow}
