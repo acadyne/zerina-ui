@@ -307,5 +307,9 @@ const BoxForwardRef =
 
 BoxForwardRef.displayName = "Box";
 
+/*
+ * React.forwardRef no preserva la firma genérica polimórfica.
+ * La implementación valida props y ref; este cast restaura la API pública.
+ */
 export const Box =
   BoxForwardRef as unknown as BoxComponent;

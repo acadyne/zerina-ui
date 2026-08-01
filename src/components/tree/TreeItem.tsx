@@ -591,6 +591,10 @@ export function TreeItem<TNode>({
     onItemKeyDown(context);
   };
 
+  /*
+   * El elemento role="treeitem" padre concentra foco, teclado y ARIA.
+   * Este handler amplía la activación por puntero sin crear otro control.
+   */
   const handleRowClick = (
     event: MouseEvent<HTMLDivElement>
   ): void => {
@@ -619,6 +623,10 @@ export function TreeItem<TNode>({
     void toggleNode();
   };
 
+  /*
+   * Los controles renderizados conservan su propia semántica.
+   * Este contenedor detiene la propagación para no activar también la fila.
+   */
   const handleActionsClick = (
     event: MouseEvent<HTMLDivElement>
   ): void => {

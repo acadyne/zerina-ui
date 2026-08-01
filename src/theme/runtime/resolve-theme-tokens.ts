@@ -124,6 +124,10 @@ function mergeStandardTokens(
   base: ResolvedThemeTokens,
   override: ThemeTokens
 ): ResolvedStandardThemeTokens {
+  /*
+   * Las formas públicas son más específicas que el registro recursivo.
+   * El manifiesto gobierna las claves y el walker valida las ramas anidadas.
+   */
   return mergeStandardTokenBranch(
     THEME_TOKEN_MANIFEST,
     base as unknown as

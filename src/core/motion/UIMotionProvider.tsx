@@ -31,6 +31,10 @@ type MotionDocumentAttributeValues = Record<
   string | null
 >;
 
+/*
+ * Coordina un único owner de motion por Document.
+ * El símbolo impide que un cleanup obsoleto libere un owner más reciente.
+ */
 const motionDocumentOwners =
   new WeakMap<Document, symbol>();
 

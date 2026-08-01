@@ -8,6 +8,13 @@ type BodyStyleSnapshot = {
   width: string;
 };
 
+/*
+ * El scroll del body es un recurso global compartido.
+ * El primer lock aplica estilos y solo el último unlock los restaura.
+ *
+ * El snapshot y savedScrollY pertenecen al document global. Los locks
+ * posteriores no pueden reemplazar el estado capturado por el primero.
+ */
 const activeBodyScrollLocks =
   new Set<string>();
 

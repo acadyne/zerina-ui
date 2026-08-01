@@ -904,6 +904,10 @@ type AdaptiveScaffoldComponent = <
     React.RefAttributes<HTMLDivElement>
 ) => React.ReactElement | null;
 
+/*
+ * React.forwardRef borra la firma genérica de TMeta.
+ * El cast restaura únicamente la API pública validada por la implementación.
+ */
 const AdaptiveScaffoldWithRef =
   React.forwardRef(
     AdaptiveScaffoldImpl

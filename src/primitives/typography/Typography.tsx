@@ -240,5 +240,9 @@ const TypographyForwardRef =
 TypographyForwardRef.displayName =
   "Typography";
 
+/*
+ * React.forwardRef no preserva la firma genérica polimórfica.
+ * La implementación valida props y ref; este cast restaura la API pública.
+ */
 export const Typography =
   TypographyForwardRef as unknown as TypographyComponent;

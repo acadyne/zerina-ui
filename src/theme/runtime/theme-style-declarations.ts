@@ -157,6 +157,10 @@ export function createThemeStyleDeclarations(
   const declarations:
     ThemeStyleDeclaration[] = [];
 
+  /*
+   * ResolvedThemeTokens es más específico que el registro recursivo interno.
+   * El manifiesto controla las claves y readTokenRecord valida cada rama.
+   */
   appendThemeStyleDeclarations(
     RUNTIME_THEME_TOKEN_MANIFEST,
     tokens as unknown as

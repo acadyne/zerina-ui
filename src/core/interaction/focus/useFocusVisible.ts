@@ -15,6 +15,10 @@ interface DocumentInputModalityTracker {
 }
 
 
+/*
+ * Comparte un único tracker de modalidad por Document.
+ * El contador retira los listeners cuando desaparece el último consumidor.
+ */
 const documentTrackers =
   new WeakMap<
     Document,

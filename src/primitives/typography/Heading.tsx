@@ -162,5 +162,9 @@ const HeadingForwardRef =
 HeadingForwardRef.displayName =
   "Heading";
 
+/*
+ * React.forwardRef no preserva la firma genérica polimórfica.
+ * La implementación valida props y ref; este cast restaura la API pública.
+ */
 export const Heading =
   HeadingForwardRef as unknown as HeadingComponent;

@@ -34,6 +34,10 @@ type ViewportDocumentAttributeValues = Record<
   string | null
 >;
 
+/*
+ * Coordina un único owner de viewport por Document.
+ * El símbolo impide que un cleanup obsoleto libere un owner más reciente.
+ */
 const viewportDocumentOwners =
   new WeakMap<Document, symbol>();
 

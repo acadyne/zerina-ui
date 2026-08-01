@@ -83,6 +83,10 @@ const UIThemeContext =
   );
 
 
+/*
+ * Coordina un único owner de tema por Document.
+ * El símbolo evita que un cleanup obsoleto restaure estado de otro provider.
+ */
 const themeDocumentOwners =
   new WeakMap<Document, symbol>();
 

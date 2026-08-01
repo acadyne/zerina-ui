@@ -260,6 +260,10 @@ function mergeDefinedSlotProperties(
   ...sources: Array<SlotRestProps | undefined>
 ): SlotRestProps {
   const result: SlotRestProps = {};
+  /*
+   * SlotRestProps no expone un índice string, pero aquí solo se copian
+   * propiedades procedentes de otros valores SlotRestProps.
+   */
   const resultRecord =
     result as unknown as Record<string, unknown>;
 

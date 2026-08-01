@@ -27,23 +27,30 @@ type DataProperties =
   Map<string, unknown>;
 
 
-const VALID_SOURCES =
-  new Set<ThemeSource>([
+/*
+ * Tablas privadas de pertenencia: la validación puede consultarlas,
+ * pero ninguna ruta de ejecución debe mutarlas.
+ */
+const VALID_SOURCES:
+  ReadonlySet<ThemeSource> =
+    new Set<ThemeSource>([
     "builtin",
     "custom",
     "generated",
   ]);
 
 
-const VALID_COLOR_SCHEMES =
-  new Set([
+const VALID_COLOR_SCHEMES:
+  ReadonlySet<string> =
+    new Set([
     "light",
     "dark",
   ]);
 
 
-const THEME_KEYS =
-  new Set([
+const THEME_KEYS:
+  ReadonlySet<string> =
+    new Set([
     "name",
     "source",
     "metadata",
@@ -52,8 +59,9 @@ const THEME_KEYS =
   ]);
 
 
-const METADATA_KEYS =
-  new Set([
+const METADATA_KEYS:
+  ReadonlySet<string> =
+    new Set([
     "label",
     "description",
     "icon",
