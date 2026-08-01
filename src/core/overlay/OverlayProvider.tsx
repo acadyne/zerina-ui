@@ -1,18 +1,29 @@
 // src/core/overlay/OverlayProvider.tsx
 import React from "react";
+import { assertValidOverlayId } from "./overlayId";
 
 type OverlayId = string;
+type OverlayOwner = symbol;
 
 type RegisteredOverlay = {
   id: OverlayId;
+  owner: OverlayOwner;
   layer: number;
   order: number;
 };
 
 type OverlayContextValue = {
   portalRoot: HTMLElement | null;
-  registerOverlay: (id: OverlayId, layer: number) => void;
-  unregisterOverlay: (id: OverlayId) => void;
+  registerOverlay: (
+    id: OverlayId,
+    layer: number,
+    owner: OverlayOwner
+  ) => void;
+
+  unregisterOverlay: (
+    id: OverlayId,
+    owner: OverlayOwner
+  ) => void;
   isTopmost: (id: OverlayId) => boolean;
   getTopmostId: () => OverlayId | null;
 };
@@ -74,9 +85,28 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     React.useState<RegisteredOverlay[]>([]);
 
   const orderRef = React.useRef(0);
+
+  /*
+   * El mapa permite distinguir una actualización legítima del mismo overlay
+   * de dos instancias que intentan compartir ID. Sin owner, el segundo overlay
+   * se fusionaría silenciosamente con el primero y podría liberar su registro.
+   */
+  const overlayOwnersRef =
+    React.useRef<
+      Map<
+        OverlayId,
+        OverlayOwner
+      >
+    >(new Map());
+
   const createdRootRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
+    assertValidOverlayId(
+      rootId,
+      "OverlayProvider rootId"
+    );
+
     const { node, created } = getOrCreateOverlayRoot(rootId);
 
     setPortalRoot(node);
@@ -97,8 +127,33 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   const registerOverlay = React.useCallback(
     (
       id: OverlayId,
-      layer: number
+      layer: number,
+      owner: OverlayOwner
     ) => {
+      assertValidOverlayId(
+        id,
+        "OverlayProvider"
+      );
+
+      const existingOwner =
+        overlayOwnersRef.current.get(
+          id
+        );
+
+      if (
+        existingOwner &&
+        existingOwner !== owner
+      ) {
+        throw new Error(
+          `Overlay ID "${id}" is already owned by another mounted overlay.`
+        );
+      }
+
+      overlayOwnersRef.current.set(
+        id,
+        owner
+      );
+
       setOverlays((current) => {
         const existing =
           current.find(
@@ -107,6 +162,14 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           );
 
         if (existing) {
+          if (
+            existing.owner !== owner
+          ) {
+            throw new Error(
+              `Overlay ID "${id}" is already owned by another mounted overlay.`
+            );
+          }
+
           if (
             existing.layer === layer
           ) {
@@ -134,6 +197,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           ...current,
           {
             id,
+            owner,
             layer,
             order:
               orderRef.current,
@@ -147,14 +211,37 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   const unregisterOverlay =
     React.useCallback(
       (
-        id: OverlayId
+        id: OverlayId,
+        owner: OverlayOwner
       ) => {
+        const activeOwner =
+          overlayOwnersRef.current.get(
+            id
+          );
+
+        /*
+         * Un cleanup obsoleto nunca puede liberar el registro adquirido por
+         * otra instancia que reutilizó el ID después de un cambio de montaje.
+         */
+        if (
+          activeOwner !== owner
+        ) {
+          return;
+        }
+
+        overlayOwnersRef.current.delete(
+          id
+        );
+
         setOverlays(
           (current) => {
             const next =
               current.filter(
                 (item) =>
-                  item.id !== id
+                  !(
+                    item.id === id &&
+                    item.owner === owner
+                  )
               );
 
             return next.length ===
@@ -238,19 +325,49 @@ export function useOverlayRegistration(
   layer: number,
   enabled = true
 ) {
-  const { registerOverlay, unregisterOverlay } = useOverlayContext();
+  const {
+    registerOverlay,
+    unregisterOverlay,
+  } = useOverlayContext();
+
+  const [owner] =
+    React.useState<OverlayOwner>(
+      () =>
+        Symbol(
+          "overlay-owner"
+        )
+    );
 
   React.useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    registerOverlay(id, layer);
+    assertValidOverlayId(
+      id,
+      "useOverlayRegistration"
+    );
+
+    registerOverlay(
+      id,
+      layer,
+      owner
+    );
 
     return () => {
-      unregisterOverlay(id);
+      unregisterOverlay(
+        id,
+        owner
+      );
     };
-  }, [enabled, id, layer, registerOverlay, unregisterOverlay]);
+  }, [
+    enabled,
+    id,
+    layer,
+    owner,
+    registerOverlay,
+    unregisterOverlay,
+  ]);
 }
 
 export function useIsOverlayTopmost(id: string): boolean {

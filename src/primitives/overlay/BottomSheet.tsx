@@ -1,5 +1,6 @@
 // src/primitives/overlay/BottomSheet.tsx
 import React from "react";
+import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
   DismissableLayer,
@@ -396,8 +397,11 @@ export const BottomSheet:
       );
 
     const overlayId =
-      overlayIdProp ??
-      `bottom-sheet-${reactId}`;
+      resolveOverlayId(
+        overlayIdProp,
+        reactId,
+        "bottom-sheet"
+      );
 
     const titleId =
       `${overlayId}-title`;

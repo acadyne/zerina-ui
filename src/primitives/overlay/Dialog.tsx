@@ -1,5 +1,6 @@
 // src/primitives/overlay/Dialog.tsx
 import React from "react";
+import { resolveOverlayId } from "../../core/overlay/overlayId";
 import {
   DismissableLayer,
   FocusScope,
@@ -403,8 +404,11 @@ export const Dialog:
       );
 
     const overlayId =
-      overlayIdProp ??
-      `dialog-${reactId}`;
+      resolveOverlayId(
+        overlayIdProp,
+        reactId,
+        "dialog"
+      );
 
     const titleId =
       `${overlayId}-title`;

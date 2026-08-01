@@ -1,6 +1,7 @@
 // src/core/overlay/ScrollLock.tsx
 
 import React from "react";
+import { assertValidOverlayId } from "./overlayId";
 import {
   acquireBodyScrollLock,
   releaseBodyScrollLock,
@@ -30,6 +31,11 @@ export const ScrollLock:
       ) {
         return;
       }
+
+      assertValidOverlayId(
+        overlayId,
+        "ScrollLock"
+      );
 
       acquireBodyScrollLock(
         overlayId

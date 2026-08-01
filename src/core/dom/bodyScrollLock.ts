@@ -24,6 +24,19 @@ function canUseDOM(): boolean {
   );
 }
 
+function assertValidBodyScrollLockId(
+  lockId: string
+): void {
+  if (
+    typeof lockId !== "string" ||
+    lockId.trim().length === 0
+  ) {
+    throw new Error(
+      "Body scroll lock ID must be a non-empty string."
+    );
+  }
+}
+
 function isIOSLikeEnvironment(): boolean {
   if (!canUseDOM()) {
     return false;
@@ -151,12 +164,34 @@ function applyBodyScrollLock(): void {
   const scrollbarWidth =
     getDocumentScrollbarWidth();
 
+  const computedPaddingRight =
+    Number.parseFloat(
+      window.getComputedStyle(
+        body
+      ).paddingRight
+    );
+
+  const existingPaddingRight =
+    Number.isFinite(
+      computedPaddingRight
+    )
+      ? computedPaddingRight
+      : 0;
+
   body.style.overflow =
     "hidden";
 
   if (scrollbarWidth > 0) {
+    /*
+     * La compensación se suma al padding computado. Reemplazarlo desplazaría
+     * el contenido de aplicaciones que ya reservan espacio en el body.
+     * El snapshot conserva el valor inline exacto para restaurarlo después.
+     */
     body.style.paddingRight =
-      `${scrollbarWidth}px`;
+      `${
+        existingPaddingRight +
+        scrollbarWidth
+      }px`;
   }
 }
 
@@ -192,6 +227,10 @@ function restoreBodyScrollState(): void {
 export function acquireBodyScrollLock(
   lockId: string
 ): void {
+  assertValidBodyScrollLockId(
+    lockId
+  );
+
   if (
     activeBodyScrollLocks.has(
       lockId
@@ -216,6 +255,10 @@ export function acquireBodyScrollLock(
 export function releaseBodyScrollLock(
   lockId: string
 ): void {
+  assertValidBodyScrollLockId(
+    lockId
+  );
+
   const existed =
     activeBodyScrollLocks.delete(
       lockId

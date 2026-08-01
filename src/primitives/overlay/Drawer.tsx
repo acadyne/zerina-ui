@@ -1,5 +1,6 @@
 // src/primitives/overlay/Drawer.tsx
 import React from "react";
+import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
   DismissableLayer,
@@ -359,8 +360,11 @@ export const Drawer:
       );
 
     const overlayId =
-      overlayIdProp ??
-      `drawer-${reactId}`;
+      resolveOverlayId(
+        overlayIdProp,
+        reactId,
+        "drawer"
+      );
 
     const titleId =
       `${overlayId}-title`;
