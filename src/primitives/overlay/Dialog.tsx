@@ -1161,11 +1161,18 @@ export const DialogClose =
             closeSlot.style
           }
           onPress={(event) => {
+            // El callback público puede cancelar el cierre.
+            onPress?.(event);
+
+            if (
+              event.defaultPrevented
+            ) {
+              return;
+            }
+
             ctx.onOpenChange?.(
               false
             );
-
-            onPress?.(event);
           }}
           {...rest}
         >
