@@ -113,11 +113,12 @@ export function useDataTableExport<
   );
 
   const [
-    href,
-    setHref,
-  ] = useState<
-    string | undefined
-  >(undefined);
+    hrefResource,
+    setHrefResource,
+  ] = useState<{
+    csv: string;
+    href: string;
+  } | null>(null);
 
   useEffect(() => {
     if (
@@ -127,7 +128,7 @@ export function useDataTableExport<
       typeof URL.createObjectURL !==
         "function"
     ) {
-      setHref(undefined);
+      setHrefResource(null);
       return;
     }
 
@@ -144,7 +145,10 @@ export function useDataTableExport<
         blob
       );
 
-    setHref(nextHref);
+    setHrefResource({
+      csv,
+      href: nextHref,
+    });
 
     return () => {
       URL.revokeObjectURL(
@@ -152,6 +156,16 @@ export function useDataTableExport<
       );
     };
   }, [csv]);
+
+  /*
+   * Un ObjectURL solo representa el CSV que lo creó. Esta comparación
+   * impide exponer durante un render el recurso perteneciente al commit
+   * anterior mientras el efecto publica y posee el siguiente.
+   */
+  const href =
+    hrefResource?.csv === csv
+      ? hrefResource.href
+      : undefined;
 
   return {
     exportData,

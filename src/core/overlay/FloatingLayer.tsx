@@ -1,5 +1,6 @@
 // src/core/overlay/FloatingLayer.tsx
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
   getElementRect,
   useElementRect,
@@ -571,7 +572,7 @@ export const FloatingLayer:
         commitPosition,
       ]);
 
-    React.useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
       commitPosition(
         anchorRect,
         floatingRect

@@ -1,5 +1,6 @@
 // src/core/viewport/UIViewportProvider.tsx
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import { useMediaQuery, useViewportSize } from "../dom";
 import {
   type UIDensity,
@@ -35,11 +36,6 @@ type ViewportDocumentAttributeValues = Record<
 
 const viewportDocumentOwners =
   new WeakMap<Document, symbol>();
-
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined"
-    ? React.useLayoutEffect
-    : React.useEffect;
 
 function readViewportDocumentAttributes(
   root: HTMLElement

@@ -133,6 +133,55 @@ export function NavigationMenuItem<TItem>({
   const triggerRef =
     React.useRef<HTMLButtonElement | null>(null);
 
+  const restoreFocusFrameRef =
+    React.useRef<number | null>(
+      null
+    );
+
+  const cancelRestoreFocusFrame =
+    React.useCallback((): void => {
+      if (
+        restoreFocusFrameRef.current ===
+        null
+      ) {
+        return;
+      }
+
+      cancelAnimationFrame(
+        restoreFocusFrameRef.current
+      );
+
+      restoreFocusFrameRef.current =
+        null;
+    }, []);
+
+  React.useEffect(() => {
+    return () => {
+      cancelRestoreFocusFrame();
+    };
+  }, [
+    cancelRestoreFocusFrame,
+  ]);
+
+  const scheduleTriggerFocus =
+    React.useCallback((): void => {
+      cancelRestoreFocusFrame();
+
+      /*
+       * El item posee este frame. Un cierre posterior o su desmontaje
+       * no puede dejar una tarea obsoleta que cambie el foco global.
+       */
+      restoreFocusFrameRef.current =
+        requestAnimationFrame(() => {
+          restoreFocusFrameRef.current =
+            null;
+
+          triggerRef.current?.focus();
+        });
+    }, [
+      cancelRestoreFocusFrame,
+    ]);
+
   const branch = isItemBranch(item);
   const open = branch && menu.isOpen(itemId);
   const active = menu.isActive(itemId);
@@ -742,9 +791,7 @@ export function NavigationMenuItem<TItem>({
           onEscapeDismiss={() => {
             menu.closeItem(itemId, "escape");
 
-            requestAnimationFrame(() => {
-              triggerRef.current?.focus();
-            });
+            scheduleTriggerFocus();
           }}
           onPointerDownOutsideDismiss={() => {
             menu.closeAll("outside");

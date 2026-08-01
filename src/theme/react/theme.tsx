@@ -1,6 +1,7 @@
 // src/theme/react/theme.tsx
 
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../../core/react/useIsomorphicLayoutEffect";
 
 import {
   ThemeSystem,
@@ -84,12 +85,6 @@ const UIThemeContext =
 
 const themeDocumentOwners =
   new WeakMap<Document, symbol>();
-
-
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined"
-    ? React.useLayoutEffect
-    : React.useEffect;
 
 
 type ThemeStyleSnapshot = {

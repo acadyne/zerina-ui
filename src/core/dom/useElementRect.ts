@@ -1,5 +1,6 @@
 // src/core/dom/useElementRect.ts
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 
 export interface ElementRect {
   top: number;
@@ -122,7 +123,7 @@ export function useElementRect<
         );
     }, [update]);
 
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!enabled) {
       setRect(
         EMPTY_ELEMENT_RECT

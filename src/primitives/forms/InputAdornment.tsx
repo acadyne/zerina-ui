@@ -2,9 +2,9 @@ import React, {
   forwardRef,
   useCallback,
   useId,
-  useLayoutEffect,
   useState,
 } from "react";
+import { useIsomorphicLayoutEffect } from "../../core/react/useIsomorphicLayoutEffect";
 
 import {
   setRef,
@@ -132,7 +132,7 @@ export const InputAdornment =
         context?.registerAdornment;
 
 
-      useLayoutEffect(() => {
+      useIsomorphicLayoutEffect(() => {
         if (
           !node ||
           !registerAdornment

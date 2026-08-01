@@ -1,5 +1,6 @@
 // src/core/overlay/FocusScope.tsx
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import { useIsOverlayTopmost } from "./OverlayProvider";
 import { setRef } from "../interaction/events";
 
@@ -95,7 +96,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
       [ref]
     );
 
-    React.useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
       if (!enabled) return;
 
       lastActiveRef.current = document.activeElement as HTMLElement | null;
@@ -200,17 +201,36 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
 
     React.useEffect(() => {
       return () => {
-        if (!enabled) return;
-        if (!restoreFocus) return;
+        if (
+          !enabled ||
+          !restoreFocus
+        ) {
+          return;
+        }
 
-        const target = lastActiveRef.current;
-        if (!target || typeof target.focus !== "function") return;
+        const target =
+          lastActiveRef.current;
 
-        requestAnimationFrame(() => {
-          target.focus();
-        });
+        if (
+          !target ||
+          typeof target.focus !==
+            "function" ||
+          !target.isConnected
+        ) {
+          return;
+        }
+
+        /*
+         * La restauración pertenece al cleanup que libera el scope.
+         * Diferirla dejaría un frame sin owner capaz de robar foco a otro
+         * overlay montado después de este cierre.
+         */
+        target.focus();
       };
-    }, [enabled, restoreFocus]);
+    }, [
+      enabled,
+      restoreFocus,
+    ]);
 
     // Acepta foco programático sin entrar al orden secuencial.
     return (

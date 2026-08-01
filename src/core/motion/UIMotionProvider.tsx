@@ -1,5 +1,6 @@
 // src/core/motion/UIMotionProvider.tsx
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import { useMediaQuery } from "../dom";
 import type {
   UIMotionIntent,
@@ -32,11 +33,6 @@ type MotionDocumentAttributeValues = Record<
 
 const motionDocumentOwners =
   new WeakMap<Document, symbol>();
-
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined"
-    ? React.useLayoutEffect
-    : React.useEffect;
 
 function readMotionDocumentAttributes(
   root: HTMLElement

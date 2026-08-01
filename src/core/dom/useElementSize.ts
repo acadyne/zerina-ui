@@ -1,5 +1,6 @@
 // src/core/dom/useElementSize.ts
 import React from "react";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 
 export interface ElementSize {
   width: number;
@@ -109,7 +110,7 @@ export function useElementSize<
     );
   }, []);
 
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const node = ref.current;
 
     if (!node) {
