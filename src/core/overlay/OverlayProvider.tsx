@@ -64,10 +64,17 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   rootId = DEFAULT_ROOT_ID,
 }) => {
   const [portalRoot, setPortalRoot] = React.useState<HTMLElement | null>(null);
-  const overlaysRef = React.useRef<RegisteredOverlay[]>([]);
+
+  /*
+   * El orden del registro decide qué overlay posee Escape, focus trap y
+   * descarte exterior. Debe vivir en estado para propagar ese ownership;
+   * una ref permitiría que los consumidores conservaran snapshots obsoletos.
+   */
+  const [overlays, setOverlays] =
+    React.useState<RegisteredOverlay[]>([]);
+
   const orderRef = React.useRef(0);
   const createdRootRef = React.useRef<HTMLElement | null>(null);
-  const [, forceRender] = React.useReducer((value) => value + 1, 0);
 
   React.useEffect(() => {
     const { node, created } = getOrCreateOverlayRoot(rootId);
@@ -87,57 +94,111 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     };
   }, [rootId]);
 
-  const registerOverlay = React.useCallback((id: OverlayId, layer: number) => {
-    const existing = overlaysRef.current.find((item) => item.id === id);
+  const registerOverlay = React.useCallback(
+    (
+      id: OverlayId,
+      layer: number
+    ) => {
+      setOverlays((current) => {
+        const existing =
+          current.find(
+            (item) =>
+              item.id === id
+          );
 
-    if (existing) {
-      if (existing.layer !== layer) {
-        existing.layer = layer;
-        forceRender();
-      }
-      return;
-    }
+        if (existing) {
+          if (
+            existing.layer === layer
+          ) {
+            return current;
+          }
 
-    orderRef.current += 1;
-    overlaysRef.current = [
-      ...overlaysRef.current,
-      {
-        id,
-        layer,
-        order: orderRef.current,
+          /*
+           * Cambiar de layer no equivale a remontar. Se conserva order para
+           * no alterar la precedencia temporal entre overlays hermanos.
+           */
+          return current.map(
+            (item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    layer,
+                  }
+                : item
+          );
+        }
+
+        orderRef.current += 1;
+
+        return [
+          ...current,
+          {
+            id,
+            layer,
+            order:
+              orderRef.current,
+          },
+        ];
+      });
+    },
+    []
+  );
+
+  const unregisterOverlay =
+    React.useCallback(
+      (
+        id: OverlayId
+      ) => {
+        setOverlays(
+          (current) => {
+            const next =
+              current.filter(
+                (item) =>
+                  item.id !== id
+              );
+
+            return next.length ===
+              current.length
+              ? current
+              : next;
+          }
+        );
       },
-    ];
+      []
+    );
 
-    forceRender();
-  }, []);
+  const getTopmostId =
+    React.useCallback(
+      (): OverlayId | null => {
+        if (!overlays.length) {
+          return null;
+        }
 
-  const unregisterOverlay = React.useCallback((id: OverlayId) => {
-    const next = overlaysRef.current.filter((item) => item.id !== id);
+        let topmost =
+          overlays[0];
 
-    if (next.length === overlaysRef.current.length) {
-      return;
-    }
+        for (
+          let index = 1;
+          index < overlays.length;
+          index += 1
+        ) {
+          const current =
+            overlays[index];
 
-    overlaysRef.current = next;
-    forceRender();
-  }, []);
+          if (
+            compareOverlays(
+              topmost,
+              current
+            ) < 0
+          ) {
+            topmost = current;
+          }
+        }
 
-  const getTopmostId = React.useCallback((): OverlayId | null => {
-    if (!overlaysRef.current.length) {
-      return null;
-    }
-
-    let topmost = overlaysRef.current[0];
-
-    for (let i = 1; i < overlaysRef.current.length; i += 1) {
-      const current = overlaysRef.current[i];
-      if (compareOverlays(topmost, current) < 0) {
-        topmost = current;
-      }
-    }
-
-    return topmost?.id ?? null;
-  }, []);
+        return topmost?.id ?? null;
+      },
+      [overlays]
+    );
 
   const isTopmost = React.useCallback(
     (id: OverlayId) => getTopmostId() === id,
