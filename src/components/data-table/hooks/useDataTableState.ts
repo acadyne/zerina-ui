@@ -55,12 +55,10 @@ export function useDataTableState<
   });
 
   const {
-    currentPage,
     safeCurrentPage,
     rowsPerPage,
     totalPages,
     paginatedData,
-    setCurrentPage,
     setRowsPerPage,
     goToPreviousPage,
     goToNextPage,
@@ -97,12 +95,10 @@ export function useDataTableState<
     toggleSort,
     clearSort,
 
-    currentPage,
     safeCurrentPage,
     rowsPerPage,
     totalPages,
     paginatedData,
-    setCurrentPage,
     setRowsPerPage,
     goToPreviousPage,
     goToNextPage,

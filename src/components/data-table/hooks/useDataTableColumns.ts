@@ -18,35 +18,69 @@ export interface UseDataTableColumnsOptions<
   columns: DataTableColumnsSource<T, TColumn>;
 }
 
-function getInitialColumns<
-  T extends object,
-  TColumn extends DataTableColumn<T> = DataTableColumn<T>,
->(columns: DataTableColumnsSource<T, TColumn>): TColumn[] {
-  return typeof columns === "function" ? [] : columns;
+interface AsyncColumnsState<
+  TColumn extends object,
+> {
+  source: () => Promise<TColumn[]>;
+  columns: TColumn[];
+  error: Error | null;
+}
+
+function normalizeColumnsError(
+  error: unknown
+): Error {
+  return error instanceof Error
+    ? error
+    : new Error(
+        `DataTable column source failed: ${String(error)}`
+      );
 }
 
 export function useDataTableColumns<
   T extends object,
   TColumn extends DataTableColumn<T> = DataTableColumn<T>,
 >({ columns }: UseDataTableColumnsOptions<T, TColumn>) {
-  const [resolvedColumns, setResolvedColumns] = useState<TColumn[]>(() =>
-    getInitialColumns(columns)
+  const [
+    asyncState,
+    setAsyncState,
+  ] = useState<AsyncColumnsState<TColumn> | null>(
+    null
   );
 
   useEffect(() => {
-    let alive = true;
+    if (typeof columns !== "function") {
+      return undefined;
+    }
+
+    let active = true;
+    const source = columns;
+
+    // Una fuente nueva no conserva columnas de la anterior: hacerlo
+    // mezclaría datos actuales con una estructura que ya perdió ownership.
+    setAsyncState({
+      source,
+      columns: [],
+      error: null,
+    });
 
     const resolveColumns = async () => {
       try {
-        const nextColumns =
-          typeof columns === "function" ? await columns() : columns;
+        const nextColumns = await source();
 
-        if (alive) {
-          setResolvedColumns(nextColumns);
+        if (active) {
+          setAsyncState({
+            source,
+            columns: nextColumns,
+            error: null,
+          });
         }
-      } catch {
-        if (alive) {
-          setResolvedColumns([]);
+      } catch (error) {
+        if (active) {
+          setAsyncState({
+            source,
+            columns: [],
+            error: normalizeColumnsError(error),
+          });
         }
       }
     };
@@ -54,9 +88,32 @@ export function useDataTableColumns<
     void resolveColumns();
 
     return () => {
-      alive = false;
+      active = false;
     };
   }, [columns]);
+
+  const resolvedColumns = useMemo((): TColumn[] => {
+    if (typeof columns !== "function") {
+      return columns;
+    }
+
+    if (
+      asyncState === null ||
+      asyncState.source !== columns
+    ) {
+      return [];
+    }
+
+    /*
+     * El error se propaga durante render para que el Error Boundary del
+     * consumidor pueda distinguir un fallo real de una tabla sin columnas.
+     */
+    if (asyncState.error !== null) {
+      throw asyncState.error;
+    }
+
+    return asyncState.columns;
+  }, [asyncState, columns]);
 
   const visibleColumns = useMemo(() => {
     // La identidad se valida sobre todas las columnas, incluidas las ocultas,

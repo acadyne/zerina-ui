@@ -19,6 +19,24 @@ import type {
   DataTableStyles,
 } from "./dataTable.types";
 
+const DEFAULT_ROWS_PER_PAGE_OPTIONS = [
+  10,
+  20,
+  50,
+  100,
+] as const;
+
+function getRowsPerPageOptions(
+  rowsPerPage: number
+): number[] {
+  return Array.from(
+    new Set([
+      ...DEFAULT_ROWS_PER_PAGE_OPTIONS,
+      rowsPerPage,
+    ])
+  ).sort((left, right) => left - right);
+}
+
 interface DataTableToolbarProps {
   search: string;
 
@@ -79,16 +97,10 @@ export function DataTableToolbar({
   styles,
   slotProps,
 }: DataTableToolbarProps) {
-  const shouldRender =
-    enableSearch ||
-    enableExportCSV ||
-    renderActions ||
-    enableAddRow ||
-    enableDeleteRows;
-
-  if (!shouldRender) {
-    return null;
-  }
+  const rowsPerPageOptions =
+    getRowsPerPageOptions(
+      rowsPerPage
+    );
 
   const toolbarSlot =
     resolveSlot<DataTableSlot>({
@@ -334,24 +346,14 @@ export function DataTableToolbar({
           }
           fullWidth={false}
           size="sm"
-          options={[
-            {
-              label: "10",
-              value: "10",
-            },
-            {
-              label: "20",
-              value: "20",
-            },
-            {
-              label: "50",
-              value: "50",
-            },
-            {
-              label: "100",
-              value: "100",
-            },
-          ]}
+          options={
+            rowsPerPageOptions.map(
+              (value) => ({
+                label: String(value),
+                value: String(value),
+              })
+            )
+          }
           className={
             rowsPerPageSlot.className
           }
