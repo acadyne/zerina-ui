@@ -26,8 +26,6 @@ import {
   type TreeVisibleNode,
 } from "../tree.utils";
 
-const EMPTY_TREE_NODE_IDS: ReadonlySet<TreeNodeId> = new Set();
-
 interface InternalTreeNodeLoadState<TNode>
   extends TreeNodeLoadState<TNode> {
   requestId: number;
@@ -883,11 +881,8 @@ export function useTreeState<TNode>({
   ]);
 
   return {
-    expandedIds:
-      expandedIds ?? EMPTY_TREE_NODE_IDS,
-
-    selectedIds:
-      selectedIds ?? EMPTY_TREE_NODE_IDS,
+    expandedIds,
+    selectedIds,
 
     focusedId,
 
