@@ -246,6 +246,18 @@ export const BottomNavigationItem =
           } as React.CSSProperties,
         });
 
+      /*
+       * Los handlers del slot y la prop pública son observadores del mismo
+       * press. Ambos pueden cancelarlo; el cambio de selección pertenece al
+       * componente y se ejecuta únicamente cuando el evento sigue vigente.
+       */
+      const {
+        onPress: itemSlotOnPress,
+        ...itemSlotRest
+      } = itemSlot as typeof itemSlot & {
+        onPress?: typeof onPress;
+      };
+
       const contentSlot =
         resolveLayeredSlot({
           slots: contentSlots,
@@ -332,8 +344,11 @@ export const BottomNavigationItem =
               "",
           },
 
-          baseStyle:
-            recipeStyles.label,
+          baseStyle: {
+            ...recipeStyles.label,
+            fontSize:
+              "var(--ui-font-size-xs)",
+          },
         });
 
       const badgeSlot =
@@ -397,7 +412,7 @@ export const BottomNavigationItem =
 
       return (
         <Pressable
-          {...itemSlot}
+          {...itemSlotRest}
           {...rest}
           as="button"
           ref={ref}
@@ -409,6 +424,7 @@ export const BottomNavigationItem =
               : undefined
           }
           onPress={(event) => {
+            itemSlotOnPress?.(event);
             onPress?.(event);
 
             if (
@@ -442,9 +458,12 @@ export const BottomNavigationItem =
             </Box>
 
             {hasLabel ? (
+              /*
+               * Cuando el label no es visible, el estilo de accesibilidad
+               * se aplica después del slot para impedir que vuelva al flujo.
+               */
               <Typography
                 as="span"
-                size="xs"
                 {...labelSlot}
                 style={
                   labelVisible

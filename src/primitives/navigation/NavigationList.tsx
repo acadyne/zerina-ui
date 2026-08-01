@@ -272,6 +272,7 @@ const navigationListRecipe =
         margin: 0,
 
         color: "inherit",
+        fontSize: "var(--ui-font-size-sm)",
 
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -824,6 +825,29 @@ const NavigationListItem =
             .toggleButton,
       });
 
+    /*
+     * Los slots pueden observar y cancelar el press. La selección y la
+     * expansión internas solo se ejecutan cuando ningún observador llamó
+     * preventDefault(); type, disabled y aria permanecen protegidos en JSX.
+     */
+    const {
+      onPress: itemButtonSlotOnPress,
+      ...itemButtonSlotRest
+    } = itemButtonSlot as typeof itemButtonSlot & {
+      onPress?: (
+        event: UIPressEvent<HTMLElement>
+      ) => void;
+    };
+
+    const {
+      onPress: toggleButtonSlotOnPress,
+      ...toggleButtonSlotRest
+    } = toggleButtonSlot as typeof toggleButtonSlot & {
+      onPress?: (
+        event: UIPressEvent<HTMLElement>
+      ) => void;
+    };
+
     const iconSlot =
       resolveSlot<NavigationListSlot>({
         slot: "icon",
@@ -984,7 +1008,6 @@ const NavigationListItem =
               <Typography
                 {...labelSlot}
                 as="span"
-                size="sm"
               >
                 {item.label}
               </Typography>
@@ -1024,15 +1047,27 @@ const NavigationListItem =
 
     const primaryButton = (
       <Pressable
-        {...itemButtonSlot}
+        {...itemButtonSlotRest}
         as="button"
         type="button"
         disabled={
           item.disabled
         }
-        onPress={
-          handlePrimaryPress
-        }
+        onPress={(event) => {
+          itemButtonSlotOnPress?.(
+            event
+          );
+
+          if (
+            event.defaultPrevented
+          ) {
+            return;
+          }
+
+          handlePrimaryPress(
+            event
+          );
+        }}
         aria-current={
           directlyActive
             ? "page"
@@ -1092,7 +1127,7 @@ const NavigationListItem =
       canExpandInline &&
         selectable ? (
         <Pressable
-          {...toggleButtonSlot}
+          {...toggleButtonSlotRest}
           as="button"
           type="button"
           disabled={
@@ -1114,9 +1149,19 @@ const NavigationListItem =
             item.disabled ||
             undefined
           }
-          onPress={
-            handleTogglePress
-          }
+          onPress={(event) => {
+            toggleButtonSlotOnPress?.(
+              event
+            );
+
+            if (
+              event.defaultPrevented
+            ) {
+              return;
+            }
+
+            handleTogglePress();
+          }}
         >
           <Box
             {...chevronSlot}

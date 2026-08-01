@@ -267,6 +267,18 @@ export const NavigationRailItem =
           } as React.CSSProperties,
         });
 
+      /*
+       * Los handlers del slot y la prop pública son observadores del mismo
+       * press. Ambos pueden cancelarlo; el cambio de selección pertenece al
+       * componente y se ejecuta únicamente cuando el evento sigue vigente.
+       */
+      const {
+        onPress: itemSlotOnPress,
+        ...itemSlotRest
+      } = itemSlot as typeof itemSlot & {
+        onPress?: typeof onPress;
+      };
+
       const contentSlot =
         resolveLayeredSlot({
           slots: contentSlots,
@@ -353,8 +365,11 @@ export const NavigationRailItem =
               "",
           },
 
-          baseStyle:
-            recipeStyles.label,
+          baseStyle: {
+            ...recipeStyles.label,
+            fontSize:
+              "var(--ui-font-size-xs)",
+          },
         });
 
       const badgeSlot =
@@ -418,7 +433,7 @@ export const NavigationRailItem =
 
       return (
         <Pressable
-          {...itemSlot}
+          {...itemSlotRest}
           {...rest}
           as="button"
           ref={ref}
@@ -430,6 +445,7 @@ export const NavigationRailItem =
               : undefined
           }
           onPress={(event) => {
+            itemSlotOnPress?.(event);
             onPress?.(event);
 
             if (
@@ -464,9 +480,12 @@ export const NavigationRailItem =
             </Box>
 
             {hasLabel ? (
+              /*
+               * Cuando el label no es visible, el estilo de accesibilidad
+               * se aplica después del slot para impedir que vuelva al flujo.
+               */
               <Typography
                 as="span"
-                size="xs"
                 {...labelSlot}
                 style={
                   labelVisible
