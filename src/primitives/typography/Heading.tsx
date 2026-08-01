@@ -67,11 +67,12 @@ const fontSizeMap: Record<
   HeadingSize,
   string
 > = {
-  sm: "1.125rem",
-  md: "1.25rem",
-  lg: "1.5rem",
-  xl: "1.875rem",
-  "2xl": "2.25rem",
+  sm: "var(--ui-heading-font-size-sm)",
+  md: "var(--ui-heading-font-size-md)",
+  lg: "var(--ui-heading-font-size-lg)",
+  xl: "var(--ui-heading-font-size-xl)",
+  "2xl":
+    "var(--ui-heading-font-size-2xl)",
 };
 
 function HeadingRender(
@@ -83,7 +84,7 @@ function HeadingRender(
     as,
 
     size = "lg",
-    align = "left",
+    align,
 
     className = "",
     style,
@@ -103,7 +104,7 @@ function HeadingRender(
     pl,
     pr,
 
-    color = "var(--ui-text)",
+    color,
     weight = 800,
     leading = 1.2,
     tracking,

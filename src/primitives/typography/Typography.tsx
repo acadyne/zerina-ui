@@ -169,7 +169,7 @@ function TypographyRender(
 
     size = "md",
     weight,
-    color = "var(--ui-text)",
+    color,
     align,
     leading = 1.5,
     tracking,

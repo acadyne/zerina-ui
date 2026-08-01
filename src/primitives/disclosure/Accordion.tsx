@@ -102,6 +102,11 @@ const ACCORDION_BASE_STYLES = {
 
     color:
       "var(--ui-text)",
+
+    fontSize:
+      "var(--ui-font-size-md)",
+
+    fontWeight: 750,
   },
 
   content: {
@@ -673,8 +678,6 @@ export const AccordionTrigger =
           <Typography
             {...triggerLabelSlot}
             as="span"
-            size="md"
-            weight={750}
           >
             {content}
           </Typography>

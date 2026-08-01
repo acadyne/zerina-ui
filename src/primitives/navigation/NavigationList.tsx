@@ -846,6 +846,11 @@ const NavigationListItem =
         styles,
         slotProps,
 
+        baseProps: {
+          "data-ui-navigation-list-item-label":
+            "",
+        },
+
         baseStyle:
           baseRecipeStyles.label,
       });
@@ -980,13 +985,6 @@ const NavigationListItem =
                 {...labelSlot}
                 as="span"
                 size="sm"
-                weight={
-                  directlyActive
-                    ? 800
-                    : active
-                      ? 700
-                      : 600
-                }
               >
                 {item.label}
               </Typography>

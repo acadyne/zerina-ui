@@ -303,6 +303,38 @@ export const THEME_TOKEN_MANIFEST = {
       },
     },
 
+    headingFontSize: {
+      sm: {
+        kind: "string",
+        cssVariable:
+          "--ui-heading-font-size-sm",
+      },
+
+      md: {
+        kind: "string",
+        cssVariable:
+          "--ui-heading-font-size-md",
+      },
+
+      lg: {
+        kind: "string",
+        cssVariable:
+          "--ui-heading-font-size-lg",
+      },
+
+      xl: {
+        kind: "string",
+        cssVariable:
+          "--ui-heading-font-size-xl",
+      },
+
+      "2xl": {
+        kind: "string",
+        cssVariable:
+          "--ui-heading-font-size-2xl",
+      },
+    },
+
     fontWeight: {
       medium: {
         kind: "fontWeight",

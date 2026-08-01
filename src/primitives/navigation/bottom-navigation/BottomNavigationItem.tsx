@@ -445,7 +445,6 @@ export const BottomNavigationItem =
               <Typography
                 as="span"
                 size="xs"
-                color="inherit"
                 {...labelSlot}
                 style={
                   labelVisible

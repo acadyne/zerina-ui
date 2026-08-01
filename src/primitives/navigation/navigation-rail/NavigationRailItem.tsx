@@ -467,7 +467,6 @@ export const NavigationRailItem =
               <Typography
                 as="span"
                 size="xs"
-                color="inherit"
                 {...labelSlot}
                 style={
                   labelVisible

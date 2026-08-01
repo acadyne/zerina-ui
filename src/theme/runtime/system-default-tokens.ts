@@ -143,6 +143,14 @@ function createSystemDefaultTokens(
         xl: "1.25rem",
       },
 
+      headingFontSize: {
+        sm: "1.125rem",
+        md: "1.25rem",
+        lg: "1.5rem",
+        xl: "1.875rem",
+        "2xl": "2.25rem",
+      },
+
       fontWeight: {
         medium: 500,
         bold: 700,

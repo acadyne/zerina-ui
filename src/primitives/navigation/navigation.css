@@ -48,6 +48,20 @@
   color: var(--ui-text);
 }
 
+[data-ui-navigation-list-item-label] {
+  font-weight: 600;
+}
+
+[data-ui-navigation-list-item][data-active]
+  [data-ui-navigation-list-item-label] {
+  font-weight: 700;
+}
+
+[data-ui-navigation-list-item][data-current]
+  [data-ui-navigation-list-item-label] {
+  font-weight: 800;
+}
+
 [data-ui-navigation-list-item]:not(
   [data-active]
 )
