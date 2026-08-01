@@ -12,6 +12,11 @@ import {
   type RefAttributes,
 } from "react";
 import { resolveSlot } from "../../helpers/css";
+import {
+  cancelOwnedAnimationFrame,
+  requestOwnedAnimationFrame,
+  type OwnedAnimationFrame,
+} from "../../core/dom";
 import { NavigationMenuItem } from "./NavigationMenuItem";
 import { useNavigationMenuState } from "./hooks/useNavigationMenuState";
 import type {
@@ -300,7 +305,7 @@ function NavigationMenuInner<TItem>(
     useRef(false);
 
   const focusFrameRef =
-    useRef<number | null>(null);
+    useRef<OwnedAnimationFrame | null>(null);
 
   /*
    * Abrir o cerrar niveles puede programar foco varias veces en el mismo frame.
@@ -313,13 +318,21 @@ function NavigationMenuInner<TItem>(
       if (
         focusFrameRef.current !== null
       ) {
-        cancelAnimationFrame(
+        cancelOwnedAnimationFrame(
           focusFrameRef.current
         );
       }
 
+      const ownerWindow =
+        itemRefs.current.values().next().value
+          ?.ownerDocument.defaultView;
+
+      if (!ownerWindow) {
+        return;
+      }
+
       focusFrameRef.current =
-        requestAnimationFrame(() => {
+        requestOwnedAnimationFrame(ownerWindow, () => {
           focusFrameRef.current = null;
           callback();
         });
@@ -332,7 +345,7 @@ function NavigationMenuInner<TItem>(
       if (
         focusFrameRef.current !== null
       ) {
-        cancelAnimationFrame(
+        cancelOwnedAnimationFrame(
           focusFrameRef.current
         );
 

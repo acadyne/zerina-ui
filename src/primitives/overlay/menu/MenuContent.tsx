@@ -23,6 +23,12 @@ import {
 } from "../../../core/interaction/events";
 
 import {
+  clearOwnedWindowTimeout,
+  setOwnedWindowTimeout,
+  type OwnedWindowTimeout,
+} from "../../../core/dom";
+
+import {
   resolveSlot,
   toMotionSlotProps,
 } from "../../../helpers/css";
@@ -81,7 +87,7 @@ export const MenuContent =
         );
 
       const restoreFocusTimerRef =
-        React.useRef<number | null>(
+        React.useRef<OwnedWindowTimeout | null>(
           null
         );
 
@@ -126,7 +132,7 @@ export const MenuContent =
           if (
             restoreFocusTimerRef.current !== null
           ) {
-            window.clearTimeout(
+            clearOwnedWindowTimeout(
               restoreFocusTimerRef.current
             );
           }
@@ -144,15 +150,23 @@ export const MenuContent =
           return;
         }
 
-        const id =
-          window.setTimeout(() => {
+        const ownerWindow =
+          contentRef.current?.ownerDocument.defaultView ??
+          anchorRef.current?.ownerDocument.defaultView;
+
+        if (!ownerWindow) {
+          return;
+        }
+
+        const timeout =
+          setOwnedWindowTimeout(ownerWindow, () => {
             ctx.focusItemAt(
               ctx.initialFocusIndex
             );
           }, 0);
 
         return () => {
-          window.clearTimeout(id);
+          clearOwnedWindowTimeout(timeout);
         };
       }, [
         ctx.hasFocusedItem,
@@ -169,13 +183,20 @@ export const MenuContent =
             if (
               restoreFocusTimerRef.current !== null
             ) {
-              window.clearTimeout(
+              clearOwnedWindowTimeout(
                 restoreFocusTimerRef.current
               );
             }
 
+            const ownerWindow =
+              anchorRef.current?.ownerDocument.defaultView;
+
+            if (!ownerWindow) {
+              return;
+            }
+
             restoreFocusTimerRef.current =
-              window.setTimeout(() => {
+              setOwnedWindowTimeout(ownerWindow, () => {
                 restoreFocusTimerRef.current = null;
 
                 anchorRef.current?.focus?.();

@@ -16,6 +16,12 @@ import {
 } from "../../../core/interaction/events";
 
 import {
+  clearOwnedWindowTimeout,
+  setOwnedWindowTimeout,
+  type OwnedWindowTimeout,
+} from "../../../core/dom";
+
+import {
   resolveSlot,
   type SlotElementProps,
 } from "../../../helpers/css";
@@ -82,7 +88,7 @@ export const MenuItem =
 
 
       const restoreFocusTimerRef =
-        React.useRef<number | null>(
+        React.useRef<OwnedWindowTimeout | null>(
           null
         );
 
@@ -131,7 +137,7 @@ export const MenuItem =
           if (
             restoreFocusTimerRef.current !== null
           ) {
-            window.clearTimeout(
+            clearOwnedWindowTimeout(
               restoreFocusTimerRef.current
             );
           }
@@ -184,14 +190,20 @@ export const MenuItem =
               if (
                 restoreFocusTimerRef.current !== null
               ) {
-                window.clearTimeout(
+                clearOwnedWindowTimeout(
                   restoreFocusTimerRef.current
                 );
               }
 
+              const ownerWindow =
+                anchorRef.current?.ownerDocument.defaultView;
+
+              if (!ownerWindow) {
+                return;
+              }
 
               restoreFocusTimerRef.current =
-                window.setTimeout(() => {
+                setOwnedWindowTimeout(ownerWindow, () => {
                   restoreFocusTimerRef.current = null;
 
                   anchorRef.current?.focus?.();

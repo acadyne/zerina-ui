@@ -47,7 +47,6 @@ export interface TargetFormDialogProps<TTarget> {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   closeOnEscape?: boolean;
   closeOnPointerDownOutside?: boolean;
-  lockScroll?: boolean;
 
   footer?: React.ReactNode;
   formProps?: Omit<
@@ -74,7 +73,6 @@ export function TargetFormDialog<TTarget>({
   initialFocusRef,
   closeOnEscape = true,
   closeOnPointerDownOutside = false,
-  lockScroll = true,
   footer,
   formProps,
 }: TargetFormDialogProps<TTarget>) {
@@ -136,7 +134,6 @@ export function TargetFormDialog<TTarget>({
       initialFocusRef={initialFocusRef}
       closeOnEscape={closeOnEscape}
       closeOnPointerDownOutside={closeOnPointerDownOutside}
-      lockScroll={lockScroll}
       footer={footer}
       formProps={formProps}
     >

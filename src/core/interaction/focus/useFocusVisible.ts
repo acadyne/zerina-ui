@@ -133,7 +133,10 @@ function getDocumentTracker(
 
 function retainDocumentTracker(
   ownerDocument: Document
-): () => void {
+): {
+  tracker: DocumentInputModalityTracker;
+  release: () => void;
+} {
   const tracker =
     getDocumentTracker(
       ownerDocument
@@ -141,20 +144,30 @@ function retainDocumentTracker(
 
   tracker.references += 1;
 
-  return () => {
-    tracker.references -= 1;
+  let released = false;
 
-    if (
-      tracker.references > 0
-    ) {
-      return;
-    }
+  return {
+    tracker,
+    release: () => {
+      if (released) {
+        return;
+      }
 
-    tracker.dispose();
+      released = true;
+      tracker.references -= 1;
 
-    documentTrackers.delete(
-      ownerDocument
-    );
+      if (
+        tracker.references > 0
+      ) {
+        return;
+      }
+
+      tracker.dispose();
+
+      documentTrackers.delete(
+        ownerDocument
+      );
+    },
   };
 }
 
@@ -206,23 +219,56 @@ export function useFocusVisible<
     false
   );
 
-  React.useEffect(() => {
-    if (
-      typeof document ===
-      "undefined"
-    ) {
-      return;
-    }
+  const retainedTrackerRef = React.useRef<{
+    ownerDocument: Document;
+    tracker: DocumentInputModalityTracker;
+    release: () => void;
+  } | null>(null);
 
-    return retainDocumentTracker(
-      document
-    );
+  const retainTrackerForDocument = React.useCallback(
+    (ownerDocument: Document) => {
+      const retained = retainedTrackerRef.current;
+
+      if (retained?.ownerDocument === ownerDocument) {
+        return {
+          tracker: retained.tracker,
+          created: false,
+        };
+      }
+
+      retained?.release();
+
+      const created = !documentTrackers.has(ownerDocument);
+      const next = retainDocumentTracker(ownerDocument);
+
+      retainedTrackerRef.current = {
+        ownerDocument,
+        tracker: next.tracker,
+        release: next.release,
+      };
+
+      return {
+        tracker: next.tracker,
+        created,
+      };
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    return () => {
+      retainedTrackerRef.current?.release();
+      retainedTrackerRef.current = null;
+    };
   }, []);
 
   React.useEffect(() => {
     if (!disabled) {
       return;
     }
+
+    retainedTrackerRef.current?.release();
+    retainedTrackerRef.current = null;
 
     setFocused(
       false
@@ -250,11 +296,22 @@ export function useFocusVisible<
           return;
         }
 
-        const tracker =
-          getDocumentTracker(
-            event.currentTarget
-              .ownerDocument
-          );
+        const {
+          tracker,
+          created,
+        } = retainTrackerForDocument(
+          event.currentTarget.ownerDocument
+        );
+
+        if (created) {
+          try {
+            tracker.modality = event.currentTarget.matches(":focus-visible")
+              ? "keyboard"
+              : "pointer";
+          } catch {
+            // El estado inicial keyboard es el fallback conservador.
+          }
+        }
 
         setFocused(
           true
@@ -268,6 +325,7 @@ export function useFocusVisible<
       [
         disabled,
         onFocus,
+        retainTrackerForDocument,
       ]
     );
 

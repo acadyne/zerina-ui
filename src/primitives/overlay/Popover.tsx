@@ -854,12 +854,6 @@ export const PopoverContent =
                     }
                   >
                     <FocusScope
-                      overlayId={
-                        ctx.contentId
-                      }
-                      enabled={
-                        ctx.open
-                      }
                       contain={
                         trapFocus
                       }

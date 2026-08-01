@@ -75,10 +75,10 @@ export function useElementRect<
       EMPTY_ELEMENT_RECT
     );
 
-  const frameRef =
-    React.useRef<number | null>(
-      null
-    );
+  const frameRef = React.useRef<{
+    ownerWindow: Window;
+    id: number;
+  } | null>(null);
 
   const update = React.useCallback(() => {
     const nextRect =
@@ -98,10 +98,10 @@ export function useElementRect<
 
   const scheduleUpdate =
     React.useCallback(() => {
-      if (
-        typeof window ===
-        "undefined"
-      ) {
+      const ownerWindow =
+        ref.current?.ownerDocument.defaultView;
+
+      if (!ownerWindow) {
         return;
       }
 
@@ -112,16 +112,16 @@ export function useElementRect<
         return;
       }
 
-      frameRef.current =
-        window.requestAnimationFrame(
-          () => {
-            frameRef.current =
-              null;
+      const id = ownerWindow.requestAnimationFrame(() => {
+        frameRef.current = null;
+        update();
+      });
 
-            update();
-          }
-        );
-    }, [update]);
+      frameRef.current = {
+        ownerWindow,
+        id,
+      };
+    }, [ref, update]);
 
   useIsomorphicLayoutEffect(() => {
     if (!enabled) {
@@ -143,13 +143,27 @@ export function useElementRect<
       return;
     }
 
+    const ownerWindow =
+      node.ownerDocument.defaultView;
+
+    if (!ownerWindow) {
+      setRect(
+        EMPTY_ELEMENT_RECT
+      );
+
+      return;
+    }
+
     update();
+
+    const ResizeObserverConstructor =
+      ownerWindow.ResizeObserver;
 
     const resizeObserver =
       observeResize &&
-      typeof ResizeObserver !==
+      typeof ResizeObserverConstructor !==
         "undefined"
-        ? new ResizeObserver(
+        ? new ResizeObserverConstructor(
             scheduleUpdate
           )
         : null;
@@ -157,14 +171,14 @@ export function useElementRect<
     resizeObserver?.observe(node);
 
     if (observeResize) {
-      window.addEventListener(
+      ownerWindow.addEventListener(
         "resize",
         scheduleUpdate
       );
     }
 
     const visualViewport =
-      window.visualViewport;
+      ownerWindow.visualViewport;
 
     if (observeResize) {
       visualViewport?.addEventListener(
@@ -174,7 +188,7 @@ export function useElementRect<
     }
 
     if (observeScroll) {
-      window.addEventListener(
+      ownerWindow.addEventListener(
         "scroll",
         scheduleUpdate,
         true
@@ -190,7 +204,7 @@ export function useElementRect<
       resizeObserver?.disconnect();
 
       if (observeResize) {
-        window.removeEventListener(
+        ownerWindow.removeEventListener(
           "resize",
           scheduleUpdate
         );
@@ -202,7 +216,7 @@ export function useElementRect<
       }
 
       if (observeScroll) {
-        window.removeEventListener(
+        ownerWindow.removeEventListener(
           "scroll",
           scheduleUpdate,
           true
@@ -214,12 +228,12 @@ export function useElementRect<
         );
       }
 
-      if (
-        frameRef.current !==
-        null
-      ) {
-        window.cancelAnimationFrame(
-          frameRef.current
+      const pendingFrame =
+        frameRef.current;
+
+      if (pendingFrame !== null) {
+        pendingFrame.ownerWindow.cancelAnimationFrame(
+          pendingFrame.id
         );
 
         frameRef.current =

@@ -54,7 +54,6 @@ export interface ConfirmDialogProps<TTarget> {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   closeOnEscape?: boolean;
   closeOnPointerDownOutside?: boolean;
-  lockScroll?: boolean;
 
   children?: RenderableWithTarget<TTarget>;
   footer?: RenderableWithTarget<TTarget>;
@@ -78,7 +77,6 @@ export function ConfirmDialog<TTarget>({
   initialFocusRef,
   closeOnEscape = true,
   closeOnPointerDownOutside = true,
-  lockScroll = true,
   children,
   footer,
 }: ConfirmDialogProps<TTarget>) {
@@ -173,7 +171,6 @@ export function ConfirmDialog<TTarget>({
       initialFocusRef={initialFocusRef}
       closeOnEscape={closeOnEscape}
       closeOnPointerDownOutside={closeOnPointerDownOutside}
-      lockScroll={lockScroll}
     >
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>

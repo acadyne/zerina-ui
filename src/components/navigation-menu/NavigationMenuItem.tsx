@@ -15,6 +15,11 @@ import type {
   NavigationMenuStyles,
 } from "./navigationMenu.types";
 import { getNavigationMenuErrorMessage } from "./navigationMenu.utils";
+import {
+  cancelOwnedAnimationFrame,
+  requestOwnedAnimationFrame,
+  type OwnedAnimationFrame,
+} from "../../core/dom";
 import type {
   UseNavigationMenuStateResult,
 } from "./hooks/useNavigationMenuState";
@@ -134,7 +139,7 @@ export function NavigationMenuItem<TItem>({
     React.useRef<HTMLButtonElement | null>(null);
 
   const restoreFocusFrameRef =
-    React.useRef<number | null>(
+    React.useRef<OwnedAnimationFrame | null>(
       null
     );
 
@@ -147,7 +152,7 @@ export function NavigationMenuItem<TItem>({
         return;
       }
 
-      cancelAnimationFrame(
+      cancelOwnedAnimationFrame(
         restoreFocusFrameRef.current
       );
 
@@ -171,8 +176,15 @@ export function NavigationMenuItem<TItem>({
        * El item posee este frame. Un cierre posterior o su desmontaje
        * no puede dejar una tarea obsoleta que cambie el foco global.
        */
+      const ownerWindow =
+        triggerRef.current?.ownerDocument.defaultView;
+
+      if (!ownerWindow) {
+        return;
+      }
+
       restoreFocusFrameRef.current =
-        requestAnimationFrame(() => {
+        requestOwnedAnimationFrame(ownerWindow, () => {
           restoreFocusFrameRef.current =
             null;
 

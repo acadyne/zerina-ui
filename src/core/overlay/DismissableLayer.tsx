@@ -1,52 +1,68 @@
-// src/core/overlay/DismissableLayer.tsx
 import React from "react";
-import { useIsOverlayTopmost, useOverlayRegistration } from "./OverlayProvider";
 import { setRef } from "../interaction/events";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
+import {
+  getOverlayDocumentVersion,
+  isDocumentOverlayTopmost,
+  registerDocumentOverlay,
+  subscribeOverlayDocument,
+  unregisterDocumentOverlay,
+  type OverlayBranchRef,
+  type OverlayDismissEvent,
+  type OverlayToken,
+} from "./OverlayDocumentRegistry";
+import { useOverlayContext } from "./OverlayProvider";
+import { useOverlayPortalContext } from "./Portal";
 
-type DismissableLayerEvent = {
-  defaultPrevented: boolean;
-  preventDefault: () => void;
-};
+export type DismissableLayerEvent = OverlayDismissEvent;
 
-type DismissableLayerBranchRef =
-  React.RefObject<HTMLElement | null>;
+type DismissableLayerBranchRef = OverlayBranchRef;
 
-function isEventInsideNode(
-  event: PointerEvent,
-  node: Node
-): boolean {
-  /*
-   * composedPath conserva la pertenencia a través de shadow roots.
-   * contains cubre el DOM regular y targets que no aparezcan en el path.
-   */
-  const path =
-    typeof event.composedPath === "function"
-      ? event.composedPath()
-      : [];
+const EMPTY_BRANCHES: readonly DismissableLayerBranchRef[] = [];
+const EMPTY_SUBSCRIBE = () => () => undefined;
+const SERVER_SNAPSHOT = () => 0;
 
-  if (path.includes(node)) {
-    return true;
-  }
-
-  const target = event.target;
-
-  return (
-    target instanceof Node &&
-    node.contains(target)
-  );
+export interface OverlayInstanceContextValue {
+  token: OverlayToken;
+  enabled: boolean;
+  ownerDocument: Document | null;
+  sourceDocument: Document | null;
+  isTopmost: boolean;
 }
 
-function createDismissableEvent(): DismissableLayerEvent {
-  let prevented = false;
+const OverlayInstanceContext =
+  React.createContext<OverlayInstanceContextValue | null>(null);
 
-  return {
-    get defaultPrevented() {
-      return prevented;
+function useIsDocumentOverlayTopmost(
+  ownerDocument: Document | null,
+  token: OverlayToken,
+  enabled: boolean
+): boolean {
+  const subscribe = React.useCallback(
+    (subscriber: () => void) => {
+      if (!ownerDocument || !enabled) {
+        return EMPTY_SUBSCRIBE();
+      }
+
+      return subscribeOverlayDocument(ownerDocument, subscriber);
     },
-    preventDefault() {
-      prevented = true;
-    },
-  };
+    [enabled, ownerDocument]
+  );
+
+  const getSnapshot = React.useCallback(
+    () => ownerDocument
+      ? getOverlayDocumentVersion(ownerDocument)
+      : 0,
+    [ownerDocument]
+  );
+
+  React.useSyncExternalStore(subscribe, getSnapshot, SERVER_SNAPSHOT);
+
+  return !!(
+    enabled &&
+    ownerDocument &&
+    isDocumentOverlayTopmost(ownerDocument, token)
+  );
 }
 
 export interface DismissableLayerProps
@@ -60,14 +76,14 @@ export interface DismissableLayerProps
   dismissOnEscape?: boolean;
   dismissOnPointerDownOutside?: boolean;
 
-  /*
-   * Nodos externos que pertenecen lógicamente al overlay, como su trigger.
-   * Una interacción dentro de una branch no debe emitirse como outside.
-   */
+  /** Nodos externos que pertenecen lógicamente al mismo overlay. */
   branches?: readonly DismissableLayerBranchRef[];
 
   onDismiss?: () => void;
-  onEscapeKeyDown?: (event: KeyboardEvent, context: DismissableLayerEvent) => void;
+  onEscapeKeyDown?: (
+    event: KeyboardEvent,
+    context: DismissableLayerEvent
+  ) => void;
   onPointerDownOutside?: (
     event: PointerEvent,
     context: DismissableLayerEvent
@@ -86,7 +102,7 @@ export const DismissableLayer = React.forwardRef<
       enabled = true,
       dismissOnEscape = true,
       dismissOnPointerDownOutside = true,
-      branches,
+      branches = EMPTY_BRANCHES,
       onDismiss,
       onEscapeKeyDown,
       onPointerDownOutside,
@@ -94,115 +110,130 @@ export const DismissableLayer = React.forwardRef<
     },
     ref
   ) => {
+    const { providerToken, ownerDocument: providerDocument } =
+      useOverlayContext();
+    const portalContext = useOverlayPortalContext();
     const localRef = React.useRef<HTMLDivElement | null>(null);
-
-    /*
-     * El listener documental debe permanecer estable, pero siempre consultar
-     * la lista más reciente y las refs vivas de las branches.
-     */
-    const branchesRef =
-      React.useRef<
-        readonly DismissableLayerBranchRef[]
-      >([]);
-
-    branchesRef.current =
-      branches ?? [];
+    const [layerNode, setLayerNode] =
+      React.useState<HTMLDivElement | null>(null);
+    const [token] = React.useState<OverlayToken>(() =>
+      Symbol("overlay-instance")
+    );
+    const registeredDocumentRef = React.useRef<Document | null>(null);
 
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
-        localRef.current = node;
+        if (localRef.current !== node) {
+          localRef.current = node;
+          setLayerNode(node);
+        }
+
         setRef(ref, node);
       },
       [ref]
     );
 
-    useOverlayRegistration(overlayId, layer, enabled);
-    const isTopmost = useIsOverlayTopmost(overlayId);
+    /*
+     * El registro se reconcilia después de cada commit. Así, listeners
+     * nativos y tareas de foco nunca leen callbacks de un render descartado,
+     * y cambiar configuración no altera el orden temporal de la instancia.
+     */
+    useIsomorphicLayoutEffect(() => {
+      const element = localRef.current;
+      const ownerDocument = element?.ownerDocument ?? null;
+      const registeredDocument = registeredDocumentRef.current;
 
-    React.useEffect(() => {
-      if (!enabled) return;
-
-      const handlePointerDown = (event: PointerEvent) => {
-        if (!isTopmost) return;
-        if (!dismissOnPointerDownOutside && !onPointerDownOutside) return;
-
-        const container = localRef.current;
-        if (!container) return;
-
-        if (
-          isEventInsideNode(
-            event,
-            container
-          )
-        ) {
-          return;
+      if (!enabled || !element || !ownerDocument) {
+        if (registeredDocument) {
+          unregisterDocumentOverlay(registeredDocument, token);
+          registeredDocumentRef.current = null;
         }
 
-        const insideBranch =
-          branchesRef.current.some(
-            (branchRef) => {
-              const branch =
-                branchRef.current;
+        return;
+      }
 
-              return (
-                branch !== null &&
-                isEventInsideNode(
-                  event,
-                  branch
-                )
-              );
-            }
-          );
+      if (registeredDocument && registeredDocument !== ownerDocument) {
+        unregisterDocumentOverlay(registeredDocument, token);
+      }
 
-        if (insideBranch) {
-          return;
-        }
+      registeredDocumentRef.current = ownerDocument;
+      registerDocumentOverlay(ownerDocument, token, {
+        overlayId,
+        layer,
+        element,
+        providerToken,
+        portalContainer: portalContext?.container ?? null,
+        branches,
+        dismissOnEscape,
+        dismissOnPointerDownOutside,
+        onDismiss,
+        onEscapeKeyDown,
+        onPointerDownOutside,
+      });
+    });
 
-        const context = createDismissableEvent();
-        onPointerDownOutside?.(event, context);
-
-        if (!context.defaultPrevented && dismissOnPointerDownOutside) {
-          onDismiss?.();
-        }
-      };
-
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (!isTopmost) return;
-        if (event.key !== "Escape") return;
-        if (!dismissOnEscape && !onEscapeKeyDown) return;
-
-        const context = createDismissableEvent();
-        onEscapeKeyDown?.(event, context);
-
-        if (!context.defaultPrevented && dismissOnEscape) {
-          event.preventDefault();
-          onDismiss?.();
-        }
-      };
-
-      document.addEventListener("pointerdown", handlePointerDown);
-      document.addEventListener("keydown", handleKeyDown);
-
+    useIsomorphicLayoutEffect(() => {
       return () => {
-        document.removeEventListener("pointerdown", handlePointerDown);
-        document.removeEventListener("keydown", handleKeyDown);
+        const registeredDocument = registeredDocumentRef.current;
+
+        if (registeredDocument) {
+          unregisterDocumentOverlay(registeredDocument, token);
+          registeredDocumentRef.current = null;
+        }
       };
-    }, [
-      enabled,
-      isTopmost,
-      dismissOnPointerDownOutside,
-      dismissOnEscape,
-      onDismiss,
-      onPointerDownOutside,
-      onEscapeKeyDown,
-    ]);
+    }, [token]);
+
+    const ownerDocument =
+      layerNode?.ownerDocument ??
+      portalContext?.ownerDocument ??
+      null;
+    const isTopmost = useIsDocumentOverlayTopmost(
+      ownerDocument,
+      token,
+      enabled
+    );
+
+    const contextValue = React.useMemo<OverlayInstanceContextValue>(
+      () => ({
+        token,
+        enabled,
+        ownerDocument,
+        sourceDocument:
+          portalContext?.sourceDocument ??
+          ownerDocument ??
+          providerDocument,
+        isTopmost,
+      }),
+      [
+        enabled,
+        isTopmost,
+        ownerDocument,
+        portalContext?.sourceDocument,
+        providerDocument,
+        token,
+      ]
+    );
 
     return (
-      <div ref={setRefs} {...rest}>
-        {children}
-      </div>
+      <OverlayInstanceContext.Provider value={contextValue}>
+        <div ref={setRefs} {...rest}>
+          {children}
+        </div>
+      </OverlayInstanceContext.Provider>
     );
   }
 );
 
 DismissableLayer.displayName = "DismissableLayer";
+
+export function useOverlayInstanceContext(): OverlayInstanceContextValue {
+  const context = React.useContext(OverlayInstanceContext);
+
+  if (!context) {
+    throw new Error(
+      "Overlay focus and scroll resources must be rendered inside <DismissableLayer />"
+    );
+  }
+
+  return context;
+}

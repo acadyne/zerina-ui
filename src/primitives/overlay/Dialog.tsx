@@ -340,11 +340,19 @@ export interface DialogProps {
   closeOnPointerDownOutside?:
     boolean;
 
+  /**
+   * La modalidad es una decisión atómica: backdrop, aria-modal, contención
+   * de foco y scroll lock se activan y desactivan juntos.
+   */
   modal?: boolean;
-  lockScroll?: boolean;
 
+  /** Desactívalo solo si otro owner restaurará el foco al cerrar. */
   restoreFocus?: boolean;
-  trapFocus?: boolean;
+
+  /**
+   * Escape experto: `false` transfiere al consumidor la entrada inicial de
+   * foco. En modo modal el consumidor debe moverlo dentro del panel.
+   */
   autoFocus?: boolean;
 
   initialFocusRef?:
@@ -378,10 +386,8 @@ export const Dialog:
       true,
 
     modal = true,
-    lockScroll = true,
 
     restoreFocus = true,
-    trapFocus = true,
     autoFocus = true,
 
     initialFocusRef,
@@ -607,9 +613,7 @@ export const Dialog:
               }
             >
               <FocusScope
-                overlayId={overlayId}
-                enabled={open}
-                contain={trapFocus}
+                contain={modal}
                 autoFocus={autoFocus}
                 restoreFocus={
                   restoreFocus
@@ -651,14 +655,8 @@ export const Dialog:
                 </MotionOverlayPanel>
               </FocusScope>
 
-              {lockScroll ? (
-                <ScrollLock
-                  overlayId={
-                    overlayId
-                  }
-                  enabled={open}
-                  active={open}
-                />
+              {modal ? (
+                <ScrollLock />
               ) : null}
             </DismissableLayer>
           </MotionOverlayRoot>

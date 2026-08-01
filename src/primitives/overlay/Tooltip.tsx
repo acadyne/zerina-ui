@@ -28,6 +28,17 @@ import {
 import {
   mergeTriggerProps,
 } from "./triggerProps";
+import {
+  clearOwnedWindowTimeout,
+  getNodeEventRoot,
+  isEventInsideNode,
+  setOwnedWindowTimeout,
+  type DOMEventRoot,
+  type OwnedWindowTimeout,
+} from "../../core/dom";
+import {
+  useIsomorphicLayoutEffect,
+} from "../../core/react/useIsomorphicLayoutEffect";
 
 export type TooltipSlot =
   | "trigger"
@@ -107,6 +118,9 @@ type TooltipContextValue = {
 
   triggerId: string;
   contentId: string;
+
+  anchorNode:
+  HTMLElement | null;
 
   anchorRef:
   React.RefObject<HTMLElement | null>;
@@ -229,6 +243,14 @@ export const Tooltip:
       setOpen,
     ] = React.useState(false);
 
+    const [
+      anchorNode,
+      setAnchorNodeState,
+    ] =
+      React.useState<HTMLElement | null>(
+        null
+      );
+
     const anchorRef =
       React.useRef<HTMLElement | null>(
         null
@@ -242,6 +264,13 @@ export const Tooltip:
             | null
         ) => {
           anchorRef.current = node;
+
+          setAnchorNodeState(
+            (currentNode) =>
+              currentNode === node
+                ? currentNode
+                : node
+          );
         },
         []
       );
@@ -259,6 +288,7 @@ export const Tooltip:
           contentId:
             `tooltip-content-${reactId}`,
 
+          anchorNode,
           anchorRef,
           setAnchorNode,
           setOpen,
@@ -271,6 +301,7 @@ export const Tooltip:
           slotProps,
         }),
         [
+          anchorNode,
           open,
           reactId,
           setAnchorNode,
@@ -338,12 +369,12 @@ export const TooltipTrigger =
 
       const openTimerRef =
         React.useRef<
-          number | null
+          OwnedWindowTimeout | null
         >(null);
 
       const closeTimerRef =
         React.useRef<
-          number | null
+          OwnedWindowTimeout | null
         >(null);
 
       const lastPointerTypeRef =
@@ -373,7 +404,7 @@ export const TooltipTrigger =
             openTimerRef.current !==
             null
           ) {
-            window.clearTimeout(
+            clearOwnedWindowTimeout(
               openTimerRef.current
             );
 
@@ -385,7 +416,7 @@ export const TooltipTrigger =
             closeTimerRef.current !==
             null
           ) {
-            window.clearTimeout(
+            clearOwnedWindowTimeout(
               closeTimerRef.current
             );
 
@@ -400,6 +431,18 @@ export const TooltipTrigger =
         };
       }, [clearTimers]);
 
+      const childRef =
+        (
+          children as React.ReactElement & {
+            ref?: React.Ref<HTMLElement>;
+          }
+        ).ref;
+
+      /*
+       * La identidad del elemento React puede cambiar en cada render aunque
+       * su ref no cambie. Depender de la ref real evita ciclos null → node
+       * que alterarían artificialmente el nodo committed del anchor.
+       */
       const setRefs =
         React.useCallback(
           (
@@ -417,16 +460,12 @@ export const TooltipTrigger =
             );
 
             setRef(
-              (
-                children as React.ReactElement & {
-                  ref?: React.Ref<HTMLElement>;
-                }
-              ).ref,
+              childRef,
               node
             );
           },
           [
-            children,
+            childRef,
             ref,
             setAnchorNode,
           ]
@@ -436,8 +475,17 @@ export const TooltipTrigger =
         React.useCallback(() => {
           clearTimers();
 
+          const ownerWindow =
+            ctx.anchorRef.current
+              ?.ownerDocument.defaultView;
+
+          if (!ownerWindow) {
+            return;
+          }
+
           openTimerRef.current =
-            window.setTimeout(
+            setOwnedWindowTimeout(
+              ownerWindow,
               () => {
                 openTimerRef.current = null;
                 setOpen(true);
@@ -446,6 +494,7 @@ export const TooltipTrigger =
             );
         }, [
           clearTimers,
+          ctx.anchorRef,
           openDelayMs,
           setOpen,
         ]);
@@ -454,8 +503,17 @@ export const TooltipTrigger =
         React.useCallback(() => {
           clearTimers();
 
+          const ownerWindow =
+            ctx.anchorRef.current
+              ?.ownerDocument.defaultView;
+
+          if (!ownerWindow) {
+            return;
+          }
+
           closeTimerRef.current =
-            window.setTimeout(
+            setOwnedWindowTimeout(
+              ownerWindow,
               () => {
                 closeTimerRef.current = null;
                 setOpen(false);
@@ -464,6 +522,7 @@ export const TooltipTrigger =
             );
         }, [
           clearTimers,
+          ctx.anchorRef,
           closeDelayMs,
           setOpen,
         ]);
@@ -853,6 +912,7 @@ export const TooltipContent =
         useTooltipContext();
 
       const {
+        anchorNode,
         anchorRef,
         contentId,
         open,
@@ -866,6 +926,14 @@ export const TooltipContent =
         React.useRef<
           HTMLDivElement | null
         >(null);
+
+      const [
+        contentNode,
+        setContentNode,
+      ] =
+        React.useState<HTMLDivElement | null>(
+          null
+        );
 
       const resolvedStyles =
         styles ??
@@ -897,6 +965,13 @@ export const TooltipContent =
             contentRef.current =
               node;
 
+            setContentNode(
+              (currentNode) =>
+                currentNode === node
+                  ? currentNode
+                  : node
+            );
+
             setRef(
               ref,
               node
@@ -905,78 +980,97 @@ export const TooltipContent =
           [ref]
         );
 
-      React.useEffect(() => {
-        if (!open) {
-          return;
-        }
-
+      useIsomorphicLayoutEffect(() => {
         if (
+          !open ||
           !closeOnClickOutside
         ) {
           return;
         }
 
-        const handlePointerDown =
-          (
-            event:
-              PointerEvent
-          ) => {
-            const target =
-              event.target as
-              | Node
-              | null;
-
-            const anchorEl =
-              anchorRef.current;
-
-            const contentEl =
-              contentRef.current;
-
-            const clickedAnchor =
-              !!anchorEl &&
-              !!target &&
-              anchorEl.contains(
-                target
-              );
-
-            const clickedContent =
-              !!contentEl &&
-              !!target &&
-              contentEl.contains(
-                target
-              );
-
-            if (
-              !clickedAnchor &&
-              !clickedContent
-            ) {
-              setOpen(false);
-            }
-          };
-
-        document.addEventListener(
-          "pointerdown",
-          handlePointerDown
+        const nodes = [
+          anchorNode,
+          contentNode,
+        ].filter(
+          (node): node is HTMLElement =>
+            node !== null
         );
 
-        return () => {
-          document.removeEventListener(
+        const roots =
+          new Set<DOMEventRoot>();
+
+        nodes.forEach((node) => {
+          roots.add(node.ownerDocument);
+          roots.add(getNodeEventRoot(node));
+        });
+
+        const processedEvents =
+          new WeakSet<Event>();
+
+        const handlePointerDown:
+          EventListener = (event) => {
+            if (
+              processedEvents.has(event)
+            ) {
+              return;
+            }
+
+            processedEvents.add(event);
+
+            if (
+              (
+                anchorNode &&
+                isEventInsideNode(
+                  event,
+                  anchorNode
+                )
+              ) ||
+              (
+                contentNode &&
+                isEventInsideNode(
+                  event,
+                  contentNode
+                )
+              )
+            ) {
+              return;
+            }
+
+            setOpen(false);
+          };
+
+        roots.forEach((root) => {
+          root.addEventListener(
             "pointerdown",
             handlePointerDown
           );
+        });
+
+        return () => {
+          roots.forEach((root) => {
+            root.removeEventListener(
+              "pointerdown",
+              handlePointerDown
+            );
+          });
         };
       }, [
-        anchorRef,
+        anchorNode,
         closeOnClickOutside,
+        contentNode,
         open,
         setOpen,
       ]);
+
       const content =
         open &&
-          anchorRef.current ? (
+          anchorNode ? (
           <FloatingLayer
             anchorRef={
               anchorRef
+            }
+            floatingElementRef={
+              setRefs
             }
             open={open}
             placement={placement}
@@ -1043,14 +1137,9 @@ export const TooltipContent =
                   {...toMotionSlotProps(
                     contentSlot
                   )}
-                  ref={(node) => {
-                    setRef(
-                      floatingRef,
-                      node
-                    );
-
-                    setRefs(node);
-                  }}
+                  ref={
+                    floatingRef
+                  }
                   id={
                     contentId
                   }

@@ -8,88 +8,61 @@ type BodyStyleSnapshot = {
   width: string;
 };
 
-/*
- * El scroll del body es un recurso global compartido.
- * El primer lock aplica estilos y solo el último unlock los restaura.
- *
- * El snapshot y savedScrollY pertenecen al document global. Los locks
- * posteriores no pueden reemplazar el estado capturado por el primero.
- */
-const activeBodyScrollLocks =
-  new Set<string>();
+type BodyScrollLockState = {
+  locks: Set<symbol>;
+  body: HTMLElement | null;
+  snapshot: BodyStyleSnapshot | null;
+  savedScrollY: number;
+  restoreScroll: boolean;
+};
 
-let bodyStyleSnapshot:
-  | BodyStyleSnapshot
-  | null = null;
+/* Cada Document conserva su propio recurso y su snapshot de restauración. */
+const documentScrollLocks =
+  new WeakMap<Document, BodyScrollLockState>();
 
-let savedScrollY = 0;
+function getBodyScrollLockState(
+  ownerDocument: Document
+): BodyScrollLockState {
+  const existing = documentScrollLocks.get(ownerDocument);
 
-function canUseDOM(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof document !== "undefined"
-  );
-}
-
-function assertValidBodyScrollLockId(
-  lockId: string
-): void {
-  if (
-    typeof lockId !== "string" ||
-    lockId.trim().length === 0
-  ) {
-    throw new Error(
-      "Body scroll lock ID must be a non-empty string."
-    );
-  }
-}
-
-function isIOSLikeEnvironment(): boolean {
-  if (!canUseDOM()) {
-    return false;
+  if (existing) {
+    return existing;
   }
 
+  const state: BodyScrollLockState = {
+    locks: new Set(),
+    body: null,
+    snapshot: null,
+    savedScrollY: 0,
+    restoreScroll: false,
+  };
+
+  documentScrollLocks.set(ownerDocument, state);
+  return state;
+}
+
+function isIOSLikeEnvironment(ownerWindow: Window): boolean {
   const {
     userAgent,
     platform,
     maxTouchPoints = 0,
-  } = window.navigator;
+  } = ownerWindow.navigator;
 
   return (
-    /iPad|iPhone|iPod/.test(
-      userAgent
-    ) ||
-    (
-      platform === "MacIntel" &&
-      maxTouchPoints > 1
-    )
+    /iPad|iPhone|iPod/.test(userAgent) ||
+    (platform === "MacIntel" && maxTouchPoints > 1)
   );
 }
 
-function captureBodyStyle(
-  body: HTMLElement
-): BodyStyleSnapshot {
+function captureBodyStyle(body: HTMLElement): BodyStyleSnapshot {
   return {
-    overflow:
-      body.style.overflow,
-
-    paddingRight:
-      body.style.paddingRight,
-
-    position:
-      body.style.position,
-
-    top:
-      body.style.top,
-
-    left:
-      body.style.left,
-
-    right:
-      body.style.right,
-
-    width:
-      body.style.width,
+    overflow: body.style.overflow,
+    paddingRight: body.style.paddingRight,
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    width: body.style.width,
   };
 }
 
@@ -97,188 +70,112 @@ function restoreBodyStyle(
   body: HTMLElement,
   snapshot: BodyStyleSnapshot
 ): void {
-  body.style.overflow =
-    snapshot.overflow;
-
-  body.style.paddingRight =
-    snapshot.paddingRight;
-
-  body.style.position =
-    snapshot.position;
-
-  body.style.top =
-    snapshot.top;
-
-  body.style.left =
-    snapshot.left;
-
-  body.style.right =
-    snapshot.right;
-
-  body.style.width =
-    snapshot.width;
+  body.style.overflow = snapshot.overflow;
+  body.style.paddingRight = snapshot.paddingRight;
+  body.style.position = snapshot.position;
+  body.style.top = snapshot.top;
+  body.style.left = snapshot.left;
+  body.style.right = snapshot.right;
+  body.style.width = snapshot.width;
 }
 
-function getDocumentScrollbarWidth(): number {
-  if (!canUseDOM()) {
-    return 0;
+function applyBodyScrollLock(
+  ownerDocument: Document,
+  state: BodyScrollLockState
+): boolean {
+  const ownerWindow = ownerDocument.defaultView;
+  const body = ownerDocument.body;
+
+  if (!ownerWindow || !body) {
+    return false;
   }
 
-  return Math.max(
+  state.body = body;
+  state.snapshot = captureBodyStyle(body);
+  state.restoreScroll = isIOSLikeEnvironment(ownerWindow);
+
+  if (state.restoreScroll) {
+    state.savedScrollY = ownerWindow.scrollY;
+    body.style.position = "fixed";
+    body.style.top = `-${state.savedScrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    return true;
+  }
+
+  const scrollbarWidth = Math.max(
     0,
-    window.innerWidth -
-      document.documentElement.clientWidth
+    ownerWindow.innerWidth - ownerDocument.documentElement.clientWidth
   );
-}
+  const computedPaddingRight = Number.parseFloat(
+    ownerWindow.getComputedStyle(body).paddingRight
+  );
+  const existingPaddingRight = Number.isFinite(computedPaddingRight)
+    ? computedPaddingRight
+    : 0;
 
-function applyBodyScrollLock(): void {
-  if (!canUseDOM()) {
-    return;
-  }
-
-  const body =
-    document.body;
-
-  if (!bodyStyleSnapshot) {
-    bodyStyleSnapshot =
-      captureBodyStyle(body);
-  }
-
-  if (
-    isIOSLikeEnvironment()
-  ) {
-    savedScrollY =
-      window.scrollY;
-
-    body.style.position =
-      "fixed";
-
-    body.style.top =
-      `-${savedScrollY}px`;
-
-    body.style.left =
-      "0";
-
-    body.style.right =
-      "0";
-
-    body.style.width =
-      "100%";
-
-    return;
-  }
-
-  const scrollbarWidth =
-    getDocumentScrollbarWidth();
-
-  const computedPaddingRight =
-    Number.parseFloat(
-      window.getComputedStyle(
-        body
-      ).paddingRight
-    );
-
-  const existingPaddingRight =
-    Number.isFinite(
-      computedPaddingRight
-    )
-      ? computedPaddingRight
-      : 0;
-
-  body.style.overflow =
-    "hidden";
+  body.style.overflow = "hidden";
 
   if (scrollbarWidth > 0) {
-    /*
-     * La compensación se suma al padding computado. Reemplazarlo desplazaría
-     * el contenido de aplicaciones que ya reservan espacio en el body.
-     * El snapshot conserva el valor inline exacto para restaurarlo después.
-     */
-    body.style.paddingRight =
-      `${
-        existingPaddingRight +
-        scrollbarWidth
-      }px`;
+    body.style.paddingRight = `${existingPaddingRight + scrollbarWidth}px`;
   }
+
+  return true;
 }
 
-function restoreBodyScrollState(): void {
-  if (!canUseDOM()) {
-    return;
+function restoreBodyScrollState(
+  ownerDocument: Document,
+  state: BodyScrollLockState
+): void {
+  const ownerWindow = ownerDocument.defaultView;
+
+  if (state.body && state.snapshot) {
+    restoreBodyStyle(state.body, state.snapshot);
   }
 
-  const body =
-    document.body;
-
-  const shouldRestoreScroll =
-    isIOSLikeEnvironment();
-
-  if (bodyStyleSnapshot) {
-    restoreBodyStyle(
-      body,
-      bodyStyleSnapshot
-    );
-
-    bodyStyleSnapshot =
-      null;
+  if (ownerWindow && state.restoreScroll) {
+    ownerWindow.scrollTo(0, state.savedScrollY);
   }
 
-  if (shouldRestoreScroll) {
-    window.scrollTo(
-      0,
-      savedScrollY
-    );
-  }
+  state.body = null;
+  state.snapshot = null;
+  state.savedScrollY = 0;
+  state.restoreScroll = false;
 }
 
 export function acquireBodyScrollLock(
-  lockId: string
+  ownerDocument: Document,
+  lockToken: symbol
 ): void {
-  assertValidBodyScrollLockId(
-    lockId
-  );
+  const state = getBodyScrollLockState(ownerDocument);
 
-  if (
-    activeBodyScrollLocks.has(
-      lockId
-    )
-  ) {
+  if (state.locks.has(lockToken)) {
     return;
   }
 
-  const shouldApply =
-    activeBodyScrollLocks.size ===
-    0;
-
-  activeBodyScrollLocks.add(
-    lockId
-  );
-
-  if (shouldApply) {
-    applyBodyScrollLock();
+  if (state.locks.size === 0 && !applyBodyScrollLock(ownerDocument, state)) {
+    documentScrollLocks.delete(ownerDocument);
+    return;
   }
+
+  state.locks.add(lockToken);
 }
 
 export function releaseBodyScrollLock(
-  lockId: string
+  ownerDocument: Document,
+  lockToken: symbol
 ): void {
-  assertValidBodyScrollLockId(
-    lockId
-  );
+  const state = documentScrollLocks.get(ownerDocument);
 
-  const existed =
-    activeBodyScrollLocks.delete(
-      lockId
-    );
-
-  if (!existed) {
+  if (!state || !state.locks.delete(lockToken)) {
     return;
   }
 
-  if (
-    activeBodyScrollLocks.size ===
-    0
-  ) {
-    restoreBodyScrollState();
+  if (state.locks.size > 0) {
+    return;
   }
+
+  restoreBodyScrollState(ownerDocument, state);
+  documentScrollLocks.delete(ownerDocument);
 }

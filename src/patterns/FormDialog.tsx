@@ -36,7 +36,6 @@ export interface FormDialogProps {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   closeOnEscape?: boolean;
   closeOnPointerDownOutside?: boolean;
-  lockScroll?: boolean;
 
   footer?: React.ReactNode;
   formProps?: Omit<
@@ -63,7 +62,6 @@ export const FormDialog: React.FC<FormDialogProps> = ({
   initialFocusRef,
   closeOnEscape = true,
   closeOnPointerDownOutside = false,
-  lockScroll = true,
   footer,
   formProps,
 }) => {
@@ -112,7 +110,6 @@ export const FormDialog: React.FC<FormDialogProps> = ({
       initialFocusRef={initialFocusRef}
       closeOnEscape={closeOnEscape}
       closeOnPointerDownOutside={closeOnPointerDownOutside}
-      lockScroll={lockScroll}
     >
       <form onSubmit={handleSubmit} {...formProps}>
         <DialogHeader>

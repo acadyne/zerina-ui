@@ -9,13 +9,19 @@ export interface ViewportSize {
 export interface UseViewportSizeOptions {
   ssrSafe?: boolean;
   observeResize?: boolean;
+  ownerWindow?: Window | null;
 }
 
-export function getViewportSize(): ViewportSize {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
+function getDefaultWindow(): Window | null {
+  return typeof window === "undefined"
+    ? null
+    : window;
+}
+
+export function getViewportSize(
+  ownerWindow: Window | null = getDefaultWindow()
+): ViewportSize {
+  if (!ownerWindow) {
     return {
       width: 0,
       height: 0,
@@ -24,14 +30,14 @@ export function getViewportSize(): ViewportSize {
 
   return {
     width:
-      window.visualViewport
+      ownerWindow.visualViewport
         ?.width ??
-      window.innerWidth,
+      ownerWindow.innerWidth,
 
     height:
-      window.visualViewport
+      ownerWindow.visualViewport
         ?.height ??
-      window.innerHeight,
+      ownerWindow.innerHeight,
   };
 }
 
@@ -49,8 +55,14 @@ export function useViewportSize(
   {
     ssrSafe = false,
     observeResize = true,
+    ownerWindow,
   }: UseViewportSizeOptions = {}
 ): ViewportSize {
+  const resolvedOwnerWindow =
+    ownerWindow === undefined
+      ? getDefaultWindow()
+      : ownerWindow;
+
   const [
     viewportSize,
     setViewportSize,
@@ -64,21 +76,22 @@ export function useViewportSize(
           };
         }
 
-        return getViewportSize();
+        return getViewportSize(
+          resolvedOwnerWindow
+        );
       }
     );
 
   React.useEffect(() => {
-    if (
-      typeof window ===
-      "undefined"
-    ) {
+    if (!resolvedOwnerWindow) {
       return;
     }
 
     const update = () => {
       const nextSize =
-        getViewportSize();
+        getViewportSize(
+          resolvedOwnerWindow
+        );
 
       setViewportSize(
         (currentSize) =>
@@ -97,13 +110,13 @@ export function useViewportSize(
       return;
     }
 
-    window.addEventListener(
+    resolvedOwnerWindow.addEventListener(
       "resize",
       update
     );
 
     const visualViewport =
-      window.visualViewport;
+      resolvedOwnerWindow.visualViewport;
 
     visualViewport?.addEventListener(
       "resize",
@@ -111,7 +124,7 @@ export function useViewportSize(
     );
 
     return () => {
-      window.removeEventListener(
+      resolvedOwnerWindow.removeEventListener(
         "resize",
         update
       );
@@ -121,7 +134,7 @@ export function useViewportSize(
         update
       );
     };
-  }, [observeResize]);
+  }, [observeResize, resolvedOwnerWindow]);
 
   return viewportSize;
 }

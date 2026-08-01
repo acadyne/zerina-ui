@@ -1,39 +1,160 @@
-// src/core/overlay/FocusScope.tsx
 import React from "react";
-import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
-import { useIsOverlayTopmost } from "./OverlayProvider";
 import { setRef } from "../interaction/events";
+import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
+import {
+  getNodeEventRoot,
+  isEventInsideNode,
+  isShadowRoot,
+  type DOMEventRoot,
+} from "../dom";
+import { useOverlayInstanceContext } from "./DismissableLayer";
 
-function isElementVisible(el: HTMLElement): boolean {
-  const style = window.getComputedStyle(el);
+function getDeepActiveElement(
+  initialRoot: DOMEventRoot
+): HTMLElement | null {
+  let root: DOMEventRoot = initialRoot;
+  let active = root.activeElement;
 
-  if (style.display === "none") return false;
-  if (style.visibility === "hidden") return false;
-  if (el.hasAttribute("hidden")) return false;
-  if (el.getAttribute("aria-hidden") === "true") return false;
+  while (active) {
+    const ownerWindow = active.ownerDocument.defaultView;
 
-  if (style.position === "fixed") return true;
-  return el.offsetParent !== null;
+    if (!ownerWindow || !(active instanceof ownerWindow.HTMLElement)) {
+      return null;
+    }
+
+    const shadowActive = active.shadowRoot?.activeElement;
+
+    if (shadowActive) {
+      root = active.shadowRoot as ShadowRoot;
+      active = root.activeElement;
+      continue;
+    }
+
+    if (active.tagName === "IFRAME") {
+      try {
+        const frameDocument = (active as HTMLIFrameElement).contentDocument;
+
+        if (frameDocument?.activeElement) {
+          root = frameDocument;
+          active = frameDocument.activeElement;
+          continue;
+        }
+      } catch {
+        // Un iframe cross-origin solo permite restaurar el foco al frame.
+      }
+    }
+
+    return active as HTMLElement;
+  }
+
+  return null;
 }
 
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(",");
+function getPreviousFocusTarget(
+  container: HTMLElement,
+  sourceDocument: Document | null
+): HTMLElement | null {
+  const ownerDocument = container.ownerDocument;
 
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter(
-    (el) => {
-      if (el.hasAttribute("disabled")) return false;
-      if (el.getAttribute("aria-hidden") === "true") return false;
-      if (!isElementVisible(el)) return false;
-      return true;
+  if (sourceDocument && sourceDocument !== ownerDocument) {
+    return getDeepActiveElement(sourceDocument);
+  }
+
+  return getDeepActiveElement(getNodeEventRoot(container));
+}
+
+function getComposedParentElement(
+  element: Element
+): Element | null {
+  if (element.parentElement) {
+    return element.parentElement;
+  }
+
+  const root = element.getRootNode();
+
+  return isShadowRoot(root)
+    ? root.host
+    : null;
+}
+
+function isElementVisible(
+  element: HTMLElement
+): boolean {
+  if (!element.isConnected) {
+    return false;
+  }
+
+  let current: Element | null = element;
+
+  while (current) {
+    const ownerWindow =
+      current.ownerDocument.defaultView;
+
+    if (!ownerWindow) {
+      return false;
     }
-  );
+
+    const style =
+      ownerWindow.getComputedStyle(current);
+
+    if (
+      current.hasAttribute("hidden") ||
+      current.hasAttribute("inert") ||
+      current.getAttribute("aria-hidden") === "true" ||
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      style.visibility === "collapse"
+    ) {
+      return false;
+    }
+
+    current =
+      getComposedParentElement(current);
+  }
+
+  return element.getClientRects().length > 0;
+}
+
+const TABBABLE_SELECTOR = [
+  "a[href]",
+  "area[href]",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "iframe",
+  "object",
+  "embed",
+  "audio[controls]",
+  "video[controls]",
+  "summary",
+  '[contenteditable]:not([contenteditable="false"])',
+  "[tabindex]",
+].join(",");
+
+function getFocusableElements(
+  container: HTMLElement
+): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      TABBABLE_SELECTOR
+    )
+  ).filter((element) => {
+    /*
+     * La propiedad normalizada cubre cualquier índice negativo, no solo el
+     * atributo literal -1. :disabled incluye controles deshabilitados por
+     * relaciones nativas como fieldset.
+     */
+    if (element.tabIndex < 0) {
+      return false;
+    }
+
+    if (element.matches(":disabled")) {
+      return false;
+    }
+
+    return isElementVisible(element);
+  });
 }
 
 function getBestInitialFocusTarget(
@@ -41,26 +162,18 @@ function getBestInitialFocusTarget(
   fallback: HTMLElement
 ): HTMLElement {
   return (
-    focusable.find((el) => el.tagName === "INPUT") ||
-    focusable.find((el) => el.tagName === "TEXTAREA") ||
-    focusable.find((el) => el.tagName === "SELECT") ||
-    focusable.find((el) => el.tagName === "BUTTON") ||
+    focusable.find((element) => element.tagName === "INPUT") ||
+    focusable.find((element) => element.tagName === "TEXTAREA") ||
+    focusable.find((element) => element.tagName === "SELECT") ||
+    focusable.find((element) => element.tagName === "BUTTON") ||
     focusable[0] ||
     fallback
   );
 }
 
-
-
 export interface FocusScopeProps
-  extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    "tabIndex"
-  > {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "tabIndex"> {
   children?: React.ReactNode;
-
-  overlayId: string;
-  enabled?: boolean;
 
   contain?: boolean;
   autoFocus?: boolean;
@@ -73,8 +186,6 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
   (
     {
       children,
-      overlayId,
-      enabled = true,
       contain = true,
       autoFocus = true,
       restoreFocus = true,
@@ -83,10 +194,22 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
     },
     ref
   ) => {
+    const {
+      enabled,
+      isTopmost,
+      ownerDocument: overlayDocument,
+      sourceDocument,
+    } = useOverlayInstanceContext();
     const localRef = React.useRef<HTMLDivElement | null>(null);
-    const lastActiveRef = React.useRef<HTMLElement | null>(null);
+    const focusCycleRef = React.useRef<{
+      active: boolean;
+      target: HTMLElement | null;
+    }>({
+      active: false,
+      target: null,
+    });
+    const restoreFocusRef = React.useRef(restoreFocus);
     const hasAutoFocusedRef = React.useRef(false);
-    const isTopmost = useIsOverlayTopmost(overlayId);
 
     const setRefs = React.useCallback(
       (node: HTMLDivElement | null) => {
@@ -96,149 +219,192 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
       [ref]
     );
 
-    useIsomorphicLayoutEffect(() => {
-      if (!enabled) return;
+    const releaseFocusCycle =
+      React.useCallback(() => {
+        const cycle = focusCycleRef.current;
 
-      lastActiveRef.current = document.activeElement as HTMLElement | null;
-      hasAutoFocusedRef.current = false;
-    }, [enabled]);
+        if (!cycle.active) {
+          return;
+        }
+
+        cycle.active = false;
+
+        const target = cycle.target;
+        cycle.target = null;
+
+        if (
+          !restoreFocusRef.current ||
+          !target ||
+          typeof target.focus !== "function" ||
+          !target.isConnected
+        ) {
+          return;
+        }
+
+        target.focus();
+      }, []);
+
+    /*
+     * Este efecto reconcilia transiciones de actividad después del commit.
+     * Cambiar restoreFocus solo actualiza la configuración del ciclo vigente;
+     * no lo libera ni restaura foco mientras el overlay continúa abierto.
+     */
+    useIsomorphicLayoutEffect(() => {
+      restoreFocusRef.current = restoreFocus;
+
+      const cycle = focusCycleRef.current;
+
+      if (enabled && !cycle.active) {
+        const container = localRef.current;
+
+        cycle.active = true;
+        cycle.target = container
+          ? getPreviousFocusTarget(
+              container,
+              sourceDocument
+            )
+          : null;
+
+        hasAutoFocusedRef.current = false;
+        return;
+      }
+
+      if (!enabled && cycle.active) {
+        releaseFocusCycle();
+      }
+    });
+
+    useIsomorphicLayoutEffect(() => {
+      return () => {
+        releaseFocusCycle();
+      };
+    }, [releaseFocusCycle]);
 
     React.useEffect(() => {
-      if (!enabled) return;
-      if (!autoFocus) return;
-      if (!isTopmost) return;
+      if (!enabled || !autoFocus || !isTopmost) return;
       if (hasAutoFocusedRef.current) return;
 
-      const id = window.requestAnimationFrame(() => {
-        const container = localRef.current;
-        if (!container) return;
+      const container = localRef.current;
+      const ownerWindow = container?.ownerDocument.defaultView;
+
+      if (!container || !ownerWindow) {
+        return;
+      }
+
+      const frameId = ownerWindow.requestAnimationFrame(() => {
+        const currentContainer = localRef.current;
+
+        if (!currentContainer || !currentContainer.isConnected) return;
 
         const explicitTarget = initialFocusRef?.current;
-        if (explicitTarget && container.contains(explicitTarget)) {
+
+        if (explicitTarget && currentContainer.contains(explicitTarget)) {
           explicitTarget.focus();
           hasAutoFocusedRef.current = true;
           return;
         }
 
-        const focusable = getFocusableElements(container);
-        const target = getBestInitialFocusTarget(focusable, container);
-
-        target.focus();
+        const focusable = getFocusableElements(currentContainer);
+        getBestInitialFocusTarget(focusable, currentContainer).focus();
         hasAutoFocusedRef.current = true;
       });
 
       return () => {
-        window.cancelAnimationFrame(id);
+        ownerWindow.cancelAnimationFrame(frameId);
       };
-    }, [enabled, autoFocus, isTopmost, initialFocusRef]);
+    }, [autoFocus, enabled, initialFocusRef, isTopmost]);
 
     React.useEffect(() => {
-      if (!enabled) return;
-      if (!contain) return;
+      if (!enabled || !contain) return;
 
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (!isTopmost) return;
-        if (event.key !== "Tab") return;
+      const container = localRef.current;
 
-        const container = localRef.current;
-        if (!container) return;
+      if (!container) {
+        return;
+      }
 
-        const focusable = getFocusableElements(container);
+      const ownerDocument = container.ownerDocument;
+      const eventRoot = getNodeEventRoot(container);
+      const roots: DOMEventRoot[] =
+        eventRoot === ownerDocument
+          ? [ownerDocument]
+          : [eventRoot, ownerDocument];
+      const processedKeyEvents = new WeakSet<Event>();
+      const processedFocusEvents = new WeakSet<Event>();
+
+      const handleKeyDown = (event: Event) => {
+        if (processedKeyEvents.has(event)) return;
+        processedKeyEvents.add(event);
+
+        const keyboardEvent = event as KeyboardEvent;
+
+        if (!isTopmost || keyboardEvent.key !== "Tab") return;
+
+        const currentContainer = localRef.current;
+        if (!currentContainer) return;
+
+        const focusable = getFocusableElements(currentContainer);
 
         if (!focusable.length) {
-          event.preventDefault();
-          container.focus();
+          keyboardEvent.preventDefault();
+          currentContainer.focus();
           return;
         }
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        const active = document.activeElement as HTMLElement | null;
-        const activeInside = !!active && container.contains(active);
+        const active = getDeepActiveElement(getNodeEventRoot(currentContainer));
+        const activeInside = !!active && currentContainer.contains(active);
 
         if (!activeInside) {
-          event.preventDefault();
+          keyboardEvent.preventDefault();
           first.focus();
           return;
         }
 
-        if (event.shiftKey) {
+        if (keyboardEvent.shiftKey) {
           if (active === first) {
-            event.preventDefault();
+            keyboardEvent.preventDefault();
             last.focus();
           }
           return;
         }
 
         if (active === last) {
-          event.preventDefault();
+          keyboardEvent.preventDefault();
           first.focus();
         }
       };
 
-      const handleFocusIn = (event: FocusEvent) => {
+      const handleFocusIn = (event: Event) => {
+        if (processedFocusEvents.has(event)) return;
+        processedFocusEvents.add(event);
         if (!isTopmost) return;
 
-        const container = localRef.current;
-        if (!container) return;
-
-        const target = event.target as Node | null;
-        if (target && container.contains(target)) return;
-
-        const focusable = getFocusableElements(container);
-        const nextTarget = getBestInitialFocusTarget(focusable, container);
-        nextTarget.focus();
-      };
-
-      document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("focusin", handleFocusIn);
-
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("focusin", handleFocusIn);
-      };
-    }, [enabled, contain, isTopmost]);
-
-    React.useEffect(() => {
-      return () => {
-        if (
-          !enabled ||
-          !restoreFocus
-        ) {
+        const currentContainer = localRef.current;
+        if (!currentContainer || isEventInsideNode(event, currentContainer)) {
           return;
         }
 
-        const target =
-          lastActiveRef.current;
-
-        if (
-          !target ||
-          typeof target.focus !==
-            "function" ||
-          !target.isConnected
-        ) {
-          return;
-        }
-
-        /*
-         * La restauración pertenece al cleanup que libera el scope.
-         * Diferirla dejaría un frame sin owner capaz de robar foco a otro
-         * overlay montado después de este cierre.
-         */
-        target.focus();
+        const focusable = getFocusableElements(currentContainer);
+        getBestInitialFocusTarget(focusable, currentContainer).focus();
       };
-    }, [
-      enabled,
-      restoreFocus,
-    ]);
 
-    // Acepta foco programático sin entrar al orden secuencial.
+      roots.forEach((root) => {
+        root.addEventListener("keydown", handleKeyDown);
+        root.addEventListener("focusin", handleFocusIn);
+      });
+
+      return () => {
+        roots.forEach((root) => {
+          root.removeEventListener("keydown", handleKeyDown);
+          root.removeEventListener("focusin", handleFocusIn);
+        });
+      };
+    }, [contain, enabled, isTopmost, overlayDocument]);
+
     return (
-      <div
-        {...rest}
-        ref={setRefs}
-        tabIndex={-1}
-      >
+      <div {...rest} ref={setRefs} tabIndex={-1}>
         {children}
       </div>
     );

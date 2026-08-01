@@ -54,7 +54,6 @@ export interface ActionDialogProps<TTarget> {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   closeOnEscape?: boolean;
   closeOnPointerDownOutside?: boolean;
-  lockScroll?: boolean;
 
   footer?: RenderableWithTarget<TTarget>;
 }
@@ -78,7 +77,6 @@ export function ActionDialog<TTarget>({
   initialFocusRef,
   closeOnEscape = true,
   closeOnPointerDownOutside = true,
-  lockScroll = true,
   footer,
 }: ActionDialogProps<TTarget>) {
   const open = state.isOpen;
@@ -132,7 +130,6 @@ export function ActionDialog<TTarget>({
       initialFocusRef={initialFocusRef}
       closeOnEscape={closeOnEscape}
       closeOnPointerDownOutside={closeOnPointerDownOutside}
-      lockScroll={lockScroll}
     >
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>

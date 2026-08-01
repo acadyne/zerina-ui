@@ -13,6 +13,12 @@ import {
 } from "../../../core/interaction/events/composeEventHandlers";
 
 import {
+  clearOwnedWindowTimeout,
+  setOwnedWindowTimeout,
+  type OwnedWindowTimeout,
+} from "../../../core/dom";
+
+import {
   mergeTriggerProps,
 } from "../triggerProps";
 
@@ -48,10 +54,11 @@ export const MenuTrigger =
 
       const focusTimerRef =
         React.useRef<
-          number | null
+          OwnedWindowTimeout | null
         >(null);
 
       const {
+        anchorRef,
         focusFirst,
         focusLast,
         onOpenChange,
@@ -111,7 +118,7 @@ export const MenuTrigger =
             focusTimerRef.current !==
             null
           ) {
-            window.clearTimeout(
+            clearOwnedWindowTimeout(
               focusTimerRef.current
             );
           }
@@ -128,13 +135,21 @@ export const MenuTrigger =
               focusTimerRef.current !==
               null
             ) {
-              window.clearTimeout(
+              clearOwnedWindowTimeout(
                 focusTimerRef.current
               );
             }
 
+            const ownerWindow =
+              anchorRef.current?.ownerDocument.defaultView;
+
+            if (!ownerWindow) {
+              return;
+            }
+
             focusTimerRef.current =
-              window.setTimeout(
+              setOwnedWindowTimeout(
+                ownerWindow,
                 () => {
                   focusTimerRef.current =
                     null;
@@ -144,7 +159,7 @@ export const MenuTrigger =
                 0
               );
           },
-          []
+          [anchorRef]
         );
 
       const openAndFocusFirst =

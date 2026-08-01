@@ -2,6 +2,9 @@
 import React from "react";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
+  setRef as assignRef,
+} from "../interaction/events";
+import {
   getElementRect,
   useElementRect,
   useViewportSize,
@@ -376,6 +379,13 @@ export interface FloatingLayerProps {
   anchorRef:
     React.RefObject<HTMLElement | null>;
 
+  /**
+   * Ref externa del mismo nodo que FloatingLayer mide y posiciona.
+   * Se compone en la callback propietaria para evitar wrappers o refs inline.
+   */
+  floatingElementRef?:
+    React.Ref<HTMLDivElement>;
+
   open: boolean;
 
   placement?: FloatingPlacement;
@@ -400,6 +410,7 @@ export const FloatingLayer:
     children,
 
     anchorRef,
+    floatingElementRef,
     open,
 
     placement = "bottom-start",
@@ -424,6 +435,35 @@ export const FloatingLayer:
       );
 
     const [
+      ownerWindow,
+      setOwnerWindow,
+    ] =
+      React.useState<Window | null>(
+        null
+      );
+
+    /*
+     * La asignación de una ref ocurre durante commit y no provoca por sí sola
+     * otro render. Reconciliar aquí la ventana propietaria garantiza que un
+     * anchor inicialmente abierto o de tamaño cero active la suscripción del
+     * viewport correcto.
+     */
+    useIsomorphicLayoutEffect(() => {
+      const nextOwnerWindow =
+        anchorRef.current
+          ?.ownerDocument
+          .defaultView ??
+        null;
+
+      setOwnerWindow(
+        (currentOwnerWindow) =>
+          currentOwnerWindow === nextOwnerWindow
+            ? currentOwnerWindow
+            : nextOwnerWindow
+      );
+    });
+
+    const [
       coords,
       setCoords,
     ] =
@@ -442,6 +482,8 @@ export const FloatingLayer:
     const viewportSize =
       useViewportSize({
         ssrSafe: true,
+
+        ownerWindow,
 
         observeResize:
           open &&
@@ -475,7 +517,7 @@ export const FloatingLayer:
         }
       );
 
-    const setRef =
+    const setFloatingNode =
       React.useCallback(
         (
           node:
@@ -484,8 +526,15 @@ export const FloatingLayer:
         ) => {
           floatingRef.current =
             node;
+
+          assignRef(
+            floatingElementRef,
+            node
+          );
         },
-        []
+        [
+          floatingElementRef,
+        ]
       );
 
     const commitPosition =
@@ -632,7 +681,7 @@ export const FloatingLayer:
       return (
         <>
           {children({
-            ref: setRef,
+            ref: setFloatingNode,
 
             style:
               floatingStyle,
@@ -648,7 +697,7 @@ export const FloatingLayer:
 
     return (
       <div
-        ref={setRef}
+        ref={setFloatingNode}
         className={className}
         data-side={
           resolvedPlacement

@@ -287,9 +287,13 @@ export interface DrawerProps {
   closeOnPointerDownOutside?:
     boolean;
 
-  lockScroll?: boolean;
-  trapFocus?: boolean;
+  /**
+   * Escape experto: `false` transfiere al consumidor la entrada inicial de
+   * foco, que debe permanecer dentro del Drawer modal.
+   */
   autoFocus?: boolean;
+
+  /** Desactívalo solo si otro owner restaurará el foco al cerrar. */
   restoreFocus?: boolean;
 
   initialFocusRef?:
@@ -332,8 +336,6 @@ export const Drawer:
     closeOnPointerDownOutside =
       true,
 
-    lockScroll = true,
-    trapFocus = true,
     autoFocus = true,
     restoreFocus = true,
 
@@ -542,9 +544,7 @@ export const Drawer:
               {...positionerSlot}
             >
               <FocusScope
-                overlayId={overlayId}
-                enabled={open}
-                contain={trapFocus}
+                contain
                 autoFocus={autoFocus}
                 restoreFocus={
                   restoreFocus
@@ -620,15 +620,7 @@ export const Drawer:
                 </MotionOverlayPanel>
               </FocusScope>
 
-              {lockScroll ? (
-                <ScrollLock
-                  overlayId={
-                    overlayId
-                  }
-                  enabled={open}
-                  active={open}
-                />
-              ) : null}
+              <ScrollLock />
             </DismissableLayer>
           </MotionOverlayRoot>
         </MotionOverlayPresence>

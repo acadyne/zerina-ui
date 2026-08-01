@@ -2,6 +2,12 @@
 
 
 import React from "react";
+import {
+  cancelOwnedAnimationFrame,
+  getNodeEventRoot,
+  requestOwnedAnimationFrame,
+  type OwnedAnimationFrame,
+} from "../../../core/dom";
 
 import {
   MenuContext,
@@ -53,7 +59,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
     React.useRef(false);
 
   const focusedIndexFrameRef =
-    React.useRef<number | null>(null);
+    React.useRef<OwnedAnimationFrame | null>(null);
 
   const cancelFocusedIndexFrame =
     React.useCallback((): void => {
@@ -64,9 +70,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
         return;
       }
 
-      cancelAnimationFrame(
-        focusedIndexFrameRef.current
-      );
+      cancelOwnedAnimationFrame(focusedIndexFrameRef.current);
 
       focusedIndexFrameRef.current =
         null;
@@ -83,8 +87,16 @@ export const MenuRoot: React.FC<MenuProps> = ({
       ): void => {
         cancelFocusedIndexFrame();
 
+        const ownerWindow =
+          itemsRef.current[0]?.ownerDocument.defaultView ??
+          anchorRef.current?.ownerDocument.defaultView;
+
+        if (!ownerWindow) {
+          return;
+        }
+
         focusedIndexFrameRef.current =
-          requestAnimationFrame(() => {
+          requestOwnedAnimationFrame(ownerWindow, () => {
             focusedIndexFrameRef.current =
               null;
 
@@ -280,9 +292,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
         const active =
-          document.activeElement as
-          | HTMLElement
-          | null;
+          getNodeEventRoot(items[0]).activeElement;
 
 
         const currentIndex =
@@ -326,9 +336,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
         const active =
-          document.activeElement as
-          | HTMLElement
-          | null;
+          getNodeEventRoot(items[0]).activeElement;
 
 
         const currentIndex =
