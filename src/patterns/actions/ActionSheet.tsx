@@ -55,7 +55,10 @@ export interface ActionSheetItemProps
 }
 
 export interface ActionSheetSeparatorProps
-  extends React.HTMLAttributes<HTMLDivElement> { }
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "role" | "aria-orientation"
+  > {}
 
 export type ActionSheetSectionProps =
   React.ComponentPropsWithoutRef<
@@ -274,8 +277,10 @@ ActionSheet.Separator =
     style,
     ...rest
   }: ActionSheetSeparatorProps) {
+    // El rol y la orientación constituyen la semántica del separador.
     return (
       <Box
+        {...rest}
         role="separator"
         aria-orientation="horizontal"
         style={{
@@ -284,7 +289,6 @@ ActionSheet.Separator =
           marginBlock: "0.35rem",
           ...style,
         }}
-        {...rest}
       />
     );
   };

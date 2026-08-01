@@ -60,14 +60,18 @@ export function MotionOverlayRoot({
   style,
   ...rest
 }: MotionOverlayRootProps) {
+  /*
+   * El wrapper posee las fases y variantes del ciclo de presencia.
+   * Los atributos del elemento no pueden sustituir esa coordinación.
+   */
   return (
     <motion.div
+      {...rest}
       initial="initial"
       animate="animate"
       exit="exit"
       variants={STATIC_MOTION_VARIANTS}
       style={style}
-      {...rest}
     >
       {children}
     </motion.div>
@@ -95,15 +99,19 @@ export function MotionOverlayBackdrop({
     getOverlayMotionIntent("backdrop")
   );
 
+  /*
+   * El nivel global de motion controla las fases, variantes y transición.
+   * rest conserva atributos DOM, pero no puede reemplazar ese contrato.
+   */
   return (
     <motion.div
+      {...rest}
       initial="initial"
       animate="animate"
       exit="exit"
       variants={variants}
       transition={transition}
       style={style}
-      {...rest}
     />
   );
 }
@@ -171,14 +179,18 @@ export function MotionOverlayPanel({
     getOverlayMotionIntent(kind)
   );
 
+  /*
+   * kind, placement y el nivel global determinan el ciclo del panel.
+   * Las props DOM se aplican primero para preservar esa configuración.
+   */
   const commonProps = {
+    ...rest,
     initial: "initial",
     animate: "animate",
     exit: "exit",
     variants,
     transition,
     style,
-    ...rest,
   };
 
   if (as === "aside") {
