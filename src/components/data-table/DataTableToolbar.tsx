@@ -296,6 +296,7 @@ export function DataTableToolbar({
         {enableSearch ? (
           <Input
             type="text"
+            aria-label="Buscar registros"
             placeholder="Buscar…"
             value={search}
             onChange={(
@@ -317,6 +318,7 @@ export function DataTableToolbar({
         ) : null}
 
         <Select
+          aria-label="Filas por página"
           value={String(
             rowsPerPage
           )}
