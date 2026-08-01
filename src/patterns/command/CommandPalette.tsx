@@ -366,20 +366,29 @@ export function CommandPalette({
     styles,
     slotProps,
     baseProps: {
-      id: inputId,
-      role: "combobox",
       "aria-label": "Buscar comandos",
-      "aria-expanded": open,
-      "aria-haspopup": "listbox",
-      "aria-controls": listId,
-      "aria-activedescendant": activeOptionId,
-      "aria-autocomplete": "list",
       "data-ui-command-palette-input": "",
     },
     baseStyle: {
       height: 42,
     },
   });
+
+  /*
+   * El slot conserva presentación, atributos auxiliares y observadores.
+   * La semántica combobox permanece bajo control del componente.
+   *
+   * onChange observa después de actualizar el estado; onKeyDown observa
+   * primero para poder cancelar la navegación mediante preventDefault().
+   */
+  const {
+    onChange: inputSlotOnChange,
+    onKeyDown: inputSlotOnKeyDown,
+    ...inputSlotRest
+  } = inputSlot;
+
+  const inputAriaLabel =
+    inputSlot["aria-label"] ?? "Buscar comandos";
 
   const bodySlot = resolveSlot<CommandPaletteSlot>({
     slot: "body",
@@ -443,12 +452,30 @@ export function CommandPalette({
             </Box>
 
             <Input
+              {...inputSlotRest}
               ref={inputRef}
+              id={inputId}
+              role="combobox"
+              aria-label={inputAriaLabel}
+              aria-expanded={open}
+              aria-haspopup="listbox"
+              aria-controls={listId}
+              aria-activedescendant={activeOptionId}
+              aria-autocomplete="list"
               value={searchValue}
               placeholder={placeholder}
               leftPadding="2.35rem"
-              onChange={(event) => setSearchValue(event.target.value)}
+              onChange={(event) => {
+                setSearchValue(event.target.value);
+                inputSlotOnChange?.(event);
+              }}
               onKeyDown={(event) => {
+                inputSlotOnKeyDown?.(event);
+
+                if (event.defaultPrevented) {
+                  return;
+                }
+
                 if (event.key === "ArrowDown") {
                   event.preventDefault();
                   moveActive(1);
@@ -469,7 +496,6 @@ export function CommandPalette({
                   }
                 }
               }}
-              {...inputSlot}
             />
           </Box>
         </DialogHeader>
@@ -542,16 +568,6 @@ export function CommandPalette({
                           slots: active ? ["item", "activeItem"] : ["item"],
                           styles,
                           slotProps,
-                          baseProps: {
-                            id: itemDomId,
-                            role: "option",
-                            "aria-selected": active,
-                            "data-ui-command-palette-item": "",
-                            "data-active":
-                              active || undefined,
-                            "data-disabled":
-                              item.disabled || undefined,
-                          },
                           baseStyle: {
                             width: "100%",
                             minWidth: 0,
@@ -563,6 +579,17 @@ export function CommandPalette({
                             padding: "0.65rem 0.7rem",
                           },
                         });
+
+                        /*
+                         * Los eventos del slot se componen antes de la
+                         * conducta interna y pueden cancelarla. Identidad,
+                         * estado, semántica y disabled pertenecen a la opción.
+                         */
+                        const {
+                          onMouseEnter: itemSlotOnMouseEnter,
+                          onClick: itemSlotOnClick,
+                          ...itemSlotRest
+                        } = itemSlot;
 
                         const itemContentSlot =
                           resolveSlot<CommandPaletteSlot>({
@@ -647,15 +674,39 @@ export function CommandPalette({
                         return (
                           <button
                             key={item.id}
+                            {...itemSlotRest}
                             type="button"
+                            id={itemDomId}
+                            role="option"
+                            aria-selected={active}
                             disabled={item.disabled}
-                            onMouseEnter={() => {
-                              if (!item.disabled) {
-                                setActiveId(item.id);
+                            data-ui-command-palette-item=""
+                            data-active={active || undefined}
+                            data-disabled={item.disabled || undefined}
+                            onMouseEnter={(event) => {
+                              itemSlotOnMouseEnter?.(event);
+
+                              if (
+                                event.defaultPrevented ||
+                                item.disabled
+                              ) {
+                                return;
                               }
+
+                              setActiveId(item.id);
                             }}
-                            onClick={() => selectItem(item)}
-                            {...itemSlot}
+                            onClick={(event) => {
+                              itemSlotOnClick?.(event);
+
+                              if (
+                                event.defaultPrevented ||
+                                item.disabled
+                              ) {
+                                return;
+                              }
+
+                              selectItem(item);
+                            }}
                           >
                             <Flex align="center" gap="0.7rem" {...itemContentSlot}>
                               {item.icon ? (
