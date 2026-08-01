@@ -117,6 +117,10 @@ const drawerRecipe = defineSlotRecipe<
       overflow: "hidden",
     },
 
+    /*
+     * Estos defaults viven en la recipe: styles y slotProps deben poder
+     * reemplazarlos sin que Flex los imponga de nuevo desde JSX.
+     */
     header: {
       padding:
         "max(1rem, env(safe-area-inset-top)) 1rem 0.85rem",
@@ -125,6 +129,10 @@ const drawerRecipe = defineSlotRecipe<
         "1px solid var(--ui-border)",
 
       minWidth: 0,
+
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: "0.75rem",
     },
 
     title: {
@@ -137,8 +145,15 @@ const drawerRecipe = defineSlotRecipe<
       lineHeight: 1.2,
     },
 
+    /*
+     * La semántica del párrafo permanece en JSX; tamaño y color son
+     * defaults visuales y deben seguir la precedencia del slot.
+     */
     description: {
       margin: "0.35rem 0 0",
+
+      color: "var(--ui-text-muted)",
+      fontSize: "var(--ui-font-size-sm)",
     },
 
     body: {
@@ -162,6 +177,11 @@ const drawerRecipe = defineSlotRecipe<
         "1px solid var(--ui-border)",
 
       minWidth: 0,
+
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: "0.75rem",
+      flexWrap: "wrap",
     },
   },
 
@@ -553,6 +573,10 @@ export const Drawer:
 
                   {hasHeader ? (
                     <DrawerHeader>
+                      {/*
+                       * minWidth: 0 permite que el texto ceda espacio al
+                       * botón de cierre en lugar de desbordar el header.
+                       */}
                       <Box
                         style={{
                           flex: 1,
@@ -674,9 +698,6 @@ export const DrawerHeader =
           {...headerSlot}
           {...rest}
           ref={ref}
-          align="flex-start"
-          justify="space-between"
-          gap="0.75rem"
         >
           {children}
         </Flex>
@@ -805,10 +826,6 @@ export const DrawerFooter =
           {...footerSlot}
           {...rest}
           ref={ref}
-          align="center"
-          justify="flex-end"
-          gap="0.75rem"
-          wrap="wrap"
         >
           {children}
         </Flex>
@@ -938,8 +955,6 @@ export const DrawerDescription =
           {...rest}
           ref={ref}
           as="p"
-          size="sm"
-          color="var(--ui-text-muted)"
         >
           {children}
         </Typography>
@@ -1003,6 +1018,10 @@ export const DrawerClose =
               .closeButton,
         });
 
+      /*
+       * size y variant definen el control de cierre especializado;
+       * el slot solo personaliza su presentación.
+       */
       return (
         <IconButton
           ref={ref}
