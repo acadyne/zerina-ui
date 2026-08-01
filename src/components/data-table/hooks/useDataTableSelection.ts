@@ -9,7 +9,7 @@ export interface UseDataTableSelectionOptions<
   rows: T[];
   selectedIds: IDType[];
   onSelectionChange?: (selectedIds: IDType[]) => void;
-  getRowId: (row: T) => IDType | undefined;
+  getRowId: (row: T) => IDType;
 }
 
 export function useDataTableSelection<
@@ -22,10 +22,7 @@ export function useDataTableSelection<
   getRowId,
 }: UseDataTableSelectionOptions<T, IDType>) {
   const pageIds = useMemo(
-    () =>
-      rows
-        .map((row) => getRowId(row))
-        .filter((id): id is IDType => id !== undefined),
+    () => rows.map((row) => getRowId(row)),
     [rows, getRowId]
   );
 

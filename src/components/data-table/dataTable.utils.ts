@@ -2,9 +2,112 @@
 
 import type {
   DataTableColumn,
+  DataTableRowId,
   DataTableSortConfig,
   EditableColumnType,
 } from "./dataTable.types";
+
+function isValidDataTableRowId(
+  value: unknown
+): value is DataTableRowId {
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value)
+  );
+}
+
+/**
+ * Captura la identidad de cada fila una vez por colección.
+ *
+ * Además de detectar IDs inválidos o duplicados, evita que un getRowId
+ * impuro produzca identidades diferentes entre selección y render.
+ */
+export function createDataTableRowIdResolver<
+  T extends object,
+  IDType extends DataTableRowId,
+>(
+  rows: readonly T[],
+  getRowId: (row: T) => IDType
+): (row: T) => IDType {
+  const idsByRow = new Map<T, IDType>();
+  const rowsById = new Map<DataTableRowId, T>();
+
+  for (const row of rows) {
+    const id = getRowId(row);
+
+    if (!isValidDataTableRowId(id)) {
+      throw new Error(
+        "DataTable getRowId must return a non-empty string or finite number."
+      );
+    }
+
+    if (rowsById.has(id)) {
+      throw new Error(
+        `DataTable row IDs must be unique. Duplicate ID: ${String(id)}`
+      );
+    }
+
+    rowsById.set(id, row);
+    idsByRow.set(row, id);
+  }
+
+  return (row: T): IDType => {
+    if (!idsByRow.has(row)) {
+      throw new Error(
+        "DataTable received a row outside the validated data collection."
+      );
+    }
+
+    return idsByRow.get(row) as IDType;
+  };
+}
+
+/**
+ * Conserva separados IDs numéricos y textuales que comparten representación.
+ */
+export function getDataTableRowKey(
+  id: DataTableRowId
+): string {
+  return `${typeof id}:${String(id)}`;
+}
+
+export function getDataTableColumnId(
+  column: { id: string }
+): string {
+  const id = column.id.trim();
+
+  if (!id) {
+    throw new Error(
+      "DataTable column IDs must be non-empty strings."
+    );
+  }
+
+  return id;
+}
+
+export function assertUniqueDataTableColumnIds<
+  TColumn extends { id: string },
+>(
+  columns: readonly TColumn[]
+): void {
+  const seen = new Set<string>();
+
+  for (const column of columns) {
+    const id = getDataTableColumnId(column);
+
+    if (seen.has(id)) {
+      throw new Error(
+        `DataTable column IDs must be unique. Duplicate ID: ${id}`
+      );
+    }
+
+    seen.add(id);
+  }
+}
 
 function toComparable(value: unknown): string | number {
   if (value == null) return "";
@@ -217,8 +320,4 @@ export function getEditableCellAriaLabel(
     "Campo";
 
   return `${normalizedHeader}, fila ${rowIndex + 1}`;
-}
-
-export function createFallbackRowId(index: number): string {
-  return `row-${index}`;
 }

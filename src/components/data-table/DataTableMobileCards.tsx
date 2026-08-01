@@ -13,6 +13,8 @@ import type {
 } from "./dataTable.types";
 import {
   getCellText,
+  getDataTableColumnId,
+  getDataTableRowKey,
   getEditableCellAriaLabel,
   toRenderableValue,
 } from "./dataTable.utils";
@@ -27,7 +29,7 @@ interface DataTableMobileCardsProps<
 
   selectedIds: IDType[];
   enableSelection?: boolean;
-  getRowId: (row: T) => IDType | undefined;
+  getRowId: (row: T) => IDType;
   onToggleRow?: (id: IDType) => void;
 
   emptyState?: DataTableEmptyStateConfig;
@@ -47,7 +49,7 @@ interface EditableDataTableMobileCardsProps<
 
   selectedIds: IDType[];
   enableSelection?: boolean;
-  getRowId: (row: T) => IDType | undefined;
+  getRowId: (row: T) => IDType;
   onToggleRow?: (id: IDType) => void;
 
   emptyState?: DataTableEmptyStateConfig;
@@ -222,7 +224,7 @@ export function DataTableMobileCards<
       {rows.map((row, rowIndex) => {
         const rowId = getRowId(row);
         const selected =
-          rowId !== undefined ? selectedIds.includes(rowId) : false;
+          selectedIds.includes(rowId);
 
         /*
          * El Checkbox posee la semántica y la interacción de selección.
@@ -298,13 +300,13 @@ export function DataTableMobileCards<
 
         return (
           <div
-            key={rowId !== undefined ? String(rowId) : `mobile-row-${rowIndex}`}
+            key={getDataTableRowKey(rowId)}
             {...cardSlot}
           >
             <div {...headerSlot}>
               <div {...titleSlot}>Registro {rowIndex + 1}</div>
 
-              {enableSelection && rowId !== undefined ? (
+              {enableSelection ? (
                 <Checkbox
                   checked={selected}
                   aria-label={`Seleccionar fila ${rowIndex + 1}`}
@@ -316,7 +318,7 @@ export function DataTableMobileCards<
             <div {...bodySlot}>
               {columns
                 .filter((column) => !column.hidden)
-                .map((column, columnIndex) => {
+                .map((column) => {
                   const rawValue = readCellValue(row, column.accessor);
 
                   const titleText =
@@ -358,7 +360,7 @@ export function DataTableMobileCards<
                   });
 
                   return (
-                    <div key={`${column.header}-${columnIndex}`} {...fieldSlot}>
+                    <div key={getDataTableColumnId(column)} {...fieldSlot}>
                       <div {...labelSlot}>{column.header}</div>
 
                       {"editable" in props && props.editable ? (
@@ -378,9 +380,7 @@ export function DataTableMobileCards<
                 })}
             </div>
 
-            {rowId !== undefined ? (
-              <div {...idSlot}>id: {String(rowId)}</div>
-            ) : null}
+            <div {...idSlot}>id: {String(rowId)}</div>
           </div>
         );
       })}

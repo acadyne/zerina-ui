@@ -1,7 +1,10 @@
 // src/components/data-table/hooks/useDataTableColumns.ts
 import { useEffect, useMemo, useState } from "react";
 import type { DataTableColumn } from "../dataTable.types";
-import { getVisibleColumns } from "../dataTable.utils";
+import {
+  assertUniqueDataTableColumnIds,
+  getVisibleColumns,
+} from "../dataTable.utils";
 
 export type DataTableColumnsSource<
   T extends object,
@@ -56,6 +59,10 @@ export function useDataTableColumns<
   }, [columns]);
 
   const visibleColumns = useMemo(() => {
+    // La identidad se valida sobre todas las columnas, incluidas las ocultas,
+    // para que mostrarlas después no cambie silenciosamente el ownership.
+    assertUniqueDataTableColumnIds(resolvedColumns);
+
     return getVisibleColumns<T, TColumn>(resolvedColumns);
   }, [resolvedColumns]);
 

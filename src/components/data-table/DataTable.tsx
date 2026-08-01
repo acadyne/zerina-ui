@@ -17,6 +17,7 @@ import { DataTableDesktop } from "./DataTableDesktop";
 import { DataTableMobileCards } from "./DataTableMobileCards";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableSkeleton } from "./DataTableSkeleton";
+import { createDataTableRowIdResolver } from "./dataTable.utils";
 
 export function DataTable<
   T extends Record<string, unknown>,
@@ -38,7 +39,6 @@ export function DataTable<
   getRowId,
 
   dense = true,
-  rowKeyFallback,
 
   loading = false,
   loadingRows,
@@ -67,18 +67,14 @@ export function DataTable<
     mobileBreakpoint,
   });
 
-  const getId = useMemo(() => {
-    return (row: T): IDType | undefined => {
-      if (getRowId) return getRowId(row);
-
-      const rawId = row.id;
-      if (typeof rawId === "string" || typeof rawId === "number") {
-        return rawId as IDType;
-      }
-
-      return undefined;
-    };
-  }, [getRowId]);
+  const getId = useMemo(
+    () =>
+      createDataTableRowIdResolver(
+        data,
+        getRowId
+      ),
+    [data, getRowId]
+  );
 
   const selection = useDataTableSelection<T, IDType>({
     rows: table.paginatedData,
@@ -169,7 +165,6 @@ export function DataTable<
           sortConfig={table.sortConfig}
           onSort={table.toggleSort}
           dense={dense}
-          rowKeyFallback={rowKeyFallback}
           emptyState={emptyState}
           styles={styles}
           slotProps={slotProps}

@@ -13,8 +13,9 @@ import type {
   DataTableStyles,
 } from "./dataTable.types";
 import {
-  createFallbackRowId,
   getCellText,
+  getDataTableColumnId,
+  getDataTableRowKey,
   toRenderableValue,
 } from "./dataTable.utils";
 import { DataTableEmptyState } from "./DataTableEmptyState";
@@ -43,7 +44,7 @@ export interface DataTableDesktopProps<
 
   selectedIds?: IDType[];
   enableSelection?: boolean;
-  getRowId: (row: T) => IDType | undefined;
+  getRowId: (row: T) => IDType;
   onToggleRow?: (id: IDType) => void;
   onToggleAll?: () => void;
   isAllPageSelected?: boolean;
@@ -54,7 +55,6 @@ export interface DataTableDesktopProps<
 
   dense?: boolean;
   minTableWidth?: number;
-  rowKeyFallback?: (row: T, index: number) => string;
 
   emptyState?: React.ComponentProps<typeof DataTableEmptyState>["emptyState"];
 
@@ -79,7 +79,6 @@ export function DataTableDesktop<
   onSort,
   dense = true,
   minTableWidth = 760,
-  rowKeyFallback,
   emptyState,
   styles,
   slotProps,
@@ -183,7 +182,7 @@ export function DataTableDesktop<
                 </th>
               ) : null}
 
-              {columns.map((column, _) => {
+              {columns.map((column) => {
                 const sortable = !!column.accessor && column.sortable !== false;
                 const isSorted =
                   column.accessor && sortConfig?.key === column.accessor;
@@ -207,6 +206,7 @@ export function DataTableDesktop<
 
                 return (
                   <th
+                    key={getDataTableColumnId(column)}
                     scope="col"
                     aria-sort={ariaSort}
                   >
@@ -253,13 +253,10 @@ export function DataTableDesktop<
             {rows.map((row, rowIndex) => {
               const rowId = getRowId(row);
               const isSelected =
-                rowId !== undefined ? selectedIds.includes(rowId) : false;
+                selectedIds.includes(rowId);
 
               const rowKey =
-                rowId !== undefined
-                  ? String(rowId)
-                  : rowKeyFallback?.(row, rowIndex) ??
-                  createFallbackRowId(rowIndex);
+                getDataTableRowKey(rowId);
 
               const rowSlot = resolveSlot<DataTableSlot>({
                 slot: "row",
@@ -289,13 +286,11 @@ export function DataTableDesktop<
                         },
                       })}
                     >
-                      {rowId !== undefined ? (
-                        <Checkbox
-                          checked={isSelected}
-                          aria-label={`Seleccionar fila ${rowIndex + 1}`}
-                          onChange={() => onToggleRow?.(rowId)}
-                        />
-                      ) : null}
+                      <Checkbox
+                        checked={isSelected}
+                        aria-label={`Seleccionar fila ${rowIndex + 1}`}
+                        onChange={() => onToggleRow?.(rowId)}
+                      />
                     </td>
                   ) : null}
 
@@ -317,7 +312,7 @@ export function DataTableDesktop<
 
                     return (
                       <td
-                        key={`${String(column.header)}-${columnIndex}`}
+                        key={getDataTableColumnId(column)}
                         {...resolveSlot<DataTableSlot>({
                           slot: "cell",
                           styles,

@@ -5,7 +5,10 @@ import type {
   EditableDataTableColumn,
   EditableDataTableProps,
 } from "./dataTable.types";
-import { coerceEditableValue } from "./dataTable.utils";
+import {
+  coerceEditableValue,
+  createDataTableRowIdResolver,
+} from "./dataTable.utils";
 import {
   useDataTableExport,
   useDataTableResponsiveMode,
@@ -18,21 +21,6 @@ import { DataTableMobileCards } from "./DataTableMobileCards";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableSkeleton } from "./DataTableSkeleton";
 import { DataTableEditableDesktop } from "./DataTableEditableDesktop";
-
-function createDefaultEditableRow<T extends Record<string, unknown>>(
-  columns: EditableDataTableColumn<T>[]
-): T {
-  return columns.reduce((acc, column) => {
-    acc[column.accessor as string] =
-      column.accessor === "id"
-        ? globalThis.crypto?.randomUUID?.() ?? String(Date.now())
-        : column.type === "boolean"
-          ? false
-          : "";
-
-    return acc;
-  }, {} as Record<string, unknown>) as T;
-}
 
 export function EditableDataTable<
   T extends Record<string, unknown>,
@@ -93,18 +81,14 @@ export function EditableDataTable<
     mobileBreakpoint,
   });
 
-  const getId = useMemo(() => {
-    return (row: T): IDType | undefined => {
-      if (getRowId) return getRowId(row);
-
-      const rawId = row.id;
-      if (typeof rawId === "string" || typeof rawId === "number") {
-        return rawId as IDType;
-      }
-
-      return undefined;
-    };
-  }, [getRowId]);
+  const getId = useMemo(
+    () =>
+      createDataTableRowIdResolver(
+        data,
+        getRowId
+      ),
+    [data, getRowId]
+  );
 
   const selection = useDataTableSelection<T, IDType>({
     rows: table.paginatedData,
@@ -126,49 +110,67 @@ export function EditableDataTable<
     rawValue: string
   ) => {
     const rowId = getId(row);
-    const previousValue = row[column.accessor];
-    const nextValue = coerceEditableValue(rawValue, column.type);
+    const rowIndex = data.findIndex(
+      (item) => getId(item) === rowId
+    );
 
-    const nextRows = data.map((item, index) => {
-      const itemId = getId(item);
-      const sameById =
-        rowId !== undefined && itemId !== undefined && itemId === rowId;
-      const sameByReference = item === row;
+    if (rowIndex < 0) {
+      throw new Error(
+        "EditableDataTable could not locate the edited row by its ID."
+      );
+    }
 
-      if (!sameById && !sameByReference) return item;
+    const previousValue =
+      data[rowIndex][column.accessor];
 
-      const nextRow = {
-        ...item,
-        [column.accessor]: nextValue,
-      };
+    const nextValue =
+      coerceEditableValue(
+        rawValue,
+        column.type
+      );
 
-      onCellChange?.({
-        rowId: rowId ?? index,
-        column: column.accessor,
-        previousValue,
-        nextValue,
-        row: nextRow,
-      });
+    const nextRow = {
+      ...data[rowIndex],
+      [column.accessor]: nextValue,
+    };
 
-      return nextRow;
+    const nextRows = [...data];
+    nextRows[rowIndex] = nextRow;
+
+    onCellChange?.({
+      rowId,
+      column: column.accessor,
+      previousValue,
+      nextValue,
+      row: nextRow,
     });
 
     onDataChange(nextRows);
   };
 
   const handleAddRow = () => {
-    const nextRow = createEmptyRow?.() ?? createDefaultEditableRow(columns);
+    const nextRow = createEmptyRow();
+    const nextRows = [...data, nextRow];
 
-    onDataChange([...data, nextRow]);
+    // La fila nueva debe entrar al mismo dominio de identidad antes de
+    // notificarse; no puede aparecer una renderización parcialmente válida.
+    createDataTableRowIdResolver(
+      nextRows,
+      getRowId
+    );
+
+    onDataChange(nextRows);
   };
 
   const handleDeleteRows = () => {
     if (!selectedIds.length) return;
 
-    const nextRows = data.filter((row) => {
-      const id = getId(row);
-      return id === undefined || !selectedIds.includes(id);
-    });
+    const nextRows = data.filter(
+      (row) =>
+        !selectedIds.includes(
+          getId(row)
+        )
+    );
 
     onDataChange(nextRows);
     onSelectionChange?.([]);

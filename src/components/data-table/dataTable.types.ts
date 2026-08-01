@@ -60,6 +60,12 @@ export type DataTableSortConfig<T> =
   | null;
 
 export type DataTableColumn<T> = {
+  /**
+   * Identidad estable de la columna.
+   *
+   * No debe depender del encabezado visible ni de su posición.
+   */
+  id: string;
   header: string;
   accessor?: keyof T;
   Cell?: (row: T) => React.ReactNode;
@@ -103,10 +109,13 @@ export interface DataTableProps<T extends object, IDType extends DataTableRowId>
   initialRowsPerPage?: number;
 
   searchKeys?: Array<keyof T>;
-  getRowId?: (row: T) => IDType;
+
+  /**
+   * Debe devolver una identidad estable y única para cada fila.
+   */
+  getRowId: (row: T) => IDType;
 
   dense?: boolean;
-  rowKeyFallback?: (row: T, index: number) => string;
 
   emptyState?: DataTableEmptyStateConfig;
 
@@ -142,8 +151,11 @@ export type EditableDataTableColumn<T extends object> = DataTableColumn<T> & {
   placeholder?: string;
 };
 
-export type EditableDataTableChange<T extends object> = {
-  rowId: DataTableRowId;
+export type EditableDataTableChange<
+  T extends object,
+  IDType extends DataTableRowId,
+> = {
+  rowId: IDType;
   column: keyof T;
   previousValue: unknown;
   nextValue: unknown;
@@ -158,13 +170,20 @@ export interface EditableDataTableProps<
   columns: EditableDataTableColumn<T>[];
 
   onDataChange: (rows: T[]) => void;
-  onCellChange?: (change: EditableDataTableChange<T>) => void;
+  onCellChange?: (change: EditableDataTableChange<T, IDType>) => void;
 
   selectedIds?: IDType[];
   onSelectionChange?: (selectedIds: IDType[]) => void;
 
-  getRowId?: (row: T) => IDType;
-  createEmptyRow?: () => T;
+  /**
+   * La misma identidad gobierna render, selección, edición y eliminación.
+   */
+  getRowId: (row: T) => IDType;
+
+  /**
+   * Debe crear una fila con una identidad nueva y válida para getRowId.
+   */
+  createEmptyRow: () => T;
 
   exportFilename?: string;
   enableExportCSV?: boolean;
