@@ -3,9 +3,12 @@
 import React from "react";
 import { setRef } from "../interaction/events";
 import { attemptFocus } from "../interaction/focus/attemptFocus";
+import {
+  FOCUSABLE_CANDIDATE_SELECTOR,
+  isSequentialFocusCandidate,
+} from "../interaction/focus/focusability";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
-  getComposedParentNode,
   getDeepActiveElement,
   getNodeEventRoot,
   isComposedDescendantOf,
@@ -49,113 +52,20 @@ function getPreviousFocusTarget(
   );
 }
 
-function isElementVisible(
-  element: HTMLElement
-): boolean {
-  if (!element.isConnected) {
-    return false;
-  }
-
-  let current:
-    Node | null =
-    element;
-
-  /*
-   * El recorrido usa el parent compuesto para observar slots y hosts. Los
-   * ShadowRoot no tienen estilos propios, pero sirven como puente hacia el
-   * host sin perder la frontera del Document propietario.
-   */
-  while (current) {
-    if (current.nodeType === 1) {
-      const currentElement =
-        current as Element;
-
-      const ownerWindow =
-        currentElement
-          .ownerDocument
-          .defaultView;
-
-      if (!ownerWindow) {
-        return false;
-      }
-
-      const style =
-        ownerWindow.getComputedStyle(
-          currentElement
-        );
-
-      if (
-        currentElement.hasAttribute(
-          "hidden"
-        ) ||
-        currentElement.hasAttribute(
-          "inert"
-        ) ||
-        currentElement.getAttribute(
-          "aria-hidden"
-        ) === "true" ||
-        style.display === "none" ||
-        style.visibility ===
-          "hidden" ||
-        style.visibility ===
-          "collapse"
-      ) {
-        return false;
-      }
-    }
-
-    current =
-      getComposedParentNode(
-        current
-      );
-  }
-
-  return (
-    element.getClientRects()
-      .length > 0
-  );
-}
-
-const TABBABLE_SELECTOR = [
-  "a[href]",
-  "area[href]",
-  "button",
-  "input",
-  "select",
-  "textarea",
-  "iframe",
-  "object",
-  "embed",
-  "audio[controls]",
-  "video[controls]",
-  "summary",
-  '[contenteditable]:not([contenteditable="false"])',
-  "[tabindex]",
-].join(",");
-
-function getFocusableElements(
+function getDOMSequentialFocusCandidates(
   container: HTMLElement
 ): HTMLElement[] {
+  /*
+   * FocusScope conserva aquí únicamente el descubrimiento de sus descendientes
+   * DOM. La clasificación de cada elemento pertenece a la frontera de foco.
+   */
   return Array.from(
     container.querySelectorAll<HTMLElement>(
-      TABBABLE_SELECTOR
+      FOCUSABLE_CANDIDATE_SELECTOR
     )
-  ).filter((element) => {
-    /*
-     * La propiedad normalizada cubre cualquier índice negativo, no solo el
-     * atributo literal -1. :disabled incluye controles deshabilitados por
-     * relaciones nativas como fieldset.
-     */
-    if (element.tabIndex < 0) {
-      return false;
-    }
-
-    if (element.matches(":disabled")) {
-      return false;
-    }
-
-    return isElementVisible(element);
-  });
+  ).filter(
+    isSequentialFocusCandidate
+  );
 }
 
 function getBestInitialFocusTarget(
@@ -315,7 +225,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
           return;
         }
 
-        const focusable = getFocusableElements(currentContainer);
+        const focusable = getDOMSequentialFocusCandidates(currentContainer);
 
         void attemptFocus(
           getBestInitialFocusTarget(
@@ -365,7 +275,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         const currentContainer = localRef.current;
         if (!currentContainer) return;
 
-        const focusable = getFocusableElements(currentContainer);
+        const focusable = getDOMSequentialFocusCandidates(currentContainer);
 
         if (!focusable.length) {
           keyboardEvent.preventDefault();
@@ -433,7 +343,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         }
 
         const focusable =
-          getFocusableElements(
+          getDOMSequentialFocusCandidates(
             currentContainer
           );
 
