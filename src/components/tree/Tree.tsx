@@ -12,6 +12,9 @@ import {
   type RefAttributes,
 } from "react";
 import {
+  attemptFocus,
+} from "../../core/interaction/focus/attemptFocus";
+import {
   resolveSlot,
 } from "../../helpers/css";
 import { TreeItem } from "./TreeItem";
@@ -127,7 +130,8 @@ function TreeInner<TNode>(
     new Map<TreeNodeId, HTMLDivElement>()
   );
 
-  const shouldMoveDomFocusRef = useRef(false);
+  const pendingDomFocusIdRef =
+    useRef<TreeNodeId | null>(null);
 
   const registerItemRef = useCallback(
     (
@@ -146,24 +150,60 @@ function TreeInner<TNode>(
 
   const moveFocus = useCallback(
     (nodeId: TreeNodeId): void => {
-      shouldMoveDomFocusRef.current = true;
+      if (
+        tree.focusedId === nodeId
+      ) {
+        pendingDomFocusIdRef.current =
+          null;
+
+        return;
+      }
+
+      /*
+       * El último ID solicitado reemplaza cualquier solicitud anterior. El
+       * foco DOM espera al commit de ese mismo ID y nunca se ejecuta desde este
+       * callback.
+       */
+      pendingDomFocusIdRef.current =
+        nodeId;
+
       tree.focus(nodeId);
     },
     [tree]
   );
 
   useEffect(() => {
-    if (!shouldMoveDomFocusRef.current) {
+    const requestedId =
+      pendingDomFocusIdRef.current;
+
+    /*
+     * El foco DOM solo sigue al commit del mismo ID solicitado. Un cambio
+     * lógico hacia otro nodo no puede consumir esta solicitud. Limpiarla antes
+     * del intento evita que handlers síncronos de foco la reutilicen.
+     */
+    if (
+      requestedId === null ||
+      tree.focusedId !==
+        requestedId
+    ) {
       return;
     }
 
-    shouldMoveDomFocusRef.current = false;
+    pendingDomFocusIdRef.current =
+      null;
 
-    if (tree.focusedId === null) {
+    const element =
+      itemRefs.current.get(
+        requestedId
+      );
+
+    if (!element) {
       return;
     }
 
-    itemRefs.current.get(tree.focusedId)?.focus();
+    void attemptFocus(
+      element
+    );
   }, [tree.focusedId]);
 
   const notifyExpansionChange = useCallback(
