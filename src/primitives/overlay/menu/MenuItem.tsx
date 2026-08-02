@@ -16,6 +16,10 @@ import {
 } from "../../../core/interaction/events";
 
 import {
+  attemptFocus,
+} from "../../../core/interaction/focus/attemptFocus";
+
+import {
   clearOwnedWindowTimeout,
   setOwnedWindowTimeout,
   type OwnedWindowTimeout,
@@ -206,7 +210,14 @@ export const MenuItem =
                 setOwnedWindowTimeout(ownerWindow, () => {
                   restoreFocusTimerRef.current = null;
 
-                  anchorRef.current?.focus?.();
+                  const anchor =
+                    anchorRef.current;
+
+                  if (anchor) {
+                    void attemptFocus(
+                      anchor
+                    );
+                  }
                 }, 0);
             }
           },
@@ -227,7 +238,9 @@ export const MenuItem =
               React.PointerEvent<HTMLDivElement>
           ) => {
             if (!disabled) {
-              event.currentTarget.focus();
+              void attemptFocus(
+                event.currentTarget
+              );
             }
           },
           [disabled]

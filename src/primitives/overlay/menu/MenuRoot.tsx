@@ -4,10 +4,15 @@
 import React from "react";
 import {
   cancelOwnedAnimationFrame,
+  getDeepActiveElement,
   getNodeEventRoot,
   requestOwnedAnimationFrame,
   type OwnedAnimationFrame,
 } from "../../../core/dom";
+
+import {
+  attemptFocus,
+} from "../../../core/interaction/focus/attemptFocus";
 
 import {
   MenuContext,
@@ -220,6 +225,17 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
+        if (
+          !attemptFocus(
+            target,
+            {
+              preventScroll: true,
+            }
+          )
+        ) {
+          return;
+        }
+
         focusedIndexRef.current =
           clamped;
 
@@ -230,10 +246,6 @@ export const MenuRoot: React.FC<MenuProps> = ({
         setHasFocusedItem(
           true
         );
-
-        target.focus({
-          preventScroll: true,
-        });
 
         scheduleFocusedIndexSync(
           clamped
@@ -292,7 +304,11 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
         const active =
-          getNodeEventRoot(items[0]).activeElement;
+          getDeepActiveElement(
+            getNodeEventRoot(
+              items[0]
+            )
+          );
 
 
         const currentIndex =
@@ -336,7 +352,11 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
         const active =
-          getNodeEventRoot(items[0]).activeElement;
+          getDeepActiveElement(
+            getNodeEventRoot(
+              items[0]
+            )
+          );
 
 
         const currentIndex =
