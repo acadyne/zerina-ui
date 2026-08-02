@@ -11,12 +11,14 @@ import type {
 
 import {
   resolveSlot,
+  type SlotElementProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
 import {
   ControlAction,
+  type ControlActionProps,
 } from "./ControlAction";
 
 import {
@@ -48,7 +50,17 @@ export type PasswordInputStyles =
   SlotStyleMap<PasswordInputSlot>;
 
 export type PasswordInputSlotProps =
-  SlotPropsMap<PasswordInputSlot>;
+  Omit<
+    SlotPropsMap<PasswordInputSlot>,
+    "toggleButton"
+  > & {
+    toggleButton?:
+      SlotElementProps &
+      Pick<
+        ControlActionProps,
+        "onPress"
+      >;
+  };
 
 
 export interface PasswordInputProps

@@ -15,12 +15,14 @@ import type {
 
 import {
   resolveSlot,
+  type SlotElementProps,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
 import {
   ControlAction,
+  type ControlActionProps,
 } from "./ControlAction";
 
 import {
@@ -54,7 +56,17 @@ export type SearchInputStyles =
   SlotStyleMap<SearchInputSlot>;
 
 export type SearchInputSlotProps =
-  SlotPropsMap<SearchInputSlot>;
+  Omit<
+    SlotPropsMap<SearchInputSlot>,
+    "clearButton"
+  > & {
+    clearButton?:
+      SlotElementProps &
+      Pick<
+        ControlActionProps,
+        "onPress"
+      >;
+  };
 
 
 export interface SearchInputProps
