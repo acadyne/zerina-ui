@@ -1,7 +1,7 @@
 import React from "react";
 
 import {
-  resolveSlot,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 
 import {
@@ -64,19 +64,28 @@ export const MenuTrigger =
         onOpenChange,
       } = ctx;
 
+      /*
+       * El estilo del trigger conserva las capas de MenuRoot y del componente.
+       * La reconstrucción de hosts y asChild pertenece a P2.5.
+       */
       const triggerSlot =
-        resolveSlot<MenuSlot>({
-          slot: "trigger",
+        resolveLayeredSlot<MenuSlot>({
+          slots: [
+            "trigger",
+          ],
 
-          styles:
-            styles ??
+          contextStyles:
             ctx.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx.slotProps,
 
+          styles,
+
+          slotProps,
+
           className,
+
           style,
         });
 

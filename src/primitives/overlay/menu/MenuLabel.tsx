@@ -3,7 +3,7 @@
 import React from "react";
 
 import {
-  resolveSlot,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 
 import {
@@ -45,15 +45,25 @@ export const MenuLabel =
         useOptionalMenuContext();
 
 
+      /*
+       * Contexto y override local son capas acumulativas. El override no borra
+       * estilos ni clases declarados por MenuRoot.
+       */
       const labelSlot =
-        resolveSlot<MenuSlot>({
-          slot: "label",
+        resolveLayeredSlot<MenuSlot>({
+          slots: [
+            "label",
+          ],
 
-          styles:
-            styles ?? ctx?.styles,
+          contextStyles:
+            ctx?.styles,
 
-          slotProps:
-            slotProps ?? ctx?.slotProps,
+          contextSlotProps:
+            ctx?.slotProps,
+
+          styles,
+
+          slotProps,
 
           className,
 

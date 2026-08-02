@@ -20,8 +20,7 @@ import {
 } from "../../../core/interaction/events";
 
 import {
-  resolveSlot,
-  type SlotElementProps,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 
 import {
@@ -31,6 +30,10 @@ import {
 import {
   menuRecipe,
 } from "./menu.recipe";
+
+import {
+  composeMenuExternalHandlers,
+} from "./menu.utils";
 
 import type {
   MenuItemProps,
@@ -77,6 +80,8 @@ export const MenuItem =
       const ctx =
         useMenuContext();
 
+      const overlay =
+        useOverlayInstanceContext();
 
       const {
         focusItem,
@@ -86,10 +91,6 @@ export const MenuItem =
       } = ctx;
 
 
-      const overlay =
-        useOverlayInstanceContext();
-
-
       const itemRef =
         React.useRef<HTMLDivElement | null>(
           null
@@ -97,8 +98,8 @@ export const MenuItem =
 
 
       /*
-       * El token identifica esta entrada aunque cambie su posición, contenido o
-       * nodo. No representa un índice ni una generación temporal.
+       * El token identifica esta entrada aunque React cambie su posición.
+       * Nunca representa un índice ni una generación temporal.
        */
       const [itemToken] =
         React.useState<symbol>(
@@ -110,8 +111,10 @@ export const MenuItem =
 
 
       /*
-       * DismissableLayer es la única fuente de vigencia interactiva. Durante exit
-       * el nodo puede continuar montado, pero collectionScope pasa a null.
+       * DismissableLayer es la única fuente de vigencia interactiva.
+       *
+       * Durante exit el nodo sigue montado para animar, pero scope=null lo retira
+       * inmediatamente de navegación, foco inicial y typeahead.
        */
       const collectionScope =
         overlay.interactive
@@ -120,9 +123,9 @@ export const MenuItem =
 
 
       /*
-       * El callback ref permanece estable frente a cambios de metadatos. El efecto
-       * inferior propaga disabled, textValue y scope sin desmontar artificialmente
-       * la asociación token-nodo.
+       * El callback ref posee la asociación token-nodo. Los metadatos variables
+       * se leen desde esta ref para no reconstruirlo cuando cambian disabled,
+       * textValue o la presencia interactiva.
        */
       const registrationRef =
         React.useRef({
@@ -137,14 +140,6 @@ export const MenuItem =
         textValue,
         collectionScope,
       };
-
-
-      const resolvedStyles =
-        styles ?? ctx.styles;
-
-
-      const resolvedSlotProps =
-        slotProps ?? ctx.slotProps;
 
 
       const setRefs =
@@ -209,8 +204,8 @@ export const MenuItem =
           }
 
           /*
-           * registerItem es un upsert. Mantiene la identidad y actualiza solo los
-           * metadatos que pueden cambiar después del montaje.
+           * registerItem es un upsert por token. Propaga metadatos sin desmontar
+           * ni convertir la posición actual en identidad.
            */
           registerItem({
             token:
@@ -249,12 +244,12 @@ export const MenuItem =
               return;
             }
 
-
             onSelect?.();
 
-
             if (closeOnSelect) {
-              onOpenChange?.(false);
+              onOpenChange?.(
+                false
+              );
             }
           },
           [
@@ -286,227 +281,194 @@ export const MenuItem =
         );
 
 
-      const preliminarySlot =
-        resolveSlot<MenuSlot>({
-          slot: "item",
+      const contextItemProps =
+        ctx.slotProps
+          ?.item as
+          | React.HTMLAttributes<HTMLDivElement>
+          | undefined;
 
-          styles:
-            resolvedStyles,
-
-          slotProps:
-            resolvedSlotProps,
-
-          className,
-
-          style,
-
-          baseProps: {
-            role: "menuitem",
-
-            tabIndex: -1,
-
-            "aria-disabled":
-              disabled ||
-              undefined,
-
-            "data-ui-menu-item":
-              "",
-          },
-
-          baseStyle:
-            undefined,
-        });
+      const localItemProps =
+        slotProps
+          ?.item as
+          | React.HTMLAttributes<HTMLDivElement>
+          | undefined;
 
 
-      const {
-        onPointerEnter:
-        slotOnPointerEnter,
-
-        onPointerLeave:
-        slotOnPointerLeave,
-
-        onPointerDown:
-        slotOnPointerDown,
-
-        onPointerUp:
-        slotOnPointerUp,
-
-        onPointerCancel:
-        slotOnPointerCancel,
-
-        onLostPointerCapture:
-        slotOnLostPointerCapture,
-
-        onFocus:
-        slotOnFocus,
-
-        onBlur:
-        slotOnBlur,
-
-        onKeyDown:
-        slotOnKeyDown,
-
-        onKeyUp:
-        slotOnKeyUp,
-
-        onClick:
-        slotOnClick,
-
-        ...preliminarySlotRest
-      } =
-        preliminarySlot as SlotElementProps;
+      /*
+       * Orden de capas externas:
+       *
+       * 1. prop pública;
+       * 2. slot local;
+       * 3. slot de contexto.
+       *
+       * Todas se ejecutan una vez. Después, defaultPrevented decide si Menu puede
+       * adoptar la conducta interna.
+       */
+      const externalPointerEnter =
+        composeMenuExternalHandlers(
+          onPointerEnter,
+          localItemProps
+            ?.onPointerEnter,
+          contextItemProps
+            ?.onPointerEnter
+        );
 
 
       const press =
         usePress<HTMLDivElement>({
           disabled,
 
-          nativeInteractive: false,
+          nativeInteractive:
+            false,
 
           onPress:
             handleSelect,
 
-
+          /*
+           * Enfocar por hover es conducta semántica cancelable. No comparte la
+           * excepción de los cleanups técnicos de pointer.
+           */
           onPointerEnter:
             composeEventHandlers(
-              composeEventHandlers(
-                onPointerEnter,
-                slotOnPointerEnter
-              ),
-              focusOnPointerEnter,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              externalPointerEnter,
+              focusOnPointerEnter
             ),
-
 
           onPointerLeave:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onPointerLeave,
-              slotOnPointerLeave,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              localItemProps
+                ?.onPointerLeave,
+              contextItemProps
+                ?.onPointerLeave
             ),
-
 
           onPointerDown:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onPointerDown,
-              slotOnPointerDown
+              localItemProps
+                ?.onPointerDown,
+              contextItemProps
+                ?.onPointerDown
             ),
-
 
           onPointerUp:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onPointerUp,
-              slotOnPointerUp,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              localItemProps
+                ?.onPointerUp,
+              contextItemProps
+                ?.onPointerUp
             ),
-
 
           onPointerCancel:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onPointerCancel,
-              slotOnPointerCancel,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              localItemProps
+                ?.onPointerCancel,
+              contextItemProps
+                ?.onPointerCancel
             ),
-
 
           onLostPointerCapture:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onLostPointerCapture,
-              slotOnLostPointerCapture,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              localItemProps
+                ?.onLostPointerCapture,
+              contextItemProps
+                ?.onLostPointerCapture
             ),
-
 
           onFocus:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onFocus,
-              slotOnFocus
+              localItemProps
+                ?.onFocus,
+              contextItemProps
+                ?.onFocus
             ),
-
 
           onBlur:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onBlur,
-              slotOnBlur,
-              {
-                checkDefaultPrevented:
-                  false,
-              }
+              localItemProps
+                ?.onBlur,
+              contextItemProps
+                ?.onBlur
             ),
-
 
           onKeyDown:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onKeyDown,
-              slotOnKeyDown
+              localItemProps
+                ?.onKeyDown,
+              contextItemProps
+                ?.onKeyDown
             ),
-
 
           onKeyUp:
-            composeEventHandlers(
+            composeMenuExternalHandlers(
               onKeyUp,
-              slotOnKeyUp
+              localItemProps
+                ?.onKeyUp,
+              contextItemProps
+                ?.onKeyUp
             ),
 
-
           onClick:
-            slotOnClick,
+            composeMenuExternalHandlers(
+              localItemProps
+                ?.onClick,
+              contextItemProps
+                ?.onClick
+            ),
         });
 
 
-      /*
-       * El estado visual procede del foco DOM real observado por usePress. Ya no
-       * existe un índice persistente paralelo que pueda quedar desalineado.
-       */
       const focused =
         press.state.focused;
-
 
       const focusVisible =
         press.state.focusVisible;
 
+
+      /*
+       * El slot se resuelve una sola vez. Receta, estado, contexto y override
+       * local convergen aquí.
+       *
+       * Los handlers finales de usePress se aplican después para que las props de
+       * slot ya consumidas no se ejecuten una segunda vez.
+       */
       const itemSlot =
-        resolveSlot<MenuSlot>({
-          slot: "item",
+        resolveLayeredSlot<MenuSlot>({
+          slots: [
+            "item",
+          ],
 
-          styles:
-            resolvedStyles,
+          contextStyles:
+            ctx.styles,
 
-          slotProps:
-            resolvedSlotProps,
+          contextSlotProps:
+            ctx.slotProps,
 
-          className:
-            preliminarySlotRest.className,
+          styles,
 
-          style:
-            preliminarySlotRest.style,
+          slotProps,
+
+          className,
+
+          style,
 
           baseProps: {
             role:
-              preliminarySlotRest.role,
+              "menuitem",
 
             tabIndex:
-              preliminarySlotRest.tabIndex,
+              -1,
 
             "aria-disabled":
-              preliminarySlotRest[
-              "aria-disabled"
-              ],
+              disabled ||
+              undefined,
 
             "data-ui-menu-item":
               "",

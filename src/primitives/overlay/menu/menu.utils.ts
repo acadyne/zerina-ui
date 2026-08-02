@@ -11,6 +11,62 @@ import type {
 } from "../../../core/overlay";
 
 
+/**
+ * Ejecuta todas las capas externas exactamente una vez.
+ *
+ * `resolveLayeredSlot` compone clases y estilos, pero una prop ordinaria de la
+ * última capa sustituye a la anterior. Los eventos necesitan otra semántica:
+ * prop pública, slot local y slot de contexto conservan cada uno su callback.
+ *
+ * La función no interrumpe las capas externas por `defaultPrevented`. Esa señal
+ * se consulta después, mediante `composeEventHandlers`, antes de entregar el
+ * evento a la conducta interna de Menu.
+ */
+export function composeMenuExternalHandlers<
+  TEvent extends {
+    readonly defaultPrevented:
+      boolean;
+  },
+>(
+  ...handlers:
+    Array<
+      | (
+          (
+            event: TEvent
+          ) => void
+        )
+      | undefined
+    >
+):
+  | (
+      (
+        event: TEvent
+      ) => void
+    )
+  | undefined {
+  if (
+    !handlers.some(
+      Boolean
+    )
+  ) {
+    return undefined;
+  }
+
+  return (
+    event: TEvent
+  ): void => {
+    for (
+      const handler
+      of handlers
+    ) {
+      handler?.(
+        event
+      );
+    }
+  };
+}
+
+
 function isOwnedHTMLSlotElement(
   node: Node
 ): node is HTMLSlotElement {

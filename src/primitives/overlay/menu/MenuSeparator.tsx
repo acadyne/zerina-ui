@@ -3,7 +3,7 @@
 import React from "react";
 
 import {
-  resolveSlot,
+  resolveLayeredSlot,
 } from "../../../helpers/css";
 
 import {
@@ -39,15 +39,25 @@ export const MenuSeparator =
         useOptionalMenuContext();
 
 
+      /*
+       * El slot se resuelve una sola vez y acumula las capas de contexto y del
+       * componente. role se fija después porque constituye su semántica.
+       */
       const separatorSlot =
-        resolveSlot<MenuSlot>({
-          slot: "separator",
+        resolveLayeredSlot<MenuSlot>({
+          slots: [
+            "separator",
+          ],
 
-          styles:
-            styles ?? ctx?.styles,
+          contextStyles:
+            ctx?.styles,
 
-          slotProps:
-            slotProps ?? ctx?.slotProps,
+          contextSlotProps:
+            ctx?.slotProps,
+
+          styles,
+
+          slotProps,
 
           className,
 
@@ -59,7 +69,6 @@ export const MenuSeparator =
         });
 
 
-      // El role constituye la semántica del componente.
       return (
         <div
           {...separatorSlot}
