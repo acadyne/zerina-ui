@@ -221,108 +221,6 @@ function TreeInner<TNode>(
     [onNodeExpandedChange]
   );
 
-  const notifySelectionChange = useCallback(
-    (
-      node: TNode,
-      nodeId: TreeNodeId,
-      nextSelected: boolean
-    ): void => {
-      onNodeSelectionChange?.({
-        node,
-        nodeId,
-        selected: nextSelected,
-      });
-    },
-    [onNodeSelectionChange]
-  );
-
-  const selectNode = useCallback(
-    (
-      node: TNode,
-      nodeId: TreeNodeId
-    ): void => {
-      if (
-        selectionMode === "none" ||
-        tree.isDisabled(nodeId)
-      ) {
-        return;
-      }
-
-      const currentlySelected =
-        tree.isSelected(nodeId);
-
-      const nextSelected =
-        selectionMode === "multiple"
-          ? !currentlySelected
-          : true;
-
-      if (
-        selectionMode === "multiple" &&
-        currentlySelected
-      ) {
-        tree.deselect(nodeId);
-      } else {
-        tree.select(nodeId);
-      }
-
-      notifySelectionChange(
-        node,
-        nodeId,
-        nextSelected
-      );
-    },
-    [
-      notifySelectionChange,
-      selectionMode,
-      tree,
-    ]
-  );
-
-  const activateNode = useCallback(
-    async (
-      node: TNode,
-      nodeId: TreeNodeId
-    ): Promise<void> => {
-      if (tree.isDisabled(nodeId)) {
-        return;
-      }
-
-      if (selectOnActivate) {
-        selectNode(node, nodeId);
-      }
-
-      if (
-        isNodeBranch(node) &&
-        toggleOnBranchActivate
-      ) {
-        const nextExpanded =
-          !tree.isExpanded(nodeId);
-
-        await tree.toggle(nodeId);
-
-        notifyExpansionChange(
-          node,
-          nodeId,
-          nextExpanded
-        );
-      }
-
-      await onNodeActivate?.({
-        node,
-        nodeId,
-      });
-    },
-    [
-      isNodeBranch,
-      notifyExpansionChange,
-      onNodeActivate,
-      selectNode,
-      selectOnActivate,
-      toggleOnBranchActivate,
-      tree,
-    ]
-  );
-
   const handleItemKeyDown = useCallback(
     ({
       event,
@@ -457,29 +355,15 @@ function TreeInner<TNode>(
           return;
         }
 
-        case "Enter": {
-          event.preventDefault();
-          void activateNode(node, nodeId);
-          return;
-        }
-
-        case " ": {
-          event.preventDefault();
-          selectNode(node, nodeId);
-          return;
-        }
-
         default:
           return;
       }
     },
     [
-      activateNode,
       focusableVisibleNodes,
       isNodeBranch,
       moveFocus,
       notifyExpansionChange,
-      selectNode,
       tree,
     ]
   );

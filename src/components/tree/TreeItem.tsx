@@ -1,10 +1,11 @@
 // src/components/tree/TreeItem.tsx
 
-import type {
-  FocusEvent,
-  KeyboardEvent,
-  MouseEvent,
-  ReactNode,
+import {
+  useCallback,
+  type FocusEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
 } from "react";
 import {
   isEventOwnedByNode,
@@ -161,6 +162,25 @@ export function TreeItem<TNode>({
     ? tree.getNodeChildren(node, nodeId) ?? []
     : [];
 
+  const nodeLabel =
+    getNodeLabel(node);
+
+  const textualNodeLabel =
+    typeof nodeLabel === "string" ||
+    typeof nodeLabel === "number"
+      ? String(nodeLabel).trim()
+      : "";
+
+  const toggleAccessibleLabel =
+    `${
+      expanded
+        ? "Contraer"
+        : "Expandir"
+    } nodo ${
+      textualNodeLabel ||
+      String(nodeId)
+    }`;
+
   const loading = loadState.status === "loading";
   const refreshing = loadState.status === "refreshing";
   const loaded = loadState.status === "loaded";
@@ -250,24 +270,28 @@ export function TreeItem<TNode>({
     });
   };
 
-  const activateNode = (): void => {
-    if (disabled) {
-      return;
-    }
+  const activateNode =
+    async (): Promise<void> => {
+      if (disabled) {
+        return;
+      }
 
-    if (selectOnActivate) {
-      selectNode();
-    }
+      if (selectOnActivate) {
+        selectNode();
+      }
 
-    if (branch && toggleOnBranchActivate) {
-      void toggleNode();
-    }
+      if (
+        branch &&
+        toggleOnBranchActivate
+      ) {
+        await toggleNode();
+      }
 
-    void onNodeActivate?.({
-      node,
-      nodeId,
-    });
-  };
+      await onNodeActivate?.({
+        node,
+        nodeId,
+      });
+    };
 
   const reloadNode = async (): Promise<void> => {
     if (!branch || disabled) {
@@ -276,6 +300,27 @@ export function TreeItem<TNode>({
 
     await tree.reload(nodeId);
   };
+
+  /*
+   * TreeItem es el owner de la asociación entre su identidad lógica y el nodo
+   * DOM. La callback permanece estable mientras esa identidad no cambie.
+   */
+  const setItemRef =
+    useCallback(
+      (
+        element:
+          HTMLDivElement | null
+      ): void => {
+        registerItemRef(
+          nodeId,
+          element
+        );
+      },
+      [
+        nodeId,
+        registerItemRef,
+      ]
+    );
 
   const renderContext: TreeNodeRenderContext<TNode> = {
     node,
@@ -620,7 +665,26 @@ export function TreeItem<TNode>({
       return;
     }
 
-    onItemKeyDown(context);
+    /*
+     * TreeItem posee las operaciones locales. Tree recibe únicamente navegación
+     * entre nodos y no mantiene otra implementación de selección o activación.
+     */
+    switch (event.key) {
+      case "Enter": {
+        event.preventDefault();
+        void activateNode();
+        return;
+      }
+
+      case " ": {
+        event.preventDefault();
+        selectNode();
+        return;
+      }
+
+      default:
+        onItemKeyDown(context);
+    }
   };
 
   /*
@@ -650,7 +714,7 @@ export function TreeItem<TNode>({
     }
 
     focusNode();
-    activateNode();
+    void activateNode();
   };
 
   const handleToggleClick = (
@@ -664,7 +728,6 @@ export function TreeItem<TNode>({
       return;
     }
 
-    focusNode();
     void toggleNode();
   };
 
@@ -718,9 +781,7 @@ export function TreeItem<TNode>({
   return (
     <div
       {...itemSlotRest}
-      ref={(element) => {
-        registerItemRef(nodeId, element);
-      }}
+      ref={setItemRef}
       role="treeitem"
       tabIndex={focused ? 0 : -1}
       aria-level={getTreeNodeLevel(depth)}
@@ -751,9 +812,7 @@ export function TreeItem<TNode>({
             type="button"
             tabIndex={-1}
             aria-label={
-              expanded
-                ? "Contraer nodo"
-                : "Expandir nodo"
+              toggleAccessibleLabel
             }
             aria-expanded={expanded}
             disabled={disabled}
@@ -780,7 +839,7 @@ export function TreeItem<TNode>({
             ) : null}
 
             <span {...labelSlot}>
-              {getNodeLabel(node)}
+              {nodeLabel}
             </span>
 
             {nodeActions !== undefined ? (
