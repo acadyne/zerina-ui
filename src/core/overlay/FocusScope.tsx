@@ -2,6 +2,7 @@
 
 import React from "react";
 import { setRef } from "../interaction/events";
+import { attemptFocus } from "../interaction/focus/attemptFocus";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
   getComposedParentNode,
@@ -241,7 +242,9 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
           return;
         }
 
-        target.focus();
+        void attemptFocus(
+          target
+        );
       }, []);
 
     /*
@@ -303,15 +306,28 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
           isComposedDescendantOf(
             explicitTarget,
             currentContainer
+          ) &&
+          attemptFocus(
+            explicitTarget
           )
         ) {
-          explicitTarget.focus();
           hasAutoFocusedRef.current = true;
           return;
         }
 
         const focusable = getFocusableElements(currentContainer);
-        getBestInitialFocusTarget(focusable, currentContainer).focus();
+
+        void attemptFocus(
+          getBestInitialFocusTarget(
+            focusable,
+            currentContainer
+          )
+        );
+
+        /*
+         * El ciclo registra el intento incluso cuando el navegador rechaza el
+         * candidato final. Reintentar en cada efecto produciría bucles de foco.
+         */
         hasAutoFocusedRef.current = true;
       });
 
@@ -353,7 +369,10 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
 
         if (!focusable.length) {
           keyboardEvent.preventDefault();
-          currentContainer.focus();
+          void attemptFocus(
+            currentContainer
+          );
+
           return;
         }
 
@@ -378,21 +397,28 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
 
         if (!activeInside) {
           keyboardEvent.preventDefault();
-          first.focus();
+          void attemptFocus(
+            first
+          );
+
           return;
         }
 
         if (keyboardEvent.shiftKey) {
           if (active === first) {
             keyboardEvent.preventDefault();
-            last.focus();
+            void attemptFocus(
+              last
+            );
           }
           return;
         }
 
         if (active === last) {
           keyboardEvent.preventDefault();
-          first.focus();
+          void attemptFocus(
+            first
+          );
         }
       };
 
@@ -406,8 +432,17 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
           return;
         }
 
-        const focusable = getFocusableElements(currentContainer);
-        getBestInitialFocusTarget(focusable, currentContainer).focus();
+        const focusable =
+          getFocusableElements(
+            currentContainer
+          );
+
+        void attemptFocus(
+          getBestInitialFocusTarget(
+            focusable,
+            currentContainer
+          )
+        );
       };
 
       roots.forEach((root) => {
