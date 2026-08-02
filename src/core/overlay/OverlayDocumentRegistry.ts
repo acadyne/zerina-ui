@@ -2,9 +2,9 @@
 
 import { assertValidOverlayId } from "./overlayId";
 import {
+  getComposedParentNode,
   getNodeEventRoot,
   isEventInsideNode,
-  isShadowRoot,
   type DOMEventRoot,
 } from "../dom/ownerDocument";
 
@@ -472,28 +472,12 @@ export function releaseOverlayRoot(
   maybeReleaseOverlayRoot(state, rootId, record);
 }
 
-function getComposedParentNode(
-  node: Node
-): Node | null {
-  if (isShadowRoot(node)) {
-    return node.host;
-  }
-
-  if (node.parentNode) {
-    return node.parentNode;
-  }
-
-  const root = node.getRootNode();
-
-  return root !== node && isShadowRoot(root)
-    ? root
-    : null;
-}
-
 /*
  * El ownership se resuelve desde el container hacia fuera.
- * Recorrer el árbol compuesto conserva ShadowRoot.host y devuelve el root
- * administrado más cercano, sin depender del orden de rootsById.
+ *
+ * getComposedParentNode prioriza assignedSlot y continúa desde un ShadowRoot
+ * hacia su host. Así, el root administrado más cercano se decide según el
+ * árbol presentado al usuario y no según el orden de inserción o el light DOM.
  */
 function findOwningOverlayRoot(
   state: OverlayDocumentState,
