@@ -32,6 +32,26 @@ import {
 } from "./menu.utils";
 
 
+/*
+ * Typeahead compara texto semántico, no contenido visual sin procesar.
+ *
+ * NFKC conserva una representación estable para formas Unicode equivalentes;
+ * el colapso de espacios evita que detalles de layout alteren la búsqueda.
+ */
+function normalizeMenuTextValue(
+  value: string
+): string {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .replace(
+      /\s+/gu,
+      " "
+    )
+    .toLocaleLowerCase();
+}
+
+
 export const MenuRoot: React.FC<MenuProps> = ({
   children,
   open,
@@ -559,6 +579,86 @@ export const MenuRoot: React.FC<MenuProps> = ({
     );
 
 
+  const focusByTextValue =
+    React.useCallback(
+      (
+        searchValue: string
+      ): boolean => {
+        const normalizedSearch =
+          normalizeMenuTextValue(
+            searchValue
+          );
+
+        if (!normalizedSearch) {
+          return false;
+        }
+
+        /*
+         * getEnabledItems excluye disabled y vuelve a derivar el orden compuesto.
+         * Typeahead no conserva una segunda posición paralela a la colección.
+         */
+        const items =
+          getEnabledItems();
+
+        if (!items.length) {
+          return false;
+        }
+
+        const currentIndex =
+          getCurrentItemIndex(
+            items
+          );
+
+        /*
+         * La búsqueda comienza después del item vigente y recorre una vuelta
+         * completa. Una tecla repetida avanza entre coincidencias.
+         */
+        for (
+          let offset = 1;
+          offset <= items.length;
+          offset += 1
+        ) {
+          const candidateIndex =
+            (
+              Math.max(
+                currentIndex,
+                -1
+              ) +
+              offset
+            ) %
+            items.length;
+
+          const candidate =
+            items[
+              candidateIndex
+            ];
+
+          if (
+            !candidate ||
+            !normalizeMenuTextValue(
+              candidate.textValue
+            ).startsWith(
+              normalizedSearch
+            )
+          ) {
+            continue;
+          }
+
+          return focusEntry(
+            candidate
+          );
+        }
+
+        return false;
+      },
+      [
+        focusEntry,
+        getCurrentItemIndex,
+        getEnabledItems,
+      ]
+    );
+
+
   const focusNext =
     React.useCallback(
       (): void => {
@@ -704,6 +804,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         focusPrev,
 
+        focusByTextValue,
+
 
         styles,
 
@@ -726,6 +828,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
         focusLast,
         focusNext,
         focusPrev,
+        focusByTextValue,
 
         styles,
         slotProps,

@@ -104,6 +104,13 @@ export interface MenuContextValue {
   focusPrev:
     () => void;
 
+  /*
+   * Ejecuta typeahead sobre la colección habilitada y ordenada vigente.
+   * Devuelve true únicamente cuando encontró y enfocó una coincidencia.
+   */
+  focusByTextValue:
+    (searchValue: string) => boolean;
+
 
   styles?: MenuStyles;
 
