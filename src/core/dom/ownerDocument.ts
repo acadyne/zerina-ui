@@ -295,16 +295,47 @@ export function getNodeEventRoot(node: Node): DOMEventRoot {
 }
 
 export function isEventInsideNode(event: Event, node: Node): boolean {
-  const path =
-    typeof event.composedPath === "function"
-      ? event.composedPath()
-      : [];
+  let path:
+    EventTarget[] | null =
+    null;
 
-  if (path.includes(node)) {
-    return true;
+  if (
+    typeof event.composedPath ===
+      "function"
+  ) {
+    try {
+      const nextPath =
+        event.composedPath();
+
+      if (
+        Array.isArray(nextPath) &&
+        nextPath.length > 0
+      ) {
+        path = nextPath;
+      }
+    } catch {
+      /*
+       * Eventos instrumentados pueden exponer composedPath sin poder
+       * ejecutarlo. Solo entonces se recurre al target estructural.
+       */
+    }
   }
 
-  return isDOMNode(event.target) && node.contains(event.target);
+  /*
+   * Una ruta compuesta utilizable es autoritativa. Si no alcanza al nodo, no
+   * debe reinterpretarse el evento mediante el árbol DOM ordinario.
+   */
+  if (path) {
+    return path.includes(node);
+  }
+
+  return (
+    isDOMNode(event.target) &&
+    isComposedDescendantOf(
+      event.target,
+      node
+    )
+  );
 }
 
 export function setOwnedWindowTimeout(

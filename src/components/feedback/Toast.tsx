@@ -8,6 +8,10 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  isComposedDescendantOf,
+  isDOMNode,
+} from "../../core/dom";
 import { usePress } from "../../core/interaction";
 import { useOptionalUIMotion } from "../../core/motion";
 import {
@@ -169,9 +173,17 @@ export const Toast = React.forwardRef<
         ) => {
           const nextTarget = event.relatedTarget;
 
+          /*
+           * relatedTarget puede pertenecer a otro realm o estar distribuido
+           * mediante slots. La pausa continúa mientras el siguiente foco siga
+           * dentro del subárbol compuesto del Toast.
+           */
           if (
-            nextTarget instanceof Node &&
-            event.currentTarget.contains(nextTarget)
+            isDOMNode(nextTarget) &&
+            isComposedDescendantOf(
+              nextTarget,
+              event.currentTarget
+            )
           ) {
             return;
           }
