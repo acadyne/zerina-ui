@@ -10,11 +10,11 @@
  *
  * - recorrer la presentación compuesta;
  * - aplicar la elegibilidad individual;
+ * - reducir dentro de la colección grupos radio por identidad HTML nativa;
  * - producir candidatos en orden compuesto de descubrimiento.
  *
  * RESPONSABILIDAD DEL PIPELINE COMPLETO
  *
- * - identificar y reducir grupos radio mediante identidad DOM nativa;
  * - preservar fronteras y relaciones HTML nativas antes de construir scopes;
  * - ordenar cada scope mediante el tabIndex efectivo;
  * - aplanar los scopes en la secuencia final consumida por FocusScope.
@@ -84,6 +84,257 @@ function isOwnedHTMLSlotElement(
   );
 }
 
+function isOwnedHTMLInputElement(
+  element: HTMLElement
+): element is HTMLInputElement {
+  const ownerWindow =
+    element.ownerDocument
+      .defaultView;
+
+  return !!(
+    ownerWindow &&
+    typeof ownerWindow
+      .HTMLInputElement ===
+        "function" &&
+    element instanceof
+      ownerWindow.HTMLInputElement
+  );
+}
+
+type NamedRadioCandidate = {
+  radio: HTMLInputElement;
+  name: string;
+};
+
+type RadioGroupState = {
+  firstEligible:
+    HTMLInputElement;
+
+  checkedEligible:
+    HTMLInputElement | null;
+};
+
+type RadioGroupsByName =
+  Map<
+    string,
+    RadioGroupState
+  >;
+
+type RadioGroupsByFormOwner =
+  Map<
+    HTMLFormElement | null,
+    RadioGroupsByName
+  >;
+
+/*
+ * La identidad del grupo sigue el árbol DOM nativo, no la presentación
+ * compuesta. getRootNode() mantiene separados Document y ShadowRoot incluso
+ * cuando un radio light DOM se presenta mediante un slot.
+ *
+ * El atributo debe existir y no puede estar vacío. El valor se conserva sin
+ * normalización porque la igualdad del nombre forma parte de la identidad HTML.
+ */
+function getNamedRadioCandidate(
+  element: HTMLElement
+): NamedRadioCandidate | null {
+  if (
+    !isOwnedHTMLInputElement(
+      element
+    ) ||
+    element.type !== "radio"
+  ) {
+    return null;
+  }
+
+  const name =
+    element.getAttribute(
+      "name"
+    );
+
+  if (
+    name === null ||
+    name === ""
+  ) {
+    return null;
+  }
+
+  return {
+    radio: element,
+    name,
+  };
+}
+
+function getOrCreateRadioGroupState(
+  groupsByRoot: Map<
+    Node,
+    RadioGroupsByFormOwner
+  >,
+  candidate: NamedRadioCandidate
+): RadioGroupState {
+  const {
+    radio,
+    name,
+  } = candidate;
+
+  const root =
+    radio.getRootNode();
+
+  let groupsByFormOwner =
+    groupsByRoot.get(root);
+
+  if (!groupsByFormOwner) {
+    groupsByFormOwner =
+      new Map();
+
+    groupsByRoot.set(
+      root,
+      groupsByFormOwner
+    );
+  }
+
+  /*
+   * null representa ausencia de form owner. Solo comparte grupo con otros
+   * radios sin formulario cuando también coinciden el root y el nombre.
+   */
+  const formOwner =
+    radio.form;
+
+  let groupsByName =
+    groupsByFormOwner.get(
+      formOwner
+    );
+
+  if (!groupsByName) {
+    groupsByName =
+      new Map();
+
+    groupsByFormOwner.set(
+      formOwner,
+      groupsByName
+    );
+  }
+
+  let state =
+    groupsByName.get(name);
+
+  if (!state) {
+    state = {
+      firstEligible:
+        radio,
+
+      checkedEligible:
+        radio.checked
+          ? radio
+          : null,
+    };
+
+    groupsByName.set(
+      name,
+      state
+    );
+
+    return state;
+  }
+
+  /*
+   * En árboles conectados el navegador mantiene una sola checkedness verdadera.
+   * Si un árbol desconectado expone varias, el primer radio marcado conserva la
+   * representación para mantener un resultado determinista.
+   */
+  if (
+    !state.checkedEligible &&
+    radio.checked
+  ) {
+    state.checkedEligible =
+      radio;
+  }
+
+  return state;
+}
+
+/**
+ * Reduce grupos radio dentro de la colección ya elegible.
+ *
+ * Cada grupo aporta el radio marcado elegible o, si no existe, su primer radio
+ * elegible. La frontera es deliberadamente local: un radio marcado fuera del
+ * contenedor, oculto, disabled o con tabIndex negativo no puede convertirse en
+ * un elemento retornado por esta colección.
+ *
+ * El filtro conserva exactamente el orden recibido. No ordena candidatos ni
+ * intenta resolver todavía focus navigation scopes.
+ */
+function reduceCollectedRadioGroups(
+  candidates: HTMLElement[]
+): HTMLElement[] {
+  const groupsByRoot =
+    new Map<
+      Node,
+      RadioGroupsByFormOwner
+    >();
+
+  const stateByRadio =
+    new Map<
+      HTMLInputElement,
+      RadioGroupState
+    >();
+
+  for (
+    const candidate
+    of candidates
+  ) {
+    const namedRadio =
+      getNamedRadioCandidate(
+        candidate
+      );
+
+    if (!namedRadio) {
+      continue;
+    }
+
+    const state =
+      getOrCreateRadioGroupState(
+        groupsByRoot,
+        namedRadio
+      );
+
+    stateByRadio.set(
+      namedRadio.radio,
+      state
+    );
+  }
+
+  return candidates.filter(
+    (candidate) => {
+      const namedRadio =
+        getNamedRadioCandidate(
+          candidate
+        );
+
+      if (!namedRadio) {
+        return true;
+      }
+
+      const state =
+        stateByRadio.get(
+          namedRadio.radio
+        );
+
+      if (!state) {
+        return true;
+      }
+
+      const representative =
+        state.checkedEligible ??
+        state.firstEligible;
+
+      return (
+        representative ===
+        namedRadio.radio
+      );
+    }
+  );
+}
+
 /*
  * Esta fase aplana slots y atraviesa hosts para conservar el comportamiento
  * actual. No representa fronteras de navegación: el pipeline completo deberá
@@ -142,9 +393,9 @@ function getFlattenedComposedChildNodes(
  * - no cruza hacia el Document de un iframe;
  * - excluye al contenedor de su propia colección.
  *
- * El resultado no es todavía el orden secuencial HTML completo: no reduce
- * grupos radio, no representa scopes de navegación y no aplica tabIndex
- * positivo dentro de esos scopes.
+ * La colección normaliza grupos radio entre sus candidatos elegibles, pero el
+ * resultado no es todavía el orden secuencial HTML completo: no representa
+ * scopes de navegación ni aplica tabIndex positivo dentro de esos scopes.
  *
  * El verbo collect es intencional. Una API que prometa la secuencia final solo
  * debe existir después de resolver esas reglas dentro de este mismo módulo.
@@ -207,5 +458,7 @@ export function collectComposedFocusCandidates(
     visit(child);
   }
 
-  return candidates;
+  return reduceCollectedRadioGroups(
+    candidates
+  );
 }
