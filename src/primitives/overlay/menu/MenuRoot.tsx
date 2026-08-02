@@ -20,6 +20,7 @@ import type {
   MenuCollectionEntry,
   MenuCollectionScope,
   MenuContextValue,
+  MenuInitialFocusTarget,
   MenuItemToken,
 } from "./menu.context";
 
@@ -101,6 +102,17 @@ export const MenuRoot: React.FC<MenuProps> = ({
       MenuItemToken | null
     >(
       null
+    );
+
+
+  /*
+   * El trigger publica una intención semántica. La ref no representa identidad
+   * de item ni una época; P3.1 añadirá invalidación temporal sin sustituir esta
+   * frontera.
+   */
+  const pendingInitialFocusRef =
+    React.useRef<MenuInitialFocusTarget>(
+      "configured"
     );
 
 
@@ -734,6 +746,102 @@ export const MenuRoot: React.FC<MenuProps> = ({
     );
 
 
+  const applyInitialFocus =
+    React.useCallback(
+      (
+        initialFocus:
+          MenuInitialFocusTarget
+      ) => {
+        if (
+          initialFocus ===
+          "first"
+        ) {
+          focusFirst();
+          return;
+        }
+
+        if (
+          initialFocus ===
+          "last"
+        ) {
+          focusLast();
+          return;
+        }
+
+        focusItemAt(
+          initialFocusIndex
+        );
+      },
+      [
+        focusFirst,
+        focusItemAt,
+        focusLast,
+        initialFocusIndex,
+      ]
+    );
+
+
+  const focusInitial =
+    React.useCallback(
+      () => {
+        const initialFocus =
+          pendingInitialFocusRef
+            .current;
+
+        pendingInitialFocusRef
+          .current =
+          "configured";
+
+        applyInitialFocus(
+          initialFocus
+        );
+      },
+      [
+        applyInitialFocus,
+      ]
+    );
+
+
+  const requestOpen =
+    React.useCallback(
+      (
+        initialFocus:
+          MenuInitialFocusTarget
+      ) => {
+        /*
+         * MenuRoot, no MenuTrigger, resuelve la frontera temporal:
+         *
+         * - abierto: aplica la intención contra la colección vigente;
+         * - cerrado: conserva la intención y solicita la transición;
+         * - sin callback controlado: no deja una intención huérfana.
+         */
+        if (open) {
+          applyInitialFocus(
+            initialFocus
+          );
+          return;
+        }
+
+        if (!onOpenChange) {
+          return;
+        }
+
+        pendingInitialFocusRef
+          .current =
+          initialFocus;
+
+        onOpenChange(
+          true
+        );
+      },
+      [
+        applyInitialFocus,
+        onOpenChange,
+        open,
+      ]
+    );
+
+
   React.useEffect(
     () => {
       if (open) {
@@ -780,6 +888,10 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         onOpenChange,
 
+        requestOpen,
+
+        focusInitial,
+
 
         registerItem,
 
@@ -816,6 +928,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
         reactId,
         setAnchorNode,
         onOpenChange,
+        requestOpen,
+        focusInitial,
 
         registerItem,
         unregisterItem,

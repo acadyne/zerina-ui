@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  markTriggerPressTarget,
+} from "../../core/interaction/trigger";
+
+import {
   usePress,
   type UIPressEvent,
   type UIPressState,
@@ -535,3 +539,7 @@ export const Pressable =
 
 Pressable.displayName =
   "Pressable";
+
+markTriggerPressTarget(
+  Pressable
+);

@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  markTriggerPressTarget,
+} from "../../core/interaction/trigger";
+
+import {
   motion,
   type HTMLMotionProps,
 } from "framer-motion";
@@ -400,3 +404,7 @@ export const IconButton =
 
 IconButton.displayName =
   "IconButton";
+
+markTriggerPressTarget(
+  IconButton
+);

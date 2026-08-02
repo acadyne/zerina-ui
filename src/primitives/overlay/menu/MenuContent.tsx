@@ -169,6 +169,7 @@ export const MenuContent =
       const {
         anchorRef,
         focusFirst,
+        focusInitial,
         focusLast,
         focusNext,
         focusPrev,
@@ -260,18 +261,22 @@ export const MenuContent =
         }
 
         const timeout =
-          setOwnedWindowTimeout(ownerWindow, () => {
-            ctx.focusItemAt(
-              ctx.initialFocusIndex
-            );
-          }, 0);
+          setOwnedWindowTimeout(
+            ownerWindow,
+            () => {
+              focusInitial();
+            },
+            0
+          );
 
         return () => {
-          clearOwnedWindowTimeout(timeout);
+          clearOwnedWindowTimeout(
+            timeout
+          );
         };
       }, [
         ctx.hasFocusedItem,
-        focusFirst,
+        focusInitial,
         open,
       ]);
 

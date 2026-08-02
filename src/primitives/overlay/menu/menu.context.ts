@@ -30,6 +30,12 @@ export type MenuCollectionScope =
   symbol;
 
 
+export type MenuInitialFocusTarget =
+  | "configured"
+  | "first"
+  | "last";
+
+
 /*
  * Esta es la unidad completa de registro.
  *
@@ -66,6 +72,21 @@ export interface MenuContextValue {
 
   onOpenChange?:
     (open: boolean) => void;
+
+  /*
+   * Recibe intención, no ejecuta una transición temporal desde el trigger.
+   *
+   * MenuRoot decide si puede aplicarla inmediatamente o si MenuContent debe
+   * consumirla después de confirmar el montaje abierto.
+   */
+  requestOpen:
+    (
+      initialFocus:
+        MenuInitialFocusTarget
+    ) => void;
+
+  focusInitial:
+    () => void;
 
 
   /*

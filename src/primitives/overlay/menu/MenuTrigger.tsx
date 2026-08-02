@@ -1,26 +1,12 @@
 import React from "react";
 
 import {
+  TriggerRuntime,
+} from "../../../core/interaction/trigger";
+
+import {
   resolveLayeredSlot,
 } from "../../../helpers/css";
-
-import {
-  setRef,
-} from "../../../core/interaction/events";
-
-import {
-  composeEventHandlers,
-} from "../../../core/interaction/events/composeEventHandlers";
-
-import {
-  clearOwnedWindowTimeout,
-  setOwnedWindowTimeout,
-  type OwnedWindowTimeout,
-} from "../../../core/dom";
-
-import {
-  mergeTriggerProps,
-} from "../triggerProps";
 
 import {
   useMenuContext,
@@ -29,7 +15,6 @@ import {
 import type {
   MenuSlot,
   MenuTriggerProps,
-  TriggerChildProps,
 } from "./menu.types";
 
 
@@ -41,9 +26,18 @@ export const MenuTrigger =
     (
       {
         children,
-        asChild = true,
-        className = "",
+
+        asChild =
+          true,
+
+        disabled =
+          false,
+
+        className =
+          "",
+
         style,
+
         styles,
         slotProps,
       },
@@ -52,22 +46,6 @@ export const MenuTrigger =
       const ctx =
         useMenuContext();
 
-      const focusTimerRef =
-        React.useRef<
-          OwnedWindowTimeout | null
-        >(null);
-
-      const {
-        anchorRef,
-        focusFirst,
-        focusLast,
-        onOpenChange,
-      } = ctx;
-
-      /*
-       * El estilo del trigger conserva las capas de MenuRoot y del componente.
-       * La reconstrucción de hosts y asChild pertenece a P2.5.
-       */
       const triggerSlot =
         resolveLayeredSlot<MenuSlot>({
           slots: [
@@ -81,125 +59,47 @@ export const MenuTrigger =
             ctx.slotProps,
 
           styles,
-
           slotProps,
 
           className,
-
           style,
         });
 
-      const setRefs =
+      const localTriggerEvents =
+        slotProps
+          ?.trigger as
+          | React.HTMLAttributes<HTMLElement>
+          | undefined;
+
+      const contextTriggerEvents =
+        ctx.slotProps
+          ?.trigger as
+          | React.HTMLAttributes<HTMLElement>
+          | undefined;
+
+      const handlePress =
         React.useCallback(
-          (
-            node:
-              | HTMLElement
-              | null
-          ) => {
-            ctx.setAnchorNode(
-              node
-            );
-
-            setRef(
-              ref,
-              node
-            );
-
-            setRef(
-              (
-                children as React.ReactElement & {
-                  ref?: React.Ref<HTMLElement>;
-                }
-              ).ref,
-              node
-            );
-          },
-          [
-            children,
-            ctx,
-            ref,
-          ]
-        );
-
-      React.useEffect(() => {
-        return () => {
-          if (
-            focusTimerRef.current !==
-            null
-          ) {
-            clearOwnedWindowTimeout(
-              focusTimerRef.current
-            );
-          }
-        };
-      }, []);
-
-      const scheduleFocus =
-        React.useCallback(
-          (
-            focus:
-              () => void
-          ) => {
+          () => {
             if (
-              focusTimerRef.current !==
-              null
+              ctx.open
             ) {
-              clearOwnedWindowTimeout(
-                focusTimerRef.current
+              ctx.onOpenChange?.(
+                false
               );
-            }
 
-            const ownerWindow =
-              anchorRef.current?.ownerDocument.defaultView;
-
-            if (!ownerWindow) {
               return;
             }
 
-            focusTimerRef.current =
-              setOwnedWindowTimeout(
-                ownerWindow,
-                () => {
-                  focusTimerRef.current =
-                    null;
-
-                  focus();
-                },
-                0
-              );
+            ctx.requestOpen(
+              "configured"
+            );
           },
-          [anchorRef]
+          [
+            ctx.onOpenChange,
+            ctx.open,
+            ctx.requestOpen,
+          ]
         );
-
-      const openAndFocusFirst =
-        React.useCallback(() => {
-          onOpenChange?.(true);
-          scheduleFocus(focusFirst);
-        }, [
-          focusFirst,
-          onOpenChange,
-          scheduleFocus,
-        ]);
-
-      const openAndFocusLast =
-        React.useCallback(() => {
-          onOpenChange?.(true);
-          scheduleFocus(focusLast);
-        }, [
-          focusLast,
-          onOpenChange,
-          scheduleFocus,
-        ]);
-
-      const handleClick =
-        React.useCallback(() => {
-          onOpenChange?.(
-            !ctx.open
-          );
-        }, [
-          ctx.open,
-          onOpenChange,
-        ]);
 
       const handleKeyDown =
         React.useCallback(
@@ -208,21 +108,11 @@ export const MenuTrigger =
               React.KeyboardEvent<HTMLElement>
           ) => {
             if (
+              event.nativeEvent
+                .isComposing ||
               event.key ===
-                "Enter" ||
-              event.key ===
-                " "
+                "Process"
             ) {
-              /*
-               * Se toma propiedad del teclado antes de que un botón nativo o
-               * usePress generen otra activación mediante click/onPress.
-               */
-              event.preventDefault();
-
-              onOpenChange?.(
-                !ctx.open
-              );
-
               return;
             }
 
@@ -231,7 +121,14 @@ export const MenuTrigger =
               "ArrowDown"
             ) {
               event.preventDefault();
-              openAndFocusFirst();
+
+              /*
+               * El trigger publica intención. MenuRoot decide si el foco puede
+               * aplicarse ahora o debe esperar al contenido committed.
+               */
+              ctx.requestOpen(
+                "first"
+              );
 
               return;
             }
@@ -241,62 +138,40 @@ export const MenuTrigger =
               "ArrowUp"
             ) {
               event.preventDefault();
-              openAndFocusLast();
+
+              ctx.requestOpen(
+                "last"
+              );
             }
           },
           [
-            ctx.open,
-            onOpenChange,
-            openAndFocusFirst,
-            openAndFocusLast,
+            ctx.requestOpen,
           ]
         );
 
-      if (
-        asChild &&
-        React.isValidElement<
-          TriggerChildProps
-        >(children)
-      ) {
-        const {
-          className:
-            mergedClassName,
+      return (
+        <TriggerRuntime
+          asChild={
+            asChild
+          }
 
-          style:
-            mergedStyle,
+          disabled={
+            disabled
+          }
 
-          onClick:
-            mergedOnClick,
+          forwardedRef={
+            ref
+          }
 
-          onKeyDown:
-            mergedOnKeyDown,
+          onNodeChange={
+            ctx.setAnchorNode
+          }
 
-          onPress:
-            mergedOnPress,
+          elementProps={{
+            ...triggerSlot,
 
-          ...mergedRest
-        } = mergeTriggerProps(
-          children.props,
-          triggerSlot
-        );
-
-        return React.cloneElement(
-          children,
-          {
-            /*
-             * El slot participa como capa pública, pero no puede reemplazar
-             * identidad ni relaciones ARIA administradas por Menu.
-             */
-            ...mergedRest,
-
-            ref: setRefs,
-            id: ctx.triggerId,
-
-            className:
-              mergedClassName,
-
-            style:
-              mergedStyle,
+            id:
+              ctx.triggerId,
 
             "aria-haspopup":
               "menu",
@@ -308,95 +183,31 @@ export const MenuTrigger =
               ctx.open
                 ? ctx.contentId
                 : undefined,
+          }}
 
-            onClick:
-              composeEventHandlers(
-                mergedOnClick,
-                handleClick
-              ),
+          /*
+           * El hijo se compone dentro del runtime. Después participan el slot
+           * local y el heredado; la conducta semántica interna queda al final.
+           */
+          eventLayers={[
+            localTriggerEvents,
+            contextTriggerEvents,
+          ]}
 
-            /*
-             * usePress deriva onPress desde su onClick. Alternar también aquí
-             * ejecutaría dos cambios de estado para una sola activación.
-             */
-            onPress:
-              mergedOnPress,
-
-            onKeyDown:
-              composeEventHandlers(
-                mergedOnKeyDown,
-                handleKeyDown
-              ),
-          } as TriggerChildProps &
-            React.HTMLAttributes<HTMLElement> & {
-              ref:
-                React.Ref<HTMLElement>;
-            }
-        );
-      }
-
-      const {
-        className:
-          triggerClassName,
-
-        style:
-          triggerStyle,
-
-        onClick:
-          triggerOnClick,
-
-        onKeyDown:
-          triggerOnKeyDown,
-
-        ...triggerRest
-      } = triggerSlot;
-
-      return (
-        <button
-          {...triggerRest}
-
-          ref={
-            setRefs as React.Ref<HTMLButtonElement>
-          }
-
-          id={ctx.triggerId}
-          type="button"
-
-          aria-haspopup="menu"
-          aria-expanded={ctx.open}
-          aria-controls={
-            ctx.open
-              ? ctx.contentId
-              : undefined
-          }
-
-          className={
-            triggerClassName
-          }
-
-          style={
-            triggerStyle
-          }
-
-          onClick={
-            composeEventHandlers(
-              triggerOnClick,
-              handleClick
-            )
+          onPress={
+            handlePress
           }
 
           onKeyDown={
-            composeEventHandlers(
-              triggerOnKeyDown,
-              handleKeyDown
-            )
+            handleKeyDown
           }
         >
           {children}
-        </button>
+        </TriggerRuntime>
       );
     }
   );
+
 
 MenuTrigger.displayName =
   "MenuTrigger";
