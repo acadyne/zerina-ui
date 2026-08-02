@@ -1,3 +1,5 @@
+// src/core/overlay/OverlayProvider.tsx
+
 import React from "react";
 import {
   acquireOverlayRoot,

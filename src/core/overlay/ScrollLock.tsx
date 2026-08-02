@@ -1,3 +1,5 @@
+// src/core/overlay/ScrollLock.tsx
+
 import React from "react";
 import {
   acquireBodyScrollLock,

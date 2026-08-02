@@ -1,3 +1,5 @@
+// src/core/overlay/OverlayDocumentRegistry.ts
+
 import { assertValidOverlayId } from "./overlayId";
 import {
   getNodeEventRoot,

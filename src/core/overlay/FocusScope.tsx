@@ -1,3 +1,5 @@
+// src/core/overlay/FocusScope.tsx
+
 import React from "react";
 import { setRef } from "../interaction/events";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";

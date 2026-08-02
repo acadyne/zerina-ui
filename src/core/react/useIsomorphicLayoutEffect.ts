@@ -1,3 +1,6 @@
+
+// src/core/react/useIsomorphicLayoutEffect.ts
+
 import * as React from "react";
 
 /**
