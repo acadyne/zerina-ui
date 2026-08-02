@@ -567,6 +567,21 @@ export function TreeItem<TNode>({
       return;
     }
 
+    /*
+     * React propaga focus de forma sintética. El slot puede observar cualquier
+     * foco que burbujee por el treeitem, pero el estado lógico del nodo solo
+     * pertenece al foco cuyo target real es el propio owner.
+     *
+     * Controles internos y treeitems descendientes conservan así su foco sin
+     * publicar como enfocados a todos los ancestros de la rama.
+     */
+    if (
+      event.target !==
+        event.currentTarget
+    ) {
+      return;
+    }
+
     focusNode();
   };
 
