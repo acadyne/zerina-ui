@@ -7,6 +7,9 @@ import type {
   ReactNode,
 } from "react";
 import {
+  isEventOwnedByNode,
+} from "../../core/interaction/events/isEventOwnedByNode";
+import {
   resolveSlot,
 } from "../../helpers/css";
 import type {
@@ -576,6 +579,20 @@ export function TreeItem<TNode>({
       return;
     }
 
+    /*
+     * El treeitem solo adopta teclado iniciado en su propia superficie o en
+     * contenido presentacional. Un control interactivo descendiente conserva
+     * flechas, Home, End, Enter y espacio para su propia semántica.
+     */
+    if (
+      !isEventOwnedByNode(
+        event,
+        event.currentTarget
+      )
+    ) {
+      return;
+    }
+
     const context: TreeNodeKeyDownContext<TNode> = {
       event,
       node,
@@ -601,6 +618,19 @@ export function TreeItem<TNode>({
     rowSlotOnClick?.(event);
 
     if (event.defaultPrevented) {
+      return;
+    }
+
+    /*
+     * La fila puede contener iconos y texto que forman parte de su superficie,
+     * pero no debe activar el nodo cuando el gesto pertenece a otro control.
+     */
+    if (
+      !isEventOwnedByNode(
+        event,
+        event.currentTarget
+      )
+    ) {
       return;
     }
 
