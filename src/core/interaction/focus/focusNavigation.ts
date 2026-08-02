@@ -26,8 +26,15 @@
  * - orden local de tabindex positivo;
  * - grupos radio mediante identidad DOM nativa.
  *
- * No se infiere ownership dinámico de popovers HTML nativos, no se atraviesan
- * shadow roots cerrados y no se entra en el Document interno de un iframe.
+ * No se infiere ownership dinámico de popovers HTML nativos y no se entra en
+ * el Document interno de un iframe.
+ *
+ * Las raíces cerradas no son observables mediante element.shadowRoot: null no
+ * distingue entre ausencia de raíz y una raíz cerrada. En ese caso no es
+ * posible reconstruir los owners internos ni la distribución real del light
+ * DOM. El colector conserva una aproximación basada únicamente en información
+ * DOM observable y puede divergir de la navegación nativa en componentes con
+ * shadow roots cerrados.
  *
  * Roles ARIA, componentes React, keys, IDs, roots de overlays y patrones roving
  * no crean por sí mismos una frontera nativa de navegación.
@@ -267,8 +274,8 @@ function getOrCreateRadioGroupState(
  * contenedor, oculto, disabled o con tabIndex negativo no puede convertirse en
  * un elemento retornado por esta colección.
  *
- * El filtro conserva exactamente el orden recibido. No ordena candidatos ni
- * intenta resolver todavía focus navigation scopes.
+ * El filtro conserva exactamente el orden recibido. La alcanzabilidad ya fue
+ * resuelta antes de invocarlo y el orden local por scope se aplica después.
  */
 function reduceCollectedRadioGroups(
   candidates: HTMLElement[]
@@ -595,8 +602,12 @@ function discoverFocusNode(
       : null;
 
   /*
-   * shadowRoot solo expone raíces abiertas. Una raíz cerrada permanece fuera
-   * del dominio observable de esta utilidad y el host conserva su candidatura.
+   * shadowRoot solo expone raíces abiertas. null no distingue entre ausencia de
+   * raíz y una raíz cerrada.
+   *
+   * Cuando existe una raíz cerrada, la distribución interna y sus owners no son
+   * reconstruibles desde esta utilidad; cualquier recorrido posterior permanece
+   * dentro del dominio DOM observable.
    */
   const shadowRoot =
     element.shadowRoot;
