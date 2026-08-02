@@ -1,3 +1,21 @@
+/*
+ * CONTRATO DE ESTE MÓDULO
+ *
+ * Esta unidad responde únicamente preguntas sobre un HTMLElement individual:
+ *
+ * - si conserva presencia efectiva dentro de su árbol compuesto;
+ * - si puede recibir foco programático;
+ * - si puede participar como candidato de navegación secuencial.
+ *
+ * No descubre candidatos ni decide relaciones entre ellos. Puede recorrer
+ * ancestros cuando una propiedad individual —como la visibilidad efectiva—
+ * depende del contexto compuesto del elemento evaluado.
+ *
+ * Regla de mantenimiento:
+ * si el resultado compara, agrupa, reduce u ordena varios candidatos, pertenece
+ * a focusNavigation.ts.
+ */
+
 import {
   getComposedParentNode,
 } from "../../dom";
@@ -125,10 +143,11 @@ export function isElementFocusable(
 }
 
 /**
- * Identifica candidatos individuales para foco secuencial.
+ * Clasifica un HTMLElement individual como candidato secuencial.
  *
- * El orden global y las reglas de grupos radio pertenecen a la colección, no a
- * una propiedad aislada del elemento.
+ * Esta función no decide qué elemento representa a un grupo radio ni en qué
+ * posición aparece respecto de otros candidatos. Ambas decisiones requieren una
+ * colección y pertenecen exclusivamente a focusNavigation.ts.
  */
 export function isSequentialFocusCandidate(
   element: HTMLElement
@@ -139,166 +158,4 @@ export function isSequentialFocusCandidate(
       element
     )
   );
-}
-
-/*
- * La colección comparte deliberadamente el contrato HTML de attemptFocus.
- * Incluir otro tipo de Element produciría candidatos que la operación central
- * no podría confirmar como foco committed.
- */
-function isOwnedHTMLElement(
-  node: Node
-): node is HTMLElement {
-  if (node.nodeType !== 1) {
-    return false;
-  }
-
-  const element =
-    node as Element;
-
-  const ownerWindow =
-    element.ownerDocument
-      .defaultView;
-
-  return !!(
-    ownerWindow &&
-    element instanceof
-      ownerWindow.HTMLElement
-  );
-}
-
-function isOwnedHTMLSlotElement(
-  element: Element
-): element is HTMLSlotElement {
-  const ownerWindow =
-    element.ownerDocument
-      .defaultView;
-
-  /*
-   * localName no basta: otro namespace puede contener un elemento llamado
-   * slot sin implementar distribución ni assignedNodes().
-   */
-  return !!(
-    ownerWindow &&
-    typeof ownerWindow
-      .HTMLSlotElement ===
-        "function" &&
-    element instanceof
-      ownerWindow.HTMLSlotElement
-  );
-}
-
-function getComposedChildNodes(
-  node: Node
-): Node[] {
-  if (node.nodeType === 1) {
-    const element =
-      node as Element;
-
-    /*
-     * Un slot presenta primero sus nodos asignados. Su contenido DOM solo
-     * participa como fallback cuando no existe distribución efectiva.
-     */
-    if (
-      isOwnedHTMLSlotElement(
-        element
-      )
-    ) {
-      const assignedNodes =
-        element.assignedNodes({
-          flatten: true,
-        });
-
-      if (assignedNodes.length > 0) {
-        return assignedNodes;
-      }
-    }
-
-    /*
-     * Cuando un host posee un shadow root abierto, sus hijos light DOM no son
-     * hijos compuestos directos. La distribución se resolverá al visitar slots.
-     */
-    if (element.shadowRoot) {
-      return Array.from(
-        element.shadowRoot
-          .childNodes
-      );
-    }
-  }
-
-  return Array.from(
-    node.childNodes
-  );
-}
-
-/**
- * Obtiene candidatos secuenciales en el orden observable del árbol compuesto.
- *
- * La función no cruza documentos ni entra en el Document de un iframe. El
- * iframe puede ser candidato, pero su browsing context mantiene ownership
- * independiente.
- *
- * Esta colección todavía conserva el orden compuesto natural. La prioridad de
- * tabIndex positivo y la reducción de grupos radio se aplicarán en la siguiente
- * frontera.
- */
-export function getComposedSequentialFocusCandidates(
-  container: HTMLElement
-): HTMLElement[] {
-  const ownerDocument =
-    container.ownerDocument;
-
-  const visited =
-    new Set<Node>();
-
-  const candidates:
-    HTMLElement[] =
-    [];
-
-  const visit = (
-    node: Node
-  ): void => {
-    if (
-      visited.has(node) ||
-      node.ownerDocument !==
-        ownerDocument
-    ) {
-      return;
-    }
-
-    visited.add(node);
-
-    if (
-      isOwnedHTMLElement(node) &&
-      isSequentialFocusCandidate(
-        node
-      )
-    ) {
-      candidates.push(node);
-    }
-
-    for (
-      const child
-      of getComposedChildNodes(
-        node
-      )
-    ) {
-      visit(child);
-    }
-  };
-
-  /*
-   * El contenedor define la frontera, pero no forma parte de su propia
-   * colección de descendientes. FocusScope lo conserva como fallback explícito.
-   */
-  for (
-    const child
-    of getComposedChildNodes(
-      container
-    )
-  ) {
-    visit(child);
-  }
-
-  return candidates;
 }

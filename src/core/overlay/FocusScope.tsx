@@ -4,8 +4,8 @@ import React from "react";
 import { setRef } from "../interaction/events";
 import { attemptFocus } from "../interaction/focus/attemptFocus";
 import {
-  getComposedSequentialFocusCandidates,
-} from "../interaction/focus/focusability";
+  collectComposedFocusCandidates,
+} from "../interaction/focus/focusNavigation";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
   getDeepActiveElement,
@@ -209,7 +209,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         }
 
         const focusable =
-          getComposedSequentialFocusCandidates(
+          collectComposedFocusCandidates(
             currentContainer
           );
 
@@ -262,7 +262,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         if (!currentContainer) return;
 
         const focusable =
-          getComposedSequentialFocusCandidates(
+          collectComposedFocusCandidates(
             currentContainer
           );
 
@@ -332,7 +332,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         }
 
         const focusable =
-          getComposedSequentialFocusCandidates(
+          collectComposedFocusCandidates(
             currentContainer
           );
 
