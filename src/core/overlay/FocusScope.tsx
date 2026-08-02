@@ -4,8 +4,7 @@ import React from "react";
 import { setRef } from "../interaction/events";
 import { attemptFocus } from "../interaction/focus/attemptFocus";
 import {
-  FOCUSABLE_CANDIDATE_SELECTOR,
-  isSequentialFocusCandidate,
+  getComposedSequentialFocusCandidates,
 } from "../interaction/focus/focusability";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
@@ -49,22 +48,6 @@ function getPreviousFocusTarget(
     {
       traverseIframes: true,
     }
-  );
-}
-
-function getDOMSequentialFocusCandidates(
-  container: HTMLElement
-): HTMLElement[] {
-  /*
-   * FocusScope conserva aquí únicamente el descubrimiento de sus descendientes
-   * DOM. La clasificación de cada elemento pertenece a la frontera de foco.
-   */
-  return Array.from(
-    container.querySelectorAll<HTMLElement>(
-      FOCUSABLE_CANDIDATE_SELECTOR
-    )
-  ).filter(
-    isSequentialFocusCandidate
   );
 }
 
@@ -225,7 +208,10 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
           return;
         }
 
-        const focusable = getDOMSequentialFocusCandidates(currentContainer);
+        const focusable =
+          getComposedSequentialFocusCandidates(
+            currentContainer
+          );
 
         void attemptFocus(
           getBestInitialFocusTarget(
@@ -275,7 +261,10 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         const currentContainer = localRef.current;
         if (!currentContainer) return;
 
-        const focusable = getDOMSequentialFocusCandidates(currentContainer);
+        const focusable =
+          getComposedSequentialFocusCandidates(
+            currentContainer
+          );
 
         if (!focusable.length) {
           keyboardEvent.preventDefault();
@@ -343,7 +332,7 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
         }
 
         const focusable =
-          getDOMSequentialFocusCandidates(
+          getComposedSequentialFocusCandidates(
             currentContainer
           );
 
