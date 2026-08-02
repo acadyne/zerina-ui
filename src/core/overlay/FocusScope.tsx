@@ -4,79 +4,48 @@ import React from "react";
 import { setRef } from "../interaction/events";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
+  getComposedParentNode,
+  getDeepActiveElement,
   getNodeEventRoot,
+  isComposedDescendantOf,
   isEventInsideNode,
-  isShadowRoot,
   type DOMEventRoot,
 } from "../dom";
 import { useOverlayInstanceContext } from "./DismissableLayer";
-
-function getDeepActiveElement(
-  initialRoot: DOMEventRoot
-): HTMLElement | null {
-  let root: DOMEventRoot = initialRoot;
-  let active = root.activeElement;
-
-  while (active) {
-    const ownerWindow = active.ownerDocument.defaultView;
-
-    if (!ownerWindow || !(active instanceof ownerWindow.HTMLElement)) {
-      return null;
-    }
-
-    const shadowActive = active.shadowRoot?.activeElement;
-
-    if (shadowActive) {
-      root = active.shadowRoot as ShadowRoot;
-      active = root.activeElement;
-      continue;
-    }
-
-    if (active.tagName === "IFRAME") {
-      try {
-        const frameDocument = (active as HTMLIFrameElement).contentDocument;
-
-        if (frameDocument?.activeElement) {
-          root = frameDocument;
-          active = frameDocument.activeElement;
-          continue;
-        }
-      } catch {
-        // Un iframe cross-origin solo permite restaurar el foco al frame.
-      }
-    }
-
-    return active as HTMLElement;
-  }
-
-  return null;
-}
 
 function getPreviousFocusTarget(
   container: HTMLElement,
   sourceDocument: Document | null
 ): HTMLElement | null {
-  const ownerDocument = container.ownerDocument;
+  const ownerDocument =
+    container.ownerDocument;
 
-  if (sourceDocument && sourceDocument !== ownerDocument) {
-    return getDeepActiveElement(sourceDocument);
+  /*
+   * La restauración conserva deliberadamente el comportamiento previo de
+   * atravesar iframes same-origin. El cruce queda explícito aquí; la primitiva
+   * central permanece limitada a su Document salvo que el consumidor lo pida.
+   */
+  if (
+    sourceDocument &&
+    sourceDocument !==
+      ownerDocument
+  ) {
+    return getDeepActiveElement(
+      sourceDocument,
+      {
+        traverseIframes: true,
+      }
+    );
   }
 
-  return getDeepActiveElement(getNodeEventRoot(container));
-}
-
-function getComposedParentElement(
-  element: Element
-): Element | null {
-  if (element.parentElement) {
-    return element.parentElement;
-  }
-
-  const root = element.getRootNode();
-
-  return isShadowRoot(root)
-    ? root.host
-    : null;
+  return getDeepActiveElement(
+    getNodeEventRoot(
+      container
+    ),
+    {
+      traverseIframes: true,
+    }
+  );
 }
 
 function isElementVisible(
@@ -86,35 +55,64 @@ function isElementVisible(
     return false;
   }
 
-  let current: Element | null = element;
+  let current:
+    Node | null =
+    element;
 
+  /*
+   * El recorrido usa el parent compuesto para observar slots y hosts. Los
+   * ShadowRoot no tienen estilos propios, pero sirven como puente hacia el
+   * host sin perder la frontera del Document propietario.
+   */
   while (current) {
-    const ownerWindow =
-      current.ownerDocument.defaultView;
+    if (current.nodeType === 1) {
+      const currentElement =
+        current as Element;
 
-    if (!ownerWindow) {
-      return false;
-    }
+      const ownerWindow =
+        currentElement
+          .ownerDocument
+          .defaultView;
 
-    const style =
-      ownerWindow.getComputedStyle(current);
+      if (!ownerWindow) {
+        return false;
+      }
 
-    if (
-      current.hasAttribute("hidden") ||
-      current.hasAttribute("inert") ||
-      current.getAttribute("aria-hidden") === "true" ||
-      style.display === "none" ||
-      style.visibility === "hidden" ||
-      style.visibility === "collapse"
-    ) {
-      return false;
+      const style =
+        ownerWindow.getComputedStyle(
+          currentElement
+        );
+
+      if (
+        currentElement.hasAttribute(
+          "hidden"
+        ) ||
+        currentElement.hasAttribute(
+          "inert"
+        ) ||
+        currentElement.getAttribute(
+          "aria-hidden"
+        ) === "true" ||
+        style.display === "none" ||
+        style.visibility ===
+          "hidden" ||
+        style.visibility ===
+          "collapse"
+      ) {
+        return false;
+      }
     }
 
     current =
-      getComposedParentElement(current);
+      getComposedParentNode(
+        current
+      );
   }
 
-  return element.getClientRects().length > 0;
+  return (
+    element.getClientRects()
+      .length > 0
+  );
 }
 
 const TABBABLE_SELECTOR = [
@@ -300,7 +298,13 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
 
         const explicitTarget = initialFocusRef?.current;
 
-        if (explicitTarget && currentContainer.contains(explicitTarget)) {
+        if (
+          explicitTarget &&
+          isComposedDescendantOf(
+            explicitTarget,
+            currentContainer
+          )
+        ) {
           explicitTarget.focus();
           hasAutoFocusedRef.current = true;
           return;
@@ -355,8 +359,22 @@ export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        const active = getDeepActiveElement(getNodeEventRoot(currentContainer));
-        const activeInside = !!active && currentContainer.contains(active);
+        const active =
+          getDeepActiveElement(
+            getNodeEventRoot(
+              currentContainer
+            ),
+            {
+              traverseIframes: true,
+            }
+          );
+
+        const activeInside =
+          !!active &&
+          isComposedDescendantOf(
+            active,
+            currentContainer
+          );
 
         if (!activeInside) {
           keyboardEvent.preventDefault();

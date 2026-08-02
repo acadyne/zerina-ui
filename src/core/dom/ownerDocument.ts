@@ -104,6 +104,176 @@ export function getComposedParentNode(
   return null;
 }
 
+function getOwnerDocument(
+  node: Node
+): Document | null {
+  return node.nodeType === 9
+    ? node as Document
+    : node.ownerDocument;
+}
+
+/**
+ * Comprueba si un nodo pertenece al subárbol compuesto de un ancestro.
+ *
+ * La relación incluye al propio ancestro, igual que Node.contains(). A
+ * diferencia de contains(), el recorrido reconoce assignedSlot y continúa
+ * desde un ShadowRoot hacia su host.
+ *
+ * Ambos nodos deben pertenecer al mismo Document. La función no cruza hacia
+ * documentos embebidos ni consulta el document global.
+ */
+export function isComposedDescendantOf(
+  node: Node,
+  ancestor: Node
+): boolean {
+  const nodeDocument =
+    getOwnerDocument(node);
+
+  const ancestorDocument =
+    getOwnerDocument(ancestor);
+
+  if (
+    !nodeDocument ||
+    nodeDocument !==
+      ancestorDocument
+  ) {
+    return false;
+  }
+
+  let current:
+    Node | null =
+    node;
+
+  while (current) {
+    if (current === ancestor) {
+      return true;
+    }
+
+    current =
+      getComposedParentNode(
+        current
+      );
+  }
+
+  return false;
+}
+
+export interface GetDeepActiveElementOptions {
+  /**
+   * Permite continuar desde un iframe hacia su Document cuando el acceso
+   * same-origin está disponible.
+   *
+   * El valor por defecto es false para conservar la frontera documental del
+   * root recibido.
+   */
+  traverseIframes?: boolean;
+}
+
+function isOwnedHTMLElement(
+  element: Element
+): element is HTMLElement {
+  const ownerWindow =
+    element.ownerDocument
+      .defaultView;
+
+  /*
+   * El constructor debe proceder del realm propietario. Un HTMLElement de un
+   * iframe no es instancia del HTMLElement global de la ventana principal.
+   */
+  return !!(
+    ownerWindow &&
+    element instanceof
+      ownerWindow.HTMLElement
+  );
+}
+
+/**
+ * Obtiene el elemento activo profundo dentro del root recibido.
+ *
+ * A diferencia de Document.activeElement, continúa a través de shadow roots
+ * abiertos. Por defecto permanece dentro del mismo Document y nunca consulta
+ * el document global.
+ *
+ * traverseIframes permite conservar explícitamente flujos que necesitan entrar
+ * en iframes same-origin. Un iframe cross-origin, inaccesible o sin active
+ * element permanece como el último elemento activo observable.
+ */
+export function getDeepActiveElement(
+  initialRoot: DOMEventRoot,
+  {
+    traverseIframes = false,
+  }: GetDeepActiveElementOptions = {}
+): HTMLElement | null {
+  let root:
+    DOMEventRoot =
+    initialRoot;
+
+  const visitedRoots =
+    new Set<DOMEventRoot>();
+
+  while (
+    !visitedRoots.has(root)
+  ) {
+    visitedRoots.add(root);
+
+    const active =
+      root.activeElement;
+
+    if (
+      !active ||
+      !isOwnedHTMLElement(
+        active
+      )
+    ) {
+      return null;
+    }
+
+    const shadowRoot =
+      active.shadowRoot;
+
+    if (
+      shadowRoot?.activeElement
+    ) {
+      root = shadowRoot;
+      continue;
+    }
+
+    if (
+      traverseIframes &&
+      active.tagName ===
+        "IFRAME"
+    ) {
+      try {
+        const frameDocument =
+          (
+            active as
+              HTMLIFrameElement
+          ).contentDocument;
+
+        if (
+          frameDocument
+            ?.activeElement
+        ) {
+          root =
+            frameDocument;
+
+          continue;
+        }
+      } catch {
+        /*
+         * Un iframe cross-origin no expone su Document. En ese caso el frame
+         * sigue siendo el elemento activo más profundo que podemos observar.
+         */
+      }
+    }
+
+    return active;
+  }
+
+  return null;
+}
+
+
 export function getNodeEventRoot(node: Node): DOMEventRoot {
   const root = node.getRootNode();
 
