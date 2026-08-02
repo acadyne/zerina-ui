@@ -100,8 +100,21 @@ type SupportedTriggerHost =
   | "span";
 
 
+type TriggerDataAttributes = {
+  [
+    name:
+      `data-${string}`
+  ]:
+    | string
+    | number
+    | boolean
+    | undefined;
+};
+
+
 type TriggerElementProps =
-  React.HTMLAttributes<HTMLElement> & {
+  React.HTMLAttributes<HTMLElement> &
+  TriggerDataAttributes & {
     disabled?:
       boolean;
 

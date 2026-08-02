@@ -18,7 +18,9 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import { Box, Flex } from "../layout";
-import { setRef } from "../../core/interaction/events";
+import {
+  TriggerRuntime,
+} from "../../core/interaction/trigger";
 
 export type CollapsibleSlot =
   | "trigger"
@@ -113,23 +115,6 @@ function useCollapsibleContext() {
 
   return ctx;
 }
-
-type TriggerChildProps = {
-  id?: string;
-  disabled?: boolean;
-
-  className?: string;
-  style?: React.CSSProperties;
-
-  "aria-expanded"?: boolean;
-  "aria-controls"?: string;
-
-  onClick?:
-  React.MouseEventHandler<HTMLElement>;
-
-  onKeyDown?:
-  React.KeyboardEventHandler<HTMLElement>;
-};
 
 export interface CollapsibleProps {
   children?: React.ReactNode;
@@ -249,41 +234,82 @@ export const Collapsible:
 Collapsible.displayName =
   "Collapsible";
 
-export interface CollapsibleTriggerProps {
-  children?:
-  | React.ReactNode
-  | ((
-    state: {
-      open: boolean;
-    }
-  ) => React.ReactNode);
-
-  asChild?: boolean;
-
-  className?: string;
-  style?: React.CSSProperties;
-
-  showIcon?: boolean;
-
-  styles?: CollapsibleStyles;
-  slotProps?: CollapsibleSlotProps;
+export interface CollapsibleTriggerRenderState {
+  open:
+    boolean;
 }
+
+
+interface CollapsibleTriggerBaseProps {
+  className?:
+    string;
+
+  style?:
+    React.CSSProperties;
+
+  showIcon?:
+    boolean;
+
+  styles?:
+    CollapsibleStyles;
+
+  slotProps?:
+    CollapsibleSlotProps;
+}
+
+
+type CollapsibleTriggerAsChildProps =
+  CollapsibleTriggerBaseProps & {
+    asChild:
+      true;
+
+    children:
+      | React.ReactElement
+      | ((
+          state:
+            CollapsibleTriggerRenderState
+        ) => React.ReactElement);
+  };
+
+
+type CollapsibleTriggerDefaultProps =
+  CollapsibleTriggerBaseProps & {
+    asChild?:
+      false;
+
+    children?:
+      | React.ReactNode
+      | ((
+          state:
+            CollapsibleTriggerRenderState
+        ) => React.ReactNode);
+  };
+
+
+export type CollapsibleTriggerProps =
+  | CollapsibleTriggerAsChildProps
+  | CollapsibleTriggerDefaultProps;
+
 
 export const CollapsibleTrigger =
   React.forwardRef<
-    HTMLButtonElement,
+    HTMLElement,
     CollapsibleTriggerProps
   >(
     (
       {
         children,
 
-        asChild = false,
+        asChild =
+          false,
 
-        className = "",
+        className =
+          "",
+
         style,
 
-        showIcon = true,
+        showIcon =
+          true,
 
         styles,
         slotProps,
@@ -297,26 +323,41 @@ export const CollapsibleTrigger =
         useOptionalUIMotion();
 
       const handleToggle =
-        React.useCallback(() => {
-          ctx.onOpenChange?.(
-            !ctx.open
-          );
-        }, [
-          ctx.onOpenChange,
-          ctx.open,
-        ]);
+        React.useCallback(
+          () => {
+            ctx.onOpenChange?.(
+              !ctx.open
+            );
+          },
+          [
+            ctx.onOpenChange,
+            ctx.open,
+          ]
+        );
 
-      const content =
+      const renderedContent =
         typeof children ===
           "function"
-          ? children({
-            open: ctx.open,
-          })
+          ? (
+              children as (
+                state:
+                  CollapsibleTriggerRenderState
+              ) => React.ReactNode
+            )({
+              open:
+                ctx.open,
+            })
           : children;
 
+      /*
+       * El slot se resuelve una vez. Sus callbacks DOM se entregan también
+       * como capa explícita porque TriggerRuntime administra los handlers
+       * estructurales y la operación press final.
+       */
       const triggerSlot =
         resolveSlot<CollapsibleSlot>({
-          slot: "trigger",
+          slot:
+            "trigger",
 
           styles,
           slotProps,
@@ -338,8 +379,15 @@ export const CollapsibleTrigger =
           },
 
           baseStyle:
-            COLLAPSIBLE_BASE_STYLES.trigger,
+            COLLAPSIBLE_BASE_STYLES
+              .trigger,
         });
+
+      const triggerEventLayer =
+        slotProps
+          ?.trigger as
+          | React.HTMLAttributes<HTMLElement>
+          | undefined;
 
       const triggerContentSlot =
         resolveSlot<CollapsibleSlot>({
@@ -363,7 +411,8 @@ export const CollapsibleTrigger =
           slotProps,
 
           baseProps: {
-            "aria-hidden": true,
+            "aria-hidden":
+              true,
 
             "data-ui-collapsible-trigger-icon":
               "",
@@ -377,72 +426,78 @@ export const CollapsibleTrigger =
       const triggerIconVariants =
         getCollapsibleTriggerIconVariants();
 
-      const {
-        onClick:
-        triggerSlotOnClick,
-        onKeyDown:
-        triggerSlotOnKeyDown,
-        ...triggerSlotRest
-      } = triggerSlot;
+      const defaultContent = (
+        <Flex
+          align="center"
+          justify="space-between"
+          gap="0.75rem"
+        >
+          <Box
+            {...triggerContentSlot}
+          >
+            {renderedContent}
+          </Box>
 
-      if (
-        asChild &&
-        React.isValidElement<
-          TriggerChildProps
-        >(content)
-      ) {
-        const childDisabled =
-          ctx.disabled ||
-          Boolean(
-            content.props.disabled
-          );
+          {showIcon ? (
+            <motion.span
+              {...toMotionSlotProps(
+                triggerIconSlot
+              )}
 
-        const mergedClassName = [
-          triggerSlotRest.className,
-          content.props.className,
-        ]
-          .filter(Boolean)
-          .join(" ") ||
-          undefined;
+              variants={
+                triggerIconVariants
+              }
 
-        const mergedStyle = {
-          ...triggerSlotRest.style,
-          ...content.props.style,
-        };
+              initial={
+                false
+              }
 
-        return React.cloneElement(
-          content,
-          {
-            ...triggerSlotRest,
+              animate={
+                ctx.open
+                  ? "open"
+                  : "closed"
+              }
 
-            ref: (
-              node:
-                | HTMLElement
-                | null
-            ) => {
-              setRef(
-                ref as React.Ref<HTMLElement>,
-                node
-              );
+              transition={
+                motionState.getTransition(
+                  motionState.effectiveLevel,
+                  ctx.open
+                    ? "expand"
+                    : "collapse"
+                )
+              }
+            >
+              <ChevronDown
+                size={18}
+              />
+            </motion.span>
+          ) : null}
+        </Flex>
+      );
 
-              setRef(
-                (
-                  content as React.ReactElement & {
-                    ref?: React.Ref<HTMLElement>;
-                  }
-                ).ref,
-                node
-              );
-            },
+      return (
+        <TriggerRuntime
+          asChild={
+            asChild
+          }
 
-            id: ctx.triggerId,
+          disabled={
+            ctx.disabled
+          }
 
-            disabled:
-              childDisabled,
+          forwardedRef={
+            ref
+          }
 
-            "aria-disabled":
-              childDisabled ||
-              undefined,
+          elementProps={{
+            ...triggerSlot,
+
+            /*
+             * Identidad y relaciones ARIA pertenecen a Collapsible y no pueden
+             * ser sustituidas por el hijo ni por el slot público.
+             */
+            id:
+              ctx.triggerId,
 
             "aria-expanded":
               ctx.open,
@@ -451,148 +506,31 @@ export const CollapsibleTrigger =
               ctx.contentId,
 
             "data-disabled":
-              childDisabled ||
+              ctx.disabled ||
               undefined,
-
-            className:
-              mergedClassName,
-
-            style:
-              mergedStyle,
-
-            onClick: (
-              event:
-                React.MouseEvent<HTMLElement>
-            ) => {
-              content.props
-                .onClick?.(
-                  event
-                );
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              triggerSlotOnClick?.(
-                event
-              );
-
-              if (
-                event.defaultPrevented ||
-                childDisabled
-              ) {
-                return;
-              }
-
-              handleToggle();
-            },
-
-            onKeyDown: (
-              event:
-                React.KeyboardEvent<HTMLElement>
-            ) => {
-              content.props
-                .onKeyDown?.(
-                  event
-                );
-
-              if (
-                event.defaultPrevented
-              ) {
-                return;
-              }
-
-              triggerSlotOnKeyDown?.(
-                event
-              );
-            },
-          } as TriggerChildProps & {
-            ref: React.Ref<HTMLElement>;
-          }
-        );
-      }
-
-      return (
-        <button
-          {...triggerSlotRest}
-          ref={ref}
-          id={ctx.triggerId}
-          type="button"
-          aria-expanded={
-            ctx.open
-          }
-          aria-controls={
-            ctx.contentId
-          }
-          disabled={
-            ctx.disabled
-          }
-          onClick={(event) => {
-            triggerSlotOnClick?.(
-              event
-            );
-
-            if (
-              event.defaultPrevented ||
-              ctx.disabled
-            ) {
-              return;
-            }
-
-            handleToggle();
           }}
-          onKeyDown={
-            triggerSlotOnKeyDown
+
+          eventLayers={[
+            triggerEventLayer,
+          ]}
+
+          onPress={
+            handleToggle
           }
         >
-          <Flex
-            align="center"
-            justify="space-between"
-            gap="0.75rem"
-          >
-            <Box
-              {...triggerContentSlot}
-            >
-              {content}
-            </Box>
-
-            {showIcon ? (
-              <motion.span
-                {...toMotionSlotProps(
-                  triggerIconSlot
-                )}
-                variants={
-                  triggerIconVariants
-                }
-                initial={false}
-                animate={
-                  ctx.open
-                    ? "open"
-                    : "closed"
-                }
-                transition={motionState.getTransition(
-                  motionState.effectiveLevel,
-                  ctx.open
-                    ? "expand"
-                    : "collapse"
-                )}
-              >
-                <ChevronDown
-                  size={18}
-                />
-              </motion.span>
-            ) : null}
-          </Flex>
-        </button>
+          {
+            asChild
+              ? renderedContent
+              : defaultContent
+          }
+        </TriggerRuntime>
       );
     }
   );
 
+
 CollapsibleTrigger.displayName =
   "CollapsibleTrigger";
-
 export interface CollapsibleContentProps
   extends Omit<
     HTMLMotionProps<"div">,
