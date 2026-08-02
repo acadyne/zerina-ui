@@ -568,6 +568,9 @@ export const BottomSheet:
                 "modal"
               )}
               enabled={open}
+              restoreFocus={
+                restoreFocus
+              }
               dismissOnEscape={
                 closeOnEscape
               }
@@ -582,9 +585,6 @@ export const BottomSheet:
               <FocusScope
                 contain
                 autoFocus={autoFocus}
-                restoreFocus={
-                  restoreFocus
-                }
                 initialFocusRef={
                   initialFocusRef
                 }

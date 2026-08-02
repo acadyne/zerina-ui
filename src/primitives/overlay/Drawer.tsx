@@ -532,6 +532,9 @@ export const Drawer:
                 "modal"
               )}
               enabled={open}
+              restoreFocus={
+                restoreFocus
+              }
               dismissOnEscape={
                 closeOnEscape
               }
@@ -546,9 +549,6 @@ export const Drawer:
               <FocusScope
                 contain
                 autoFocus={autoFocus}
-                restoreFocus={
-                  restoreFocus
-                }
                 initialFocusRef={
                   initialFocusRef
                 }

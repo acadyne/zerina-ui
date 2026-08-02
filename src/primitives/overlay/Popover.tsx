@@ -793,6 +793,12 @@ export const PopoverContent =
                   enabled={
                     ctx.open
                   }
+                  restoreFocus={
+                    restoreFocus
+                  }
+                  focusHandoffRef={
+                    ctx.anchorRef
+                  }
                   branches={[
                     ctx.anchorRef,
                   ]}
@@ -859,9 +865,6 @@ export const PopoverContent =
                       }
                       autoFocus={
                         autoFocus
-                      }
-                      restoreFocus={
-                        restoreFocus
                       }
                       initialFocusRef={
                         initialFocusRef

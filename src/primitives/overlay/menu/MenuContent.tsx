@@ -23,13 +23,8 @@ import {
 } from "../../../core/interaction/events";
 
 import {
-  attemptFocus,
-} from "../../../core/interaction/focus/attemptFocus";
-
-import {
   clearOwnedWindowTimeout,
   setOwnedWindowTimeout,
-  type OwnedWindowTimeout,
 } from "../../../core/dom";
 
 import {
@@ -90,12 +85,6 @@ export const MenuContent =
           null
         );
 
-      const restoreFocusTimerRef =
-        React.useRef<OwnedWindowTimeout | null>(
-          null
-        );
-
-
       const {
         anchorRef,
         focusFirst,
@@ -129,19 +118,6 @@ export const MenuContent =
           },
           [ref]
         );
-
-
-      React.useEffect(() => {
-        return () => {
-          if (
-            restoreFocusTimerRef.current !== null
-          ) {
-            clearOwnedWindowTimeout(
-              restoreFocusTimerRef.current
-            );
-          }
-        };
-      }, []);
 
 
       React.useEffect(() => {
@@ -183,40 +159,8 @@ export const MenuContent =
         React.useCallback(
           () => {
             onOpenChange?.(false);
-
-            if (
-              restoreFocusTimerRef.current !== null
-            ) {
-              clearOwnedWindowTimeout(
-                restoreFocusTimerRef.current
-              );
-            }
-
-            const ownerWindow =
-              anchorRef.current?.ownerDocument.defaultView;
-
-            if (!ownerWindow) {
-              return;
-            }
-
-            restoreFocusTimerRef.current =
-              setOwnedWindowTimeout(ownerWindow, () => {
-                restoreFocusTimerRef.current = null;
-
-                const anchor =
-                  anchorRef.current;
-
-                if (anchor) {
-                  void attemptFocus(
-                    anchor
-                  );
-                }
-              }, 0);
           },
-          [
-            anchorRef,
-            onOpenChange,
-          ]
+          [onOpenChange]
         );
 
 
@@ -416,6 +360,10 @@ export const MenuContent =
                   }
                   enabled={
                     ctx.open
+                  }
+                  restoreFocus
+                  focusHandoffRef={
+                    anchorRef
                   }
                   branches={[
                     anchorRef,

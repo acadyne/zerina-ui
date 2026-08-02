@@ -1,12 +1,15 @@
 // src/core/overlay/FocusScope.tsx
 
 import React from "react";
-import { setRef } from "../interaction/events";
-import { attemptFocus } from "../interaction/focus/attemptFocus";
+import {
+  setRef,
+} from "../interaction/events";
+import {
+  attemptFocus,
+} from "../interaction/focus/attemptFocus";
 import {
   collectComposedFocusCandidates,
 } from "../interaction/focus/focusNavigation";
-import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import {
   getDeepActiveElement,
   getNodeEventRoot,
@@ -14,355 +17,469 @@ import {
   isEventInsideNode,
   type DOMEventRoot,
 } from "../dom";
-import { useOverlayInstanceContext } from "./DismissableLayer";
-
-function getPreviousFocusTarget(
-  container: HTMLElement,
-  sourceDocument: Document | null
-): HTMLElement | null {
-  const ownerDocument =
-    container.ownerDocument;
-
-  /*
-   * La restauración conserva deliberadamente el comportamiento previo de
-   * atravesar iframes same-origin. El cruce queda explícito aquí; la primitiva
-   * central permanece limitada a su Document salvo que el consumidor lo pida.
-   */
-  if (
-    sourceDocument &&
-    sourceDocument !==
-      ownerDocument
-  ) {
-    return getDeepActiveElement(
-      sourceDocument,
-      {
-        traverseIframes: true,
-      }
-    );
-  }
-
-  return getDeepActiveElement(
-    getNodeEventRoot(
-      container
-    ),
-    {
-      traverseIframes: true,
-    }
-  );
-}
+import {
+  useOverlayInstanceContext,
+} from "./DismissableLayer";
 
 function getBestInitialFocusTarget(
   focusable: HTMLElement[],
   fallback: HTMLElement
 ): HTMLElement {
   return (
-    focusable.find((element) => element.tagName === "INPUT") ||
-    focusable.find((element) => element.tagName === "TEXTAREA") ||
-    focusable.find((element) => element.tagName === "SELECT") ||
-    focusable.find((element) => element.tagName === "BUTTON") ||
+    focusable.find(
+      (element) =>
+        element.tagName ===
+        "INPUT"
+    ) ||
+    focusable.find(
+      (element) =>
+        element.tagName ===
+        "TEXTAREA"
+    ) ||
+    focusable.find(
+      (element) =>
+        element.tagName ===
+        "SELECT"
+    ) ||
+    focusable.find(
+      (element) =>
+        element.tagName ===
+        "BUTTON"
+    ) ||
     focusable[0] ||
     fallback
   );
 }
 
 export interface FocusScopeProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "tabIndex"> {
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "tabIndex"
+  > {
   children?: React.ReactNode;
 
   contain?: boolean;
   autoFocus?: boolean;
-  restoreFocus?: boolean;
 
-  initialFocusRef?: React.RefObject<HTMLElement | null>;
+  initialFocusRef?:
+    React.RefObject<
+      HTMLElement | null
+    >;
 }
 
-export const FocusScope = React.forwardRef<HTMLDivElement, FocusScopeProps>(
-  (
-    {
-      children,
-      contain = true,
-      autoFocus = true,
-      restoreFocus = true,
-      initialFocusRef,
-      ...rest
-    },
-    ref
-  ) => {
-    const {
-      enabled,
-      isTopmost,
-      ownerDocument: overlayDocument,
-      sourceDocument,
-    } = useOverlayInstanceContext();
-    const localRef = React.useRef<HTMLDivElement | null>(null);
-    const focusCycleRef = React.useRef<{
-      active: boolean;
-      target: HTMLElement | null;
-    }>({
-      active: false,
-      target: null,
-    });
-    const restoreFocusRef = React.useRef(restoreFocus);
-    const hasAutoFocusedRef = React.useRef(false);
+export const FocusScope =
+  React.forwardRef<
+    HTMLDivElement,
+    FocusScopeProps
+  >(
+    (
+      {
+        children,
 
-    const setRefs = React.useCallback(
-      (node: HTMLDivElement | null) => {
-        localRef.current = node;
-        setRef(ref, node);
+        contain = true,
+        autoFocus = true,
+
+        initialFocusRef,
+
+        ...rest
       },
-      [ref]
-    );
+      ref
+    ) => {
+      const {
+        interactive,
+        isTopmost,
 
-    const releaseFocusCycle =
-      React.useCallback(() => {
-        const cycle = focusCycleRef.current;
+        ownerDocument:
+          overlayDocument,
+      } =
+        useOverlayInstanceContext();
 
-        if (!cycle.active) {
+      const localRef =
+        React.useRef<
+          HTMLDivElement | null
+        >(null);
+
+      const hasAutoFocusedRef =
+        React.useRef(false);
+
+      const setRefs =
+        React.useCallback(
+          (
+            node:
+              HTMLDivElement | null
+          ) => {
+            localRef.current =
+              node;
+
+            setRef(
+              ref,
+              node
+            );
+          },
+          [ref]
+        );
+
+      React.useEffect(() => {
+        if (!interactive) {
+          hasAutoFocusedRef
+            .current =
+            false;
+
           return;
         }
 
-        cycle.active = false;
-
-        const target = cycle.target;
-        cycle.target = null;
-
         if (
-          !restoreFocusRef.current ||
-          !target ||
-          typeof target.focus !== "function" ||
-          !target.isConnected
+          !autoFocus ||
+          !isTopmost ||
+          hasAutoFocusedRef
+            .current
         ) {
           return;
         }
 
-        void attemptFocus(
-          target
-        );
-      }, []);
+        const container =
+          localRef.current;
 
-    /*
-     * Este efecto reconcilia transiciones de actividad después del commit.
-     * Cambiar restoreFocus solo actualiza la configuración del ciclo vigente;
-     * no lo libera ni restaura foco mientras el overlay continúa abierto.
-     */
-    useIsomorphicLayoutEffect(() => {
-      restoreFocusRef.current = restoreFocus;
-
-      const cycle = focusCycleRef.current;
-
-      if (enabled && !cycle.active) {
-        const container = localRef.current;
-
-        cycle.active = true;
-        cycle.target = container
-          ? getPreviousFocusTarget(
-              container,
-              sourceDocument
-            )
-          : null;
-
-        hasAutoFocusedRef.current = false;
-        return;
-      }
-
-      if (!enabled && cycle.active) {
-        releaseFocusCycle();
-      }
-    });
-
-    useIsomorphicLayoutEffect(() => {
-      return () => {
-        releaseFocusCycle();
-      };
-    }, [releaseFocusCycle]);
-
-    React.useEffect(() => {
-      if (!enabled || !autoFocus || !isTopmost) return;
-      if (hasAutoFocusedRef.current) return;
-
-      const container = localRef.current;
-      const ownerWindow = container?.ownerDocument.defaultView;
-
-      if (!container || !ownerWindow) {
-        return;
-      }
-
-      const frameId = ownerWindow.requestAnimationFrame(() => {
-        const currentContainer = localRef.current;
-
-        if (!currentContainer || !currentContainer.isConnected) return;
-
-        const explicitTarget = initialFocusRef?.current;
+        const ownerWindow =
+          container
+            ?.ownerDocument
+            .defaultView;
 
         if (
-          explicitTarget &&
-          isComposedDescendantOf(
-            explicitTarget,
-            currentContainer
-          ) &&
-          attemptFocus(
-            explicitTarget
-          )
+          !container ||
+          !ownerWindow
         ) {
-          hasAutoFocusedRef.current = true;
           return;
         }
 
-        const focusable =
-          collectComposedFocusCandidates(
-            currentContainer
-          );
+        const frameId =
+          ownerWindow
+            .requestAnimationFrame(
+              () => {
+                const currentContainer =
+                  localRef.current;
 
-        void attemptFocus(
-          getBestInitialFocusTarget(
-            focusable,
-            currentContainer
-          )
-        );
+                if (
+                  !currentContainer ||
+                  !currentContainer
+                    .isConnected
+                ) {
+                  return;
+                }
 
-        /*
-         * El ciclo registra el intento incluso cuando el navegador rechaza el
-         * candidato final. Reintentar en cada efecto produciría bucles de foco.
-         */
-        hasAutoFocusedRef.current = true;
-      });
+                const explicitTarget =
+                  initialFocusRef
+                    ?.current;
 
-      return () => {
-        ownerWindow.cancelAnimationFrame(frameId);
-      };
-    }, [autoFocus, enabled, initialFocusRef, isTopmost]);
+                if (
+                  explicitTarget &&
+                  isComposedDescendantOf(
+                    explicitTarget,
+                    currentContainer
+                  ) &&
+                  attemptFocus(
+                    explicitTarget
+                  )
+                ) {
+                  hasAutoFocusedRef
+                    .current =
+                    true;
 
-    React.useEffect(() => {
-      if (!enabled || !contain) return;
+                  return;
+                }
 
-      const container = localRef.current;
+                const focusable =
+                  collectComposedFocusCandidates(
+                    currentContainer
+                  );
 
-      if (!container) {
-        return;
-      }
+                void attemptFocus(
+                  getBestInitialFocusTarget(
+                    focusable,
+                    currentContainer
+                  )
+                );
 
-      const ownerDocument = container.ownerDocument;
-      const eventRoot = getNodeEventRoot(container);
-      const roots: DOMEventRoot[] =
-        eventRoot === ownerDocument
-          ? [ownerDocument]
-          : [eventRoot, ownerDocument];
-      const processedKeyEvents = new WeakSet<Event>();
-      const processedFocusEvents = new WeakSet<Event>();
+                /*
+                 * El ciclo registra el intento aunque el navegador rechace el
+                 * candidato. Reintentar en cada efecto produciría bucles.
+                 */
+                hasAutoFocusedRef
+                  .current =
+                  true;
+              }
+            );
 
-      const handleKeyDown = (event: Event) => {
-        if (processedKeyEvents.has(event)) return;
-        processedKeyEvents.add(event);
+        return () => {
+          ownerWindow
+            .cancelAnimationFrame(
+              frameId
+            );
+        };
+      }, [
+        autoFocus,
+        initialFocusRef,
+        interactive,
+        isTopmost,
+      ]);
 
-        const keyboardEvent = event as KeyboardEvent;
-
-        if (!isTopmost || keyboardEvent.key !== "Tab") return;
-
-        const currentContainer = localRef.current;
-        if (!currentContainer) return;
-
-        const focusable =
-          collectComposedFocusCandidates(
-            currentContainer
-          );
-
-        if (!focusable.length) {
-          keyboardEvent.preventDefault();
-          void attemptFocus(
-            currentContainer
-          );
-
+      React.useEffect(() => {
+        if (
+          !interactive ||
+          !contain
+        ) {
           return;
         }
 
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active =
-          getDeepActiveElement(
-            getNodeEventRoot(
-              currentContainer
-            ),
-            {
-              traverseIframes: true,
+        const container =
+          localRef.current;
+
+        if (!container) {
+          return;
+        }
+
+        const ownerDocument =
+          container.ownerDocument;
+
+        const eventRoot =
+          getNodeEventRoot(
+            container
+          );
+
+        const roots:
+          DOMEventRoot[] =
+          eventRoot ===
+            ownerDocument
+            ? [
+                ownerDocument,
+              ]
+            : [
+                eventRoot,
+                ownerDocument,
+              ];
+
+        const processedKeyEvents =
+          new WeakSet<Event>();
+
+        const processedFocusEvents =
+          new WeakSet<Event>();
+
+        const handleKeyDown =
+          (
+            event:
+              Event
+          ) => {
+            if (
+              processedKeyEvents
+                .has(event)
+            ) {
+              return;
             }
-          );
 
-        const activeInside =
-          !!active &&
-          isComposedDescendantOf(
-            active,
-            currentContainer
-          );
+            processedKeyEvents
+              .add(event);
 
-        if (!activeInside) {
-          keyboardEvent.preventDefault();
-          void attemptFocus(
-            first
-          );
+            const keyboardEvent =
+              event as
+                KeyboardEvent;
 
-          return;
-        }
+            if (
+              !isTopmost ||
+              keyboardEvent.key !==
+                "Tab"
+            ) {
+              return;
+            }
 
-        if (keyboardEvent.shiftKey) {
-          if (active === first) {
-            keyboardEvent.preventDefault();
+            const currentContainer =
+              localRef.current;
+
+            if (
+              !currentContainer
+            ) {
+              return;
+            }
+
+            const focusable =
+              collectComposedFocusCandidates(
+                currentContainer
+              );
+
+            if (
+              !focusable.length
+            ) {
+              keyboardEvent
+                .preventDefault();
+
+              void attemptFocus(
+                currentContainer
+              );
+
+              return;
+            }
+
+            const first =
+              focusable[0];
+
+            const last =
+              focusable[
+                focusable.length -
+                  1
+              ];
+
+            const active =
+              getDeepActiveElement(
+                getNodeEventRoot(
+                  currentContainer
+                ),
+                {
+                  traverseIframes:
+                    true,
+                }
+              );
+
+            const activeInside =
+              !!active &&
+              isComposedDescendantOf(
+                active,
+                currentContainer
+              );
+
+            if (
+              !activeInside
+            ) {
+              keyboardEvent
+                .preventDefault();
+
+              void attemptFocus(
+                first
+              );
+
+              return;
+            }
+
+            if (
+              keyboardEvent
+                .shiftKey
+            ) {
+              if (
+                active === first
+              ) {
+                keyboardEvent
+                  .preventDefault();
+
+                void attemptFocus(
+                  last
+                );
+              }
+
+              return;
+            }
+
+            if (
+              active === last
+            ) {
+              keyboardEvent
+                .preventDefault();
+
+              void attemptFocus(
+                first
+              );
+            }
+          };
+
+        const handleFocusIn =
+          (
+            event:
+              Event
+          ) => {
+            if (
+              processedFocusEvents
+                .has(event)
+            ) {
+              return;
+            }
+
+            processedFocusEvents
+              .add(event);
+
+            if (!isTopmost) {
+              return;
+            }
+
+            const currentContainer =
+              localRef.current;
+
+            if (
+              !currentContainer ||
+              isEventInsideNode(
+                event,
+                currentContainer
+              )
+            ) {
+              return;
+            }
+
+            const focusable =
+              collectComposedFocusCandidates(
+                currentContainer
+              );
+
             void attemptFocus(
-              last
+              getBestInitialFocusTarget(
+                focusable,
+                currentContainer
+              )
+            );
+          };
+
+        roots.forEach(
+          (root) => {
+            root.addEventListener(
+              "keydown",
+              handleKeyDown
+            );
+
+            root.addEventListener(
+              "focusin",
+              handleFocusIn
             );
           }
-          return;
-        }
-
-        if (active === last) {
-          keyboardEvent.preventDefault();
-          void attemptFocus(
-            first
-          );
-        }
-      };
-
-      const handleFocusIn = (event: Event) => {
-        if (processedFocusEvents.has(event)) return;
-        processedFocusEvents.add(event);
-        if (!isTopmost) return;
-
-        const currentContainer = localRef.current;
-        if (!currentContainer || isEventInsideNode(event, currentContainer)) {
-          return;
-        }
-
-        const focusable =
-          collectComposedFocusCandidates(
-            currentContainer
-          );
-
-        void attemptFocus(
-          getBestInitialFocusTarget(
-            focusable,
-            currentContainer
-          )
         );
-      };
 
-      roots.forEach((root) => {
-        root.addEventListener("keydown", handleKeyDown);
-        root.addEventListener("focusin", handleFocusIn);
-      });
+        return () => {
+          roots.forEach(
+            (root) => {
+              root.removeEventListener(
+                "keydown",
+                handleKeyDown
+              );
 
-      return () => {
-        roots.forEach((root) => {
-          root.removeEventListener("keydown", handleKeyDown);
-          root.removeEventListener("focusin", handleFocusIn);
-        });
-      };
-    }, [contain, enabled, isTopmost, overlayDocument]);
+              root.removeEventListener(
+                "focusin",
+                handleFocusIn
+              );
+            }
+          );
+        };
+      }, [
+        contain,
+        interactive,
+        isTopmost,
+        overlayDocument,
+      ]);
 
-    return (
-      <div {...rest} ref={setRefs} tabIndex={-1}>
-        {children}
-      </div>
-    );
-  }
-);
+      return (
+        <div
+          {...rest}
+          ref={setRefs}
+          tabIndex={-1}
+        >
+          {children}
+        </div>
+      );
+    }
+  );
 
-FocusScope.displayName = "FocusScope";
+FocusScope.displayName =
+  "FocusScope";

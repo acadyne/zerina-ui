@@ -8,13 +8,13 @@ import {
 import { useOverlayInstanceContext } from "./DismissableLayer";
 
 export const ScrollLock: React.FC = () => {
-  const { enabled, ownerDocument } = useOverlayInstanceContext();
+  const { interactive, ownerDocument } = useOverlayInstanceContext();
   const [lockToken] = React.useState(() =>
     Symbol("overlay-scroll-lock")
   );
 
   React.useEffect(() => {
-    if (!enabled || !ownerDocument) {
+    if (!interactive || !ownerDocument) {
       return;
     }
 
@@ -23,7 +23,7 @@ export const ScrollLock: React.FC = () => {
     return () => {
       releaseBodyScrollLock(ownerDocument, lockToken);
     };
-  }, [enabled, lockToken, ownerDocument]);
+  }, [interactive, lockToken, ownerDocument]);
 
   return null;
 };

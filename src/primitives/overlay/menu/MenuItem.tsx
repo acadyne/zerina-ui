@@ -20,12 +20,6 @@ import {
 } from "../../../core/interaction/focus/attemptFocus";
 
 import {
-  clearOwnedWindowTimeout,
-  setOwnedWindowTimeout,
-  type OwnedWindowTimeout,
-} from "../../../core/dom";
-
-import {
   resolveSlot,
   type SlotElementProps,
 } from "../../../helpers/css";
@@ -84,17 +78,10 @@ export const MenuItem =
 
 
       const {
-        anchorRef,
         onOpenChange,
         registerItem,
         unregisterItem,
       } = ctx;
-
-
-      const restoreFocusTimerRef =
-        React.useRef<OwnedWindowTimeout | null>(
-          null
-        );
 
 
       const itemRef =
@@ -137,19 +124,6 @@ export const MenuItem =
 
 
       React.useEffect(() => {
-        return () => {
-          if (
-            restoreFocusTimerRef.current !== null
-          ) {
-            clearOwnedWindowTimeout(
-              restoreFocusTimerRef.current
-            );
-          }
-        };
-      }, []);
-
-
-      React.useEffect(() => {
         const node =
           itemRef.current;
 
@@ -189,40 +163,9 @@ export const MenuItem =
 
             if (closeOnSelect) {
               onOpenChange?.(false);
-
-
-              if (
-                restoreFocusTimerRef.current !== null
-              ) {
-                clearOwnedWindowTimeout(
-                  restoreFocusTimerRef.current
-                );
-              }
-
-              const ownerWindow =
-                anchorRef.current?.ownerDocument.defaultView;
-
-              if (!ownerWindow) {
-                return;
-              }
-
-              restoreFocusTimerRef.current =
-                setOwnedWindowTimeout(ownerWindow, () => {
-                  restoreFocusTimerRef.current = null;
-
-                  const anchor =
-                    anchorRef.current;
-
-                  if (anchor) {
-                    void attemptFocus(
-                      anchor
-                    );
-                  }
-                }, 0);
             }
           },
           [
-            anchorRef,
             closeOnSelect,
             disabled,
             onOpenChange,

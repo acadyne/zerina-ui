@@ -596,6 +596,9 @@ export const Dialog:
                 "modal"
               )}
               enabled={open}
+              restoreFocus={
+                restoreFocus
+              }
               dismissOnEscape={
                 closeOnEscape
               }
@@ -615,9 +618,6 @@ export const Dialog:
               <FocusScope
                 contain={modal}
                 autoFocus={autoFocus}
-                restoreFocus={
-                  restoreFocus
-                }
                 initialFocusRef={
                   initialFocusRef
                 }
