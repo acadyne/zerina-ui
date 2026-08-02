@@ -2,6 +2,7 @@
 
 import React from "react";
 import { composeEventHandlers } from "../events/composeEventHandlers";
+import { isEventOwnedByNode } from "../events/isEventOwnedByNode";
 import { useFocusVisible } from "../focus";
 import type {
   UIPressEvent,
@@ -192,6 +193,20 @@ export function usePress<TElement extends HTMLElement>({
         return;
       }
 
+      /*
+       * Un control interactivo descendiente conserva el gesto completo. La
+       * superficie owner no entra en pressed, no inicia long press y no captura
+       * el pointer cuando el ciclo no le pertenece.
+       */
+      if (
+        !isEventOwnedByNode(
+          event,
+          event.currentTarget
+        )
+      ) {
+        return;
+      }
+
       const nextPointerType = normalizePointerType(event.pointerType);
 
       if (nextPointerType === "mouse" && event.button !== 0) {
@@ -268,6 +283,20 @@ export function usePress<TElement extends HTMLElement>({
 
   const internalClick = React.useCallback(
     (event: React.MouseEvent<TElement>): void => {
+      /*
+       * La decisión precede a disabled y a las refs consumibles. Un Pressable
+       * deshabilitado no debe cancelar el click de otro control contenido en su
+       * superficie, ni gastar cancelaciones de un ciclo que no posee.
+       */
+      if (
+        !isEventOwnedByNode(
+          event,
+          event.currentTarget
+        )
+      ) {
+        return;
+      }
+
       if (disabled) {
         event.preventDefault();
         event.stopPropagation();
@@ -311,6 +340,20 @@ export function usePress<TElement extends HTMLElement>({
         return;
       }
 
+      /*
+       * Enter y espacio de un control descendiente no inician el ciclo del
+       * owner. La guarda ocurre antes de cambiar refs, estado o comportamiento
+       * nativo.
+       */
+      if (
+        !isEventOwnedByNode(
+          event,
+          event.currentTarget
+        )
+      ) {
+        return;
+      }
+
       pressCancelledRef.current = false;
       pointerPressActiveRef.current = false;
       keyboardActivationRef.current = true;
@@ -336,13 +379,35 @@ export function usePress<TElement extends HTMLElement>({
   const internalKeyUp = React.useCallback(
     (event: React.KeyboardEvent<TElement>): void => {
       if (
-        disabled ||
-        (event.key !== "Enter" && event.key !== " ")
+        event.key !== "Enter" &&
+        event.key !== " "
+      ) {
+        return;
+      }
+
+      /*
+       * Un keyup aislado no puede fabricar una activación. Cuando sí existe un
+       * ciclo adquirido, su estado se libera incluso si disabled cambió o el
+       * evento termina perteneciendo a otro control.
+       */
+      if (
+        !keyboardActivationRef.current
       ) {
         return;
       }
 
       setPressed(false);
+      keyboardActivationRef.current = false;
+
+      if (
+        disabled ||
+        !isEventOwnedByNode(
+          event,
+          event.currentTarget
+        )
+      ) {
+        return;
+      }
 
       if (nativeInteractive) {
         return;
@@ -353,8 +418,6 @@ export function usePress<TElement extends HTMLElement>({
       if (event.key === " ") {
         onPress?.(createPressEvent(event, "keyboard"));
       }
-
-      keyboardActivationRef.current = false;
     },
     [disabled, nativeInteractive, onPress]
   );
