@@ -8,16 +8,16 @@ import {
 } from "../../../core/interaction";
 
 import {
+  useOverlayInstanceContext,
+} from "../../../core/overlay";
+
+import {
   composeEventHandlers,
 } from "../../../core/interaction/events/composeEventHandlers";
 
 import {
   setRef,
 } from "../../../core/interaction/events";
-
-import {
-  attemptFocus,
-} from "../../../core/interaction/focus/attemptFocus";
 
 import {
   resolveSlot,
@@ -47,6 +47,7 @@ export const MenuItem =
       {
         children,
         disabled = false,
+        textValue,
         closeOnSelect = true,
         onSelect,
 
@@ -78,10 +79,15 @@ export const MenuItem =
 
 
       const {
+        focusItem,
         onOpenChange,
         registerItem,
         unregisterItem,
       } = ctx;
+
+
+      const overlay =
+        useOverlayInstanceContext();
 
 
       const itemRef =
@@ -90,11 +96,47 @@ export const MenuItem =
         );
 
 
-      const [
-        itemIndex,
-        setItemIndex,
-      ] =
-        React.useState(-1);
+      /*
+       * El token identifica esta entrada aunque cambie su posición, contenido o
+       * nodo. No representa un índice ni una generación temporal.
+       */
+      const [itemToken] =
+        React.useState<symbol>(
+          () =>
+            Symbol(
+              "menu-item"
+            )
+        );
+
+
+      /*
+       * DismissableLayer es la única fuente de vigencia interactiva. Durante exit
+       * el nodo puede continuar montado, pero collectionScope pasa a null.
+       */
+      const collectionScope =
+        overlay.interactive
+          ? overlay.token
+          : null;
+
+
+      /*
+       * El callback ref permanece estable frente a cambios de metadatos. El efecto
+       * inferior propaga disabled, textValue y scope sin desmontar artificialmente
+       * la asociación token-nodo.
+       */
+      const registrationRef =
+        React.useRef({
+          disabled,
+          textValue,
+          collectionScope,
+        });
+
+
+      registrationRef.current = {
+        disabled,
+        textValue,
+        collectionScope,
+      };
 
 
       const resolvedStyles =
@@ -112,39 +154,89 @@ export const MenuItem =
               | HTMLDivElement
               | null
           ) => {
-            itemRef.current = node;
+            itemRef.current =
+              node;
+
+            if (node) {
+              const metadata =
+                registrationRef
+                  .current;
+
+              registerItem({
+                token:
+                  itemToken,
+
+                node,
+
+                disabled:
+                  metadata.disabled,
+
+                textValue:
+                  metadata.textValue ??
+                  node.textContent ??
+                  "",
+
+                collectionScope:
+                  metadata.collectionScope,
+              });
+            } else {
+              unregisterItem(
+                itemToken
+              );
+            }
 
             setRef(
               ref,
               node
             );
           },
-          [ref]
+          [
+            itemToken,
+            ref,
+            registerItem,
+            unregisterItem,
+          ]
         );
 
 
-      React.useEffect(() => {
-        const node =
-          itemRef.current;
+      React.useEffect(
+        () => {
+          const node =
+            itemRef.current;
 
-        if (!node) {
-          return;
-        }
+          if (!node) {
+            return;
+          }
 
+          /*
+           * registerItem es un upsert. Mantiene la identidad y actualiza solo los
+           * metadatos que pueden cambiar después del montaje.
+           */
+          registerItem({
+            token:
+              itemToken,
 
-        const index =
-          registerItem(node);
+            node,
 
+            disabled,
 
-        setItemIndex(index);
+            textValue:
+              textValue ??
+              node.textContent ??
+              "",
 
-        return () => {
-          unregisterItem(node);
-        };
-      }, [
-        registerItem,
-        unregisterItem,
-      ]);
+            collectionScope,
+          });
+        },
+        [
+          children,
+          collectionScope,
+          disabled,
+          itemToken,
+          registerItem,
+          textValue,
+        ]
+      );
 
 
       const handleSelect =
@@ -177,16 +269,20 @@ export const MenuItem =
       const focusOnPointerEnter =
         React.useCallback(
           (
-            event:
+            _event:
               React.PointerEvent<HTMLDivElement>
           ) => {
             if (!disabled) {
-              void attemptFocus(
-                event.currentTarget
+              focusItem(
+                itemToken
               );
             }
           },
-          [disabled]
+          [
+            disabled,
+            focusItem,
+            itemToken,
+          ]
         );
 
 
@@ -373,12 +469,13 @@ export const MenuItem =
         });
 
 
-      const isFocused =
-        ctx.focusedIndex === itemIndex;
-
+      /*
+       * El estado visual procede del foco DOM real observado por usePress. Ya no
+       * existe un índice persistente paralelo que pueda quedar desalineado.
+       */
       const focused =
-        isFocused ||
         press.state.focused;
+
 
       const focusVisible =
         press.state.focusVisible;

@@ -8,6 +8,49 @@ import type {
 } from "./menu.types";
 
 
+/*
+ * El token identifica una entrada estable de la colección.
+ *
+ * Nunca debe sustituirse por una posición: el índice cambia cuando React
+ * reordena, inserta o elimina elementos con keys estables.
+ */
+export type MenuItemToken =
+  symbol;
+
+
+/*
+ * El scope representa la instancia interactiva vigente del menú.
+ *
+ * Se deriva del token de DismissableLayer, pero pertenece a un dominio distinto
+ * del token de cada item. Una instancia retenida únicamente para exit conserva
+ * sus nodos montados, pero sus entradas usan collectionScope=null y dejan de
+ * participar inmediatamente en navegación.
+ */
+export type MenuCollectionScope =
+  symbol;
+
+
+/*
+ * Esta es la unidad completa de registro.
+ *
+ * El registro conserva identidad y metadatos; el orden nunca se almacena aquí.
+ * Cada operación de navegación vuelve a derivarlo del árbol compuesto vigente.
+ */
+export interface MenuCollectionEntry {
+  token: MenuItemToken;
+
+  node: HTMLElement;
+
+  disabled: boolean;
+
+  textValue: string;
+
+  collectionScope:
+    | MenuCollectionScope
+    | null;
+}
+
+
 export interface MenuContextValue {
   open: boolean;
 
@@ -16,57 +59,64 @@ export interface MenuContextValue {
   contentId: string;
 
   anchorRef:
-  React.RefObject<HTMLElement | null>;
+    React.RefObject<HTMLElement | null>;
 
   setAnchorNode:
-  (node: HTMLElement | null) => void;
+    (node: HTMLElement | null) => void;
 
   onOpenChange?:
-  (open: boolean) => void;
+    (open: boolean) => void;
 
 
+  /*
+   * registerItem es un upsert por token. El mismo método registra el nodo y
+   * propaga cambios posteriores de disabled, textValue o collectionScope.
+   */
   registerItem:
-  (node: HTMLElement | null) => number;
+    (entry: MenuCollectionEntry) => void;
 
   unregisterItem:
-  (node: HTMLElement | null) => void;
+    (token: MenuItemToken) => void;
 
 
-  focusedIndex:
-  number;
-
-  setFocusedIndex:
-  (index: number) => void;
-
+  /*
+   * El foco imperativo recibe identidad, no posición persistente. El índice solo
+   * existe como una consulta temporal sobre la colección ordenada vigente.
+   */
+  focusItem:
+    (token: MenuItemToken) => void;
 
   hasFocusedItem:
-  boolean;
+    boolean;
 
   setHasFocusedItem:
-  (value: boolean) => void;
+    (value: boolean) => void;
 
   focusFirst:
-  () => void;
+    () => void;
 
   focusLast:
-  () => void;
+    () => void;
 
   focusNext:
-  () => void;
+    () => void;
 
   focusPrev:
-  () => void;
+    () => void;
 
 
   styles?: MenuStyles;
 
   slotProps?: MenuSlotProps;
-  
+
+  /*
+   * La API pública sigue expresando una posición inicial. Se interpreta contra
+   * la colección habilitada y ordenada en el momento de aplicar el foco.
+   */
   initialFocusIndex: number;
 
   focusItemAt:
     (index: number) => void;
-
 }
 
 

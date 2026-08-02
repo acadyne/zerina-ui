@@ -154,6 +154,13 @@ export interface MenuItemProps
 
   disabled?: boolean;
 
+  /**
+   * Texto semántico utilizado por la navegación typeahead.
+   *
+   * Debe declararse cuando children no produce una etiqueta textual estable.
+   */
+  textValue?: string;
+
   closeOnSelect?: boolean;
 
   onSelect?: () => void;

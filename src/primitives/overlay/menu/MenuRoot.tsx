@@ -1,13 +1,11 @@
 // src/primitives/overlay/menu/MenuRoot.tsx
 
-
 import React from "react";
+
 import {
-  cancelOwnedAnimationFrame,
   getDeepActiveElement,
   getNodeEventRoot,
-  requestOwnedAnimationFrame,
-  type OwnedAnimationFrame,
+  isComposedDescendantOf,
 } from "../../../core/dom";
 
 import {
@@ -19,12 +17,19 @@ import {
 } from "./menu.context";
 
 import type {
+  MenuCollectionEntry,
+  MenuCollectionScope,
   MenuContextValue,
+  MenuItemToken,
 } from "./menu.context";
 
 import type {
   MenuProps,
 } from "./menu.types";
+
+import {
+  compareComposedNodeOrder,
+} from "./menu.utils";
 
 
 export const MenuRoot: React.FC<MenuProps> = ({
@@ -40,97 +45,60 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
 
   const anchorRef =
-    React.useRef<HTMLElement | null>(null);
+    React.useRef<HTMLElement | null>(
+      null
+    );
 
 
+  /*
+   * Map conserva identidad y metadatos, nunca posición.
+   *
+   * Mantener las entradas durante exit permite que la misma instancia vuelva a
+   * reclamar su scope si el menú reabre antes de desmontarse. La pertenencia se
+   * invalida mediante collectionScope, no destruyendo prematuramente el registro.
+   */
   const itemsRef =
-    React.useRef<HTMLElement[]>([]);
+    React.useRef<
+      Map<
+        MenuItemToken,
+        MenuCollectionEntry
+      >
+    >(
+      new Map()
+    );
 
 
-  const [
-    focusedIndex,
-    setFocusedIndex,
-  ] = React.useState(0);
+  const currentCollectionScopeRef =
+    React.useRef<
+      MenuCollectionScope | null
+    >(
+      null
+    );
+
+
+  const focusedItemTokenRef =
+    React.useRef<
+      MenuItemToken | null
+    >(
+      null
+    );
+
 
   const [
     hasFocusedItem,
     setHasFocusedItem,
-  ] = React.useState(false);
+  ] =
+    React.useState(false);
 
-  const focusedIndexRef =
-    React.useRef(0);
-
-  const initialFocusAppliedRef =
-    React.useRef(false);
-
-  const focusedIndexFrameRef =
-    React.useRef<OwnedAnimationFrame | null>(null);
-
-  const cancelFocusedIndexFrame =
-    React.useCallback((): void => {
-      if (
-        focusedIndexFrameRef.current ===
-        null
-      ) {
-        return;
-      }
-
-      cancelOwnedAnimationFrame(focusedIndexFrameRef.current);
-
-      focusedIndexFrameRef.current =
-        null;
-    }, []);
-
-  /*
-   * El segundo commit mantiene el índice alineado con el foco nativo.
-   * El menú posee ese frame y reemplaza cualquier sincronización anterior.
-   */
-  const scheduleFocusedIndexSync =
-    React.useCallback(
-      (
-        index: number
-      ): void => {
-        cancelFocusedIndexFrame();
-
-        const ownerWindow =
-          itemsRef.current[0]?.ownerDocument.defaultView ??
-          anchorRef.current?.ownerDocument.defaultView;
-
-        if (!ownerWindow) {
-          return;
-        }
-
-        focusedIndexFrameRef.current =
-          requestOwnedAnimationFrame(ownerWindow, () => {
-            focusedIndexFrameRef.current =
-              null;
-
-            setFocusedIndex(index);
-          });
-      },
-      [
-        cancelFocusedIndexFrame,
-      ]
-    );
 
   const setAnchorNode =
     React.useCallback(
       (
         node: HTMLElement | null
       ) => {
-        anchorRef.current = node;
+        anchorRef.current =
+          node;
       },
-      []
-    );
-
-
-  const getItems =
-    React.useCallback(
-      () =>
-        itemsRef.current.filter(
-          (item) =>
-            item.isConnected
-        ),
       []
     );
 
@@ -138,38 +106,86 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const registerItem =
     React.useCallback(
       (
-        node: HTMLElement | null
-      ): number => {
-        if (!node) {
-          return -1;
-        }
-
-
-        const existingIndex =
-          itemsRef.current.findIndex(
-            (item) =>
-              item === node
+        entry:
+          MenuCollectionEntry
+      ): void => {
+        const previous =
+          itemsRef.current.get(
+            entry.token
           );
 
-
-        if (existingIndex >= 0) {
-          return existingIndex;
-        }
-
-
-        itemsRef.current =
-          itemsRef.current.filter(
-            (item) =>
-              item.isConnected
-          );
-
-
-        itemsRef.current.push(node);
-
-
-        return (
-          itemsRef.current.length - 1
+        itemsRef.current.set(
+          entry.token,
+          entry
         );
+
+        /*
+         * Una entrada interactiva reclama el scope vigente. Un overlay anterior
+         * retenido para exit puede continuar registrado con otro scope, pero ya no
+         * participa en ninguna operación de esta colección.
+         */
+        if (
+          entry.collectionScope
+        ) {
+          if (
+            currentCollectionScopeRef
+              .current !==
+            entry.collectionScope
+          ) {
+            currentCollectionScopeRef
+              .current =
+              entry.collectionScope;
+
+            focusedItemTokenRef
+              .current =
+              null;
+
+            setHasFocusedItem(
+              false
+            );
+          }
+
+          return;
+        }
+
+        const previousScope =
+          previous
+            ?.collectionScope;
+
+        if (
+          !previousScope ||
+          currentCollectionScopeRef
+            .current !==
+            previousScope
+        ) {
+          return;
+        }
+
+        const scopeStillOwned =
+          Array.from(
+            itemsRef.current.values()
+          ).some(
+            (candidate) =>
+              candidate
+                .collectionScope ===
+                previousScope &&
+              candidate.node
+                .isConnected
+          );
+
+        if (!scopeStillOwned) {
+          currentCollectionScopeRef
+            .current =
+            null;
+
+          focusedItemTokenRef
+            .current =
+            null;
+
+          setHasFocusedItem(
+            false
+          );
+        }
       },
       []
     );
@@ -178,19 +194,237 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const unregisterItem =
     React.useCallback(
       (
-        node: HTMLElement | null
-      ) => {
-        if (!node) {
+        token:
+          MenuItemToken
+      ): void => {
+        const previous =
+          itemsRef.current.get(
+            token
+          );
+
+        itemsRef.current.delete(
+          token
+        );
+
+        if (
+          focusedItemTokenRef
+            .current ===
+          token
+        ) {
+          focusedItemTokenRef
+            .current =
+            null;
+
+          setHasFocusedItem(
+            false
+          );
+        }
+
+        const previousScope =
+          previous
+            ?.collectionScope;
+
+        if (
+          !previousScope ||
+          currentCollectionScopeRef
+            .current !==
+            previousScope
+        ) {
           return;
         }
 
-        itemsRef.current =
-          itemsRef.current.filter(
-            (item) =>
-              item !== node
+        const scopeStillOwned =
+          Array.from(
+            itemsRef.current.values()
+          ).some(
+            (candidate) =>
+              candidate
+                .collectionScope ===
+                previousScope &&
+              candidate.node
+                .isConnected
           );
+
+        if (!scopeStillOwned) {
+          currentCollectionScopeRef
+            .current =
+            null;
+
+          focusedItemTokenRef
+            .current =
+            null;
+
+          setHasFocusedItem(
+            false
+          );
+        }
       },
       []
+    );
+
+
+  const getItems =
+    React.useCallback(
+      (
+        requestedScope:
+          MenuCollectionScope | null =
+            currentCollectionScopeRef
+              .current
+      ): MenuCollectionEntry[] => {
+        if (!requestedScope) {
+          return [];
+        }
+
+        const items:
+          MenuCollectionEntry[] =
+          [];
+
+        for (
+          const [
+            token,
+            entry,
+          ]
+          of itemsRef.current
+        ) {
+          if (
+            !entry.node
+              .isConnected
+          ) {
+            itemsRef.current.delete(
+              token
+            );
+
+            continue;
+          }
+
+          if (
+            entry.collectionScope ===
+            requestedScope
+          ) {
+            items.push(
+              entry
+            );
+          }
+        }
+
+        /*
+         * El orden se consulta sobre el árbol compuesto actual. No se conserva el
+         * orden de montaje, de registro ni el índice de un render anterior.
+         */
+        items.sort(
+          (
+            left,
+            right
+          ) =>
+            compareComposedNodeOrder(
+              left.node,
+              right.node
+            )
+        );
+
+        return items;
+      },
+      []
+    );
+
+
+  const getEnabledItems =
+    React.useCallback(
+      (): MenuCollectionEntry[] =>
+        getItems().filter(
+          (entry) =>
+            !entry.disabled
+        ),
+      [
+        getItems,
+      ]
+    );
+
+
+  const focusEntry =
+    React.useCallback(
+      (
+        entry:
+          MenuCollectionEntry
+      ): boolean => {
+        if (
+          entry.disabled ||
+          !entry.node.isConnected
+        ) {
+          return false;
+        }
+
+        if (
+          !attemptFocus(
+            entry.node,
+            {
+              preventScroll: true,
+            }
+          )
+        ) {
+          return false;
+        }
+
+        focusedItemTokenRef
+          .current =
+          entry.token;
+
+        setHasFocusedItem(
+          true
+        );
+
+        /*
+         * preventScroll evita un salto global durante focus(). Después se revela
+         * únicamente el item activo dentro del viewport o scroller más cercano.
+         */
+        if (
+          typeof entry.node
+            .scrollIntoView ===
+            "function"
+        ) {
+          entry.node.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+          });
+        }
+
+        return true;
+      },
+      []
+    );
+
+
+  const focusItem =
+    React.useCallback(
+      (
+        token:
+          MenuItemToken
+      ): void => {
+        const currentScope =
+          currentCollectionScopeRef
+            .current;
+
+        const entry =
+          itemsRef.current.get(
+            token
+          );
+
+        if (
+          !currentScope ||
+          !entry ||
+          entry.collectionScope !==
+            currentScope
+        ) {
+          return;
+        }
+
+        focusEntry(
+          entry
+        );
+      },
+      [
+        focusEntry,
+      ]
     );
 
 
@@ -198,15 +432,18 @@ export const MenuRoot: React.FC<MenuProps> = ({
     React.useCallback(
       (
         index: number
-      ) => {
+      ): void => {
         const items =
-          getItems();
+          getEnabledItems();
 
         if (!items.length) {
           return;
         }
 
-
+        /*
+         * El índice se interpreta ahora, sobre la colección habilitada vigente.
+         * Nunca se guarda como identidad del item.
+         */
         const clamped =
           Math.max(
             0,
@@ -216,51 +453,25 @@ export const MenuRoot: React.FC<MenuProps> = ({
             )
           );
 
-
         const target =
           items[clamped];
 
-
-        if (!target) {
-          return;
+        if (target) {
+          focusEntry(
+            target
+          );
         }
-
-        if (
-          !attemptFocus(
-            target,
-            {
-              preventScroll: true,
-            }
-          )
-        ) {
-          return;
-        }
-
-        focusedIndexRef.current =
-          clamped;
-
-        setFocusedIndex(
-          clamped
-        );
-
-        setHasFocusedItem(
-          true
-        );
-
-        scheduleFocusedIndexSync(
-          clamped
-        );
       },
       [
-        getItems,
-        scheduleFocusedIndexSync,
+        focusEntry,
+        getEnabledItems,
       ]
     );
 
 
   const focusFirst =
     React.useCallback(
-      () => {
+      (): void => {
         focusItemAt(0);
       },
       [
@@ -271,144 +482,186 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
   const focusLast =
     React.useCallback(
-      () => {
+      (): void => {
         const items =
-          getItems();
+          getEnabledItems();
 
-        if (!items.length) {
-          return;
+        const target =
+          items[
+            items.length - 1
+          ];
+
+        if (target) {
+          focusEntry(
+            target
+          );
         }
-
-
-        focusItemAt(
-
-          items.length - 1
-        );
       },
       [
-        focusItemAt,
-        getItems,
+        focusEntry,
+        getEnabledItems,
       ]
+    );
+
+
+  const getCurrentItemIndex =
+    React.useCallback(
+      (
+        items:
+          MenuCollectionEntry[]
+      ): number => {
+        const first =
+          items[0];
+
+        if (!first) {
+          return -1;
+        }
+
+        const active =
+          getDeepActiveElement(
+            getNodeEventRoot(
+              first.node
+            )
+          );
+
+        if (active) {
+          const activeIndex =
+            items.findIndex(
+              (entry) =>
+                active ===
+                  entry.node ||
+                isComposedDescendantOf(
+                  active,
+                  entry.node
+                )
+            );
+
+          if (
+            activeIndex >= 0
+          ) {
+            return activeIndex;
+          }
+        }
+
+        const focusedToken =
+          focusedItemTokenRef
+            .current;
+
+        return focusedToken
+          ? items.findIndex(
+              (entry) =>
+                entry.token ===
+                focusedToken
+            )
+          : -1;
+      },
+      []
     );
 
 
   const focusNext =
     React.useCallback(
-      () => {
+      (): void => {
         const items =
-          getItems();
+          getEnabledItems();
 
         if (!items.length) {
           return;
         }
 
-
-        const active =
-          getDeepActiveElement(
-            getNodeEventRoot(
-              items[0]
-            )
-          );
-
-
         const currentIndex =
-          items.findIndex(
-            (item) =>
-              item === active
+          getCurrentItemIndex(
+            items
           );
-
-
-        const baseIndex =
-          currentIndex >= 0
-            ? currentIndex
-            : focusedIndexRef.current;
-
 
         const nextIndex =
-          baseIndex >= items.length - 1
+          currentIndex >=
+            items.length - 1
             ? 0
-            : baseIndex + 1;
+            : currentIndex + 1;
 
+        const target =
+          items[nextIndex];
 
-        focusItemAt(nextIndex);
+        if (target) {
+          focusEntry(
+            target
+          );
+        }
       },
       [
-        focusedIndex,
-        focusItemAt,
-        getItems,
+        focusEntry,
+        getCurrentItemIndex,
+        getEnabledItems,
       ]
     );
 
 
   const focusPrev =
     React.useCallback(
-      () => {
+      (): void => {
         const items =
-          getItems();
+          getEnabledItems();
 
         if (!items.length) {
           return;
         }
 
-
-        const active =
-          getDeepActiveElement(
-            getNodeEventRoot(
-              items[0]
-            )
-          );
-
-
         const currentIndex =
-          items.findIndex(
-            (item) =>
-              item === active
+          getCurrentItemIndex(
+            items
           );
-
-        const baseIndex =
-          currentIndex >= 0
-            ? currentIndex
-            : focusedIndexRef.current;
-
 
         const prevIndex =
-          baseIndex <= 0
+          currentIndex <= 0
             ? items.length - 1
-            : baseIndex - 1;
+            : currentIndex - 1;
 
+        const target =
+          items[prevIndex];
 
-        focusItemAt(prevIndex);
+        if (target) {
+          focusEntry(
+            target
+          );
+        }
       },
       [
-        focusItemAt,
-        getItems,
+        focusEntry,
+        getCurrentItemIndex,
+        getEnabledItems,
       ]
     );
 
 
   React.useEffect(
     () => {
-      if (!open) {
-        cancelFocusedIndexFrame();
-
-        itemsRef.current = [];
-
-        setFocusedIndex(0);
-
-        focusedIndexRef.current = 0;
-
-        setHasFocusedItem(false);
-
-        initialFocusAppliedRef.current = false;
+      if (open) {
+        return;
       }
 
-      return cancelFocusedIndexFrame;
+      /*
+       * open=false implica enabled=false en DismissableLayer y, por tanto,
+       * interactive=false. El scope lógico se invalida sin destruir entradas que
+       * todavía permanecen montadas durante la animación de salida.
+       */
+      currentCollectionScopeRef
+        .current =
+        null;
+
+      focusedItemTokenRef
+        .current =
+        null;
+
+      setHasFocusedItem(
+        false
+      );
     },
     [
-      cancelFocusedIndexFrame,
       open,
     ]
   );
+
 
   const value =
     React.useMemo<MenuContextValue>(
@@ -432,10 +685,8 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         unregisterItem,
 
+        focusItem,
 
-        focusedIndex,
-
-        setFocusedIndex,
 
         hasFocusedItem,
 
@@ -466,13 +717,11 @@ export const MenuRoot: React.FC<MenuProps> = ({
 
         registerItem,
         unregisterItem,
-
-        focusedIndex,
-        setFocusedIndex,
+        focusItem,
 
         hasFocusedItem,
-        setHasFocusedItem,
-
+        initialFocusIndex,
+        focusItemAt,
         focusFirst,
         focusLast,
         focusNext,
