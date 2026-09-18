@@ -105,14 +105,38 @@ export const MenuRoot: React.FC<MenuProps> = ({
     );
 
 
+  type PendingInitialFocusIntent = {
+    requestId: number;
+    target: MenuInitialFocusTarget;
+  };
+
+
   /*
-   * El trigger publica una intención semántica. La ref no representa identidad
-   * de item ni una época; P3.1 añadirá invalidación temporal sin sustituir esta
-   * frontera.
+   * Una intención de foco sólo pertenece al intento de apertura que la produjo.
+   *
+   * requestRevision fuerza un commit local incluso cuando un consumidor
+   * controlado ignora onOpenChange(true). Si ese commit sigue cerrado, la
+   * intención se invalida y no puede filtrarse hacia una apertura posterior.
    */
+  const nextOpenRequestIdRef =
+    React.useRef(0);
+
   const pendingInitialFocusRef =
-    React.useRef<MenuInitialFocusTarget>(
-      "configured"
+    React.useRef<
+      PendingInitialFocusIntent | null
+    >(null);
+
+  const [
+    openRequestRevision,
+    bumpOpenRequestRevision,
+  ] =
+    React.useReducer(
+      (
+        revision:
+          number
+      ) =>
+        revision + 1,
+      0
     );
 
 
@@ -784,16 +808,18 @@ export const MenuRoot: React.FC<MenuProps> = ({
   const focusInitial =
     React.useCallback(
       () => {
-        const initialFocus =
+        const pendingIntent =
           pendingInitialFocusRef
             .current;
 
         pendingInitialFocusRef
           .current =
-          "configured";
+          null;
 
         applyInitialFocus(
-          initialFocus
+          pendingIntent
+            ?.target ??
+            "configured"
         );
       },
       [
@@ -826,9 +852,30 @@ export const MenuRoot: React.FC<MenuProps> = ({
           return;
         }
 
-        pendingInitialFocusRef
+        const requestId =
+          nextOpenRequestIdRef
+            .current +
+          1;
+
+        nextOpenRequestIdRef
           .current =
-          initialFocus;
+          requestId;
+
+        pendingInitialFocusRef
+          .current = {
+          requestId,
+          target:
+            initialFocus,
+        };
+
+        /*
+         * Este update local define la frontera temporal del intento.
+         *
+         * Si el owner acepta la apertura en el mismo commit, open=true conserva
+         * la intención. Si el owner la ignora/difiere, el commit cerrado la
+         * invalida antes de cualquier apertura programática posterior.
+         */
+        bumpOpenRequestRevision();
 
         onOpenChange(
           true
@@ -849,6 +896,15 @@ export const MenuRoot: React.FC<MenuProps> = ({
       }
 
       /*
+       * Un commit cerrado termina también la época de cualquier requestOpen
+       * pendiente. Esto cubre tanto un cierre real como una solicitud controlada
+       * rechazada por el owner.
+       */
+      pendingInitialFocusRef
+        .current =
+        null;
+
+      /*
        * open=false implica enabled=false en DismissableLayer y, por tanto,
        * interactive=false. El scope lógico se invalida sin destruir entradas que
        * todavía permanecen montadas durante la animación de salida.
@@ -867,6 +923,7 @@ export const MenuRoot: React.FC<MenuProps> = ({
     },
     [
       open,
+      openRequestRevision,
     ]
   );
 

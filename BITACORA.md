@@ -2,271 +2,283 @@
 
 ## Objetivo actual
 
-Llevar `zerina-ui` a una versión pre-1.0 estable mediante fases funcionales sustanciales: contratos compartidos, deduplicación real, interacción/overlay, superficie pública deliberada, limpieza, empaquetado y validación integral.
-
-## Criterio de versionado vigente
-
-Cada `0.2.x` representa una fase funcional de estabilización, no un helper ni un cambio microscópico.
-
-Una fase puede contener varias correcciones/refactors relacionados si comparten objetivo, scope y criterio de validación.
-
-Cuando se solicite validación al usuario, todos los comandos se envían juntos en un único bloque y en orden.
+Llevar `zerina-ui` a un hito `0.3.0` estable pre-1.0 mediante fases funcionales de estabilización: contratos compartidos, deduplicación, interacción/overlay, superficie pública deliberada, limpieza, distribución y validación integral.
 
 ## Estado actual
 
-- Versión declarada en `package.json`: `0.2.3`.
-- `0.2.4` está implementado; sus 33/33 pruebas dirigidas y el typecheck/build de raíz pasaron. El último `internal-test typecheck` posterior a retirar un import no usado no se ejecutó porque el usuario decidió avanzar. Esa comprobación se integra en la validación de `0.2.5`; no se afirma todavía que `0.2.4` esté validado al 100%.
-- Proceso en curso: candidato `0.2.5` — deduplicación estructural de familias.
-- `0.2.5` contiene cambios sustanciales en navegación, DataTable y diálogos orientados a target.
-- `Drawer/BottomSheet` se retiraron deliberadamente de `0.2.5`: su duplicación incluye runtime de overlay/motion/foco/dismiss y se resolverá en `0.2.6` junto con los contratos transversales correspondientes.
+- Versión cerrada y declarada en `package.json`: `0.2.5`.
+- Fases `0.2.1` a `0.2.5`: cerradas.
+- Proceso en curso: candidato `0.2.6` — interacción + overlay.
+- `0.2.6` está implementado y revisado sintácticamente; falta validación con el toolchain real y Chromium.
+- La advertencia pnpm `Ignored build scripts: esbuild` sigue pendiente para la fase de reproducibilidad `0.2.8`.
 
-## Fases cerradas y confirmadas
+## Decisiones e invariantes
+
+- No crear compatibilidad legacy sin consumidor/restricción vigente.
+- No conservar una implementación sólo porque ya existe.
+- Una mecánica transversal debe tener un único owner.
+- Las APIs familiares pueden conservar nombres distintos cuando expresan semánticas/layouts distintos.
+- `preventDefault()` representa cancelación explícita de la conducta compuesta posterior.
+- Foco, dismiss, portal, scroll lock y presencia modal no deben reimplementarse por superficie.
+- Cada `0.2.x` representa una fase funcional sustancial, no un cambio microscópico.
+- No se incrementa una versión candidata antes de validarla.
+- Cuando el usuario deba validar, todos los comandos se entregan juntos y en orden.
+
+## Fases cerradas
 
 ### `0.2.1` — SettingsList
 
-Contrato nativo de Switch/Checkbox y ownership único del estado.
+Contrato nativo de Switch/Checkbox, ownership único de estado y cancelación con `preventDefault`.
 
-Validación: 14/14 Vitest + 1/1 Chromium + typechecks/build.
+Validado con 14/14 Vitest, 1/1 Chromium, typechecks y build.
 
 ### `0.2.2` — acciones cancelables de slots
 
-SearchInput y PasswordInput comparten `composeEventHandlers`.
+SearchInput y PasswordInput comparten composición externa → interna.
 
-Validación: 10/10 Vitest + typechecks/build.
+Validado con 10/10 Vitest, typechecks y build.
 
-### `0.2.3` — contrato de tokens
+### `0.2.3` — tokens
 
-69 hojas canónicas; runtime/SSR/browser derivados del manifiesto.
+69 hojas canónicas y paridad manifiesto/runtime/SSR/browser.
 
-Validación: 50/50 Vitest + 2/2 Chromium + typechecks/build.
+Validado con 50/50 Vitest, 2/2 Chromium, typechecks y build.
 
-## `0.2.4` — contratos internos compartidos — IMPLEMENTADO / VALIDACIÓN FINAL PENDIENTE
+### `0.2.4` — contratos internos compartidos
 
-Implementado:
+Presencia de ReactNode y composición ARIA centralizadas; 10 consumidores migrados.
 
-- presencia/renderabilidad de ReactNode central;
-- 10 consumidores migrados;
-- corrección de `List` con booleanos;
-- `mergeAriaIds` único;
-- regresiones de ReactNode/ARIA.
+Validación efectiva cerrada al ejecutar el typecheck completo del harness durante `0.2.5`; regresiones dirigidas previas 33/33 PASS.
 
-Evidencia ya obtenida:
+### `0.2.5` — deduplicación estructural
 
-- 33/33 tests dirigidos PASS;
-- raíz typecheck PASS;
-- raíz build PASS.
+- BottomNavigation / NavigationRail comparten selection engine y renderer de destino.
+- DataTable desktop/editable comparten renderer estructural.
+- ConfirmDialog / ActionDialog comparten frame.
+- Targets falsy no-null (`0`, `""`, `false`) son válidos.
 
-Pendiente:
+Validación final:
+- `internal-test` typecheck: PASS.
+- tests específicos de deduplicación: 11/11 PASS.
+- regresiones anteriores de la fase: 44/44 PASS.
+- raíz typecheck: PASS.
+- raíz build/DTS: PASS.
 
-- `internal-test typecheck` posterior a eliminar el único import no usado.
+## `0.2.6` — interacción + overlay — CANDIDATO
 
-Se ejecutará como primera parte de la validación de `0.2.5`.
+### A. TriggerRuntime — cancelación multicapa
 
-## `0.2.5` — deduplicación estructural de familias — CANDIDATO
+Contrato implementado:
 
-### Objetivo
+```text
+child
+  ↓
+slot local
+  ↓
+slot heredado
+  ↓
+conducta interna
+```
 
-Que familias que comparten un contrato no mantengan copias completas de la misma mecánica.
+Después de cada capa se consulta `event.defaultPrevented`.
 
-No se eliminan nombres públicos por similitud; se conserva la API familiar y se centraliza la implementación que realmente es común.
+Si una capa llama `preventDefault()`:
 
-### A. BottomNavigation / NavigationRail
+- esa capa sí se ejecuta;
+- ninguna capa posterior se ejecuta;
+- la conducta interna tampoco se ejecuta.
 
-Realidad previa:
+`stopPropagation()` conserva semántica DOM y no reemplaza este contrato de composición.
 
-- `BottomNavigationItem` y `NavigationRailItem` eran aproximadamente 93% similares;
-- ambos roots implementaban por separado el mismo estado controlled/uncontrolled, `change/reselect` y callback de selección.
+Esto cierra la ambigüedad anteriormente registrada como P4.1.
 
-Implementado:
+### B. Menu — época de intención de foco
 
-1. `src/primitives/navigation/shared/navigationSelection.ts`
-   - una sola máquina controlled/uncontrolled;
-   - una sola definición de `change` / `reselect`;
-   - un solo contrato de previousValue.
+Una intención `first` / `last` producida por `requestOpen` queda asociada únicamente al intento de apertura que la creó.
 
-2. `src/primitives/navigation/shared/NavigationDestinationItem.tsx`
-   - slots activo/inactivo;
-   - composición de `onPress`;
-   - cancelación mediante `preventDefault`;
-   - badge anchoring;
-   - label visibility;
-   - `aria-current`;
-   - commit de selección.
+Mecánica:
 
-Los wrappers `BottomNavigationItem` y `NavigationRailItem` conservan únicamente:
+- `requestOpen` registra intención y fuerza un commit local;
+- si el owner controlado acepta la apertura en ese commit (`open=true`), la intención sigue vigente;
+- si el owner ignora/difiere la solicitud y el commit continúa cerrado, la intención se invalida;
+- una apertura programática posterior usa `configured`, no una intención obsoleta;
+- cerrar el menú invalida cualquier intención pendiente.
 
-- contexto de su familia;
-- recipe propia;
-- diferencias de dimensiones;
-- atributos `data-ui-*`;
-- colocación visual del badge;
-- opciones específicas (`iconPosition` frente a `itemMinHeight`).
+Esto cierra la deuda anteriormente registrada como P3.1.
 
-### B. DataTableDesktop / DataTableEditableDesktop
+### C. Drawer / BottomSheet — runtime modal único
 
-Realidad previa:
+Nuevo owner:
 
-Las dos implementaciones repetían prácticamente toda la tabla:
+`src/primitives/overlay/shared/ModalOverlayRuntime.tsx`
 
-- root/viewport/table;
-- thead/tbody;
-- sorting;
-- selección;
-- filas;
-- slots;
-- empty state;
-- estilos de celdas.
+Posee una sola composición:
 
-Implementado:
+```text
+MotionOverlayPresence
+  → MotionOverlayRoot
+  → Backdrop
+  → DismissableLayer
+  → FocusScope
+  → MotionOverlayPanel
+  → ScrollLock
+  → Portal opcional
+```
 
-`src/components/data-table/DataTableDesktopBase.tsx` es ahora el único renderer estructural desktop.
+Drawer y BottomSheet conservan:
 
-La variante estándar sólo aporta:
+- recipes visuales;
+- slots/nombres `data-ui-*`;
+- placement/tamaño/handle;
+- Header/Body/Footer/Title/Description/Close públicos.
 
-- render de `Cell`/valor;
-- título/exportValue;
-- densidad y minWidth propios.
-
-La variante editable sólo aporta:
-
-- editores Input/Select;
-- conversión visual de valor;
-- callback `onCellChange`;
-- densidad y minWidth propios.
-
-Sorting, selección, slots y estructura ya no tienen dos implementaciones que puedan divergir.
-
-### C. ConfirmDialog / ActionDialog
-
-Realidad previa:
-
-Ambos duplicaban:
-
-- resolución de renderables por target;
-- Dialog/header/title/description;
-- targetLabel;
-- error;
-- body;
-- footer;
-- configuración de foco/dismiss.
-
-Implementado:
-
-`src/patterns/shared/TargetDialogFrame.tsx` concentra la estructura común.
-
-Cada patrón conserva su semántica propia:
-
-- ConfirmDialog mantiene guardas de operación async y cierre seguro;
-- ActionDialog mantiene su acción sin auto-close implícito;
-- cada uno conserva su esquema visual de botón.
-
-Bug corregido durante la extracción:
-
-Targets falsy válidos (`0`, `""`, `false`) antes eran tratados como target ausente por checks truthy. El contrato compartido usa ahora `target !== null`.
-
-### D. Drawer / BottomSheet — MOVIDO A `0.2.6`
-
-La similitud sigue confirmada, pero su núcleo común atraviesa:
+Ya no poseen directamente:
 
 - DismissableLayer;
 - FocusScope;
 - ScrollLock;
-- MotionOverlayPresence/Panel/Backdrop;
-- restore/initial focus;
-- dismiss;
-- overlay IDs.
+- MotionOverlayPresence;
+- Portal.
 
-Extraer sólo JSX ahora crearía una abstracción incompleta. Se deduplicará después de fijar el contrato transversal de overlay/interacción en `0.2.6`.
+Las props de slot se aplican antes de las invariantes del runtime para que un slot no pueda sustituir accidentalmente role modal, ownership de foco o dismiss.
 
-## Resultado de la primera validación de `0.2.5`
+### D. Pruebas preparadas
 
-Reportado por el usuario:
+Unit/DOM:
 
-- suite dirigida: **44/44 PASS**;
-- `family-deduplication-source.test.ts`: **4/4 PASS**;
-- `family-deduplication-contracts.test.tsx`: **7/7 PASS**;
-- regresiones de `0.2.4`: **33/33 PASS**;
-- `internal-test` typecheck: **FAIL** por dos errores de compilación;
-- raíz `pnpm typecheck`: **FAIL** por el mismo error genérico de DataTable;
-- bundling ESM/CJS/CSS llegó a completarse, pero el build completo no se considera validado mientras typecheck/DTS no queden verdes.
+- `trigger-runtime-cancellation.test.ts` — matriz exacta de cuatro niveles.
+- `menu-open-intent-epoch.test.tsx` — request aceptado y rechazado.
+- `modal-overlay-runtime.test.tsx` — smoke de Drawer/BottomSheet.
+- `interaction-overlay-source.test.ts` — ownership estructural y ausencia de marcadores P3.1/P4.1.
 
-Errores encontrados:
+Browser:
 
-1. import `getByTestId` no usado en el test nuevo (`TS6133`);
-2. `Boolean(value)` produjo una inferencia genérica incompatible sobre `T[keyof T]` en `DataTableEditableDesktop`.
+- `interaction-overlay.chromium.spec.ts`
+  - request de teclado rechazado no filtra foco a apertura programática;
+  - Drawer enfoca target, cierra con Escape y restaura foco;
+  - BottomSheet cierra por outside/backdrop y restaura foco.
 
-Correcciones aplicadas:
+Harness:
+- `browser-interaction-overlay.html`
+- `src/browser-interaction-overlay.tsx`
 
-- eliminado el import no usado;
-- reemplazado `String(Boolean(value))` por la expresión equivalente `value ? "true" : "false"`, evitando la inferencia genérica sin cambiar la semántica observable.
+### Estado de revisión
 
-`0.2.5` sigue como candidato hasta repetir typecheck, sus pruebas específicas y build.
+- Los archivos TS/TSX modificados y los nuevos tests transpilan sintácticamente con TypeScript 5.8.3.
+- No quedan marcadores P3.1/P4.1 en el source de producto.
+- Drawer/BottomSheet ya no contienen JSX directo de los owners del runtime modal.
 
-## Validación preparada para `0.2.5`
+## No validado / riesgos
 
-Nuevas pruebas:
+`0.2.6` aún no está cerrado hasta ejecutar:
 
-- `family-deduplication-contracts.test.tsx`
-  - BottomNavigation change/reselect;
-  - NavigationRail change/reselect;
-  - cancelación de selección;
-  - DataTable estándar sorting/render;
-  - DataTable editable change propagation;
-  - targets falsy de diálogos.
+- typecheck del harness;
+- los tests dirigidos;
+- Chromium específico;
+- typecheck raíz;
+- build/DTS raíz.
 
-- `family-deduplication-source.test.ts`
-  - ownership estructural;
-  - wrappers sin segunda implementación del renderer/estado.
-
-Verificado localmente por inspección:
-
-- los 14 archivos TS/TSX modificados transpilan sintácticamente;
-- los wrappers de navegación ya no contienen `resolveLayeredSlot` ni `Pressable`;
-- los roots ya no contienen `setInternalValue` ni lógica `reselect`;
-- los wrappers DataTable ya no contienen `<table>`;
-- ConfirmDialog/ActionDialog ya no contienen DialogHeader ni el markup de error.
-
-No validado todavía mediante el toolchain completo del proyecto.
-
-## Roadmap vigente
-
-### `0.2.6` — interacción + overlay
-
-- Menu P3.1;
-- TriggerRuntime P4.1;
-- Drawer / BottomSheet runtime común;
-- foco;
-- dismiss;
-- apertura/cierre;
-- ownership/cancelación entre capas.
-
-### `0.2.7` — superficie pública y eliminación
-
-- clasificar exports;
-- retirar exposición accidental;
-- eliminar código sin contrato vigente;
-- eliminar backups/resultados generados confirmados.
-
-### `0.2.8` — distribución, proceso y documentación
-
-- `pnpm validate`;
-- reproducibilidad de workspace/esbuild;
-- README;
-- pack;
-- instalación/consumo desde tarball limpio.
-
-### `0.3.0` — hito estable pre-1.0
-
-Validación integral de paquete, browser y consumidor limpio.
+La semántica de foco/dismiss depende de browser real, por eso Chromium es obligatorio en esta fase.
 
 ## Siguiente paso
 
-Ejecutar la validación agrupada de `0.2.4` + `0.2.5`.
+Validar `0.2.6`.
 
 Si pasa:
 
-1. considerar `0.2.4` confirmado;
-2. cerrar `0.2.5`;
-3. actualizar la versión distribuible hasta `0.2.5`;
-4. consolidar documentación;
-5. entrar a `0.2.6`.
+1. incrementar versión a `0.2.6`;
+2. consolidar estado;
+3. entrar a `0.2.7` — auditoría de superficie pública + eliminación de código/residuos sin contrato vigente.
+
+## Resultado de la primera validación de `0.2.6`
+
+Reportado por el usuario:
+
+- `internal-test` typecheck: **PASS**.
+- pruebas dirigidas: **10/10 PASS**.
+- Menu epoch Chromium: **PASS**.
+- Drawer restore-focus Chromium: **FAIL**.
+- BottomSheet outside-dismiss Chromium: **FAIL** por expectativa incorrecta de restore.
+- raíz `pnpm typecheck`: **PASS**.
+- raíz `pnpm build` + DTS: **PASS**.
+
+### Diagnóstico
+
+#### Drawer / Escape
+
+Bug real localizado en `FocusScope`:
+
+- al cerrar, `DismissableLayer` restaura foco durante layout;
+- el listener pasivo de containment de `FocusScope` todavía podía seguir conectado durante ese mismo commit;
+- ese listener utilizaba valores cerrados de `interactive/isTopmost` y podía reatrapar el foco dentro del overlay.
+
+Corrección:
+
+- `FocusScope` mantiene refs de ownership actualizadas en `useIsomorphicLayoutEffect`;
+- listeners de keydown/focusin consultan esas refs;
+- un listener pasivo todavía conectado deja de atrapar foco tan pronto el scope pierde ownership.
+
+#### BottomSheet / pointer-down outside
+
+No era un bug de producto.
+
+`DismissableLayer` ya define deliberadamente que un pointer-down externo que causa dismiss **suprime restoreFocus**, para no robar foco a la interacción externa.
+
+Se corrigió el test browser para comprobar:
+
+- dismiss efectivo;
+- foco no retenido dentro del BottomSheet;
+- no se fuerza el opener como destino.
+
+### Estado
+
+Falta revalidar únicamente el área modificada de foco/modal y el build/typecheck por haber cambiado código de producto.
+
+## Segundo intento de revalidación de `0.2.6`
+
+Reportado por el usuario:
+
+- `internal-test` no ejecutó porque `internal-test/node_modules` estaba ausente en la copia usada para validar.
+- raíz `pnpm typecheck`: **FAIL** por `TS2304` — `FocusScope` usaba `useIsomorphicLayoutEffect` sin importarlo.
+- raíz bundling ESM/CJS: completó, pero DTS falló por el mismo error TypeScript.
+- Chromium no ejecutó porque Playwright no estaba instalado en esa copia.
+
+Clasificación:
+
+- ausencia de `internal-test/node_modules`: bloqueo de entorno;
+- import faltante en `FocusScope`: bug del candidato `0.2.6`.
+
+Corrección aplicada:
+
+```ts
+import {
+  useIsomorphicLayoutEffect,
+} from "../react/useIsomorphicLayoutEffect";
+```
+
+No se modifica la semántica de la corrección de restore-focus; sólo se completa su dependencia explícita.
+
+La siguiente validación debe comenzar por `pnpm install --frozen-lockfile` y repetir el bloque focalizado completo.
+
+## Tercer resultado de revalidación de `0.2.6`
+
+Reportado por el usuario:
+
+- `internal-test` typecheck: **PASS**.
+- smoke/ownership Vitest: **4/4 PASS**.
+- Menu Chromium: **PASS**.
+- Drawer Escape + restore-focus Chromium: **PASS**.
+- BottomSheet outside-dismiss: el panel se desmonta y el opener no recupera foco; el único fallo fue de la aserción del test.
+- raíz `pnpm typecheck`: **PASS**.
+- raíz `pnpm build` + DTS: **PASS**.
+
+El fallo restante no representa un bug de producto:
+
+tras desmontar el BottomSheet, Chromium puede dejar `document.activeElement` en `body`, por lo que el selector `:focus` no necesariamente resuelve un elemento. `not.toHaveAttribute()` requiere que el locator exista y produjo un falso negativo.
+
+La prueba se corrigió para consultar directamente `document.activeElement` y afirmar únicamente el contrato relevante:
+
+- el foco no vuelve al opener;
+- el foco no permanece en `sheet-input`.
+
+No cambió código de producto en este ajuste.

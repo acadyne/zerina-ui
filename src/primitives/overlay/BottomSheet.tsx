@@ -7,18 +7,8 @@ import {
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
-  DismissableLayer,
-  FocusScope,
-  Portal,
-  ScrollLock,
   getLayerZIndex,
 } from "../../core/overlay";
-import {
-  MotionOverlayBackdrop,
-  MotionOverlayPanel,
-  MotionOverlayPresence,
-  MotionOverlayRoot,
-} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -29,6 +19,10 @@ import {
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
+
+import {
+  ModalOverlayRuntime,
+} from "./shared/ModalOverlayRuntime";
 
 export type BottomSheetSlot =
   | "root"
@@ -531,143 +525,117 @@ export const BottomSheet:
           recipeStyles.panel,
       });
 
-    /*
-     * La composición Motion permanece en core/motion.
-     * La recipe no define estados animados ni transiciones.
-     */
-    const content = (
+    return (
       <BottomSheetContext.Provider
         value={contextValue}
       >
-        <MotionOverlayPresence
+        <ModalOverlayRuntime
           open={open}
+          overlayId={
+            overlayId
+          }
+          onDismiss={
+            handleClose
+          }
+          closeOnEscape={
+            closeOnEscape
+          }
+          closeOnPointerDownOutside={
+            closeOnPointerDownOutside
+          }
+          autoFocus={
+            autoFocus
+          }
+          restoreFocus={
+            restoreFocus
+          }
+          initialFocusRef={
+            initialFocusRef
+          }
+          portalled={
+            portalled
+          }
+          container={
+            container
+          }
+          rootSlot={
+            toMotionSlotProps(
+              rootSlot,
+            )
+          }
+          backdropSlot={
+            toMotionSlotProps(
+              backdropSlot,
+            )
+          }
+          positionerSlot={
+            positionerSlot
+          }
+          focusScopeSlot={
+            focusScopeSlot
+          }
+          panelSlot={
+            toMotionSlotProps(
+              panelSlot,
+            )
+          }
+          panelAs="section"
+          panelKind="bottom-sheet"
+          labelledBy={
+            hasTitle
+              ? titleId
+              : undefined
+          }
+          describedBy={
+            hasDescription
+              ? descriptionId
+              : undefined
+          }
         >
-          <MotionOverlayRoot
-            {...toMotionSlotProps(
-              rootSlot
-            )}
-          >
-            <MotionOverlayBackdrop
-              {...toMotionSlotProps(
-                backdropSlot
-              )}
-            />
+          {showHandle ? (
+            <BottomSheetHandle />
+          ) : null}
 
-            {/*
-             * DismissableLayer, FocusScope y ScrollLock
-             * pertenecen al sistema Overlay.
-             */}
-            <DismissableLayer
-              overlayId={overlayId}
-              layer={getLayerZIndex(
-                "modal"
-              )}
-              enabled={open}
-              restoreFocus={
-                restoreFocus
-              }
-              dismissOnEscape={
-                closeOnEscape
-              }
-              dismissOnPointerDownOutside={
-                closeOnPointerDownOutside
-              }
-              onDismiss={
-                handleClose
-              }
-              {...positionerSlot}
-            >
-              <FocusScope
-                contain
-                autoFocus={autoFocus}
-                initialFocusRef={
-                  initialFocusRef
-                }
-                {...focusScopeSlot}
+          {hasHeader ? (
+            <BottomSheetHeader>
+              <Box
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                }}
               >
-                <MotionOverlayPanel
-                  as="section"
-                  kind="bottom-sheet"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby={
-                    hasTitle
-                      ? titleId
-                      : undefined
+                {hasTitle ? (
+                  <BottomSheetTitle
+                    id={titleId}
+                  >
+                    {title}
+                  </BottomSheetTitle>
+                ) : null}
+
+                {hasDescription ? (
+                  <BottomSheetDescription
+                    id={
+                      descriptionId
+                    }
+                  >
+                    {description}
+                  </BottomSheetDescription>
+                ) : null}
+              </Box>
+
+              {showCloseButton ? (
+                <BottomSheetClose
+                  onClose={
+                    handleClose
                   }
-                  aria-describedby={
-                    hasDescription
-                      ? descriptionId
-                      : undefined
-                  }
-                  {...toMotionSlotProps(
-                    panelSlot
-                  )}
-                >
-                  {showHandle ? (
-                    <BottomSheetHandle />
-                  ) : null}
+                />
+              ) : null}
+            </BottomSheetHeader>
+          ) : null}
 
-                  {hasHeader ? (
-                    <BottomSheetHeader>
-                      {/*
-                       * minWidth: 0 permite que el texto ceda espacio al
-                       * botón de cierre en lugar de desbordar el header.
-                       */}
-                      <Box
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                        }}
-                      >
-                        {hasTitle ? (
-                          <BottomSheetTitle
-                            id={titleId}
-                          >
-                            {title}
-                          </BottomSheetTitle>
-                        ) : null}
-
-                        {hasDescription ? (
-                          <BottomSheetDescription
-                            id={
-                              descriptionId
-                            }
-                          >
-                            {description}
-                          </BottomSheetDescription>
-                        ) : null}
-                      </Box>
-
-                      {showCloseButton ? (
-                        <BottomSheetClose
-                          onClose={
-                            handleClose
-                          }
-                        />
-                      ) : null}
-                    </BottomSheetHeader>
-                  ) : null}
-
-                  {children}
-                </MotionOverlayPanel>
-              </FocusScope>
-
-              <ScrollLock />
-            </DismissableLayer>
-          </MotionOverlayRoot>
-        </MotionOverlayPresence>
+          {children}
+        </ModalOverlayRuntime>
       </BottomSheetContext.Provider>
-    );
-
-    return portalled ? (
-      <Portal
-        container={container}
-      >
-        {content}
-      </Portal>
-    ) : (
-      content
     );
   };
 

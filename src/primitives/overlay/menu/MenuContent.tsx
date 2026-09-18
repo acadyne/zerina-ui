@@ -194,10 +194,8 @@ export const MenuContent =
 
 
       /*
-       * Este timeout solo expira el buffer local de búsqueda.
-       *
-       * No representa una época de apertura ni resuelve reaperturas diferidas;
-       * esa frontera temporal pertenece a P3.1.
+       * Este timeout sólo expira el buffer local de búsqueda.
+       * La época de apertura pertenece a MenuRoot y no se representa aquí.
        */
       const clearTypeahead =
         React.useCallback(

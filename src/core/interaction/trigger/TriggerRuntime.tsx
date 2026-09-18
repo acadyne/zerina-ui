@@ -148,14 +148,14 @@ type TriggerEventHandler<
 
 
 /*
- * P2.5 conserva la semántica vigente:
+ * Las capas de un trigger forman una cadena ordenada de ownership:
  *
- * todas las capas externas se ejecutan una vez. Después, defaultPrevented
- * decide si la conducta semántica interna puede continuar.
+ * child -> slot local -> slot heredado -> conducta interna.
  *
- * La cancelación entre capas externas pertenece a la matriz exacta de P4.1.
+ * Cada capa puede cancelar las capas posteriores mediante preventDefault().
+ * stopPropagation() conserva su significado DOM y no sustituye este contrato.
  */
-function composeTriggerEvent<
+export function composeTriggerEvent<
   TEvent extends {
     readonly defaultPrevented:
       boolean;
@@ -226,12 +226,12 @@ function composeTriggerEvent<
       handler(
         event
       );
-    }
 
-    if (
-      event.defaultPrevented
-    ) {
-      return;
+      if (
+        event.defaultPrevented
+      ) {
+        return;
+      }
     }
 
     internalHandler?.(

@@ -2,6 +2,9 @@
 
 import React from "react";
 import {
+  useIsomorphicLayoutEffect,
+} from "../react/useIsomorphicLayoutEffect";
+import {
   setRef,
 } from "../interaction/events";
 import {
@@ -101,6 +104,38 @@ export const FocusScope =
 
       const hasAutoFocusedRef =
         React.useRef(false);
+
+      const interactiveRef =
+        React.useRef(
+          interactive
+        );
+
+      const isTopmostRef =
+        React.useRef(
+          isTopmost
+        );
+
+      /*
+       * Los listeners de containment viven en un effect pasivo.
+       *
+       * Al cerrar, DismissableLayer puede restaurar foco durante layout antes
+       * de que React retire esos listeners pasivos. Estas refs se actualizan en
+       * layout y permiten que un listener todavía conectado observe de inmediato
+       * que el scope ya perdió ownership, evitando reatrapar el foco.
+       */
+      useIsomorphicLayoutEffect(
+        () => {
+          interactiveRef.current =
+            interactive;
+
+          isTopmostRef.current =
+            isTopmost;
+        },
+        [
+          interactive,
+          isTopmost,
+        ]
+      );
 
       const setRefs =
         React.useCallback(
@@ -284,7 +319,10 @@ export const FocusScope =
                 KeyboardEvent;
 
             if (
-              !isTopmost ||
+              !interactiveRef
+                .current ||
+              !isTopmostRef
+                .current ||
               keyboardEvent.key !==
                 "Tab"
             ) {
@@ -403,7 +441,12 @@ export const FocusScope =
             processedFocusEvents
               .add(event);
 
-            if (!isTopmost) {
+            if (
+              !interactiveRef
+                .current ||
+              !isTopmostRef
+                .current
+            ) {
               return;
             }
 

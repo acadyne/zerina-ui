@@ -7,18 +7,8 @@ import {
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
-  DismissableLayer,
-  FocusScope,
-  Portal,
-  ScrollLock,
   getLayerZIndex,
 } from "../../core/overlay";
-import {
-  MotionOverlayBackdrop,
-  MotionOverlayPanel,
-  MotionOverlayPresence,
-  MotionOverlayRoot,
-} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -29,6 +19,10 @@ import {
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
+
+import {
+  ModalOverlayRuntime,
+} from "./shared/ModalOverlayRuntime";
 
 export type DrawerPlacement =
   | "left"
@@ -495,141 +489,116 @@ export const Drawer:
           recipeStyles.panel,
       });
 
-    /*
-     * MotionOverlay conserva la política de presencia y movimiento.
-     * La recipe no produce estados animados ni transiciones.
-     */
-    const content = (
+    return (
       <DrawerContext.Provider
         value={contextValue}
       >
-        <MotionOverlayPresence
+        <ModalOverlayRuntime
           open={open}
+          overlayId={
+            overlayId
+          }
+          onDismiss={
+            handleClose
+          }
+          closeOnEscape={
+            closeOnEscape
+          }
+          closeOnPointerDownOutside={
+            closeOnPointerDownOutside
+          }
+          autoFocus={
+            autoFocus
+          }
+          restoreFocus={
+            restoreFocus
+          }
+          initialFocusRef={
+            initialFocusRef
+          }
+          portalled={
+            portalled
+          }
+          container={
+            container
+          }
+          rootSlot={
+            toMotionSlotProps(
+              rootSlot,
+            )
+          }
+          backdropSlot={
+            toMotionSlotProps(
+              backdropSlot,
+            )
+          }
+          positionerSlot={
+            positionerSlot
+          }
+          focusScopeSlot={
+            focusScopeSlot
+          }
+          panelSlot={
+            toMotionSlotProps(
+              panelSlot,
+            )
+          }
+          panelAs="aside"
+          panelKind="drawer"
+          panelPlacement={
+            placement
+          }
+          labelledBy={
+            hasTitle
+              ? titleId
+              : undefined
+          }
+          describedBy={
+            hasDescription
+              ? descriptionId
+              : undefined
+          }
         >
-          <MotionOverlayRoot
-            {...toMotionSlotProps(
-              rootSlot
-            )}
-          >
-            <MotionOverlayBackdrop
-              {...toMotionSlotProps(
-                backdropSlot
-              )}
-            />
-
-            {/*
-             * DismissableLayer, FocusScope y ScrollLock
-             * pertenecen al sistema Overlay, no a Styling.
-             */}
-            <DismissableLayer
-              overlayId={overlayId}
-              layer={getLayerZIndex(
-                "modal"
-              )}
-              enabled={open}
-              restoreFocus={
-                restoreFocus
-              }
-              dismissOnEscape={
-                closeOnEscape
-              }
-              dismissOnPointerDownOutside={
-                closeOnPointerDownOutside
-              }
-              onDismiss={
-                handleClose
-              }
-              {...positionerSlot}
-            >
-              <FocusScope
-                contain
-                autoFocus={autoFocus}
-                initialFocusRef={
-                  initialFocusRef
-                }
-                {...focusScopeSlot}
+          {hasHeader ? (
+            <DrawerHeader>
+              <Box
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                }}
               >
-                <MotionOverlayPanel
-                  as="aside"
-                  kind="drawer"
-                  placement={placement}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby={
-                    hasTitle
-                      ? titleId
-                      : undefined
+                {hasTitle ? (
+                  <DrawerTitle
+                    id={titleId}
+                  >
+                    {title}
+                  </DrawerTitle>
+                ) : null}
+
+                {hasDescription ? (
+                  <DrawerDescription
+                    id={
+                      descriptionId
+                    }
+                  >
+                    {description}
+                  </DrawerDescription>
+                ) : null}
+              </Box>
+
+              {showCloseButton ? (
+                <DrawerClose
+                  onClose={
+                    handleClose
                   }
-                  aria-describedby={
-                    hasDescription
-                      ? descriptionId
-                      : undefined
-                  }
-                  {...toMotionSlotProps(
-                    panelSlot
-                  )}
-                >
+                />
+              ) : null}
+            </DrawerHeader>
+          ) : null}
 
-                  {hasHeader ? (
-                    <DrawerHeader>
-                      {/*
-                       * minWidth: 0 permite que el texto ceda espacio al
-                       * botón de cierre en lugar de desbordar el header.
-                       */}
-                      <Box
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                        }}
-                      >
-                        {hasTitle ? (
-                          <DrawerTitle
-                            id={titleId}
-                          >
-                            {title}
-                          </DrawerTitle>
-                        ) : null}
-
-                        {hasDescription ? (
-                          <DrawerDescription
-                            id={
-                              descriptionId
-                            }
-                          >
-                            {description}
-                          </DrawerDescription>
-                        ) : null}
-                      </Box>
-
-                      {showCloseButton ? (
-                        <DrawerClose
-                          onClose={
-                            handleClose
-                          }
-                        />
-                      ) : null}
-                    </DrawerHeader>
-                  ) : null}
-
-                  {children}
-                </MotionOverlayPanel>
-              </FocusScope>
-
-              <ScrollLock />
-            </DismissableLayer>
-          </MotionOverlayRoot>
-        </MotionOverlayPresence>
+          {children}
+        </ModalOverlayRuntime>
       </DrawerContext.Provider>
-    );
-
-    return portalled ? (
-      <Portal
-        container={container}
-      >
-        {content}
-      </Portal>
-    ) : (
-      content
     );
   };
 
