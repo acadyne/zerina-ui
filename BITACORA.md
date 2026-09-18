@@ -1,191 +1,160 @@
 # BITACORA
 
-## Estado
+## Estado actual
 
-- Versión cerrada y declarada: `0.3.0`.
-- Hito pre-1.0 estable: **CERRADO**.
-- Fases `0.2.1`–`0.2.8`: cerradas.
-- Validación integral: verde.
-- Siguiente trabajo: nuevo mapeo de arquitectura y contratos para detectar bifurcaciones, inconsistencias y oportunidades de simplificación.
+- Versión cerrada: `0.3.0`.
+- Fase A: **CERRADA**.
+- Fase activa: **B — convergencia de formularios**.
+- Subfase actual: **B1 — text controls + field messages**.
+- B1: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- B2 choice controls: mapeada, no implementada.
+- B3 press bridge: mapeada, no implementada.
+- No se asignó todavía una versión siguiente.
 
-## Validación que cerró `0.3.0`
-
-Reportado por el usuario:
-
-- pnpm exacto `10.34.5`: PASS;
-- install congelado: PASS;
-- internal-test typecheck: PASS;
-- Vitest: **393/393 PASS**;
-- internal-test build: PASS;
-- Chromium: **65/65 PASS**;
-- package typecheck: PASS;
-- prepack/build ESM/CJS/DTS: PASS;
-- tarball: PASS;
-- consumidor limpio React 18:
-  - install PASS;
-  - TypeScript PASS;
-  - ESM PASS;
-  - CJS PASS;
-  - CSS PASS;
-- consumidor limpio React 19:
-  - install PASS;
-  - TypeScript PASS;
-  - ESM PASS;
-  - CJS PASS;
-  - CSS PASS;
-- git whitespace: PASS.
-
-Resultado final:
+## Baseline al abrir Fase B
 
 ```text
+tests dirigidos Fase A      23/23 PASS
+Vitest completo            405/405 PASS
+Chromium                     65/65 PASS
+React 18 consumer                PASS
+React 19 consumer                PASS
 Validation complete.
 ```
 
-## Garantías vigentes
+## Scope de Fase B
 
-### Superficie pública
+1. text controls;
+2. choice controls;
+3. press bridge;
+4. field messages;
+5. controlled/uncontrolled simple sólo donde haya equivalencia real.
 
-Entry points públicos:
+Fuera de scope:
 
-- `zerina-ui`
-- `zerina-ui/styles.css`
-- `zerina-ui/reset.css`
+- overlays;
+- DataTable;
+- navigation stack;
+- slot precedence global;
+- layout/types globales.
 
-No son API pública:
+## B1 — cambios implementados
 
-- `src/*`
-- `core/*` internos
-- `helpers/*`
-- runtimes internos
-- harness/tests/docs operativas
+### Text controls
 
-### React
+Nuevo owner:
 
-Peer range:
+`src/primitives/forms/use-text-control-runtime.ts`
 
-```text
-react      >=18 <20
-react-dom  >=18 <20
-```
+Posee:
 
-Verificado contra:
+- field state;
+- focus-visible;
+- InputGroup descendant state;
+- ARIA;
+- native state común;
+- data-state común.
 
-- React 18.3.1
-- React 19.0.0
+`Input` conserva:
 
-### Dependencias runtime relevantes
+- input nativo;
+- type;
+- appearance;
+- leftPadding;
+- layout específico.
 
-- `framer-motion ^12.38.0`
-- `lucide-react ^0.507.0`
+`Textarea` conserva:
 
-Lucide 0.507.0 es el baseline elegido porque cumple simultáneamente:
+- textarea nativo;
+- resize;
+- layout específico.
 
-- React 19 estable;
-- tipos compatibles;
-- ESM;
-- CJS real.
+No se cambió API pública.
 
-### Release
+### Field messages
 
-- `prepack` ejecuta build;
-- `prepublishOnly` ejecuta `pnpm validate`;
-- `package:verify` instala el tarball fuera del workspace;
-- `pnpm validate` es la puerta canónica.
+Nuevo owner:
 
-### Interacción y foco
+`src/primitives/forms/FieldMessageFrame.tsx`
 
-- `preventDefault()` cancela conducta compuesta posterior;
-- TriggerRuntime tiene orden progresivo estable;
-- focus-visible usa tracker central por `Document`;
-- pointer/keyboard se distinguen antes del primer focus;
-- Menu liga intención de foco a época de apertura;
-- Drawer/BottomSheet comparten runtime modal;
-- FocusScope no reatrapa restore-focus al perder ownership.
+`HelpText` y `FormErrorMessage` son wrappers finos.
 
-### Contratos internos compartidos
+El frame posee:
 
-Owners únicos vigentes:
+- FieldContext;
+- node presence;
+- field ID;
+- invalid gating;
+- role;
+- tipografía compartida.
 
-- presencia de ReactNode;
-- merge de IDs ARIA;
-- selection engine de navigation;
-- renderer compartido de destinos;
-- DataTable desktop base;
-- frame de dialogs orientados a target;
-- modal overlay runtime;
-- focus-visible tracker;
-- composition helpers de eventos.
+No se cambió API pública.
 
-## Residuos ya eliminados
+### Tests B1
 
-- backups `.bak.*`;
-- `internal-test/test-results`;
-- `.git` anidado de `internal-test`;
-- exports accidentales de motion/viewport;
-- pipeline duplicado `validate.sh`;
-- source contracts históricos que fijaban implementaciones obsoletas.
+Nuevos:
 
-## Estado estructural conocido
+- `forms-phase-b1-ownership.test.ts`;
+- `forms-phase-b1-behavior.test.tsx`.
 
-Último análisis previo:
+Protegen:
 
-- 291 módulos TS/TSX;
-- 291 alcanzables desde `src/index.ts`;
-- 0 módulos source huérfanos detectados.
+- ownership del runtime;
+- wrappers nativos separados;
+- equivalencia Field/ARIA/data-state;
+- numeric ReactNode;
+- boolean absence;
+- error visibility.
 
-Esto NO implica que no existan duplicaciones o bifurcaciones internas. Sólo significa que no hay módulos totalmente desconectados de la entrada pública.
+## B2 — mapa vigente
 
-## Nuevo objetivo de auditoría
+Choice controls ya comparten `useChoiceControl`, pero todavía duplican:
 
-El siguiente mapeo debe buscar **bifurcaciones de responsabilidad**, no sólo archivos duplicados.
+- handlers del input slot;
+- focus/blur;
+- click/change;
+- readOnly guard;
+- root state attrs;
+- native input props;
+- label slot.
 
-Ejes:
+Diferencias legítimas:
 
-1. múltiples owners para la misma semántica;
-2. familias con APIs parecidas pero reglas distintas sin razón actual;
-3. estados derivados calculados de formas diferentes;
-4. controlled/uncontrolled implementado más de una vez;
-5. cancelación/event ordering divergente;
-6. focus/hover/press/keyboard modelados con rutas distintas;
-7. ARIA generada por capas diferentes;
-8. slots resueltos con mecánicas paralelas;
-9. overlays con kernels parcialmente duplicados;
-10. recipes/variants que codifican lógica de producto;
-11. helpers públicos usados sólo internamente;
-12. tipos estructuralmente equivalentes con nombres diferentes;
-13. componentes que son wrappers casi vacíos sin contrato propio;
-14. tests que fijan source shape en vez de comportamiento;
-15. paths de build/harness que no representan consumo real;
-16. ramas condicionales que existen sólo por historia, no por contrato vigente.
+- Checkbox: indeterminate;
+- Radio: group/value/name;
+- Switch: role/track/thumb.
 
-## Regla para el nuevo mapeo
+Owner candidato:
 
-No asumir que similitud = duplicación.
+`useChoiceControlRuntime`
 
-Para cada candidato registrar:
+sin fusionar markup.
 
-- owner actual;
-- consumidores;
-- contrato observable;
-- diferencias reales;
-- diferencias accidentales;
-- riesgo de unificar;
-- posible owner común;
-- evidencia;
-- recomendación:
-  - mantener separado;
-  - compartir helper;
-  - compartir engine;
-  - fusionar;
-  - eliminar;
-  - investigar.
+## B3 — mapa vigente
 
-## Próximo paso
-
-Construir un mapa por familias y contratos, priorizado por:
+Button/IconButton/Pressable/Card repiten el bridge:
 
 ```text
-impacto × duplicación × riesgo de divergencia × frecuencia de cambio
+slot root handlers
+→ composeEventHandlers
+→ usePress
 ```
 
-El objetivo ya no es “hacer pasar la suite”; es reducir el número de lugares donde una misma decisión puede divergir en el futuro.
+Owner candidato:
+
+`usePressSlotBridge`.
+
+No crear BaseButton público.
+
+## Criterio para cerrar B1
+
+Debe pasar:
+
+```text
+internal-test typecheck
+tests B1 dirigidos
+regresión forms relevante
+pnpm validate
+```
+
+Sólo después se implementa B2.

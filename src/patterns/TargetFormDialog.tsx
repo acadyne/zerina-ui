@@ -1,145 +1,268 @@
-// src/layout/ui/patterns/TargetFormDialog.tsx
 import React from "react";
-import type { ModalState } from "./state";
-import { FormDialog } from "./FormDialog";
 
-type RenderableWithTarget<TTarget> =
-  | React.ReactNode
-  | ((target: TTarget) => React.ReactNode);
+import {
+  FormDialog,
+} from "./FormDialog";
 
-function resolveRenderable<TTarget>(
-  value: RenderableWithTarget<TTarget> | undefined,
-  target: TTarget | null
-): React.ReactNode {
-  if (typeof value === "function") {
-    return target ? (value as (target: TTarget) => React.ReactNode)(target) : null;
-  }
+import type {
+  ModalState,
+} from "./state";
 
-  return value ?? null;
-}
+import {
+  hasDialogTarget,
+  resolveRenderableWithTarget,
+  type RenderableWithTarget,
+} from "./shared/targetDialogContract";
 
-export interface TargetFormDialogProps<TTarget> {
-  state: ModalState<TTarget>;
-  onOpenChange?: (open: boolean) => void;
 
-  title: React.ReactNode;
-  description?: RenderableWithTarget<TTarget>;
-  children?: RenderableWithTarget<TTarget>;
+export interface TargetFormDialogProps<
+  TTarget,
+> {
+  state:
+    ModalState<TTarget>;
 
-  submitLabel?: React.ReactNode;
-  cancelLabel?: React.ReactNode;
+  onOpenChange?: (
+    open: boolean,
+  ) => void;
+
+  title:
+    React.ReactNode;
+
+  description?:
+    RenderableWithTarget<TTarget>;
+
+  children?:
+    RenderableWithTarget<TTarget>;
+
+  submitLabel?:
+    React.ReactNode;
+
+  cancelLabel?:
+    React.ReactNode;
 
   onSubmit: (
-    target: TTarget,
-    event: React.FormEvent<HTMLFormElement>
-  ) => void | Promise<void>;
+    target:
+      TTarget,
 
-  onCancel?: (target: TTarget | null) => void;
+    event:
+      React.FormEvent<HTMLFormElement>,
+  ) =>
+    | void
+    | Promise<void>;
 
-  loading?: boolean;
-  disabled?: boolean;
-  error?: React.ReactNode;
+  onCancel?: (
+    target:
+      TTarget | null,
+  ) => void;
 
-  size?: "sm" | "md" | "lg" | "xl";
+  loading?:
+    boolean;
 
-  targetLabel?: RenderableWithTarget<TTarget>;
+  disabled?:
+    boolean;
 
-  initialFocusRef?: React.RefObject<HTMLElement | null>;
-  closeOnEscape?: boolean;
-  closeOnPointerDownOutside?: boolean;
+  error?:
+    React.ReactNode;
 
-  footer?: React.ReactNode;
-  formProps?: Omit<
-    React.FormHTMLAttributes<HTMLFormElement>,
-    "onSubmit" | "children"
-  >;
+  size?:
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl";
+
+  targetLabel?:
+    RenderableWithTarget<TTarget>;
+
+  initialFocusRef?:
+    React.RefObject<
+      HTMLElement | null
+    >;
+
+  closeOnEscape?:
+    boolean;
+
+  closeOnPointerDownOutside?:
+    boolean;
+
+  footer?:
+    React.ReactNode;
+
+  formProps?:
+    Omit<
+      React.FormHTMLAttributes<HTMLFormElement>,
+      | "onSubmit"
+      | "children"
+    >;
 }
 
-export function TargetFormDialog<TTarget>({
+
+export function TargetFormDialog<
+  TTarget,
+>({
   state,
   onOpenChange,
+
   title,
   description,
   children,
-  submitLabel = "Guardar",
-  cancelLabel = "Cancelar",
+
+  submitLabel =
+    "Guardar",
+
+  cancelLabel =
+    "Cancelar",
+
   onSubmit,
   onCancel,
+
   loading = false,
   disabled = false,
   error,
+
   size = "md",
+
   targetLabel,
+
   initialFocusRef,
+
   closeOnEscape = true,
-  closeOnPointerDownOutside = false,
+
+  closeOnPointerDownOutside =
+    false,
+
   footer,
   formProps,
 }: TargetFormDialogProps<TTarget>) {
-  const open = state.isOpen;
-  const target = state.isOpen ? state.target : null;
+  const open =
+    state.isOpen;
 
-  const resolvedDescription = resolveRenderable(description, target);
-  const resolvedTargetLabel = resolveRenderable(targetLabel, target);
-  const resolvedChildren = resolveRenderable(children, target);
+  const target =
+    state.isOpen
+      ? state.target
+      : null;
 
-  const handleClose = React.useCallback(() => {
-    onOpenChange?.(false);
-  }, [onOpenChange]);
+  const resolvedDescription =
+    resolveRenderableWithTarget(
+      description,
+      target,
+    );
 
-  const handleCancel = React.useCallback(() => {
-    onCancel?.(target);
-    handleClose();
-  }, [onCancel, target, handleClose]);
+  const resolvedTargetLabel =
+    resolveRenderableWithTarget(
+      targetLabel,
+      target,
+    );
 
-  const handleSubmit = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      if (!target) {
-        return;
-      }
+  const resolvedChildren =
+    resolveRenderableWithTarget(
+      children,
+      target,
+    );
 
-      await onSubmit(target, event);
-    },
-    [onSubmit, target]
-  );
 
-  const handleDialogOpenChange = React.useCallback(
-    (nextOpen: boolean) => {
-      if (nextOpen) {
-        onOpenChange?.(true);
-        return;
-      }
+  const handleCancel =
+    React.useCallback(
+      () => {
+        onCancel?.(
+          target,
+        );
+      },
+      [
+        onCancel,
+        target,
+      ],
+    );
 
-      onCancel?.(target);
-      onOpenChange?.(false);
-    },
-    [onCancel, onOpenChange, target]
-  );
+
+  const handleSubmit =
+    React.useCallback(
+      async (
+        event:
+          React.FormEvent<HTMLFormElement>,
+      ) => {
+        if (
+          !hasDialogTarget(
+            target,
+          )
+        ) {
+          return;
+        }
+
+        const result =
+          onSubmit(
+            target,
+            event,
+          );
+
+        if (
+          result instanceof
+          Promise
+        ) {
+          await result;
+        }
+      },
+      [
+        onSubmit,
+        target,
+      ],
+    );
+
 
   return (
     <FormDialog
       open={open}
-      onOpenChange={handleDialogOpenChange}
+      onOpenChange={
+        onOpenChange
+      }
       title={title}
-      description={resolvedDescription}
-      submitLabel={submitLabel}
-      cancelLabel={cancelLabel}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      loading={loading}
-      disabled={disabled || !target}
+      description={
+        resolvedDescription
+      }
+      submitLabel={
+        submitLabel
+      }
+      cancelLabel={
+        cancelLabel
+      }
+      onSubmit={
+        handleSubmit
+      }
+      onCancel={
+        handleCancel
+      }
+      loading={
+        loading
+      }
+      disabled={
+        disabled ||
+        !hasDialogTarget(
+          target,
+        )
+      }
       error={error}
       size={size}
-      targetLabel={resolvedTargetLabel}
-      initialFocusRef={initialFocusRef}
-      closeOnEscape={closeOnEscape}
-      closeOnPointerDownOutside={closeOnPointerDownOutside}
+      targetLabel={
+        resolvedTargetLabel
+      }
+      initialFocusRef={
+        initialFocusRef
+      }
+      closeOnEscape={
+        closeOnEscape
+      }
+      closeOnPointerDownOutside={
+        closeOnPointerDownOutside
+      }
       footer={footer}
-      formProps={formProps}
+      formProps={
+        formProps
+      }
     >
       {resolvedChildren}
     </FormDialog>
   );
 }
 
-TargetFormDialog.displayName = "TargetFormDialog";
+
+TargetFormDialog.displayName =
+  "TargetFormDialog";

@@ -1,36 +1,42 @@
-import React, {
-  useContext,
-} from "react";
+import React from "react";
+
+import type {
+  FieldMessageSlot,
+  FieldMessageSlotProps,
+  FieldMessageStyles,
+} from "./FieldMessageFrame";
 
 import {
-  resolveSlot,
-  type SlotPropsMap,
-  type SlotStyleMap,
-} from "../../helpers/css";
-
-import {
-  FieldContext,
-} from "./field-context";
+  FieldMessageFrame,
+} from "./FieldMessageFrame";
 
 
-export type HelpTextSlot = "root";
+export type HelpTextSlot =
+  FieldMessageSlot;
 
 export type HelpTextStyles =
-  SlotStyleMap<HelpTextSlot>;
+  FieldMessageStyles;
 
 export type HelpTextSlotProps =
-  SlotPropsMap<HelpTextSlot>;
+  FieldMessageSlotProps;
 
 
 export interface HelpTextProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
-  children?: React.ReactNode;
+  children?:
+    React.ReactNode;
 
-  className?: string;
-  style?: React.CSSProperties;
+  className?:
+    string;
 
-  styles?: HelpTextStyles;
-  slotProps?: HelpTextSlotProps;
+  style?:
+    React.CSSProperties;
+
+  styles?:
+    HelpTextStyles;
+
+  slotProps?:
+    HelpTextSlotProps;
 }
 
 
@@ -40,81 +46,15 @@ export const HelpText =
     HelpTextProps
   >(
     (
-      {
-        children,
-        id,
-
-        className = "",
-        style,
-
-        styles,
-        slotProps,
-
-        ...rest
-      },
-      ref
-    ) => {
-      const field =
-        useContext(
-          FieldContext
-        );
-
-      if (
-        children === null ||
-        children === undefined ||
-        children === false ||
-        children === true
-      ) {
-        return null;
-      }
-
-      const rootSlot =
-        resolveSlot<HelpTextSlot>({
-          slot:
-            "root",
-
-          styles,
-          slotProps,
-
-          className,
-          style,
-
-          baseStyle: {
-            marginTop:
-              "0.35rem",
-
-            fontSize:
-              "var(--ui-font-size-sm)",
-
-            color:
-              "var(--ui-text-muted)",
-
-            lineHeight:
-              1.35,
-
-            wordBreak:
-              "break-word",
-
-            minWidth:
-              0,
-          },
-        });
-
-      return (
-        <p
-          {...rest}
-          {...rootSlot}
-          ref={ref}
-
-          id={
-            field?.helpTextId ??
-            id
-          }
-        >
-          {children}
-        </p>
-      );
-    }
+      props,
+      ref,
+    ) => (
+      <FieldMessageFrame
+        {...props}
+        ref={ref}
+        kind="help"
+      />
+    ),
   );
 
 

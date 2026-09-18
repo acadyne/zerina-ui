@@ -3,15 +3,6 @@ import React, {
 } from "react";
 
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
-
-import {
-  useFocusVisible,
-} from "../../core/interaction/focus/useFocusVisible";
-
-import {
-  dataAttr,
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
@@ -28,12 +19,8 @@ import {
 } from "./control-types";
 
 import {
-  useInputGroupDescendantState,
-} from "./input-group-context";
-
-import {
-  useFieldControl,
-} from "./use-field-control";
+  useTextControlRuntime,
+} from "./use-text-control-runtime";
 
 
 type TextareaSize =
@@ -148,23 +135,6 @@ export const Textarea =
       },
       ref
     ) => {
-      const fieldControl =
-        useFieldControl({
-          id,
-
-          disabled,
-          invalid,
-          required,
-          readOnly,
-
-          ariaInvalid,
-          ariaRequired,
-          ariaReadOnly,
-
-          ariaLabelledBy,
-          ariaDescribedBy,
-        });
-
       const spacingStyles =
         getSpacingStyles({
           m,
@@ -175,6 +145,7 @@ export const Textarea =
           ml,
           mr,
         });
+
 
       const rootSlot =
         resolveSlot<TextareaSlot>({
@@ -233,6 +204,7 @@ export const Textarea =
           },
         });
 
+
       const {
         onFocus:
           slotOnFocus,
@@ -243,41 +215,35 @@ export const Textarea =
         ...resolvedRootSlot
       } = rootSlot;
 
-      const focus =
-        useFocusVisible<HTMLTextAreaElement>({
-          disabled:
-            fieldControl.disabled,
 
-          onFocus:
-            composeEventHandlers<
-              React.FocusEvent<HTMLTextAreaElement>
-            >(
-              slotOnFocus as
-                | React.FocusEventHandler<HTMLTextAreaElement>
-                | undefined,
+      const runtime =
+        useTextControlRuntime<HTMLTextAreaElement>({
+          id,
 
-              onFocus
-            ),
+          disabled,
+          invalid,
+          required,
+          readOnly,
 
-          onBlur:
-            composeEventHandlers<
-              React.FocusEvent<HTMLTextAreaElement>
-            >(
-              slotOnBlur as
-                | React.FocusEventHandler<HTMLTextAreaElement>
-                | undefined,
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
 
-              onBlur
-            ),
-        });
+          ariaLabelledBy,
+          ariaDescribedBy,
 
-      const inputGroup =
-        useInputGroupDescendantState({
-          focused:
-            focus.focused,
+          onFocus,
+          onBlur,
 
-          focusVisible:
-            focus.focusVisible,
+          slotOnFocus:
+            slotOnFocus as
+              | React.FocusEventHandler<HTMLTextAreaElement>
+              | undefined,
+
+          slotOnBlur:
+            slotOnBlur as
+              | React.FocusEventHandler<HTMLTextAreaElement>
+              | undefined,
         });
 
 
@@ -285,98 +251,17 @@ export const Textarea =
         <textarea
           {...resolvedRootSlot}
           {...props}
-          {...focus.focusProps}
+          {...runtime.focus.focusProps}
+          {...runtime.commonProps}
 
           ref={ref}
 
-          id={
-            fieldControl.id
-          }
-
-          disabled={
-            fieldControl.disabled
-          }
-
-          required={
-            fieldControl.required
-          }
-
-          readOnly={
-            fieldControl.readOnly
-          }
-
-          aria-invalid={
-            fieldControl.ariaInvalid
-          }
-
-          aria-required={
-            fieldControl.ariaRequired
-          }
-
-          aria-readonly={
-            fieldControl.ariaReadOnly
-          }
-
-          aria-labelledby={
-            fieldControl.ariaLabelledBy
-          }
-
-          aria-describedby={
-            fieldControl.ariaDescribedBy
-          }
-
-          data-ui-control=""
-
           data-ui="textarea"
-
-          data-in-group={
-            dataAttr(
-              Boolean(
-                inputGroup
-              )
-            )
-          }
 
           data-size={size}
 
           data-variant={
             variant
-          }
-
-          data-focused={
-            dataAttr(
-              focus.focused
-            )
-          }
-
-          data-focus-visible={
-            dataAttr(
-              focus.focusVisible
-            )
-          }
-
-          data-invalid={
-            dataAttr(
-              fieldControl.invalid
-            )
-          }
-
-          data-disabled={
-            dataAttr(
-              fieldControl.disabled
-            )
-          }
-
-          data-required={
-            dataAttr(
-              fieldControl.required
-            )
-          }
-
-          data-readonly={
-            dataAttr(
-              fieldControl.readOnly
-            )
           }
         />
       );

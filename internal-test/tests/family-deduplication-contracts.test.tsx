@@ -26,7 +26,7 @@ import type {
 import {
   hasDialogTarget,
   resolveRenderableWithTarget,
-} from "../../src/patterns/shared/TargetDialogFrame";
+} from "../../src/patterns/shared/targetDialogContract";
 
 import {
   clickElement,

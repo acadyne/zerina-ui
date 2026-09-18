@@ -6,21 +6,26 @@ import {
   getComposedParentNode,
 } from "../../../core/dom";
 
+import {
+  composeEventHandlerChain,
+} from "../../../core/interaction/events";
+
 import type {
   FloatingPlacement,
 } from "../../../core/overlay";
 
 
 /**
- * Ejecuta todas las capas externas exactamente una vez.
+ * Compone las capas externas de Menu con la misma cancelación progresiva que
+ * el resto del sistema de interacción.
  *
- * `resolveLayeredSlot` compone clases y estilos, pero una prop ordinaria de la
- * última capa sustituye a la anterior. Los eventos necesitan otra semántica:
- * prop pública, slot local y slot de contexto conservan cada uno su callback.
+ * Orden:
  *
- * La función no interrumpe las capas externas por `defaultPrevented`. Esa señal
- * se consulta después, mediante `composeEventHandlers`, antes de entregar el
- * evento a la conducta interna de Menu.
+ * prop pública -> slot local -> slot de contexto.
+ *
+ * preventDefault() en una capa impide ejecutar las capas externas posteriores.
+ * Cuando esta composición se entrega a composeEventHandlers, la misma señal
+ * impide también la conducta interna.
  */
 export function composeMenuExternalHandlers<
   TEvent extends {
@@ -30,40 +35,19 @@ export function composeMenuExternalHandlers<
 >(
   ...handlers:
     Array<
-      | (
-          (
-            event: TEvent
-          ) => void
-        )
+      | ((
+          event: TEvent,
+        ) => void)
       | undefined
     >
 ):
-  | (
-      (
-        event: TEvent
-      ) => void
-    )
+  | ((
+      event: TEvent,
+    ) => void)
   | undefined {
-  if (
-    !handlers.some(
-      Boolean
-    )
-  ) {
-    return undefined;
-  }
-
-  return (
-    event: TEvent
-  ): void => {
-    for (
-      const handler
-      of handlers
-    ) {
-      handler?.(
-        event
-      );
-    }
-  };
+  return composeEventHandlerChain(
+    ...handlers,
+  );
 }
 
 

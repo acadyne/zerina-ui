@@ -1,6 +1,7 @@
 import React from "react";
 
 import {
+  composeEventHandlerChain,
   setRef,
 } from "../events";
 
@@ -207,37 +208,10 @@ export function composeTriggerEvent<
       "function"
   );
 
-  if (
-    externalHandlers.length ===
-      0 &&
-    !internalHandler
-  ) {
-    return undefined;
-  }
-
-  return (
-    event:
-      TEvent
-  ) => {
-    for (
-      const handler
-      of externalHandlers
-    ) {
-      handler(
-        event
-      );
-
-      if (
-        event.defaultPrevented
-      ) {
-        return;
-      }
-    }
-
-    internalHandler?.(
-      event
-    );
-  };
+  return composeEventHandlerChain(
+    ...externalHandlers,
+    internalHandler,
+  );
 }
 
 

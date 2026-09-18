@@ -301,8 +301,9 @@ export const MenuItem =
        * 2. slot local;
        * 3. slot de contexto.
        *
-       * Todas se ejecutan una vez. Después, defaultPrevented decide si Menu puede
-       * adoptar la conducta interna.
+       * Cada capa se ejecuta una vez hasta que alguna llama preventDefault().
+       * Esa cancelación impide tanto capas externas posteriores como la conducta
+       * interna de Menu.
        */
       const externalPointerEnter =
         composeMenuExternalHandlers(

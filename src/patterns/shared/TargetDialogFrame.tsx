@@ -1,6 +1,11 @@
 import React from "react";
 
 import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
   Dialog,
   DialogBody,
   DialogDescription,
@@ -9,57 +14,19 @@ import {
   DialogTitle,
 } from "../../primitives/overlay";
 
+import {
+  resolveRenderableWithTarget,
+  type RenderableWithTarget,
+} from "./targetDialogContract";
 
-export type RenderableWithTarget<
-  TTarget,
-> =
-  | React.ReactNode
-  | ((
-      target: TTarget,
-    ) => React.ReactNode);
-
-
-export function resolveRenderableWithTarget<
-  TTarget,
->(
-  value:
-    | RenderableWithTarget<TTarget>
-    | undefined,
-  target:
-    TTarget | null,
-): React.ReactNode {
-  if (
-    typeof value ===
-    "function"
-  ) {
-    return target !== null
-      ? (
-          value as (
-            target: TTarget,
-          ) => React.ReactNode
-        )(
-          target,
-        )
-      : null;
-  }
-
-  return value ?? null;
-}
-
-
-
-
-export function hasDialogTarget<TTarget>(
-  target: TTarget | null,
-): target is TTarget {
-  return target !== null;
-}
 
 export interface TargetDialogFrameProps<
   TTarget,
 > {
   open: boolean;
-  target: TTarget | null;
+
+  target:
+    TTarget | null;
 
   onOpenChange: (
     open: boolean,
@@ -87,10 +54,10 @@ export interface TargetDialogFrameProps<
     React.ReactNode;
 
   size?:
-    "sm" |
-    "md" |
-    "lg" |
-    "xl";
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl";
 
   initialFocusRef?:
     React.RefObject<
@@ -159,6 +126,27 @@ export function TargetDialogFrame<
       target,
     );
 
+  const hasDescription =
+    hasNonEmptyRenderableNode(
+      resolvedDescription,
+    );
+
+  const hasTargetLabel =
+    hasNonEmptyRenderableNode(
+      resolvedTargetLabel,
+    );
+
+  const hasError =
+    hasNonEmptyRenderableNode(
+      error,
+    );
+
+  const hasCustomFooter =
+    hasRenderableNode(
+      resolvedFooter,
+    );
+
+
   return (
     <Dialog
       open={open}
@@ -181,21 +169,23 @@ export function TargetDialogFrame<
           {title}
         </DialogTitle>
 
-        {resolvedDescription ||
-        resolvedTargetLabel ? (
+        {(
+          hasDescription ||
+          hasTargetLabel
+        ) ? (
           <DialogDescription>
             {
               resolvedDescription
             }
 
-            {resolvedTargetLabel ? (
+            {hasTargetLabel ? (
               <span
                 style={{
                   display:
                     "block",
 
                   marginTop:
-                    resolvedDescription
+                    hasDescription
                       ? "0.45rem"
                       : 0,
 
@@ -231,7 +221,7 @@ export function TargetDialogFrame<
               0,
           }}
         >
-          {error ? (
+          {hasError ? (
             <div
               role="alert"
               style={{
@@ -266,7 +256,7 @@ export function TargetDialogFrame<
       </DialogBody>
 
       <DialogFooter>
-        {resolvedFooter
+        {hasCustomFooter
           ? resolvedFooter
           : defaultFooter}
       </DialogFooter>

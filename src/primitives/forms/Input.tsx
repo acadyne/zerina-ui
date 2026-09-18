@@ -3,15 +3,6 @@ import React, {
 } from "react";
 
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
-
-import {
-  useFocusVisible,
-} from "../../core/interaction/focus/useFocusVisible";
-
-import {
-  dataAttr,
   getSpacingStyles,
   type SpaceProps,
 } from "../../helpers";
@@ -28,12 +19,8 @@ import {
 } from "./control-types";
 
 import {
-  useInputGroupDescendantState,
-} from "./input-group-context";
-
-import {
-  useFieldControl,
-} from "./use-field-control";
+  useTextControlRuntime,
+} from "./use-text-control-runtime";
 
 
 type InputSize =
@@ -148,23 +135,6 @@ export const Input =
       },
       ref
     ) => {
-      const fieldControl =
-        useFieldControl({
-          id,
-
-          disabled,
-          invalid,
-          required,
-          readOnly,
-
-          ariaInvalid,
-          ariaRequired,
-          ariaReadOnly,
-
-          ariaLabelledBy,
-          ariaDescribedBy,
-        });
-
       const spacingStyles =
         getSpacingStyles({
           m,
@@ -175,6 +145,7 @@ export const Input =
           ml,
           mr,
         });
+
 
       const rootSlot =
         resolveSlot<InputSlot>({
@@ -240,6 +211,7 @@ export const Input =
           },
         });
 
+
       const {
         onFocus:
           slotOnFocus,
@@ -250,41 +222,35 @@ export const Input =
         ...resolvedRootSlot
       } = rootSlot;
 
-      const focus =
-        useFocusVisible<HTMLInputElement>({
-          disabled:
-            fieldControl.disabled,
 
-          onFocus:
-            composeEventHandlers<
-              React.FocusEvent<HTMLInputElement>
-            >(
-              slotOnFocus as
-                | React.FocusEventHandler<HTMLInputElement>
-                | undefined,
+      const runtime =
+        useTextControlRuntime<HTMLInputElement>({
+          id,
 
-              onFocus
-            ),
+          disabled,
+          invalid,
+          required,
+          readOnly,
 
-          onBlur:
-            composeEventHandlers<
-              React.FocusEvent<HTMLInputElement>
-            >(
-              slotOnBlur as
-                | React.FocusEventHandler<HTMLInputElement>
-                | undefined,
+          ariaInvalid,
+          ariaRequired,
+          ariaReadOnly,
 
-              onBlur
-            ),
-        });
+          ariaLabelledBy,
+          ariaDescribedBy,
 
-      const inputGroup =
-        useInputGroupDescendantState({
-          focused:
-            focus.focused,
+          onFocus,
+          onBlur,
 
-          focusVisible:
-            focus.focusVisible,
+          slotOnFocus:
+            slotOnFocus as
+              | React.FocusEventHandler<HTMLInputElement>
+              | undefined,
+
+          slotOnBlur:
+            slotOnBlur as
+              | React.FocusEventHandler<HTMLInputElement>
+              | undefined,
         });
 
 
@@ -292,100 +258,19 @@ export const Input =
         <input
           {...resolvedRootSlot}
           {...props}
-          {...focus.focusProps}
+          {...runtime.focus.focusProps}
+          {...runtime.commonProps}
 
           ref={ref}
 
-          id={
-            fieldControl.id
-          }
-
           type={type}
 
-          disabled={
-            fieldControl.disabled
-          }
-
-          required={
-            fieldControl.required
-          }
-
-          readOnly={
-            fieldControl.readOnly
-          }
-
-          aria-invalid={
-            fieldControl.ariaInvalid
-          }
-
-          aria-required={
-            fieldControl.ariaRequired
-          }
-
-          aria-readonly={
-            fieldControl.ariaReadOnly
-          }
-
-          aria-labelledby={
-            fieldControl.ariaLabelledBy
-          }
-
-          aria-describedby={
-            fieldControl.ariaDescribedBy
-          }
-
-          data-ui-control=""
-
           data-ui="input"
-
-          data-in-group={
-            dataAttr(
-              Boolean(
-                inputGroup
-              )
-            )
-          }
 
           data-size={size}
 
           data-variant={
             variant
-          }
-
-          data-focused={
-            dataAttr(
-              focus.focused
-            )
-          }
-
-          data-focus-visible={
-            dataAttr(
-              focus.focusVisible
-            )
-          }
-
-          data-invalid={
-            dataAttr(
-              fieldControl.invalid
-            )
-          }
-
-          data-disabled={
-            dataAttr(
-              fieldControl.disabled
-            )
-          }
-
-          data-required={
-            dataAttr(
-              fieldControl.required
-            )
-          }
-
-          data-readonly={
-            dataAttr(
-              fieldControl.readOnly
-            )
           }
         />
       );

@@ -22,26 +22,41 @@ Owner: `src/core/dom/aria.ts`.
 
 ## 3. Composición progresiva de eventos
 
-Para TriggerRuntime:
+Owner:
+
+`src/core/interaction/events/composeEventHandlers.ts`
+
+La regla transversal es:
 
 ```text
-child → slot local → slot heredado → conducta interna
+capa 1
+→ capa 2
+→ capa 3
+→ conducta interna
 ```
 
-Cada capa observa el evento una vez.
+Cada capa observa el mismo evento como máximo una vez.
 
 Después de cada capa:
 
 ```text
 event.defaultPrevented === true
-    → detener la cadena
+    → detener toda capa posterior
 ```
 
-`preventDefault()` de una capa impide todas las capas posteriores.
+`preventDefault()` cancela progresivamente tanto callbacks externos posteriores como conducta interna.
 
-`stopPropagation()` sigue siendo propagación DOM; no altera por sí solo la cadena interna de composición.
+`stopPropagation()` conserva sólo su semántica DOM y no corta por sí mismo una cadena compuesta.
 
-Para composiciones simples external/internal se mantiene `composeEventHandlers`.
+Owners consumidores:
+
+- `TriggerRuntime` delega en `composeEventHandlerChain`;
+- Menu usa la misma cadena para `prop pública → slot local → slot contexto`;
+- `composeEventHandlers` conserva el caso simple external/internal.
+
+Excepción explícita:
+
+`checkDefaultPrevented: false` existe únicamente para composiciones donde una segunda capa es cleanup técnico que debe ejecutarse aunque el evento haya sido cancelado.
 
 ## 4. Época de apertura de Menu
 
@@ -112,13 +127,59 @@ Comparte:
 
 Las variantes aportan únicamente política de celda/edición.
 
-## 10. Diálogos orientados a target
+## 10. Diálogos y targets
 
-Un target existe cuando `target !== null`.
+Owner semántico del target:
 
-`0`, `""` y `false` son targets válidos.
+`src/patterns/shared/targetDialogContract.ts`
 
-ConfirmDialog y ActionDialog comparten frame; mantienen semánticas de operación distintas.
+Un target existe cuando:
+
+```text
+target !== null
+```
+
+Por tanto:
+
+```text
+0
+""
+false
+```
+
+son targets válidos.
+
+`resolveRenderableWithTarget` sólo ejecuta una función dependiente del target cuando ese contrato se cumple.
+
+### FormDialog
+
+`FormDialog` es el único owner de la transición:
+
+```text
+cancelar
+→ onCancel una vez
+→ onOpenChange(false) una vez
+```
+
+Tanto el botón Cancel como un dismiss del Dialog llegan a ese mismo owner.
+
+`TargetFormDialog` sólo adapta el payload del target. No vuelve a cerrar ni redispara cancelación.
+
+### ReactNode en dialogs
+
+Para contenido textual opcional:
+
+- description;
+- targetLabel;
+- error;
+
+se usa `hasNonEmptyRenderableNode`.
+
+`0` es contenido válido; `""` no materializa estructura textual vacía.
+
+Para footer custom se usa `hasRenderableNode`, de modo que un ReactNode renderizable puede reemplazar deliberadamente el footer por defecto.
+
+ConfirmDialog y ActionDialog comparten `TargetDialogFrame`; FormDialog permanece separado porque el elemento `<form>` necesita envolver header/body/footer para conservar submit nativo y `formProps`.
 
 ## 11. Runtime modal Drawer/BottomSheet
 

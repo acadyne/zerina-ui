@@ -14,9 +14,12 @@ import type {
 
 import {
   TargetDialogFrame,
+} from "./shared/TargetDialogFrame";
+
+import {
   hasDialogTarget,
   type RenderableWithTarget as SharedRenderableWithTarget,
-} from "./shared/TargetDialogFrame";
+} from "./shared/targetDialogContract";
 
 
 export type ConfirmDialogVariant =

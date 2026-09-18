@@ -510,11 +510,11 @@ export const MenuContent =
 
 
       /*
-       * Prop pública, slot local y slot de contexto se ejecutan una vez.
+       * Prop pública, slot local y slot de contexto forman una cadena progresiva.
        *
        * resolveLayeredSlot resuelve props ordinarias por precedencia, por lo que
-       * los handlers se extraen explícitamente. preventDefault de cualquiera
-       * bloquea después la navegación interna.
+       * los handlers se extraen explícitamente. preventDefault corta las capas
+       * posteriores y también la navegación interna.
        */
       const composedContentOnKeyDown =
         composeEventHandlers(
