@@ -660,3 +660,51 @@ Domain-specific ownership remains local:
 - app bar / bottom navigation / scaffold composition.
 
 `useNavigationEntries` is internal and is not exported from the navigation-stack public barrel.
+
+## 20. Motion app frame
+
+Internal owner:
+
+`src/core/motion/MotionAppFrame.tsx`
+
+Consumers:
+
+- MotionPresence;
+- MotionSwitch.
+
+The frame owns:
+
+```text
+useOptionalUIMotion
+→ effective preset
+→ app transition variants
+→ transition intent/transition
+→ AnimatePresence
+→ motion.div
+```
+
+Public wrapper policy remains separate:
+
+### MotionPresence
+
+- `present` decides whether a frame exists;
+- `motionKey` remains optional;
+- default key remains `"motion-presence"`.
+
+### MotionSwitch
+
+- always presents one frame;
+- `motionKey` remains required.
+
+The following public props keep the same meaning in both wrappers:
+
+- preset;
+- direction;
+- mode;
+- initial;
+- transitionIntent;
+- className;
+- style;
+- remaining motion div props.
+
+`MotionAppFrame` is internal and is not exported by `core/motion` or the package root.

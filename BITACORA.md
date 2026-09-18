@@ -8,15 +8,15 @@
 - Fase C: **CERRADA**.
 - Fase activa: **D — state engines y shells de producto**.
 - D1 DataTable shell: **CERRADA**.
-- D2 NavigationStack / TabScaffold: **CANDIDATO CORREGIDO — PENDIENTE DE VALIDACIÓN**.
-- D3 MotionPresence / MotionSwitch: pendiente.
+- D2 NavigationStack / TabScaffold: **CERRADA**.
+- D3 MotionPresence / MotionSwitch: **CANDIDATO CORREGIDO — PENDIENTE DE VALIDACIÓN**.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró D1
+## Validación que cerró D2
 
 ```text
-tests dirigidos D1       35/35 PASS
-Vitest completo         474/474 PASS
+tests dirigidos D2       33/33 PASS
+Vitest completo         487/487 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -28,6 +28,8 @@ git whitespace                PASS
 Validation complete.
 ```
 
+La corrida final fue limpia: no reapareció el warning `act(...)` de AnimatePresence.
+
 ## D1 — resultado vigente
 
 Owners:
@@ -35,15 +37,9 @@ Owners:
 - `useDataTableShell`;
 - `DataTableShellFrame`.
 
-DataTable y EditableDataTable ya no duplican state/search/sort/pagination, responsive mode, row identity, selection, export, loading shell ni pagination.
+## D2 — resultado vigente
 
-Las mutaciones editables permanecen en EditableDataTable.
-
-## D2 — decisión
-
-NavigationStack y TabScaffold compartían un engine de historial real.
-
-Nuevo owner interno:
+Owner interno:
 
 `src/patterns/navigation-stack/useNavigationEntries.ts`
 
@@ -51,173 +47,134 @@ Posee:
 
 - IDs y sequence;
 - controlled/uncontrolled;
-- normalización de vacío;
+- normalization;
 - transition direction;
 - current/currentIndex/canGoBack;
-- setEntries/updateEntries;
-- push;
-- replace;
-- pop;
-- popToRoot;
-- reset.
+- set/update entries;
+- push/replace/pop/popToRoot/reset.
 
-## D2 — política de vacío
+NavigationStack y TabScaffold conservan sus políticas de producto.
 
-La diferencia no se expresa con un modo de producto.
+## D3 — decisión
 
-Se expresa con:
+MotionPresence y MotionSwitch duplicaban la misma mecánica de app-transition.
 
-```text
-initialName: string | null
-```
+Nuevo owner interno:
 
-Semántica:
+`src/core/motion/MotionAppFrame.tsx`
+
+Posee:
 
 ```text
-null
-→ historial vacío permitido
-
-cualquier string, incluido ""
-→ fallback entry válida
+useOptionalUIMotion
+→ effective preset
+→ getAppTransitionVariants
+→ getTransition
+→ AnimatePresence
+→ motion.div
 ```
 
-NavigationStack pasa `initialName` tal cual.
+## D3 — APIs preservadas
 
-TabScaffold convierte “sin tab inicial válido” a `null`.
-
-## D2 — ownership preservado
-
-### NavigationStack
+### MotionPresence
 
 Conserva:
 
-- screen registry;
-- screen fallback;
-- MotionSwitch;
-- motion preset;
-- NavigationStackContext.
+- `present`;
+- `motionKey?`;
+- default key `"motion-presence"`.
 
-### TabScaffold
+### MotionSwitch
 
 Conserva:
 
-- getInitialTab;
-- getActiveTab;
-- validación de tabs disabled;
-- resetToTab;
-- onTabChange;
-- app bar;
-- bottom navigation;
-- scaffold composition.
+- `motionKey` obligatorio;
+- siempre presenta un frame.
 
-## D2 — cleanup
+Ambos conservan sin cambios:
 
-Retirados:
+- preset;
+- direction;
+- mode;
+- initial;
+- transitionIntent;
+- className;
+- style;
+- remaining motion div props.
 
-- `createNavigationStackEntry`;
-- `createTabScaffoldEntry`.
+`MotionAppFrame` no se exporta por ningún barrel público.
 
-Ya no existen en los wrappers:
+## D3 — verificación estática
 
-- React.useId para entries;
-- entrySequenceRef;
-- internalEntries;
-- internalTransitionDirection.
+```text
+MotionPresence direct motion engine owners    0
+MotionSwitch direct motion engine owners      0
+MotionAppFrame public exposure                0
+broken relative imports                       0
+```
 
-`useNavigationEntries` no se exporta por API pública.
-
-## D2 — tests
+## D3 — tests
 
 Nuevos:
 
-- `state-phase-d2-navigation-entries-ownership.test.ts`;
-- `state-phase-d2-navigation-entries-behavior.test.tsx`.
+- `state-phase-d3-motion-frame-ownership.test.ts`;
+- `state-phase-d3-motion-frame-behavior.test.tsx`.
 
 Cubren:
 
 - owner único;
-- helper interno no público;
-- retiro de factories paralelos;
-- push/replace/pop/popToRoot/reset;
-- dirección de transición;
-- controlled rejected update;
-- diferencia `null` vs `""`;
-- wiring real de NavigationStack;
-- resetToTab real de TabScaffold.
+- wrappers sin mecánica duplicada;
+- key contract opcional/obligatorio;
+- MotionAppFrame interno;
+- MotionPresence `present=false`;
+- forwarding de host props;
+- MotionSwitch siempre presente.
 
-## Verificación estática disponible
-
-```text
-broken relative imports                     0
-NavigationStack local entry-state owners    0
-TabScaffold local entry-state owners        0
-```
-
-## Criterio de cierre D2
+## Criterio de cierre D3 / Fase D
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests D2 dirigidos
-regresión state/family
+tests D3 dirigidos
+regresión D2/public surface
 pnpm validate
 ```
 
-Sólo después se abre D3.
+Si queda verde:
 
-## Corrección del candidato D2
+1. D3 se marca CERRADA;
+2. Fase D completa se marca CERRADA;
+3. se abre Fase E — slot/layout/recipes/types.
 
-La primera validación detectó dos problemas en el test nuevo, no en el engine:
+## Corrección del candidato D3
 
-1. import `React` sin uso con `noUnusedLocals`;
-2. una aserción que esperaba el swap de `MotionSwitch/AnimatePresence` de forma sincrónica.
-
-Además, el test de `TabScaffold.resetToTab` provocaba un warning `act(...)` al cambiar realmente el `motionKey`.
-
-Corrección:
-
-- se retiró el import inutilizado;
-- NavigationStack prueba ahora el wiring mediante `onEntriesChange` + transition direction;
-- TabScaffold se prueba en modo controlled y rechazado:
-  - `resetToTab("settings")` emite entries `["settings"]`;
-  - direction `replace`;
-  - `onTabChange("settings")`;
-  - el render controlado permanece en `home`;
-  - no cambia el motionKey, por lo que el test no depende del lifecycle asíncrono de Framer Motion.
-
-No cambió `useNavigationEntries` ni el producto.
-
-## Segunda corrección del candidato D2
-
-La segunda validación fue funcionalmente verde:
+La primera validación D3 mostró:
 
 ```text
-tests dirigidos D2       33/33 PASS
-Vitest completo         487/487 PASS
-Chromium                  65/65 PASS
-Validation complete.
+internal-test typecheck                     PASS
+behavior D3                              3/3 PASS
+regresión D2                            5/5 PASS
+public surface                         17/17 PASS
+ownership D3                            3/5 PASS
 ```
 
-pero el test de wiring de NavigationStack todavía provocaba un warning `act(...)` de AnimatePresence.
+Los dos fallos eran falsos positivos del test de ownership.
 
 Causa:
 
-el test usaba NavigationStack uncontrolled. `navigation.push()` actualizaba realmente el stack y cambiaba el `motionKey`, por lo que Framer Motion programaba su lifecycle interno después del `act` del click helper.
+los wrappers ya no renderizan `<AnimatePresence>` ni lo importan como valor, pero conservan legítimamente el tipo público:
+
+```text
+AnimatePresenceProps["mode"]
+```
+
+El test prohibía la cadena genérica `AnimatePresence`, por lo que confundía dependencia de tipos con ownership de runtime.
 
 Corrección:
 
-NavigationStack se prueba ahora en modo controlled/rejected, igual que TabScaffold:
+- ahora prohíbe `<AnimatePresence`, que es la mecánica JSX duplicada real;
+- además prohíbe un import de valor de `AnimatePresence` desde `framer-motion`;
+- permite `AnimatePresenceProps` como type-only dependency.
 
-```text
-entries=["home"]
-transitionDirection="replace"
-push("detail")
-→ onEntriesChange(["home","detail"], "forward")
-→ render controlado permanece en home
-→ motionKey no cambia
-```
-
-Esto prueba el wiring real del shared history owner sin hacer depender D2 del lifecycle asíncrono de MotionSwitch, que pertenece a D3.
-
-No cambió producto ni `useNavigationEntries`.
+No se modificó producto, API ni `MotionAppFrame`.

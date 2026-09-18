@@ -1678,7 +1678,7 @@ Fase D parte de este baseline.
 
 Estado:
 
-**MAPEADO — BLOQUEADO HASTA CIERRE LIMPIO DE D2**
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
 
 Coincidencia real:
 
@@ -1714,3 +1714,70 @@ Frontera candidata:
    - obligatoriedad de motionKey.
 
 No cambiar API pública, presets, mode, initial ni transitionIntent.
+
+### Implementación D3
+
+Nuevo owner interno:
+
+`src/core/motion/MotionAppFrame.tsx`
+
+Centraliza:
+
+```text
+UIMotion state
+effective preset
+variants
+transition
+AnimatePresence
+motion.div
+```
+
+Wrappers públicos preservados:
+
+```text
+MotionPresence
+→ present boolean
+→ motionKey opcional
+→ default "motion-presence"
+
+MotionSwitch
+→ present siempre true
+→ motionKey obligatorio
+```
+
+Verificación estática:
+
+```text
+MotionPresence direct useOptionalUIMotion         0
+MotionPresence direct getAppTransitionVariants   0
+MotionPresence direct <AnimatePresence            0
+MotionSwitch direct useOptionalUIMotion           0
+MotionSwitch direct getAppTransitionVariants     0
+MotionSwitch direct <AnimatePresence              0
+MotionAppFrame public barrel exposure             0
+broken relative imports                          0
+```
+
+Tests:
+
+- `state-phase-d3-motion-frame-ownership.test.ts`;
+- `state-phase-d3-motion-frame-behavior.test.tsx`.
+
+### Cierre D2
+
+**CERRADA**
+
+Validación limpia final:
+
+```text
+tests dirigidos D2       33/33 PASS
+Vitest completo         487/487 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+Validation complete.
+```
+
+La corrida final no emitió el warning `act(...)` de AnimatePresence.

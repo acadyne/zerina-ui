@@ -415,8 +415,8 @@ Cambios futuros de focus/dismiss/trigger no requieren sincronizar múltiples ker
 ## Estado actual de Fase D
 
 - D1 DataTable shell: **CERRADA**.
-- D2 Navigation entries: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- D3 Motion presence duplication: pendiente.
+- D2 Navigation entries: **CERRADA**.
+- D3 Motion presence duplication: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 
 ## Objetivo
 

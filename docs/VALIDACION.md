@@ -468,3 +468,60 @@ La segunda corrida pasó completa pero conservó un warning `act(...)` de Animat
 El test ahora usa NavigationStack controlled/rejected y verifica `onEntriesChange` sin disparar una transición MotionSwitch.
 
 Revalidar D2 con el mismo bloque.
+
+## Fase D2 cerrada
+
+Resultado limpio reportado:
+
+```text
+tests dirigidos D2       33/33 PASS
+Vitest completo         487/487 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+Sin warning `act(...)` en la corrida final.
+
+## Candidato Fase D3
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/state-phase-d3-motion-frame-ownership.test.ts \
+  tests/state-phase-d3-motion-frame-behavior.test.tsx \
+  tests/state-phase-d2-navigation-entries-behavior.test.tsx \
+  tests/public-surface-contract.test.ts
+
+pnpm validate
+```
+
+D3 y Fase D sólo se cierran con `Validation complete.`.
+
+### Corrección del primer candidato D3
+
+El primer intento falló sólo en dos assertions de ownership: el test prohibía la cadena `AnimatePresence`, pero los wrappers conservan legítimamente `AnimatePresenceProps["mode"]` como tipo público.
+
+El contrato corregido prohíbe:
+
+```text
+<AnimatePresence
+runtime import de AnimatePresence
+```
+
+y permite `AnimatePresenceProps` como import type.
+
+No hubo cambios de producto.
+
+Revalidar D3 con el mismo bloque.
