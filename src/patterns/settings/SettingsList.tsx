@@ -426,48 +426,6 @@ const SettingsListSwitch =
           description
         );
 
-      const isControlled =
-        checked !== undefined;
-
-      const [
-        internalChecked,
-        setInternalChecked,
-      ] = React.useState(
-        Boolean(defaultChecked)
-      );
-
-      const resolvedChecked =
-        isControlled
-          ? Boolean(checked)
-          : internalChecked;
-
-      const commitCheckedChange =
-        React.useCallback(
-          (
-            nextChecked: boolean,
-            event:
-              React.ChangeEvent<HTMLInputElement>
-          ): void => {
-            onCheckedChange?.(
-              nextChecked,
-              event
-            );
-
-            if (
-              !isControlled &&
-              !event.defaultPrevented
-            ) {
-              setInternalChecked(
-                nextChecked
-              );
-            }
-          },
-          [
-            isControlled,
-            onCheckedChange,
-          ]
-        );
-
       return (
         <List.Item
           title={
@@ -488,8 +446,10 @@ const SettingsListSwitch =
               ref={ref}
               size={size}
 
-              checked={
-                resolvedChecked
+              checked={checked}
+
+              defaultChecked={
+                defaultChecked
               }
 
               disabled={disabled}
@@ -511,7 +471,7 @@ const SettingsListSwitch =
               onChange={(
                 event
               ) => {
-                commitCheckedChange(
+                onCheckedChange?.(
                   event.currentTarget
                     .checked,
                   event
@@ -558,48 +518,6 @@ const SettingsListCheckbox =
           description
         );
 
-      const isControlled =
-        checked !== undefined;
-
-      const [
-        internalChecked,
-        setInternalChecked,
-      ] = React.useState(
-        Boolean(defaultChecked)
-      );
-
-      const resolvedChecked =
-        isControlled
-          ? Boolean(checked)
-          : internalChecked;
-
-      const commitCheckedChange =
-        React.useCallback(
-          (
-            nextChecked: boolean,
-            event:
-              React.ChangeEvent<HTMLInputElement>
-          ): void => {
-            onCheckedChange?.(
-              nextChecked,
-              event
-            );
-
-            if (
-              !isControlled &&
-              !event.defaultPrevented
-            ) {
-              setInternalChecked(
-                nextChecked
-              );
-            }
-          },
-          [
-            isControlled,
-            onCheckedChange,
-          ]
-        );
-
       return (
         <List.Item
           title={
@@ -619,8 +537,10 @@ const SettingsListCheckbox =
 
               ref={ref}
 
-              checked={
-                resolvedChecked
+              checked={checked}
+
+              defaultChecked={
+                defaultChecked
               }
 
               disabled={disabled}
@@ -642,7 +562,7 @@ const SettingsListCheckbox =
               onChange={(
                 event
               ) => {
-                commitCheckedChange(
+                onCheckedChange?.(
                   event.currentTarget
                     .checked,
                   event
