@@ -409,3 +409,75 @@ with progressive `preventDefault()` cancellation.
 When a passive trigger wraps a Zerina press-target (`Button`, `IconButton`, `Pressable`), the runtime preserves the child's `onPress` owner. A real click from that press cycle is exposed to the passive click layer through the same native React event; no second click/press is synthesized.
 
 `src/primitives/overlay/triggerProps.ts` is retired. Popover and Tooltip no longer own independent child/ref/class/style/event merge code.
+
+## 17. Floating overlay runtime
+
+Owner estructural:
+
+`src/core/overlay/FloatingOverlayRuntime.tsx`
+
+Consumidores:
+
+- PopoverContent;
+- MenuContent;
+- NavigationMenuPanel;
+- TooltipContent.
+
+El runtime posee únicamente:
+
+```text
+present
+→ MotionPresenceGroup
+→ optional Portal
+→ FloatingLayer
+→ floating render props
+```
+
+Incluye la configuración mecánica compartida de:
+
+- anchor ref;
+- placement;
+- offset;
+- flip;
+- shift;
+- viewport padding;
+- z-index;
+- matchAnchorWidth;
+- resize/scroll updates;
+- floating element ref;
+- portal/container.
+
+El runtime NO posee:
+
+- open state de dominio;
+- recipes;
+- roles/ARIA;
+- dismiss callbacks;
+- FocusScope;
+- navegación de Menu;
+- timers/hover/touch de Tooltip.
+
+### `portalled={false}`
+
+No se implementa mediante `<Portal disabled>`.
+
+Se conserva un branch estructural explícito:
+
+```text
+portalled
+  ? <Portal>...</Portal>
+  : animated
+```
+
+porque `Portal` consulta `OverlayProvider` antes de evaluar `disabled`. De este modo los overlays no portalled que antes podían operar sin `OverlayProvider` conservan esa propiedad.
+
+### Dismiss / focus
+
+No se añade un segundo runtime universal.
+
+- Popover mantiene `DismissableLayer + FocusScope`;
+- Menu mantiene `DismissableLayer`;
+- NavigationMenuPanel mantiene `DismissableLayer`;
+- Tooltip mantiene su outside-pointer owner actual.
+
+La razón es estructural: esas capas no ocupan la misma posición ni comparten la misma política. El engine común de dismiss ya existe en `DismissableLayer`; forzar otra abstracción superior introduciría callbacks/opciones opacas sin eliminar un segundo engine real.

@@ -5,13 +5,11 @@ import {
   type HTMLMotionProps,
 } from "framer-motion";
 import {
-  FloatingLayer,
-  Portal,
+  FloatingOverlayRuntime,
   getLayerZIndex,
   type FloatingPlacement,
 } from "../../core/overlay";
 import {
-  MotionPresenceGroup,
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
@@ -874,32 +872,61 @@ export const TooltipContent =
         setOpen,
       ]);
 
-      const content =
-        open &&
-          anchorNode ? (
-          <FloatingLayer
-            anchorRef={
-              anchorRef
-            }
-            floatingElementRef={
-              setRefs
-            }
-            open={open}
-            placement={placement}
-            offset={offset}
-            flip={flip}
-            shift={shift}
-            viewportPadding={
-              viewportPadding
-            }
-            zIndex={
-              getLayerZIndex(
-                "tooltip"
-              )
-            }
-            strategy="fixed"
-          >
-            {({
+      return (
+        <FloatingOverlayRuntime
+          open={
+            open
+          }
+
+          present={
+            open &&
+            anchorNode !==
+              null
+          }
+
+          anchorRef={
+            anchorRef
+          }
+
+          floatingElementRef={
+            setRefs
+          }
+
+          placement={
+            placement
+          }
+
+          offset={
+            offset
+          }
+
+          flip={
+            flip
+          }
+
+          shift={
+            shift
+          }
+
+          viewportPadding={
+            viewportPadding
+          }
+
+          zIndex={
+            getLayerZIndex(
+              "tooltip"
+            )
+          }
+
+          portalled={
+            portalled
+          }
+
+          container={
+            container
+          }
+        >
+          {({
               ref:
               floatingRef,
 
@@ -970,23 +997,8 @@ export const TooltipContent =
                 </motion.div>
               );
             }}
-          </FloatingLayer>
-        ) : null;
 
-      const animated = (
-        <MotionPresenceGroup>
-          {content}
-        </MotionPresenceGroup>
-      );
-
-      return portalled ? (
-        <Portal
-          container={container}
-        >
-          {animated}
-        </Portal>
-      ) : (
-        animated
+        </FloatingOverlayRuntime>
       );
     }
   );

@@ -6,3 +6,4 @@ export * from "./DismissableLayer";
 export * from "./FocusScope";
 export * from "./ScrollLock";
 export * from "./FloatingLayer";
+export * from "./FloatingOverlayRuntime";

@@ -7,13 +7,11 @@ import {
 } from "framer-motion";
 import {
   DismissableLayer,
-  FloatingLayer,
-  Portal,
+  FloatingOverlayRuntime,
   getLayerZIndex,
   type FloatingPlacement,
 } from "../../core/overlay";
 import {
-  MotionPresenceGroup,
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
@@ -259,20 +257,53 @@ export const NavigationMenuPanel =
       const layer =
         getLayerZIndex("dropdown") + depth;
 
-      const content =
-        open ? (
-          <FloatingLayer
-            anchorRef={anchorRef}
-            open={open}
-            placement={placement}
-            offset={offset}
-            flip={flip}
-            shift={shift}
-            viewportPadding={viewportPadding}
-            zIndex={layer}
-            strategy="fixed"
-          >
-            {({
+      return (
+        <FloatingOverlayRuntime
+          open={
+            open
+          }
+
+          present={
+            open
+          }
+
+          anchorRef={
+            anchorRef
+          }
+
+          placement={
+            placement
+          }
+
+          offset={
+            offset
+          }
+
+          flip={
+            flip
+          }
+
+          shift={
+            shift
+          }
+
+          viewportPadding={
+            viewportPadding
+          }
+
+          zIndex={
+            layer
+          }
+
+          portalled={
+            portalled
+          }
+
+          container={
+            container
+          }
+        >
+          {({
               ref: floatingRef,
               style: floatingStyle,
               placement: resolvedPlacement,
@@ -391,21 +422,8 @@ export const NavigationMenuPanel =
                 </DismissableLayer>
               );
             }}
-          </FloatingLayer>
-        ) : null;
 
-      const animated = (
-        <MotionPresenceGroup>
-          {content}
-        </MotionPresenceGroup>
-      );
-
-      return portalled ? (
-        <Portal container={container}>
-          {animated}
-        </Portal>
-      ) : (
-        animated
+        </FloatingOverlayRuntime>
       );
     }
   );

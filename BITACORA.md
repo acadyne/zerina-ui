@@ -4,18 +4,18 @@
 
 - Versión cerrada: `0.3.0`.
 - Fase A: **CERRADA**.
-- Fase B — convergencia de formularios: **CERRADA**.
+- Fase B: **CERRADA**.
 - Fase activa: **C — triggers y overlays**.
-- C1 trigger runtime único: **CORREGIDA — PENDIENTE DE REVALIDACIÓN LIMPIA**.
-- C2 floating overlays: **MAPEADA — IMPLEMENTACIÓN BLOQUEADA HASTA CIERRE LIMPIO DE C1**.
+- C1 trigger runtime único: **CERRADA**.
+- C2 floating overlays: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - C3 Dialog → modal runtime: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró Fase B
+## Validación que cerró C1
 
 ```text
-tests dirigidos B4       73/73 PASS
-Vitest completo         447/447 PASS
+tests dirigidos C1       11/11 PASS
+Vitest completo         454/454 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -27,210 +27,151 @@ git whitespace                PASS
 Validation complete.
 ```
 
-## Fase B — owners resultantes
+La revalidación fue limpia: no reapareció el warning de `onPress` sobre hosts DOM.
 
-- `useTextControlRuntime`;
-- `FieldMessageFrame`;
-- `useChoiceControlRuntime`;
-- `usePressSlotBridge`;
-- `useControllableValue`.
+## C2 — decisión final
 
-Engines complejos deliberadamente diferidos a Fase D:
+La inspección concreta mostró que el owner común correcto es estructural.
 
-- AdaptiveScaffold;
-- NavigationStack;
-- TabScaffold.
+Nuevo:
 
-## Fase C — objetivo
+`src/core/overlay/FloatingOverlayRuntime.tsx`
 
-Reducir runtimes paralelos de interacción/overlay sin fusionar componentes con semánticas distintas.
+Posee:
 
-Scope:
-
-1. C1 — trigger runtime;
-2. C2 — floating overlays;
-3. C3 — Dialog hacia modal runtime.
-
-Fuera de scope:
-
-- DataTable;
-- navigation state;
-- layout;
-- slot precedence global;
-- rediseño visual.
-
-## C1 — decisión
-
-Popover y Tooltip compartían infraestructura de trigger pero NO la misma semántica.
-
-### Modo `press`
+```text
+present
+→ MotionPresenceGroup
+→ optional Portal
+→ FloatingLayer
+→ floating ref/style/placement plumbing
+```
 
 Consumidores:
 
-- MenuTrigger;
-- CollapsibleTrigger;
-- PopoverTrigger.
+- PopoverContent;
+- MenuContent;
+- NavigationMenuPanel;
+- TooltipContent.
 
-Adquiere activación vía `usePress` y protocolo press-target.
+## C2 — responsabilidades centralizadas
 
-### Modo `passive`
+- anchor ref;
+- open/present plumbing;
+- placement;
+- offset;
+- flip;
+- shift;
+- viewport padding;
+- z-index;
+- matchAnchorWidth;
+- resize/scroll updates;
+- floating element ref;
+- MotionPresenceGroup;
+- portal/container.
 
-Consumidor:
-
-- TooltipTrigger.
-
-Comparte:
-
-- refs;
-- asChild;
-- merge class/style;
-- element props;
-- event layers;
-- ARIA ownership.
-
-Pero no convierte automáticamente un elemento `asChild` pasivo en botón.
-
-Ejemplo:
+Resultado estático:
 
 ```text
-TooltipTrigger asChild + <span>
-→ sigue siendo span
-→ sin role="button"
-→ sin tabIndex inventado
+direct <FloatingLayer> en los 4 consumidores        0
+direct <MotionPresenceGroup> en los 4 consumidores  0
+direct <Portal> en los 4 consumidores                0
+FloatingOverlayRuntime consumers                     4
 ```
 
-## C1 — cambios implementados
+## C2 — diferencias preservadas
 
-`TriggerRuntime` ahora expone internamente:
+### Popover
+
+Mantiene local:
+
+- recipe;
+- DismissableLayer;
+- FocusScope;
+- trapFocus;
+- autoFocus;
+- restoreFocus;
+- role/ARIA.
+
+### Menu
+
+Mantiene local:
+
+- layered dismissable slot;
+- DismissableLayer;
+- roving/menu keyboard;
+- restore-focus policy;
+- menu role/ARIA.
+
+### NavigationMenuPanel
+
+Mantiene local:
+
+- DismissableLayer;
+- Escape/outside callbacks específicos;
+- depth/layer;
+- navigation semantics.
+
+### Tooltip
+
+Mantiene local:
+
+- hover/focus/touch lifecycle;
+- custom outside-pointer detection;
+- role tooltip;
+- recipe.
+
+Tooltip NO se migra a DismissableLayer en C2 porque eso introduciría dependencia de OverlayProvider y cambiaría su estructura/semántica no-portalled.
+
+## Invariante `portalled={false}`
+
+`FloatingOverlayRuntime` no usa `<Portal disabled>`.
+
+Hace branch explícito:
 
 ```text
-interactionMode="press" | "passive"
+portalled
+→ Portal
+else
+→ animated directamente
 ```
 
-PopoverTrigger:
+Motivo: `Portal` consulta OverlayProvider antes de procesar `disabled`.
 
-```text
-TriggerRuntime press
-```
+## Tests C2
 
-TooltipTrigger:
+Nuevos:
 
-```text
-TriggerRuntime passive
-```
+- `overlay-phase-c2-floating-runtime-ownership.test.ts`;
+- `overlay-phase-c2-floating-runtime-behavior.test.tsx`.
 
-El modo passive también reconoce Zerina press-targets:
+Protegen:
 
-- Button;
-- IconButton;
-- Pressable.
+- owner estructural único;
+- ausencia de dismiss/focus en el runtime;
+- diferencias locales deliberadas;
+- no ejecutar floating render cuando `present=false`;
+- `portalled=false` sin OverlayProvider;
+- Tooltip no-portalled sin OverlayProvider.
 
-Conserva el `onPress` del hijo y sólo entrega un click real a la capa pasiva cuando el native event corresponde a click. No sintetiza un segundo press.
+## Verificación disponible en snapshot
 
-Retirado:
+- TypeScript syntax parse de archivos modificados: PASS.
+- No quedan usos JSX directos de FloatingLayer/MotionPresenceGroup/Portal en los cuatro consumidores.
 
-`src/primitives/overlay/triggerProps.ts`
-
-Ya no existen consumidores de:
-
-`mergeTriggerProps`.
-
-## C1 — tests añadidos
-
-- `overlay-phase-c1-trigger-ownership.test.ts`;
-- `overlay-phase-c1-trigger-behavior.test.tsx`.
-
-Cubren:
-
-- Popover/Tooltip con owner único;
-- eliminación del runtime paralelo;
-- Tooltip span sin button semantics;
-- child preventDefault cortando slot + internal;
-- Popover activado por Pressable press-target;
-- child cancelando activación Popover.
-
-## Verificación estática disponible
-
-- imports relativos de `src`: 0 rotos;
-- `mergeTriggerProps`: 0 consumidores;
-- `triggerProps.ts`: eliminado.
-
-## Criterio de cierre C1
+## Criterio de cierre C2
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests C1 dirigidos
-trigger/event regression
+tests C2 dirigidos
+regresión C1/overlay/modal
 pnpm validate
 ```
 
-Sólo después se abre C2.
+Si queda verde:
 
-## C1 — residuo detectado por validación
-
-La validación funcional fue verde:
-
-```text
-tests dirigidos C1       18/18 PASS
-Vitest completo         454/454 PASS
-Chromium                  65/65 PASS
-typechecks/build              PASS
-React 18/19 consumers         PASS
-Validation complete.
-```
-
-Pero React emitió:
-
-```text
-Unknown event handler property `onPress`
-```
-
-sobre un `<span>` pasivo.
-
-Causa:
-
-`PassiveTriggerRoot` incluía la key `onPress` en `renderedProps` aun cuando su valor era `undefined`.
-
-Corrección:
-
-- `onPress` ya no existe en el objeto DOM por defecto;
-- sólo se materializa si `pressTarget === true`;
-- el test C1 ahora espía `console.error` y prohíbe explícitamente ese warning.
-
-C1 no se declara cerrada hasta una revalidación limpia.
-
-## C2 — mapa listo
-
-La frontera elegida es un `FloatingOverlayRuntime` estructural.
-
-Debe compartir:
-
-```text
-FloatingLayer
-presence/portal
-optional dismiss wrapper
-optional focus wrapper
-floating ref/style/side plumbing
-```
-
-No debe poseer:
-
-- open state;
-- recipes;
-- roles/ARIA;
-- menu navigation;
-- tooltip timers/touch;
-- domain callbacks.
-
-Orden propuesto:
-
-```text
-Popover
-→ NavigationMenuPanel
-→ Menu
-→ Tooltip
-```
-
-No se implementa C2 hasta cerrar C1 sin warnings.
+1. C2 se marca CERRADA;
+2. se abre C3;
+3. C3 generaliza ModalOverlayRuntime sólo donde pueda expresar Dialog modal/non-modal sin borrar diferencias.

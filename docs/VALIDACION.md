@@ -272,3 +272,54 @@ pnpm --filter zerina-ui-internal-test exec vitest run \
 
 pnpm validate
 ```
+
+## Fase C1 cerrada
+
+Revalidación limpia reportada:
+
+```text
+tests dirigidos C1       11/11 PASS
+Vitest completo         454/454 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+No reapareció el warning React de `onPress` sobre hosts DOM.
+
+## Candidato Fase C2
+
+Verificación estática del snapshot:
+
+```text
+TypeScript syntax parse                         PASS
+direct FloatingLayer consumers (target family) 0
+direct MotionPresenceGroup consumers            0
+direct Portal consumers                         0
+FloatingOverlayRuntime consumers                4
+```
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/overlay-phase-c2-floating-runtime-ownership.test.ts \
+  tests/overlay-phase-c2-floating-runtime-behavior.test.tsx \
+  tests/overlay-phase-c1-trigger-behavior.test.tsx \
+  tests/interaction-overlay-source.test.ts \
+  tests/modal-overlay-runtime.test.tsx
+
+pnpm validate
+```
+
+C2 sólo se cierra con `Validation complete.`.

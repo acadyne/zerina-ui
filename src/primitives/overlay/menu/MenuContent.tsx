@@ -8,13 +8,11 @@ import {
 
 import {
   DismissableLayer,
-  FloatingLayer,
-  Portal,
+  FloatingOverlayRuntime,
   getLayerZIndex,
 } from "../../../core/overlay";
 
 import {
-  MotionPresenceGroup,
   useOptionalUIMotion,
 } from "../../../core/motion";
 
@@ -527,42 +525,61 @@ export const MenuContent =
         );
 
 
-      const content =
-        ctx.open &&
-          ctx.anchorRef.current ? (
-          <FloatingLayer
-            anchorRef={
-              ctx.anchorRef
-            }
-            open={
-              ctx.open
-            }
-            placement={
-              placement
-            }
-            offset={
-              offset
-            }
-            flip={
-              flip
-            }
-            shift={
-              shift
-            }
-            viewportPadding={
-              viewportPadding
-            }
-            zIndex={
-              getLayerZIndex(
-                "dropdown"
-              )
-            }
-            strategy="fixed"
-            matchAnchorWidth={
-              matchAnchorWidth
-            }
-          >
-            {({
+      return (
+        <FloatingOverlayRuntime
+          open={
+            ctx.open
+          }
+
+          present={
+            ctx.open &&
+            ctx.anchorRef.current !==
+              null
+          }
+
+          anchorRef={
+            ctx.anchorRef
+          }
+
+          placement={
+            placement
+          }
+
+          offset={
+            offset
+          }
+
+          flip={
+            flip
+          }
+
+          shift={
+            shift
+          }
+
+          viewportPadding={
+            viewportPadding
+          }
+
+          zIndex={
+            getLayerZIndex(
+              "dropdown"
+            )
+          }
+
+          matchAnchorWidth={
+            matchAnchorWidth
+          }
+
+          portalled={
+            portalled
+          }
+
+          container={
+            container
+          }
+        >
+          {({
               ref: floatingRef,
               style: floatingStyle,
               placement: resolvedPlacement,
@@ -736,24 +753,8 @@ export const MenuContent =
                 </DismissableLayer>
               );
             }}
-          </FloatingLayer>
-        ) : null;
 
-
-      const animated =
-        (
-          <MotionPresenceGroup>
-            {content}
-          </MotionPresenceGroup>
-        );
-
-
-      return portalled ? (
-        <Portal container={container}>
-          {animated}
-        </Portal>
-      ) : (
-        animated
+        </FloatingOverlayRuntime>
       );
     }
   );

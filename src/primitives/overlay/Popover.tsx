@@ -6,13 +6,11 @@ import {
 } from "framer-motion";
 import {
   DismissableLayer,
-  FloatingLayer,
+  FloatingOverlayRuntime,
   FocusScope,
-  Portal,
   getLayerZIndex,
 } from "../../core/overlay";
 import {
-  MotionPresenceGroup,
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
@@ -594,32 +592,61 @@ export const PopoverContent =
               .focusScope,
         });
 
-      const content =
-        ctx.open &&
-          ctx.anchorRef.current ? (
-          <FloatingLayer
-            anchorRef={
-              ctx.anchorRef
-            }
-            open={ctx.open}
-            placement={placement}
-            offset={offset}
-            flip={flip}
-            shift={shift}
-            viewportPadding={
-              viewportPadding
-            }
-            zIndex={
-              getLayerZIndex(
-                "popover"
-              )
-            }
-            strategy="fixed"
-            matchAnchorWidth={
-              matchAnchorWidth
-            }
-          >
-            {({
+      return (
+        <FloatingOverlayRuntime
+          open={
+            ctx.open
+          }
+
+          present={
+            ctx.open &&
+            ctx.anchorRef.current !==
+              null
+          }
+
+          anchorRef={
+            ctx.anchorRef
+          }
+
+          placement={
+            placement
+          }
+
+          offset={
+            offset
+          }
+
+          flip={
+            flip
+          }
+
+          shift={
+            shift
+          }
+
+          viewportPadding={
+            viewportPadding
+          }
+
+          zIndex={
+            getLayerZIndex(
+              "popover"
+            )
+          }
+
+          matchAnchorWidth={
+            matchAnchorWidth
+          }
+
+          portalled={
+            portalled
+          }
+
+          container={
+            container
+          }
+        >
+          {({
               ref:
               floatingRef,
 
@@ -783,23 +810,8 @@ export const PopoverContent =
                 </DismissableLayer>
               );
             }}
-          </FloatingLayer>
-        ) : null;
 
-      const animated = (
-        <MotionPresenceGroup>
-          {content}
-        </MotionPresenceGroup>
-      );
-
-      return portalled ? (
-        <Portal
-          container={container}
-        >
-          {animated}
-        </Portal>
-      ) : (
-        animated
+        </FloatingOverlayRuntime>
       );
     }
   );

@@ -482,7 +482,7 @@ si deja de tener consumidores.
 
 ### Estado C1
 
-**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+**CERRADO**
 
 Resolución:
 
@@ -1439,3 +1439,58 @@ Tooltip se deja al final: primero hay que decidir si su outside-pointer implemen
 - no fusionar Menu/Popover/Tooltip;
 - no hacer que `FloatingLayer` conozca dismiss/focus;
 - no migrar Tooltip custom outside handling hasta tener equivalencia probada.
+
+### Implementación C2
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Nuevo owner:
+
+`src/core/overlay/FloatingOverlayRuntime.tsx`
+
+Consumidores migrados:
+
+- PopoverContent;
+- MenuContent;
+- NavigationMenuPanel;
+- TooltipContent.
+
+El runtime centraliza:
+
+```text
+presence
+→ optional portal
+→ FloatingLayer
+→ floating ref/style/placement plumbing
+```
+
+Después de inspeccionar la jerarquía real se redujo deliberadamente el scope respecto del primer mapa.
+
+`DismissableLayer` y `FocusScope` NO se absorbieron:
+
+- Popover coloca FocusScope dentro de su surface motion;
+- Menu resuelve su dismissable slot a partir del placement;
+- NavigationMenu tiene callbacks de Escape/outside específicos;
+- Tooltip no usa DismissableLayer y conserva operación no-portalled sin OverlayProvider.
+
+Esto se clasifica como:
+
+**COMPARTIR RUNTIME ESTRUCTURAL + MANTENER POLÍTICAS SEMÁNTICAS LOCALES**
+
+No queda un segundo owner de floating position/presence/portal entre estas cuatro familias.
+
+Verificación estática:
+
+```text
+direct <FloatingLayer> en los 4 consumidores       0
+direct <MotionPresenceGroup> en los 4 consumidores 0
+direct <Portal> en los 4 consumidores               0
+FloatingOverlayRuntime consumers                    4
+```
+
+Tests C2:
+
+- `overlay-phase-c2-floating-runtime-ownership.test.ts`;
+- `overlay-phase-c2-floating-runtime-behavior.test.tsx`.
+
+Cubren ownership, scope deliberado, presencia y `portalled={false}` sin dependencia accidental de OverlayProvider.

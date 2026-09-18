@@ -29,7 +29,7 @@ React 19 consumer PASS
 ```text
 Fase A  CERRADA
 Fase B  CERRADA
-Fase C  ACTIVA — C1 implementada, pendiente de validación
+Fase C  ACTIVA — C1 cerrada; C2 implementada, pendiente de validación
 Fase D  PENDIENTE DE B/C
 Fase E  pendiente de evidencia de B/C/D
 Fase F  pendiente
@@ -352,24 +352,25 @@ Objetivo de limpieza:
 
 ### C2. Floating overlays
 
-Evaluar/crear `FloatingOverlayRuntime` para compartir mecánica entre:
+Crear `FloatingOverlayRuntime` para compartir la mecánica estructural entre:
 
 - MenuContent;
 - Popover;
 - Tooltip;
 - NavigationMenuPanel.
 
-Owner candidato:
+Owner resultante:
 
 ```text
-FloatingLayer
-→ dismiss policy
-→ focus policy
-→ motion
-→ portal
+presence
+→ optional Portal
+→ FloatingLayer
+→ floating ref/style/placement plumbing
 ```
 
-Las diferencias deben ser opciones semánticas, no callbacks arbitrarios que oculten lógica.
+`DismissableLayer` y `FocusScope` permanecen en los consumidores cuando su jerarquía o política es específica.
+
+Esto evita un runtime universal lleno de callbacks/configuración opaca y mantiene un solo owner real de posicionamiento/presencia/portal.
 
 ### C3. Dialog hacia runtime modal
 
