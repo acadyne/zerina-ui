@@ -1,46 +1,40 @@
-// src/components/data-table/DataTableEditableDesktop.tsx
 import React from "react";
-import { Checkbox, Input, Select } from "../../primitives/forms";
+
 import {
-  resolveSlot,
-} from "../../helpers/css";
+  Input,
+  Select,
+} from "../../primitives/forms";
+
 import type {
   DataTableRowId,
-  DataTableSlot,
   DataTableSlotProps,
   DataTableSortConfig,
   DataTableStyles,
   EditableDataTableColumn,
 } from "./dataTable.types";
+
 import {
   getCellText,
-  getDataTableColumnId,
-  getDataTableRowKey,
   getEditableCellAriaLabel,
   toRenderableValue,
 } from "./dataTable.utils";
-import { DataTableEmptyState } from "./DataTableEmptyState";
-function getHeaderAriaSort<T extends Record<string, unknown>>({
-  sortable,
-  isSorted,
-  sortConfig,
-}: {
-  sortable: boolean;
-  isSorted: boolean;
-  sortConfig: DataTableSortConfig<T>;
-}): React.AriaAttributes["aria-sort"] {
-  if (!sortable) return undefined;
-  if (!isSorted) return "none";
 
-  return sortConfig?.direction === "asc" ? "ascending" : "descending";
-}
+import {
+  DataTableEmptyState,
+} from "./DataTableEmptyState";
+
+import {
+  DataTableDesktopBase,
+} from "./DataTableDesktopBase";
+
 
 export interface DataTableEditableDesktopProps<
   T extends Record<string, unknown>,
   IDType extends DataTableRowId,
 > {
   rows: T[];
-  columns: EditableDataTableColumn<T>[];
+  columns:
+    EditableDataTableColumn<T>[];
 
   selectedIds?: IDType[];
   enableSelection?: boolean;
@@ -51,32 +45,38 @@ export interface DataTableEditableDesktopProps<
   isSomePageSelected?: boolean;
 
   sortConfig?: DataTableSortConfig<T>;
-  onSort?: (column: EditableDataTableColumn<T>) => void;
+  onSort?: (
+    column:
+      EditableDataTableColumn<T>,
+  ) => void;
 
   dense?: boolean;
   minTableWidth?: number;
 
-  emptyState?: React.ComponentProps<typeof DataTableEmptyState>["emptyState"];
+  emptyState?:
+    React.ComponentProps<
+      typeof DataTableEmptyState
+    >["emptyState"];
 
   onCellChange: (
     row: T,
     rowIndex: number,
-    column: EditableDataTableColumn<T>,
-    value: string
+    column:
+      EditableDataTableColumn<T>,
+    value: string,
   ) => void;
 
   styles?: DataTableStyles;
   slotProps?: DataTableSlotProps;
 }
 
-function readCellValue<T extends Record<string, unknown>>(
-  row: T,
-  accessor: keyof T
-): unknown {
-  return row[accessor];
-}
 
-function renderCellEditor<T extends Record<string, unknown>>({
+function renderCellEditor<
+  T extends Record<
+    string,
+    unknown
+  >,
+>({
   row,
   rowIndex,
   column,
@@ -84,59 +84,121 @@ function renderCellEditor<T extends Record<string, unknown>>({
 }: {
   row: T;
   rowIndex: number;
-  column: EditableDataTableColumn<T>;
+
+  column:
+    EditableDataTableColumn<T>;
+
   onChange: (
     row: T,
     rowIndex: number,
-    column: EditableDataTableColumn<T>,
-    value: string
+    column:
+      EditableDataTableColumn<T>,
+    value: string,
   ) => void;
 }) {
-  const value = readCellValue(row, column.accessor);
-  const textValue = value == null ? "" : String(value);
-  const editable = column.editable !== false;
+  const value =
+    row[
+      column.accessor
+    ];
+
+  const textValue =
+    value == null
+      ? ""
+      : String(
+          value,
+        );
+
+  const editable =
+    column.editable !==
+    false;
 
   const editorAriaLabel =
     getEditableCellAriaLabel(
       column.header,
-      rowIndex
+      rowIndex,
     );
 
   if (!editable) {
-    return toRenderableValue(value);
+    return toRenderableValue(
+      value,
+    );
   }
 
-  if (column.type === "boolean") {
+  if (
+    column.type ===
+    "boolean"
+  ) {
     return (
       <Select
         aria-label={
           editorAriaLabel
         }
-        value={String(Boolean(value))}
-        onChange={(event) =>
-          onChange(row, rowIndex, column, event.currentTarget.value)
+        value={
+          value
+            ? "true"
+            : "false"
+        }
+        onChange={(
+          event,
+        ) =>
+          onChange(
+            row,
+            rowIndex,
+            column,
+            event
+              .currentTarget
+              .value,
+          )
         }
         fullWidth={false}
         options={[
-          { label: "true", value: "true" },
-          { label: "false", value: "false" },
+          {
+            label:
+              "true",
+            value:
+              "true",
+          },
+          {
+            label:
+              "false",
+            value:
+              "false",
+          },
         ]}
       />
     );
   }
 
-  if (column.type === "enum" && column.options?.length) {
+  if (
+    column.type ===
+      "enum" &&
+    column.options
+      ?.length
+  ) {
     return (
       <Select
         aria-label={
           editorAriaLabel
         }
-        value={textValue}
-        onChange={(event) =>
-          onChange(row, rowIndex, column, event.currentTarget.value)
+        value={
+          textValue
+        }
+        onChange={(
+          event,
+        ) =>
+          onChange(
+            row,
+            rowIndex,
+            column,
+            event
+              .currentTarget
+              .value,
+          )
         }
         fullWidth={false}
-        options={column.options}
+        options={
+          column.options
+        }
       />
     );
   }
@@ -146,18 +208,36 @@ function renderCellEditor<T extends Record<string, unknown>>({
       aria-label={
         editorAriaLabel
       }
-      value={textValue}
-      placeholder={column.placeholder}
+      value={
+        textValue
+      }
+      placeholder={
+        column.placeholder
+      }
       fullWidth={false}
-      onChange={(event) =>
-        onChange(row, rowIndex, column, event.currentTarget.value)
+      onChange={(
+        event,
+      ) =>
+        onChange(
+          row,
+          rowIndex,
+          column,
+          event
+            .currentTarget
+            .value,
+        )
       }
       style={{
-        minWidth: column.type === "text" ? 260 : 160,
+        minWidth:
+          column.type ===
+          "text"
+            ? 260
+            : 160,
       }}
     />
   );
 }
+
 
 export function DataTableEditableDesktop<
   T extends Record<string, unknown>,
@@ -165,6 +245,7 @@ export function DataTableEditableDesktop<
 >({
   rows,
   columns,
+
   selectedIds = [],
   enableSelection = true,
   getRowId,
@@ -172,276 +253,106 @@ export function DataTableEditableDesktop<
   onToggleAll,
   isAllPageSelected = false,
   isSomePageSelected = false,
+
   sortConfig = null,
   onSort,
+
   dense = true,
   minTableWidth = 860,
+
   emptyState,
   onCellChange,
+
   styles,
   slotProps,
-}: DataTableEditableDesktopProps<T, IDType>) {
-  const cellPad = dense ? "8px" : "12px";
-  const fontSize = dense ? "0.88rem" : "0.96rem";
+}: DataTableEditableDesktopProps<
+  T,
+  IDType
+>) {
+  const cellPadding =
+    dense
+      ? "8px"
+      : "12px";
 
-  const colSpan = columns.length + (enableSelection ? 1 : 0);
-
-  const rootSlot = resolveSlot<DataTableSlot>({
-    slot: "root",
-    styles,
-    slotProps,
-    baseProps: {
-      "data-ui-data-table-editable-desktop": "",
-    },
-    baseStyle: {
-      border: "1px solid var(--ui-border)",
-      borderRadius: "var(--ui-radius-lg)",
-      overflow: "hidden",
-      background: "var(--ui-bg)",
-    },
-  });
-
-  const viewportSlot = resolveSlot<DataTableSlot>({
-    slot: "viewport",
-    styles,
-    slotProps,
-    baseStyle: {
-      width: "100%",
-      overflowX: "auto",
-    },
-  });
-
-  const tableSlot = resolveSlot<DataTableSlot>({
-    slot: "table",
-    styles,
-    slotProps,
-    baseStyle: {
-      width: "100%",
-      borderCollapse: "separate",
-      borderSpacing: 0,
-      minWidth: minTableWidth,
-      tableLayout: "fixed",
-      fontSize,
-    },
-  });
-
-  const headSlot = resolveSlot<DataTableSlot>({
-    slot: "head",
-    styles,
-    slotProps,
-  });
-
-  const headerRowSlot = resolveSlot<DataTableSlot>({
-    slot: "headerRow",
-    styles,
-    slotProps,
-  });
-
-  const bodySlot = resolveSlot<DataTableSlot>({
-    slot: "body",
-    styles,
-    slotProps,
-  });
+  const fontSize =
+    dense
+      ? "0.88rem"
+      : "0.96rem";
 
   return (
-    <div {...rootSlot}>
-      <div {...viewportSlot}>
-        <table {...tableSlot}>
-          <thead {...headSlot}>
-            <tr {...headerRowSlot}>
-              {enableSelection ? (
-                <th
-                  scope="col"
-                  aria-label="Selección de filas"
-                  {...resolveSlot<DataTableSlot>({
-                    slot: "headerCell",
-                    styles,
-                    slotProps,
-                    baseProps: {
-                      "data-ui-data-table-selection-header": "",
-                    },
-                    baseStyle: {
-                      padding: cellPad,
-                      width: 44,
-                      position: "sticky",
-                      top: 0,
-                      background: "var(--ui-surface)",
-                      zIndex: 2,
-                      borderBottom: "1px solid var(--ui-border)",
-                    },
-                  })}
-                >
-                  <Checkbox
-                    checked={isAllPageSelected}
-                    indeterminate={isSomePageSelected}
-                    aria-label="Seleccionar todas las filas de la página"
-                    onChange={onToggleAll}
-                  />
-                </th>
-              ) : null}
-
-              {columns.map((column) => {
-                const sortable = column.sortable !== false;
-                const isSorted = sortConfig?.key === column.accessor;
-                const ariaSort = getHeaderAriaSort({
-                  sortable,
-                  isSorted,
-                  sortConfig,
-                });
-
-                const handleSort = () => {
-                  if (!sortable) return;
-                  onSort?.(column);
-                };
-                const arrow = sortable
-                  ? isSorted
-                    ? sortConfig?.direction === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : " ↕"
-                  : "";
-
-                return (
-                  <th
-                    key={getDataTableColumnId(column)}
-                    scope="col"
-                    aria-sort={ariaSort}
-                  >
-                    {sortable ? (
-                      <button
-                        type="button"
-                        onClick={handleSort}
-                        style={{
-                          width: "100%",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent:
-                            column.align === "right"
-                              ? "flex-end"
-                              : column.align === "center"
-                                ? "center"
-                                : "flex-start",
-                          gap: "0.25rem",
-                          padding: 0,
-                          border: 0,
-                          background: "transparent",
-                          color: "inherit",
-                          font: "inherit",
-                          fontWeight: "inherit",
-                          textAlign: "inherit",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <span>{column.header}</span>
-
-                        <span aria-hidden="true">
-                          {arrow}
-                        </span>
-                      </button>
-                    ) : (
-                      column.header
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-
-          <tbody {...bodySlot}>
-            {rows.map((row, rowIndex) => {
-              const rowId = getRowId(row);
-              const isSelected =
-                selectedIds.includes(rowId);
-
-              const rowKey =
-                getDataTableRowKey(rowId);
-
-              const rowSlot = resolveSlot<DataTableSlot>({
-                slot: "row",
-                styles,
-                slotProps,
-                baseProps: {
-                  "data-ui-data-table-row": "",
-                  "data-ui-data-table-row-index": String(rowIndex),
-                  "data-selected": isSelected || undefined,
-                },
-              });
-
-              return (
-                <tr
-                  key={rowKey}
-                  {...rowSlot}
-                >
-                  {enableSelection ? (
-                    <td
-                      {...resolveSlot<DataTableSlot>({
-                        slot: "selectionCell",
-                        styles,
-                        slotProps,
-                        baseStyle: {
-                          padding: cellPad,
-                          borderBottom: "1px solid var(--ui-border)",
-                        },
-                      })}
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        aria-label={`Seleccionar fila ${rowIndex + 1}`}
-                        onChange={() => onToggleRow?.(rowId)}
-                      />
-                    </td>
-                  ) : null}
-
-                  {columns.map((column, columnIndex) => {
-                    const rawValue = row[column.accessor];
-                    const titleText = getCellText(rawValue);
-
-                    return (
-                      <td
-                        key={getDataTableColumnId(column)}
-                        {...resolveSlot<DataTableSlot>({
-                          slot: "cell",
-                          styles,
-                          slotProps,
-                          baseProps: {
-                            title: titleText || undefined,
-                            "data-ui-data-table-column-index":
-                              String(columnIndex),
-                          },
-                          baseStyle: {
-                            padding: cellPad,
-                            borderBottom: "1px solid var(--ui-border)",
-                            textAlign: column.align ?? "left",
-                            whiteSpace: column.nowrap ? "nowrap" : "normal",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            verticalAlign: "middle",
-                          },
-                        })}
-                      >
-                        {renderCellEditor({
-                          row,
-                          rowIndex,
-                          column,
-                          onChange: onCellChange,
-                        })}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-
-            {rows.length === 0 ? (
-              <DataTableEmptyState
-                asTableRow
-                colSpan={colSpan}
-                emptyState={emptyState}
-              />
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTableDesktopBase<
+      T,
+      IDType,
+      EditableDataTableColumn<T>
+    >
+      rows={rows}
+      columns={columns}
+      selectedIds={
+        selectedIds
+      }
+      enableSelection={
+        enableSelection
+      }
+      getRowId={
+        getRowId
+      }
+      onToggleRow={
+        onToggleRow
+      }
+      onToggleAll={
+        onToggleAll
+      }
+      isAllPageSelected={
+        isAllPageSelected
+      }
+      isSomePageSelected={
+        isSomePageSelected
+      }
+      sortConfig={
+        sortConfig
+      }
+      onSort={onSort}
+      minTableWidth={
+        minTableWidth
+      }
+      cellPadding={
+        cellPadding
+      }
+      fontSize={
+        fontSize
+      }
+      emptyState={
+        emptyState
+      }
+      styles={styles}
+      slotProps={
+        slotProps
+      }
+      rootDataAttribute="data-ui-data-table-editable-desktop"
+      renderCell={(
+        row,
+        rowIndex,
+        column,
+      ) =>
+        renderCellEditor({
+          row,
+          rowIndex,
+          column,
+          onChange:
+            onCellChange,
+        })
+      }
+      getCellTitle={(
+        row,
+        _rowIndex,
+        column,
+      ) =>
+        getCellText(
+          row[
+            column.accessor
+          ],
+        )
+      }
+    />
   );
 }

@@ -2,198 +2,258 @@
 
 ## Objetivo actual
 
-Llevar `zerina-ui` a una versión pre-1.0 estable mediante fases funcionales sustanciales: contratos compartidos, deduplicación real, superficie pública deliberada, limpieza, empaquetado y validación integral.
+Llevar `zerina-ui` a una versión pre-1.0 estable mediante fases funcionales sustanciales: contratos compartidos, deduplicación real, interacción/overlay, superficie pública deliberada, limpieza, empaquetado y validación integral.
 
 ## Criterio de versionado vigente
 
-A partir de `0.2.4`, un incremento `0.2.x` representa una **fase coherente de estabilización**, no un cambio microscópico.
+Cada `0.2.x` representa una fase funcional de estabilización, no un helper ni un cambio microscópico.
 
-Una fase puede incluir varias mejoras relacionadas siempre que:
+Una fase puede contener varias correcciones/refactors relacionados si comparten objetivo, scope y criterio de validación.
 
-- compartan un objetivo técnico;
-- tengan scope cerrado;
-- puedan validarse como unidad;
-- dejen el sistema en un estado comprensible.
-
-`0.2.1–0.2.3` quedan como normalización inicial ya validada. No se reescribe su historia, pero no se repetirá esa granularidad.
-
-Cuando se solicite validación al usuario, todos los comandos se enviarán juntos en un único bloque y en orden.
+Cuando se solicite validación al usuario, todos los comandos se envían juntos en un único bloque y en orden.
 
 ## Estado actual
 
-- Versión cerrada: `0.2.3`.
-- Proceso en curso: candidato `0.2.4` — normalización de contratos internos compartidos.
-- `0.2.3` está cerrado y validado.
-- `0.2.4` ya modifica de forma transversal 10 consumidores de `ReactNode`, corrige una incoherencia real de `List`, centraliza ARIA y añade regresiones. Falta ejecución.
+- Versión declarada en `package.json`: `0.2.3`.
+- `0.2.4` está implementado; sus 33/33 pruebas dirigidas y el typecheck/build de raíz pasaron. El último `internal-test typecheck` posterior a retirar un import no usado no se ejecutó porque el usuario decidió avanzar. Esa comprobación se integra en la validación de `0.2.5`; no se afirma todavía que `0.2.4` esté validado al 100%.
+- Proceso en curso: candidato `0.2.5` — deduplicación estructural de familias.
+- `0.2.5` contiene cambios sustanciales en navegación, DataTable y diálogos orientados a target.
+- `Drawer/BottomSheet` se retiraron deliberadamente de `0.2.5`: su duplicación incluye runtime de overlay/motion/foco/dismiss y se resolverá en `0.2.6` junto con los contratos transversales correspondientes.
 
-## Fases cerradas
+## Fases cerradas y confirmadas
 
 ### `0.2.1` — SettingsList
 
-- eventos change nativos;
-- una sola máquina de estado;
-- cancelación con `preventDefault`.
+Contrato nativo de Switch/Checkbox y ownership único del estado.
 
 Validación: 14/14 Vitest + 1/1 Chromium + typechecks/build.
 
-### `0.2.2` — composición cancelable de slots
+### `0.2.2` — acciones cancelables de slots
 
-- `SearchInput` y `PasswordInput` reutilizan `composeEventHandlers`;
-- orden externo → interno;
-- cancelación explícita.
+SearchInput y PasswordInput comparten `composeEventHandlers`.
 
 Validación: 10/10 Vitest + typechecks/build.
 
 ### `0.2.3` — contrato de tokens
 
-- 69 hojas canónicas;
-- rama interaction con 6 hojas;
-- runtime/SSR/browser derivados del manifiesto;
-- una sola aserción explícita de cardinalidad total.
+69 hojas canónicas; runtime/SSR/browser derivados del manifiesto.
 
-Validación reportada:
+Validación: 50/50 Vitest + 2/2 Chromium + typechecks/build.
 
-- `internal-test` typecheck: PASS;
-- 4 archivos Vitest: 50/50 PASS;
-- Chromium: 2/2 PASS;
-- raíz typecheck: PASS;
-- raíz build: PASS.
+## `0.2.4` — contratos internos compartidos — IMPLEMENTADO / VALIDACIÓN FINAL PENDIENTE
 
-La versión del paquete fue incrementada a `0.2.3`.
+Implementado:
 
-## `0.2.4` — normalización de contratos internos compartidos — CANDIDATO
+- presencia/renderabilidad de ReactNode central;
+- 10 consumidores migrados;
+- corrección de `List` con booleanos;
+- `mergeAriaIds` único;
+- regresiones de ReactNode/ARIA.
+
+Evidencia ya obtenida:
+
+- 33/33 tests dirigidos PASS;
+- raíz typecheck PASS;
+- raíz build PASS.
+
+Pendiente:
+
+- `internal-test typecheck` posterior a eliminar el único import no usado.
+
+Se ejecutará como primera parte de la validación de `0.2.5`.
+
+## `0.2.5` — deduplicación estructural de familias — CANDIDATO
 
 ### Objetivo
 
-Eliminar implementaciones locales divergentes de contratos básicos utilizados por múltiples capas.
+Que familias que comparten un contrato no mantengan copias completas de la misma mecánica.
 
-### 1. Presencia/renderabilidad de ReactNode
+No se eliminan nombres públicos por similitud; se conserva la API familiar y se centraliza la implementación que realmente es común.
 
-Antes:
+### A. BottomNavigation / NavigationRail
 
-- 10 implementaciones locales de `hasRenderableNode`;
-- tres interpretaciones diferentes;
-- `List` trataba `true`/`false` como contenido presente.
+Realidad previa:
 
-Ahora:
+- `BottomNavigationItem` y `NavigationRailItem` eran aproximadamente 93% similares;
+- ambos roots implementaban por separado el mismo estado controlled/uncontrolled, `change/reselect` y callback de selección.
 
-`src/core/react/nodePresence.ts` define:
+Implementado:
 
-- `hasRenderableNode`: ausentes `null`, `undefined` y booleanos; `0` permanece válido.
-- `hasNonEmptyRenderableNode`: misma regla y además `""` ausente.
+1. `src/primitives/navigation/shared/navigationSelection.ts`
+   - una sola máquina controlled/uncontrolled;
+   - una sola definición de `change` / `reselect`;
+   - un solo contrato de previousValue.
 
-Consumidores migrados:
+2. `src/primitives/navigation/shared/NavigationDestinationItem.tsx`
+   - slots activo/inactivo;
+   - composición de `onPress`;
+   - cancelación mediante `preventDefault`;
+   - badge anchoring;
+   - label visibility;
+   - `aria-current`;
+   - commit de selección.
 
-- ActionSheet;
-- DrawerNavigation;
-- Scaffold;
-- TopAppBar;
-- TabScaffold;
-- SettingsList;
-- Field;
-- List;
-- BottomSheet;
-- Drawer.
+Los wrappers `BottomNavigationItem` y `NavigationRailItem` conservan únicamente:
 
-Consecuencia:
+- contexto de su familia;
+- recipe propia;
+- diferencias de dimensiones;
+- atributos `data-ui-*`;
+- colocación visual del badge;
+- opciones específicas (`iconPosition` frente a `itemMinHeight`).
 
-`List.Section` ya no genera header, IDs o referencias ARIA cuando `label`/`description` son booleanos que React no renderiza.
+### B. DataTableDesktop / DataTableEditableDesktop
 
-`Field` conserva de forma explícita su semántica más estricta para `""`.
+Realidad previa:
 
-### 2. IDs ARIA
+Las dos implementaciones repetían prácticamente toda la tabla:
 
-Antes:
+- root/viewport/table;
+- thead/tbody;
+- sorting;
+- selección;
+- filas;
+- slots;
+- empty state;
+- estilos de celdas.
 
-- `field-semantics.ts` tenía una implementación robusta;
-- `SettingsList` tenía otra implementación local más débil.
+Implementado:
 
-Ahora:
+`src/components/data-table/DataTableDesktopBase.tsx` es ahora el único renderer estructural desktop.
 
-`src/core/dom/aria.ts` contiene la única implementación de `mergeAriaIds`.
+La variante estándar sólo aporta:
 
-Contrato:
+- render de `Cell`/valor;
+- título/exportValue;
+- densidad y minWidth propios.
 
-- separa listas por whitespace;
-- elimina vacíos;
-- deduplica;
-- conserva orden;
-- devuelve `undefined` cuando no existen IDs útiles.
+La variante editable sólo aporta:
 
-`field-semantics.ts` reexporta la utilidad.
-`SettingsList` la consume desde core.
+- editores Input/Select;
+- conversión visual de valor;
+- callback `onCellChange`;
+- densidad y minWidth propios.
 
-### 3. Estado estructural
+Sorting, selección, slots y estructura ya no tienen dos implementaciones que puedan divergir.
 
-Verificado por inspección:
+### C. ConfirmDialog / ActionDialog
 
-- no quedan implementaciones locales de `hasRenderableNode` fuera del core;
-- sólo existe una definición de `mergeAriaIds`;
-- los 10 consumidores identificados importan el contrato compartido.
+Realidad previa:
 
-### 4. Pruebas añadidas
+Ambos duplicaban:
 
-`internal-test/tests/core-shared-contracts.test.tsx` cubre:
+- resolución de renderables por target;
+- Dialog/header/title/description;
+- targetLabel;
+- error;
+- body;
+- footer;
+- configuración de foco/dismiss.
 
-- `null`;
-- `undefined`;
-- booleanos;
-- `0`;
-- string vacío;
-- regresión de `List.Section` con booleanos;
-- `List.Section` con `0`;
-- normalización y deduplicación de IDs ARIA.
+Implementado:
 
-Además se ejecutarán regresiones existentes de Field y SettingsList.
+`src/patterns/shared/TargetDialogFrame.tsx` concentra la estructura común.
 
-### Pendiente de validación
+Cada patrón conserva su semántica propia:
 
-- typecheck `internal-test`;
-- nuevo test de contratos;
-- Field semantics;
-- SettingsList contract;
-- typecheck raíz;
-- build raíz.
+- ConfirmDialog mantiene guardas de operación async y cierre seguro;
+- ActionDialog mantiene su acción sin auto-close implícito;
+- cada uno conserva su esquema visual de botón.
 
-## Roadmap grande vigente
+Bug corregido durante la extracción:
 
-### `0.2.5` — deduplicación estructural de familias
+Targets falsy válidos (`0`, `""`, `false`) antes eran tratados como target ausente por checks truthy. El contrato compartido usa ahora `target !== null`.
 
-Objetivo: eliminar implementaciones paralelas conservando sólo diferencias semánticas reales.
+### D. Drawer / BottomSheet — MOVIDO A `0.2.6`
 
-Familias:
+La similitud sigue confirmada, pero su núcleo común atraviesa:
 
-- NavigationRail / BottomNavigation;
-- DataTable desktop/editable;
-- ConfirmDialog / ActionDialog;
-- Drawer / BottomSheet.
+- DismissableLayer;
+- FocusScope;
+- ScrollLock;
+- MotionOverlayPresence/Panel/Backdrop;
+- restore/initial focus;
+- dismiss;
+- overlay IDs.
 
-### `0.2.6` — interacción y overlay
+Extraer sólo JSX ahora crearía una abstracción incompleta. Se deduplicará después de fijar el contrato transversal de overlay/interacción en `0.2.6`.
 
-Cerrar juntos:
+## Resultado de la primera validación de `0.2.5`
+
+Reportado por el usuario:
+
+- suite dirigida: **44/44 PASS**;
+- `family-deduplication-source.test.ts`: **4/4 PASS**;
+- `family-deduplication-contracts.test.tsx`: **7/7 PASS**;
+- regresiones de `0.2.4`: **33/33 PASS**;
+- `internal-test` typecheck: **FAIL** por dos errores de compilación;
+- raíz `pnpm typecheck`: **FAIL** por el mismo error genérico de DataTable;
+- bundling ESM/CJS/CSS llegó a completarse, pero el build completo no se considera validado mientras typecheck/DTS no queden verdes.
+
+Errores encontrados:
+
+1. import `getByTestId` no usado en el test nuevo (`TS6133`);
+2. `Boolean(value)` produjo una inferencia genérica incompatible sobre `T[keyof T]` en `DataTableEditableDesktop`.
+
+Correcciones aplicadas:
+
+- eliminado el import no usado;
+- reemplazado `String(Boolean(value))` por la expresión equivalente `value ? "true" : "false"`, evitando la inferencia genérica sin cambiar la semántica observable.
+
+`0.2.5` sigue como candidato hasta repetir typecheck, sus pruebas específicas y build.
+
+## Validación preparada para `0.2.5`
+
+Nuevas pruebas:
+
+- `family-deduplication-contracts.test.tsx`
+  - BottomNavigation change/reselect;
+  - NavigationRail change/reselect;
+  - cancelación de selección;
+  - DataTable estándar sorting/render;
+  - DataTable editable change propagation;
+  - targets falsy de diálogos.
+
+- `family-deduplication-source.test.ts`
+  - ownership estructural;
+  - wrappers sin segunda implementación del renderer/estado.
+
+Verificado localmente por inspección:
+
+- los 14 archivos TS/TSX modificados transpilan sintácticamente;
+- los wrappers de navegación ya no contienen `resolveLayeredSlot` ni `Pressable`;
+- los roots ya no contienen `setInternalValue` ni lógica `reselect`;
+- los wrappers DataTable ya no contienen `<table>`;
+- ConfirmDialog/ActionDialog ya no contienen DialogHeader ni el markup de error.
+
+No validado todavía mediante el toolchain completo del proyecto.
+
+## Roadmap vigente
+
+### `0.2.6` — interacción + overlay
 
 - Menu P3.1;
 - TriggerRuntime P4.1;
+- Drawer / BottomSheet runtime común;
 - foco;
+- dismiss;
 - apertura/cierre;
-- cancelación;
-- ownership entre capas.
+- ownership/cancelación entre capas.
 
-### `0.2.7` — superficie pública y código no vigente
+### `0.2.7` — superficie pública y eliminación
 
 - clasificar exports;
-- retirar implementación accidentalmente pública;
+- retirar exposición accidental;
 - eliminar código sin contrato vigente;
-- eliminar backups/artefactos generados confirmados.
+- eliminar backups/resultados generados confirmados.
 
-### `0.2.8` — proceso, paquete y documentación
+### `0.2.8` — distribución, proceso y documentación
 
 - `pnpm validate`;
-- reproducibilidad pnpm/esbuild;
-- higiene de repo;
-- README de consumidor;
+- reproducibilidad de workspace/esbuild;
+- README;
 - pack;
-- instalación desde tarball limpio.
+- instalación/consumo desde tarball limpio.
 
 ### `0.3.0` — hito estable pre-1.0
 
@@ -201,4 +261,12 @@ Validación integral de paquete, browser y consumidor limpio.
 
 ## Siguiente paso
 
-Validar `0.2.4`. Si queda verde, cerrar la fase y entrar a la deduplicación estructural de `0.2.5`.
+Ejecutar la validación agrupada de `0.2.4` + `0.2.5`.
+
+Si pasa:
+
+1. considerar `0.2.4` confirmado;
+2. cerrar `0.2.5`;
+3. actualizar la versión distribuible hasta `0.2.5`;
+4. consolidar documentación;
+5. entrar a `0.2.6`.

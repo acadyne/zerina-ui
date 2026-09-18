@@ -1,38 +1,48 @@
-// src/primitives/navigation/bottom-navigation/BottomNavigationItem.tsx
 import React from "react";
+
 import {
-  resolveLayeredSlot,
-} from "../../../helpers/css";
-import { Pressable } from "../../forms";
-import { Box } from "../../layout";
-import { Typography } from "../../typography";
-import { useBottomNavigationContext } from "./BottomNavigationContext";
+  NavigationDestinationItem,
+} from "../shared/NavigationDestinationItem";
+
+import {
+  useBottomNavigationContext,
+} from "./BottomNavigationContext";
+
 import {
   BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE,
   bottomNavigationItemRecipe,
   getBadgePlacementStyles,
 } from "./bottomNavigation.styles";
+
 import type {
-  BottomNavigationBadgeAnchor,
   BottomNavigationItemProps,
   BottomNavigationSlot,
 } from "./bottomNavigation.types";
 
-function renderAnchoredBadge({
-  anchor,
-  target,
-  badgeNode,
-}: {
-  anchor: BottomNavigationBadgeAnchor;
-  target: BottomNavigationBadgeAnchor;
-  badgeNode: React.ReactNode;
-}) {
-  if (anchor !== target) {
-    return null;
-  }
 
-  return badgeNode;
-}
+const BOTTOM_NAVIGATION_ITEM_DATA_ATTRIBUTES = {
+  item:
+    "data-ui-bottom-navigation-item",
+  indicator:
+    "data-ui-bottom-navigation-item-indicator",
+  badgeAnchor:
+    "data-ui-bottom-navigation-item-badge-anchor",
+  badgePlacement:
+    "data-ui-bottom-navigation-item-badge-placement",
+  content:
+    "data-ui-bottom-navigation-item-content",
+  iconWrap:
+    "data-ui-bottom-navigation-item-icon-wrap",
+  icon:
+    "data-ui-bottom-navigation-item-icon",
+  label:
+    "data-ui-bottom-navigation-item-label",
+  badge:
+    "data-ui-bottom-navigation-item-badge",
+  dot:
+    "data-ui-bottom-navigation-item-dot",
+} as const;
+
 
 export const BottomNavigationItem =
   React.forwardRef<
@@ -70,16 +80,13 @@ export const BottomNavigationItem =
 
         ...rest
       },
-      ref
+      ref,
     ) => {
       const ctx =
         useBottomNavigationContext();
 
       const active =
         ctx.value === value;
-
-      const itemLabel =
-        children ?? label;
 
       const resolvedLabelBehavior =
         labelBehavior ??
@@ -117,64 +124,10 @@ export const BottomNavigationItem =
         activeLabelWeight ??
         ctx.activeLabelWeight;
 
-      const hasLabel =
-        itemLabel !== null &&
-        itemLabel !== undefined;
-
-      const hasIcon =
-        icon !== null &&
-        icon !== undefined;
-
-      const hasBadge =
-        badge !== null &&
-        badge !== undefined;
-
-      const labelVisible =
-        resolvedLabelBehavior === "always" ||
-        (
-          resolvedLabelBehavior === "active" &&
-          active
-        );
-
-      const itemSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["item", "activeItem"]
-          : ["item"];
-
-      const contentSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["content", "activeContent"]
-          : ["content"];
-
-      const iconWrapSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["iconWrap", "activeIconWrap"]
-          : ["iconWrap"];
-
-      const iconSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["icon", "activeIcon"]
-          : ["icon"];
-
-      const labelSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["label", "activeLabel"]
-          : ["label"];
-
-      const badgeSlots:
-        BottomNavigationSlot[] =
-        active
-          ? ["badge", "activeBadge"]
-          : ["badge"];
-
       const recipeStyles =
         bottomNavigationItemRecipe({
-          density: ctx.density,
+          density:
+            ctx.density,
 
           indicator:
             resolvedIndicator,
@@ -188,322 +141,85 @@ export const BottomNavigationItem =
           itemMinWidth:
             resolvedItemMinWidth,
 
-                    hasBadge,
+          hasBadge:
+            badge !== null &&
+            badge !== undefined,
 
           badgeAnchor:
             resolvedBadgeAnchor,
         });
 
-      const itemSlot =
-        resolveLayeredSlot({
-          slots: itemSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-          className,
-          style,
-
-          baseProps: {
-            "aria-current":
-              active
-                ? "page"
-                : undefined,
-
-            "data-active":
-              active ||
-              undefined,
-
-            "data-ui-bottom-navigation-item-indicator":
-              resolvedIndicator,
-
-            "data-ui-bottom-navigation-item":
-              "",
-
-            "data-ui-bottom-navigation-item-badge-anchor":
-              hasBadge
-                ? resolvedBadgeAnchor
-                : undefined,
-
-            "data-ui-bottom-navigation-item-badge-placement":
-              hasBadge
-                ? resolvedBadgePlacement
-                : undefined,
-          },
-
-          baseStyle: {
-            ...recipeStyles.item,
-
-            "--ui-navigation-active-label-weight":
-              String(
-                resolvedActiveLabelWeight
-              ),
-          } as React.CSSProperties,
-        });
-
-      /*
-       * Los handlers del slot y la prop pública son observadores del mismo
-       * press. Ambos pueden cancelarlo; el cambio de selección pertenece al
-       * componente y se ejecuta únicamente cuando el evento sigue vigente.
-       */
-      const {
-        onPress: itemSlotOnPress,
-        ...itemSlotRest
-      } = itemSlot as typeof itemSlot & {
-        onPress?: typeof onPress;
-      };
-
-      const contentSlot =
-        resolveLayeredSlot({
-          slots: contentSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "data-ui-bottom-navigation-item-content":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles.content,
-        });
-
-      const iconWrapSlot =
-        resolveLayeredSlot({
-          slots: iconWrapSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "data-ui-bottom-navigation-item-icon-wrap":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles.iconWrap,
-        });
-
-      const iconSlot =
-        resolveLayeredSlot({
-          slots: iconSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "aria-hidden": true,
-
-            "data-ui-bottom-navigation-item-icon":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles.icon,
-        });
-
-      const labelSlot =
-        resolveLayeredSlot({
-          slots: labelSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "data-ui-bottom-navigation-item-label":
-              "",
-          },
-
-          baseStyle: {
-            ...recipeStyles.label,
-            fontSize:
-              "var(--ui-font-size-xs)",
-          },
-        });
-
-      const badgeSlot =
-        resolveLayeredSlot({
-          slots: badgeSlots,
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "data-ui-bottom-navigation-item-badge":
-              "",
-          },
-
-          baseStyle:
+      return (
+        <NavigationDestinationItem<BottomNavigationSlot>
+          value={value}
+          active={active}
+          itemLabel={
+            children ??
+            label
+          }
+          icon={icon}
+          badge={badge}
+          disabled={disabled}
+          onPress={onPress}
+          setValue={
+            ctx.setValue
+          }
+          labelBehavior={
+            resolvedLabelBehavior
+          }
+          indicator={
+            resolvedIndicator
+          }
+          badgeAnchor={
+            resolvedBadgeAnchor
+          }
+          badgePlacement={
+            resolvedBadgePlacement
+          }
+          activeLabelWeight={
+            resolvedActiveLabelWeight
+          }
+          recipeStyles={
+            recipeStyles
+          }
+          badgeStyle={
             getBadgePlacementStyles({
               placement:
                 resolvedBadgePlacement,
 
               offset:
                 resolvedBadgeOffset,
-            }),
-        });
-
-      const dotSlot =
-        resolveLayeredSlot({
-          slots: ["dot"],
-
-          contextStyles:
-            ctx.styles,
-
-          contextSlotProps:
-            ctx.slotProps,
-
-          styles,
-          slotProps,
-
-          baseProps: {
-            "aria-hidden": true,
-
-            "data-ui-bottom-navigation-item-dot":
-              "",
-          },
-
-          baseStyle:
-            recipeStyles.dot,
-        });
-
-      const badgeNode =
-        hasBadge ? (
-          <Box {...badgeSlot}>
-            {badge}
-          </Box>
-        ) : null;
-
-      return (
-        <Pressable
-          {...itemSlotRest}
-          {...rest}
-          as="button"
-          ref={ref}
-          type="button"
-          disabled={disabled}
-          aria-current={
-            active
-              ? "page"
-              : undefined
+            })
           }
-          onPress={(event) => {
-            itemSlotOnPress?.(event);
-            onPress?.(event);
-
-            if (
-              event.defaultPrevented
-            ) {
-              return;
-            }
-
-            ctx.setValue(
-              value,
-              event
-            );
-          }}
-        >
-          <Box {...contentSlot}>
-            <Box {...iconWrapSlot}>
-                {hasIcon ? (
-                <Box {...iconSlot}>
-                  {icon}
-                </Box>
-              ) : null}
-
-              {renderAnchoredBadge({
-                anchor:
-                  resolvedBadgeAnchor,
-
-                target: "icon",
-
-                badgeNode,
-              })}
-            </Box>
-
-            {hasLabel ? (
-              /*
-               * Cuando el label no es visible, el estilo de accesibilidad
-               * se aplica después del slot para impedir que vuelva al flujo.
-               */
-              <Typography
-                as="span"
-                {...labelSlot}
-                style={
-                  labelVisible
-                    ? labelSlot.style
-                    : {
-                        ...labelSlot.style,
-                        ...BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE,
-                      }
-                }
-              >
-                {itemLabel}
-              </Typography>
-            ) : null}
-
-            {renderAnchoredBadge({
-              anchor:
-                resolvedBadgeAnchor,
-
-              target: "content",
-
-              badgeNode,
-            })}
-          </Box>
-
-          {renderAnchoredBadge({
-            anchor:
-              resolvedBadgeAnchor,
-
-            target: "item",
-
-            badgeNode,
-          })}
-
-          {resolvedIndicator === "dot" &&
-          active ? (
-            <Box {...dotSlot} />
-          ) : null}
-        </Pressable>
+          visuallyHiddenStyle={
+            BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE
+          }
+          contextStyles={
+            ctx.styles
+          }
+          contextSlotProps={
+            ctx.slotProps
+          }
+          styles={styles}
+          slotProps={
+            slotProps
+          }
+          className={
+            className
+          }
+          style={style}
+          dataAttributes={
+            BOTTOM_NAVIGATION_ITEM_DATA_ATTRIBUTES
+          }
+          buttonProps={
+            rest
+          }
+          forwardedRef={
+            ref
+          }
+        />
       );
-    }
+    },
   );
 
 BottomNavigationItem.displayName =

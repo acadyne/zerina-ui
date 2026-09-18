@@ -1,6 +1,8 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigation.tsx
 import React from "react";
-import type { UIPressEvent } from "../../../core/interaction";
+import {
+  useNavigationSelection,
+} from "../shared/navigationSelection";
 import { resolveSlot } from "../../../helpers/css";
 import { Box } from "../../layout";
 import {
@@ -58,59 +60,23 @@ const BottomNavigationRoot = React.forwardRef<
     },
     ref
   ) => {
-    const isControlled =
-      value !== undefined;
-
     const densityStyles =
-      BOTTOM_NAVIGATION_DENSITY_MAP[density];
+      BOTTOM_NAVIGATION_DENSITY_MAP[
+        density
+      ];
 
     const resolvedHeight =
       height ??
       densityStyles.defaultHeight;
 
-    const [internalValue, setInternalValue] =
-      React.useState<string | null>(
-        defaultValue
-      );
-
-    const currentValue =
-      isControlled
-        ? value ?? null
-        : internalValue;
-
-    const setValue = React.useCallback(
-      (
-        nextValue: string,
-        event: UIPressEvent<HTMLButtonElement>
-      ): void => {
-        const reason =
-          currentValue === nextValue
-            ? "reselect"
-            : "change";
-
-        if (
-          reason === "change" &&
-          !isControlled
-        ) {
-          setInternalValue(nextValue);
-        }
-
-        onValueChange?.(
-          nextValue,
-          event,
-          {
-            value: nextValue,
-            previousValue: currentValue,
-            reason,
-          }
-        );
-      },
-      [
-        currentValue,
-        isControlled,
-        onValueChange,
-      ]
-    );
+    const {
+      currentValue,
+      setValue,
+    } = useNavigationSelection({
+      value,
+      defaultValue,
+      onValueChange,
+    });
 
     const contextValue =
       React.useMemo<BottomNavigationContextValue>(
