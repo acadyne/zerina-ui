@@ -9,16 +9,16 @@
 - Fase D: **CERRADA**.
 - Fase activa: **E — semántica de slots, layout y tipos**.
 - E1 Slot precedence: **CERRADA**.
-- E2 Layout prop matrix: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- E3 Recipe convergence: pendiente.
+- E2 Layout prop matrix: **CERRADA**.
+- E3 Recipe convergence: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - E4 Tipos estructuralmente equivalentes: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró E1
+## Validación que cerró E2
 
 ```text
-tests dirigidos E1       52/52 PASS
-Vitest completo         512/512 PASS
+tests dirigidos E2       34/34 PASS
+Vitest completo         523/523 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -45,146 +45,204 @@ Precedencia declarativa:
 base → context(s) → local → direct className/style
 ```
 
-Pipeline semántico de eventos:
+Pipeline semántico:
 
 ```text
 public/child → local slot → inherited slot → internal
 ```
 
-## E2 — decisión
+## E2 — resultado vigente
 
-La familia de layout no debe tener una API plana artificial.
-
-Hay dos contratos deliberados.
-
-### Full layout frame
-
-`Flex`, `Grid`, `Stack`
-
-Owner de tipo interno:
-
-`LayoutFrameProps`
-
-Incluye:
+Dos familias de layout deliberadas:
 
 ```text
-SizeProps
-+ SpaceProps
-+ SurfaceProps
+Full layout frame
+→ Flex / Grid / Stack
+→ SizeProps + SpaceProps + SurfaceProps
+
+Flow layout frame
+→ Inline / Wrap
+→ SpaceProps + w + minH
 ```
 
-### Flow layout frame
+Inline/Wrap soportan `mx/my`.
 
-`Inline`, `Wrap`
+No se añadieron surface props ni todo SizeProps a flow primitives.
 
-Owner de tipo interno:
+## E3 — scope
 
-`FlowLayoutFrameProps`
-
-Incluye:
+Candidato principal:
 
 ```text
-SpaceProps
-+ w
-+ minH
+Badge / Tag
 ```
 
-No incluye deliberadamente:
+Ambos duplicaban exactamente:
 
-- surface props;
-- `h`;
-- `minW/maxW/maxH`;
-- overflow genérico.
+- variants `solid/subtle/outline`;
+- schemes `primary/secondary/success/warning/danger/neutral`;
+- tokens por scheme;
+- resolución cromática por variant;
+- inline root frame común;
+- truncado del content.
 
-## E2 — inconsistencia corregida
+## E3 — decisión
 
-Inline y Wrap duplicaban manualmente casi todo `SpaceProps`, pero omitían:
+Nuevo owner interno:
 
-- `mx`;
-- `my`.
+`src/components/display/status-label-recipe.ts`
 
-Ahora extienden `FlowLayoutFrameProps` y soportan ambos aliases.
-
-No se añadieron surface props ni el resto de SizeProps.
-
-## E2 — diferencias preservadas
+Posee:
 
 ```text
-Flex
-  display flex/inline-flex
-  gap
-  direction/wrap/overflow
-
-Grid
-  display grid/inline-grid
-  gap/rowGap/columnGap
-  columns/rows/auto tracks
-
-Stack
-  flex/inline-flex
-  spacing
-  direction/wrap/overflow
-  divider suppresses gap
-
-Inline
-  inline-flex
-  gap
-  configurable wrap
-  divider + child normalization
-
-Wrap
-  flex
-  spacing/rowSpacing/columnSpacing
-  flex-wrap always wrap
-  optional WrapItem
+StatusLabelVariant
+StatusLabelColorScheme
+STATUS_LABEL_SCHEMES
+getStatusLabelVariantStyle
+statusLabelRecipe
 ```
 
-`gap` y `spacing` no se renombran.
-
-## E2 — invariantes
-
-En los cinco primitives:
+La recipe devuelve estilos para:
 
 ```text
-layout props/helpers
-→ style directo
+root
+content
 ```
 
-`style` sigue siendo override final.
+## E3 — semántica compartida
 
-Los tipos helper de matriz permanecen internos; no se agregan al barrel público.
+Root común:
 
-## E2 — tests
+```text
+display inline-flex
+align-items center
+justify-content center
+gap 0.35rem
+max-width 100%
+line-height 1
+white-space nowrap
+```
+
+Content común:
+
+```text
+min-width 0
+overflow hidden
+text-overflow ellipsis
+```
+
+Color/variant común:
+
+```text
+solid
+subtle
+outline
+×
+primary
+secondary
+success
+warning
+danger
+neutral
+```
+
+Los valores token son exactamente los que Badge y Tag ya usaban.
+
+## E3 — diferencias preservadas
+
+### Badge
+
+Permanece local:
+
+```text
+minHeight 22
+padding 0.2rem 0.55rem
+fontSize 0.75rem
+fontWeight 700
+letterSpacing 0.02em
+```
+
+### Tag
+
+Permanece local:
+
+```text
+minHeight 28
+padding 0.28rem 0.7rem
+fontSize 0.78rem
+fontWeight 600
+letterSpacing 0.01em
+leftIcon
+rightIcon
+removeButton
+usePress
+stopPropagation de remove
+```
+
+No se fusionaron Badge y Tag.
+
+## E3 — otros candidatos
+
+Se inspeccionaron action-control y choice-control recipes.
+
+Decisión:
+
+**MANTENER SEPARADAS**.
+
+Razón:
+
+- action controls tienen schemes y estados hover/pressed propios;
+- choice controls tienen tamaño/labelPlacement/accent state;
+- no expresan el mismo concepto que una status label.
+
+## E3 — superficie pública
+
+`statusLabelRecipe`, `StatusLabelVariant` y `StatusLabelColorScheme` permanecen internos.
+
+BadgeProps/TagProps conservan estructuralmente los mismos valores aceptados para `variant` y `colorScheme`.
+
+No se añade entrypoint ni export público.
+
+## E3 — verificación estática
+
+```text
+schemeMap copies in Badge/Tag          0
+solidBg owners                         1
+subtleBg owners                        1
+outlineBorder owners                   1
+status-label recipe public exposure    0
+broken relative imports                0
+```
+
+## E3 — tests
 
 Nuevos:
 
-- `semantics-phase-e2-layout-matrix-ownership.test.ts`;
-- `semantics-phase-e2-layout-matrix-behavior.test.tsx`.
+- `semantics-phase-e3-status-label-recipe-ownership.test.ts`;
+- `semantics-phase-e3-status-label-recipe-behavior.test.tsx`.
 
 Cubren:
 
-- full-frame vs flow-frame ownership;
-- helper types no públicos;
-- size/space/surface comunes en full frames;
-- `mx/my` en Inline/Wrap;
-- defaults distintos de los cinco primitives;
-- `style` como override final.
+- owner único de schemes/variants;
+- Badge/Tag consumen la recipe;
+- recipe permanece interna;
+- solid/subtle/outline conservan tokens;
+- root/content common frame;
+- densidades Badge/Tag siguen distintas;
+- slot styles siguen por encima de la recipe;
+- Tag remove conserva `usePress`/stopPropagation.
 
-## Verificación estática disponible
-
-```text
-broken relative imports   0
-```
-
-## Criterio de cierre E2
+## Criterio de cierre E3
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests E2 dirigidos
-regresión E1/public surface
+tests E3 dirigidos
+regresión E2
+regresión usePress Tag
+public surface
 pnpm validate
 ```
 
-Sólo después se abre E3.
+Sólo después se abre E4.

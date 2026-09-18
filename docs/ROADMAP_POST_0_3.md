@@ -505,8 +505,8 @@ Extraer el frame/helper común sin cambiar API pública.
 ## Estado actual de Fase E
 
 - E1 Slot precedence: **CERRADA**.
-- E2 Layout prop matrix: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- E3 Recipe convergence: pendiente.
+- E2 Layout prop matrix: **CERRADA**.
+- E3 Recipe convergence: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - E4 Tipos estructuralmente equivalentes: pendiente.
 
 ## Objetivo

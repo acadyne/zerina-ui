@@ -629,3 +629,53 @@ pnpm validate
 ```
 
 E2 sólo se cierra con `Validation complete.`.
+
+## Fase E2 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos E2       34/34 PASS
+Vitest completo         523/523 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase E3
+
+Verificación estática del snapshot:
+
+```text
+schemeMap copies in Badge/Tag          0
+solidBg owners                         1
+subtleBg owners                        1
+outlineBorder owners                   1
+status-label recipe public exposure    0
+broken relative imports                0
+```
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/semantics-phase-e3-status-label-recipe-ownership.test.ts \
+  tests/semantics-phase-e3-status-label-recipe-behavior.test.tsx \
+  tests/semantics-phase-e2-layout-matrix-behavior.test.tsx \
+  tests/interaction-use-press-consumers.test.ts \
+  tests/public-surface-contract.test.ts
+
+pnpm validate
+```
+
+E3 sólo se cierra con `Validation complete.`.

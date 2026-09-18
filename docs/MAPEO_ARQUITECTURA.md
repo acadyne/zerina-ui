@@ -854,6 +854,66 @@ No fusionar componentes.
 
 ---
 
+
+### Estado E3
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Nuevo owner interno:
+
+`src/components/display/status-label-recipe.ts`
+
+Centraliza:
+
+```text
+StatusLabelVariant
+StatusLabelColorScheme
+scheme tokens
+solid/subtle/outline color semantics
+shared inline root frame
+shared content truncation frame
+```
+
+Badge conserva su densidad compacta.
+
+Tag conserva:
+
+- densidad propia;
+- left/right icons;
+- remove button;
+- `usePress`;
+- stopPropagation del remove.
+
+No se fusionaron componentes.
+
+Barrido de candidatos:
+
+```text
+duplicación exacta schemeMap Badge/Tag       resuelta
+Button/action-control recipe                 mantener separada
+choice-control recipe                        mantener separada
+```
+
+Razón:
+
+Button y choice controls tienen dominios de scheme y estados interactivos diferentes; compartir sólo por nombres similares introduciría un owner falso.
+
+Verificación estática:
+
+```text
+schemeMap copies in Badge/Tag          0
+solidBg owners                         1
+subtleBg owners                        1
+outlineBorder owners                   1
+status-label recipe public exposure    0
+broken relative imports                0
+```
+
+Tests:
+
+- `semantics-phase-e3-status-label-recipe-ownership.test.ts`;
+- `semantics-phase-e3-status-label-recipe-behavior.test.tsx`.
+
 ## P2.3 — HelpText / FormErrorMessage
 
 Tienen casi el mismo contrato estructural y repiten:

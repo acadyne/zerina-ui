@@ -911,3 +911,74 @@ layout props/helpers
 ```
 
 `style` permanece como override final.
+
+## 23. Status label recipe
+
+Internal owner:
+
+`src/components/display/status-label-recipe.ts`
+
+Consumers:
+
+- Badge;
+- Tag.
+
+The recipe owns the concept shared by both components:
+
+```text
+variant
+→ solid / subtle / outline
+
+colorScheme
+→ primary / secondary / success / warning / danger / neutral
+
+shared root frame
+→ inline-flex
+→ centered alignment
+→ gap
+→ max-width
+→ line-height
+→ nowrap
+
+shared content frame
+→ min-width 0
+→ overflow hidden
+→ ellipsis
+```
+
+The recipe also owns the exact scheme tokens for solid, subtle and outline rendering.
+
+Component-specific geometry remains local.
+
+### Badge
+
+Keeps:
+
+```text
+minHeight 22
+padding 0.2rem 0.55rem
+fontSize 0.75rem
+fontWeight 700
+letterSpacing 0.02em
+```
+
+### Tag
+
+Keeps:
+
+```text
+minHeight 28
+padding 0.28rem 0.7rem
+fontSize 0.78rem
+fontWeight 600
+letterSpacing 0.01em
+icons
+remove button
+usePress interaction
+```
+
+The shared recipe does not own Tag remove/press semantics.
+
+`StatusLabelVariant`, `StatusLabelColorScheme` and `statusLabelRecipe` are internal implementation contracts and are not root-public.
+
+No other recipe family was merged in E3. Action controls and choice controls have different scheme domains and interactive-state semantics, so structural similarity is not sufficient to share this owner.
