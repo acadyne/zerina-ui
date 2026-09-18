@@ -71,31 +71,7 @@ describe(
     );
 
 
-    const consumers = [
-      {
-        name:
-          "Button",
-
-        path:
-          "primitives/forms/Button.tsx",
-      },
-
-      {
-        name:
-          "IconButton",
-
-        path:
-          "primitives/forms/IconButton.tsx",
-      },
-
-      {
-        name:
-          "Pressable",
-
-        path:
-          "primitives/forms/Pressable.tsx",
-      },
-
+    const directConsumers = [
       {
         name:
           "MenuItem",
@@ -123,9 +99,9 @@ describe(
 
 
     it.each(
-      consumers,
+      directConsumers,
     )(
-      "$name consumes the canonical usePress hook",
+      "$name consumes the canonical usePress hook directly",
       ({
         path,
       }) => {
@@ -138,6 +114,69 @@ describe(
         expect(
           source,
         ).toMatch(
+          /\busePress(?:\s*<|\s*\()/,
+        );
+      },
+    );
+
+
+    const bridgedConsumers = [
+      {
+        name:
+          "Button",
+
+        path:
+          "primitives/forms/Button.tsx",
+      },
+
+      {
+        name:
+          "IconButton",
+
+        path:
+          "primitives/forms/IconButton.tsx",
+      },
+
+      {
+        name:
+          "Pressable",
+
+        path:
+          "primitives/forms/Pressable.tsx",
+      },
+
+      {
+        name:
+          "Card",
+
+        path:
+          "components/display/Card.tsx",
+      },
+    ];
+
+
+    it.each(
+      bridgedConsumers,
+    )(
+      "$name consumes usePress through the shared slot bridge",
+      ({
+        path,
+      }) => {
+        const source =
+          readSource(
+            path,
+          );
+
+
+        expect(
+          source,
+        ).toContain(
+          "usePressSlotBridge",
+        );
+
+        expect(
+          source,
+        ).not.toMatch(
           /\busePress(?:\s*<|\s*\()/,
         );
       },

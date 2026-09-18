@@ -256,3 +256,51 @@ Wrappers retain real differences:
 - Switch: `role="switch"`, track and thumb.
 
 `ChoiceControlRoot` uses `hasRenderableNode` for labels. Numeric `0` is therefore a valid label; booleans/null/undefined are absent according to the central ReactNode contract.
+
+## 14. Press bridge
+
+Internal owner:
+
+`src/core/interaction/press/usePressSlotBridge.ts`
+
+Consumers:
+
+- Button;
+- IconButton;
+- Pressable;
+- interactive Card.
+
+The bridge owns only the event-layer policy around `usePress`.
+
+Active events use:
+
+```text
+public prop
+→ root slot
+→ usePress internal behavior
+```
+
+`preventDefault()` stops every later layer.
+
+Cleanup events are deliberately different:
+
+```text
+pointerleave
+pointerup
+pointercancel
+lostpointercapture
+blur
+```
+
+For these events, public + slot + internal cleanup still run even when an earlier layer calls `preventDefault()`.
+
+This exception preserves release/reset semantics and is explicit through `checkDefaultPrevented: false`.
+
+Wrappers retain their real differences:
+
+- Button: loading, icons, button recipe, native button;
+- IconButton: icon-only contract and aria label;
+- Pressable: polymorphic element, long press, native-interactive detection;
+- Card: interactivity only when `onPress` exists, loading/layout semantics.
+
+`usePressSlotBridge` is internal and is not exported from the public interaction barrel.

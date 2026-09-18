@@ -1066,7 +1066,7 @@ Decisión:
 
 Estado:
 
-**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+**CERRADO**
 
 Familia:
 
@@ -1148,7 +1148,7 @@ con cancelación progresiva.
 
 Estado:
 
-**MAPEADO — NO IMPLEMENTADO TODAVÍA**
+**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
 
 Familia:
 
@@ -1177,6 +1177,45 @@ Owner candidato:
 `usePressSlotBridge`.
 
 Debe ser un hook interno pequeño, no un `ButtonBase`.
+
+#### Implementación B3
+
+Nuevo owner interno:
+
+`src/core/interaction/press/usePressSlotBridge.ts`
+
+Centraliza exclusivamente:
+
+- public event handlers;
+- root slot event handlers;
+- `usePress`;
+- cancelación progresiva;
+- excepción explícita de cleanup.
+
+Consumidores migrados:
+
+- Button;
+- IconButton;
+- Pressable;
+- Card.
+
+Los cuatro ya no componen handlers localmente ni llaman directamente a `usePress`.
+
+Diferencias preservadas:
+
+- Button: loading/icons/recipe;
+- IconButton: icon + aria label;
+- Pressable: polymorphism, long press y detección nativeInteractive;
+- Card: sólo interactiva cuando existe `onPress`.
+
+No se creó un `ButtonBase` y no se exportó el bridge como API pública.
+
+Tests nuevos protegen:
+
+- ownership;
+- cancelación public → slot → internal;
+- cleanup que siempre libera estado;
+- slot click capaz de cancelar `onPress`.
 
 ### B4 — controlled/uncontrolled simple
 

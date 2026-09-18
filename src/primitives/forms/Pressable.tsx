@@ -5,14 +5,14 @@ import {
 } from "../../core/interaction/trigger";
 
 import {
-  usePress,
   type UIPressEvent,
   type UIPressState,
 } from "../../core/interaction";
 
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
+  usePressSlotBridge,
+  type PressSlotEventHandlers,
+} from "../../core/interaction/press/usePressSlotBridge";
 
 import {
   useOptionalUIMotion,
@@ -282,43 +282,9 @@ const PressableImpl = (
   const rootSlotProps =
     slotProps?.root;
 
-  const {
-    onPointerEnter:
-      slotOnPointerEnter,
-
-    onPointerLeave:
-      slotOnPointerLeave,
-
-    onPointerDown:
-      slotOnPointerDown,
-
-    onPointerUp:
-      slotOnPointerUp,
-
-    onPointerCancel:
-      slotOnPointerCancel,
-
-    onLostPointerCapture:
-      slotOnLostPointerCapture,
-
-    onFocus:
-      slotOnFocus,
-
-    onBlur:
-      slotOnBlur,
-
-    onKeyDown:
-      slotOnKeyDown,
-
-    onKeyUp:
-      slotOnKeyUp,
-
-    onClick:
-      slotOnClick,
-  } = rootSlotProps ?? {};
 
   const press =
-    usePress<HTMLElement>({
+    usePressSlotBridge<HTMLElement>({
       disabled,
       nativeInteractive,
 
@@ -326,88 +292,25 @@ const PressableImpl = (
       onLongPress,
       longPressDelay,
 
-      onPointerEnter:
-        composeEventHandlers(
-          onPointerEnter,
-          slotOnPointerEnter
-        ),
+      publicHandlers: {
+        onPointerEnter,
+        onPointerLeave,
+        onPointerDown,
+        onPointerUp,
+        onPointerCancel,
+        onLostPointerCapture,
 
-      onPointerLeave:
-        composeEventHandlers(
-          onPointerLeave,
-          slotOnPointerLeave,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        ),
+        onFocus,
+        onBlur,
 
-      onPointerDown:
-        composeEventHandlers(
-          onPointerDown,
-          slotOnPointerDown
-        ),
+        onKeyDown,
+        onKeyUp,
+      },
 
-      onPointerUp:
-        composeEventHandlers(
-          onPointerUp,
-          slotOnPointerUp,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        ),
-
-      onPointerCancel:
-        composeEventHandlers(
-          onPointerCancel,
-          slotOnPointerCancel,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        ),
-
-      onLostPointerCapture:
-        composeEventHandlers(
-          onLostPointerCapture,
-          slotOnLostPointerCapture,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        ),
-
-      onFocus:
-        composeEventHandlers(
-          onFocus,
-          slotOnFocus
-        ),
-
-      onBlur:
-        composeEventHandlers(
-          onBlur,
-          slotOnBlur,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        ),
-
-      onKeyDown:
-        composeEventHandlers(
-          onKeyDown,
-          slotOnKeyDown
-        ),
-
-      onKeyUp:
-        composeEventHandlers(
-          onKeyUp,
-          slotOnKeyUp
-        ),
-
-      onClick:
-        slotOnClick,
+      slotHandlers:
+        rootSlotProps as
+          | PressSlotEventHandlers<HTMLElement>
+          | undefined,
     });
 
   const pressMotion =

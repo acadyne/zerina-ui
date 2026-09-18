@@ -1,8 +1,14 @@
 // src/components/display/Card.tsx
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import { usePress, type UIPressEvent } from "../../core/interaction";
-import { composeEventHandlers } from "../../core/interaction/events/composeEventHandlers";
+import {
+  type UIPressEvent,
+} from "../../core/interaction";
+
+import {
+  usePressSlotBridge,
+  type PressSlotEventHandlers,
+} from "../../core/interaction/press/usePressSlotBridge";
 import {
   shouldAnimateContinuousMotion,
   useOptionalUIMotion,
@@ -278,98 +284,52 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         motionState.effectiveLevel
       );
 
-    const rootSlotProps = slotProps?.root;
+    const rootSlotProps =
+      slotProps?.root;
 
-    const {
-      onPointerEnter: slotOnPointerEnter,
-      onPointerLeave: slotOnPointerLeave,
-      onPointerDown: slotOnPointerDown,
-      onPointerUp: slotOnPointerUp,
-      onPointerCancel: slotOnPointerCancel,
-      onLostPointerCapture: slotOnLostPointerCapture,
-      onFocus: slotOnFocus,
-      onBlur: slotOnBlur,
-      onKeyDown: slotOnKeyDown,
-      onKeyUp: slotOnKeyUp,
-      onClick: slotOnClick,
-    } = rootSlotProps ?? {};
+    const isInteractive =
+      onPress !==
+      undefined;
 
-    const isInteractive = onPress !== undefined;
-    const isDisabled = isInteractive && loading;
-    const pressDisabled = !isInteractive || isDisabled;
+    const isDisabled =
+      isInteractive &&
+      loading;
 
-    const press = usePress<HTMLDivElement>({
-      disabled: pressDisabled,
-      nativeInteractive: false,
-      onPress,
+    const pressDisabled =
+      !isInteractive ||
+      isDisabled;
 
-      onPointerEnter: composeEventHandlers(
-        onPointerEnter,
-        slotOnPointerEnter
-      ),
 
-      onPointerLeave: composeEventHandlers(
-        onPointerLeave,
-        slotOnPointerLeave,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+    const press =
+      usePressSlotBridge<HTMLDivElement>({
+        disabled:
+          pressDisabled,
 
-      onPointerDown: composeEventHandlers(
-        onPointerDown,
-        slotOnPointerDown
-      ),
+        nativeInteractive:
+          false,
 
-      onPointerUp: composeEventHandlers(
-        onPointerUp,
-        slotOnPointerUp,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+        onPress,
 
-      onPointerCancel: composeEventHandlers(
-        onPointerCancel,
-        slotOnPointerCancel,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+        publicHandlers: {
+          onPointerEnter,
+          onPointerLeave,
+          onPointerDown,
+          onPointerUp,
+          onPointerCancel,
+          onLostPointerCapture,
 
-      onLostPointerCapture: composeEventHandlers(
-        onLostPointerCapture,
-        slotOnLostPointerCapture,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
+          onFocus,
+          onBlur,
 
-      onFocus: composeEventHandlers(
-        onFocus,
-        slotOnFocus
-      ),
+          onKeyDown,
+          onKeyUp,
+        },
 
-      onBlur: composeEventHandlers(
-        onBlur,
-        slotOnBlur,
-        {
-          checkDefaultPrevented: false,
-        }
-      ),
-
-      onKeyDown: composeEventHandlers(
-        onKeyDown,
-        slotOnKeyDown
-      ),
-
-      onKeyUp: composeEventHandlers(
-        onKeyUp,
-        slotOnKeyUp
-      ),
-
-      onClick: slotOnClick,
-    });
+        slotHandlers:
+          rootSlotProps as
+            | PressSlotEventHandlers<HTMLDivElement>
+            | undefined,
+      });
 
     const pressMotion = press.state.pressed
       ? motionState.getPressMotion(motionState.effectiveLevel)
