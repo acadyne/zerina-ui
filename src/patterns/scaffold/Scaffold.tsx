@@ -3,6 +3,10 @@
 import React from "react";
 
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
   resolveSlot,
 } from "../../helpers/css";
 
@@ -21,15 +25,6 @@ import {
 } from "./scaffoldLayers";
 
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 
 export const Scaffold =

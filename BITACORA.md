@@ -2,128 +2,203 @@
 
 ## Objetivo actual
 
-Llevar `zerina-ui` a un hito estable pre-1.0 cerrando contratos, eliminando duplicación y residuos sin razón vigente, y centralizando validación/documentación sin introducir compatibilidad legacy por defecto.
+Llevar `zerina-ui` a una versión pre-1.0 estable mediante fases funcionales sustanciales: contratos compartidos, deduplicación real, superficie pública deliberada, limpieza, empaquetado y validación integral.
+
+## Criterio de versionado vigente
+
+A partir de `0.2.4`, un incremento `0.2.x` representa una **fase coherente de estabilización**, no un cambio microscópico.
+
+Una fase puede incluir varias mejoras relacionadas siempre que:
+
+- compartan un objetivo técnico;
+- tengan scope cerrado;
+- puedan validarse como unidad;
+- dejen el sistema en un estado comprensible.
+
+`0.2.1–0.2.3` quedan como normalización inicial ya validada. No se reescribe su historia, pero no se repetirá esa granularidad.
+
+Cuando se solicite validación al usuario, todos los comandos se enviarán juntos en un único bloque y en orden.
 
 ## Estado actual
 
-- Versión cerrada: `0.2.2`.
-- Proceso en curso: candidato `0.2.3` — sincronización del contrato de tokens de interacción.
-- `0.2.1` (`SettingsList`) está cerrado y validado.
-- `0.2.2` (composición cancelable de acciones de slots) está cerrado y validado.
-- `0.2.3` está implementado estructuralmente y pendiente de ejecución.
+- Versión cerrada: `0.2.3`.
+- Proceso en curso: candidato `0.2.4` — normalización de contratos internos compartidos.
+- `0.2.3` está cerrado y validado.
+- `0.2.4` ya modifica de forma transversal 10 consumidores de `ReactNode`, corrige una incoherencia real de `List`, centraliza ARIA y añade regresiones. Falta ejecución.
 
-## Decisiones e invariantes
+## Fases cerradas
 
-- No crear soporte legacy por defecto.
-- Cada mejora distribuible o cierre contractual significativo, cerrado y validado, incrementa `0.2.x`.
-- No incrementar una versión candidata antes de su validación.
-- No ampliar silenciosamente un patch.
-- Las primitivas/core compartidos concentran mecánicas transversales.
-- El manifiesto de tokens es la fuente de verdad estructural para runtime, SSR y validación derivada.
-- Sólo una prueba debe fijar explícitamente la cardinalidad total del esquema cuando esa cardinalidad sea parte del contrato.
-- Los demás consumidores deben derivar el número de tokens del manifiesto.
-- Cuando se solicite validación al usuario, enviar todos los comandos juntos en un único bloque y en orden de ejecución.
-- `0.3.0` será el hito estable pre-1.0 tras cerrar el roadmap y ejecutar la validación integral.
+### `0.2.1` — SettingsList
 
-## `0.2.1` — SettingsList — CERRADO
+- eventos change nativos;
+- una sola máquina de estado;
+- cancelación con `preventDefault`.
 
-Validación:
+Validación: 14/14 Vitest + 1/1 Chromium + typechecks/build.
 
-- raíz `pnpm typecheck`: PASS.
-- raíz `pnpm build`: PASS.
-- `internal-test` typecheck: PASS.
-- SettingsList Vitest: 14/14 PASS.
-- SettingsList Chromium: 1/1 PASS.
+### `0.2.2` — composición cancelable de slots
 
-## `0.2.2` — composición cancelable de acciones de slots — CERRADO
+- `SearchInput` y `PasswordInput` reutilizan `composeEventHandlers`;
+- orden externo → interno;
+- cancelación explícita.
+
+Validación: 10/10 Vitest + typechecks/build.
+
+### `0.2.3` — contrato de tokens
+
+- 69 hojas canónicas;
+- rama interaction con 6 hojas;
+- runtime/SSR/browser derivados del manifiesto;
+- una sola aserción explícita de cardinalidad total.
+
+Validación reportada:
+
+- `internal-test` typecheck: PASS;
+- 4 archivos Vitest: 50/50 PASS;
+- Chromium: 2/2 PASS;
+- raíz typecheck: PASS;
+- raíz build: PASS.
+
+La versión del paquete fue incrementada a `0.2.3`.
+
+## `0.2.4` — normalización de contratos internos compartidos — CANDIDATO
+
+### Objetivo
+
+Eliminar implementaciones locales divergentes de contratos básicos utilizados por múltiples capas.
+
+### 1. Presencia/renderabilidad de ReactNode
+
+Antes:
+
+- 10 implementaciones locales de `hasRenderableNode`;
+- tres interpretaciones diferentes;
+- `List` trataba `true`/`false` como contenido presente.
+
+Ahora:
+
+`src/core/react/nodePresence.ts` define:
+
+- `hasRenderableNode`: ausentes `null`, `undefined` y booleanos; `0` permanece válido.
+- `hasNonEmptyRenderableNode`: misma regla y además `""` ausente.
+
+Consumidores migrados:
+
+- ActionSheet;
+- DrawerNavigation;
+- Scaffold;
+- TopAppBar;
+- TabScaffold;
+- SettingsList;
+- Field;
+- List;
+- BottomSheet;
+- Drawer.
+
+Consecuencia:
+
+`List.Section` ya no genera header, IDs o referencias ARIA cuando `label`/`description` son booleanos que React no renderiza.
+
+`Field` conserva de forma explícita su semántica más estricta para `""`.
+
+### 2. IDs ARIA
+
+Antes:
+
+- `field-semantics.ts` tenía una implementación robusta;
+- `SettingsList` tenía otra implementación local más débil.
+
+Ahora:
+
+`src/core/dom/aria.ts` contiene la única implementación de `mergeAriaIds`.
 
 Contrato:
 
-- el handler externo del slot se ejecuta primero;
-- `preventDefault()` cancela la acción interna;
-- sin cancelación, la acción interna se ejecuta exactamente una vez;
-- `SearchInput` y `PasswordInput` reutilizan `composeEventHandlers`.
+- separa listas por whitespace;
+- elimina vacíos;
+- deduplica;
+- conserva orden;
+- devuelve `undefined` cuando no existen IDs útiles.
 
-Validación reportada por el usuario:
+`field-semantics.ts` reexporta la utilidad.
+`SettingsList` la consume desde core.
 
-- raíz `pnpm typecheck`: PASS.
-- raíz `pnpm build`: PASS.
-- `internal-test` typecheck: PASS.
-- `tests/forms-block5-behavior.test.tsx`: 10/10 PASS.
+### 3. Estado estructural
 
-La versión del paquete fue incrementada a `0.2.2`.
+Verificado por inspección:
 
-## `0.2.3` — contrato de tokens de interacción — CANDIDATO
+- no quedan implementaciones locales de `hasRenderableNode` fuera del core;
+- sólo existe una definición de `mergeAriaIds`;
+- los 10 consumidores identificados importan el contrato compartido.
 
-### Realidad encontrada
+### 4. Pruebas añadidas
 
-El source ya contiene cinco tokens de interacción añadidos al contrato anterior:
+`internal-test/tests/core-shared-contracts.test.tsx` cubre:
 
-- `interaction.focusRingColor`;
-- `interaction.focusRingDangerColor`;
-- `interaction.focusRingWidth`;
-- `interaction.focusRingOffset`;
-- `interaction.disabledOpacity`.
+- `null`;
+- `undefined`;
+- booleanos;
+- `0`;
+- string vacío;
+- regresión de `List.Section` con booleanos;
+- `List.Section` con `0`;
+- normalización y deduplicación de IDs ARIA.
 
-Junto con `interaction.overlay`, la rama `interaction` contiene seis hojas.
-
-El manifiesto completo contiene 69 hojas. Las pruebas unitarias estaban parcialmente migradas desde 64 hacia 69/`manifestLeaves.length`, pero el E2E `theme-interaction-tokens.chromium.spec.ts` todavía exigía 64 variables canónicas en dos puntos.
-
-Eso dejaba runtime/manifiesto y validación browser describiendo contratos distintos.
-
-### Scope
-
-- mantener una sola fuente de verdad estructural: `THEME_TOKEN_MANIFEST`;
-- conservar una única aserción explícita de cardinalidad total (`69`) en `theme-token-manifest-validation.test.ts`;
-- hacer que pruebas de runtime, SSR, built-ins y browser deriven conteos desde el manifiesto;
-- comprobar que no se emiten variables legacy eliminadas;
-- validar que light/dark/built-ins resuelven las hojas actuales.
-
-### Implementado
-
-- `theme-interaction-tokens.chromium.spec.ts` calcula `CANONICAL_VARIABLE_COUNT` desde `THEME_TOKEN_MANIFEST`;
-- eliminados los dos contratos browser desfasados que fijaban `64`;
-- eliminado el segundo hardcode redundante de `69` en `theme-interaction-token-contract.test.ts`;
-- la aserción explícita `69` queda centralizada en `theme-token-manifest-validation.test.ts`;
-- runtime y SSR ya recorrían el manifiesto, por lo que no requirieron cambio de producto.
+Además se ejecutarán regresiones existentes de Field y SettingsList.
 
 ### Pendiente de validación
 
-- typecheck de `internal-test`;
-- pruebas de manifiesto, interacción, resolución y SSR;
-- E2E Chromium de tokens;
+- typecheck `internal-test`;
+- nuevo test de contratos;
+- Field semantics;
+- SettingsList contract;
 - typecheck raíz;
 - build raíz.
 
-## Infraestructura vigente
+## Roadmap grande vigente
 
-`internal-test` forma parte del workspace mediante:
+### `0.2.5` — deduplicación estructural de familias
 
-```yaml
-packages:
-  - "internal-test"
-```
+Objetivo: eliminar implementaciones paralelas conservando sólo diferencias semánticas reales.
 
-Si se parte de una copia/snapshot nuevo, ejecutar `pnpm install --frozen-lockfile` antes del harness.
+Familias:
 
-La advertencia de pnpm 10 sobre `Ignored build scripts: esbuild` sigue registrada para la fase de reproducibilidad; no bloqueó las fases anteriores.
+- NavigationRail / BottomNavigation;
+- DataTable desktop/editable;
+- ConfirmDialog / ActionDialog;
+- Drawer / BottomSheet.
 
-## Otros hallazgos vigentes
+### `0.2.6` — interacción y overlay
 
-- `hasRenderableNode` duplicado con semánticas distintas.
-- `mergeAriaIds` duplicado; existe una versión robusta reutilizable.
-- `MenuRoot` mantiene deuda explícita P3.1.
-- `TriggerRuntime` mantiene deuda explícita P4.1.
-- Duplicación estructural importante en navegación, DataTable, diálogos y overlays.
-- Backups `.bak.block4` y resultados generados rastreados siguen como candidatos a limpieza.
-- Validación global todavía fragmentada.
+Cerrar juntos:
+
+- Menu P3.1;
+- TriggerRuntime P4.1;
+- foco;
+- apertura/cierre;
+- cancelación;
+- ownership entre capas.
+
+### `0.2.7` — superficie pública y código no vigente
+
+- clasificar exports;
+- retirar implementación accidentalmente pública;
+- eliminar código sin contrato vigente;
+- eliminar backups/artefactos generados confirmados.
+
+### `0.2.8` — proceso, paquete y documentación
+
+- `pnpm validate`;
+- reproducibilidad pnpm/esbuild;
+- higiene de repo;
+- README de consumidor;
+- pack;
+- instalación desde tarball limpio.
+
+### `0.3.0` — hito estable pre-1.0
+
+Validación integral de paquete, browser y consumidor limpio.
 
 ## Siguiente paso
 
-Validar el candidato `0.2.3`.
-
-Si pasa:
-
-1. incrementar a `0.2.3`;
-2. consolidar documentación;
-3. comenzar `0.2.4` — semántica central de presencia/renderabilidad de `ReactNode`.
+Validar `0.2.4`. Si queda verde, cerrar la fase y entrar a la deduplicación estructural de `0.2.5`.

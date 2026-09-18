@@ -1,5 +1,9 @@
 // src/primitives/overlay/Drawer.tsx
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
@@ -227,15 +231,6 @@ const drawerRecipe = defineSlotRecipe<
   }),
 });
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 
 const DEFAULT_DRAWER_RECIPE_STYLES =

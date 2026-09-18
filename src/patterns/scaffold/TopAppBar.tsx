@@ -3,6 +3,10 @@
 import React from "react";
 
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -235,15 +239,6 @@ const TOP_APP_BAR_SIZE_MAP: Record<
 };
 
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 
 function getVariantStyles(

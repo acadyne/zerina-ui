@@ -1,6 +1,14 @@
 // src/patterns/settings/SettingsList.tsx
 
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
+  mergeAriaIds,
+} from "../../core/dom/aria";
 import type { UIPressEvent } from "../../core/interaction";
 import {
   Checkbox,
@@ -192,32 +200,7 @@ type SettingsListComponent =
     >;
   };
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
-function mergeAriaIds(
-  ...ids: Array<
-    string | undefined
-  >
-): string | undefined {
-  const merged = ids
-    .filter(
-      (
-        id
-      ): id is string =>
-        Boolean(id)
-    )
-    .join(" ");
-
-  return merged || undefined;
-}
 
 function useSettingsControlText(
   label: React.ReactNode,

@@ -1,6 +1,10 @@
 // src/patterns/actions/ActionSheet.tsx
 
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import type { UIPressEvent } from "../../core/interaction";
 import { Box, List } from "../../primitives/layout";
 import {
@@ -118,15 +122,6 @@ function getToneBackground(
   return undefined;
 }
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 export const ActionSheet = (({
   children,

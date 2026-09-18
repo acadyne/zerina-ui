@@ -1,5 +1,9 @@
 // src/patterns/drawer-navigation/DrawerNavigation.tsx
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import type { UIPressEvent } from "../../core/interaction";
 import {
   resolveSlot,
@@ -94,15 +98,6 @@ export interface DrawerNavigationProps<
   slotProps?: DrawerNavigationSlotProps;
 }
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 
 export function DrawerNavigation<TMeta = unknown>({

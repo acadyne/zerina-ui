@@ -1,5 +1,9 @@
 // src/primitives/overlay/BottomSheet.tsx
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import { X } from "lucide-react";
 import {
@@ -290,15 +294,6 @@ function useOptionalBottomSheetContext() {
   );
 }
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 export interface BottomSheetProps {
   children?: React.ReactNode;

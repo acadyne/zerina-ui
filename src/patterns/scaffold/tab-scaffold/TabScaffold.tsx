@@ -1,5 +1,9 @@
 // src/patterns/scaffold/tab-scaffold/TabScaffold.tsx
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../../core/react/nodePresence";
 import { resolveSlot } from "../../../helpers/css";
 import { Box } from "../../../primitives/layout";
 import { BottomNavigation } from "../../../primitives/navigation/bottom-navigation";
@@ -28,15 +32,6 @@ import {
   resolveTabScaffoldSlot,
 } from "./tabScaffold.utils";
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    typeof node !== "boolean"
-  );
-}
 
 
 export const TabScaffold =

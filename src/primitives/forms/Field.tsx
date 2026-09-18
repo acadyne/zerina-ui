@@ -3,6 +3,10 @@ import React, {
 } from "react";
 
 import {
+  hasNonEmptyRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
@@ -59,17 +63,6 @@ export interface FieldProps
 }
 
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined &&
-    node !== false &&
-    node !== true &&
-    node !== ""
-  );
-}
 
 
 export const Field =
@@ -118,17 +111,17 @@ export const Field =
         `${resolvedFieldId}-control`;
 
       const hasLabel =
-        hasRenderableNode(
+        hasNonEmptyRenderableNode(
           label
         );
 
       const hasHelpText =
-        hasRenderableNode(
+        hasNonEmptyRenderableNode(
           helpText
         );
 
       const hasError =
-        hasRenderableNode(
+        hasNonEmptyRenderableNode(
           error
         );
 

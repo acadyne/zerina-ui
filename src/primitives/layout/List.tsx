@@ -1,5 +1,9 @@
 // src/primitives/layout/List.tsx
 import React from "react";
+
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import {
   Box,
   type BoxProps,
@@ -174,14 +178,6 @@ type ListItemStyle =
       React.CSSProperties["background"];
   };
 
-function hasRenderableNode(
-  node: React.ReactNode
-): boolean {
-  return (
-    node !== null &&
-    node !== undefined
-  );
-}
 
 const ListRoot =
   React.forwardRef<
