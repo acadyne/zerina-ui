@@ -2,6 +2,10 @@
 
 import React from "react";
 
+import {
+  useIsomorphicLayoutEffect,
+} from "../../react/useIsomorphicLayoutEffect";
+
 
 type InputModality =
   | "keyboard"
@@ -254,6 +258,54 @@ export function useFocusVisible<
     },
     []
   );
+
+
+  /*
+   * La modalidad debe observarse antes del primer focus.
+   *
+   * Crear el tracker dentro de handleFocus llega demasiado tarde para un
+   * pointerdown que provoca el propio focus. Además, :focus-visible nativo no
+   * equivale a nuestro contrato "ring sólo por teclado": Chromium puede
+   * considerarlo true para inputs de texto enfocados con pointer.
+   *
+   * Un listener compartido por Document queda activo desde layout, antes de
+   * que el usuario pueda interactuar con el árbol ya presentado.
+   */
+  useIsomorphicLayoutEffect(
+    () => {
+      if (
+        disabled ||
+        typeof document ===
+          "undefined"
+      ) {
+        return;
+      }
+
+      retainTrackerForDocument(
+        document
+      );
+
+      const retained =
+        retainedTrackerRef.current;
+
+      return () => {
+        if (
+          retainedTrackerRef.current ===
+          retained
+        ) {
+          retainedTrackerRef.current =
+            null;
+        }
+
+        retained?.release();
+      };
+    },
+    [
+      disabled,
+      retainTrackerForDocument,
+    ]
+  );
+
 
   React.useEffect(() => {
     return () => {

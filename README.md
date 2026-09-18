@@ -1,35 +1,82 @@
 # Zerina UI
 
-![NPM Version](https://img.shields.io/npm/v/zerina-ui) ![License](https://img.shields.io/npm/l/zerina-ui) ![Build](https://img.shields.io/badge/build-passing-brightgreen) ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue) ![React](https://img.shields.io/badge/ui-React-61dafb)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acadyne/zerina-ui)
+Zerina UI es una librería UI tipada para React. Reúne primitivas, componentes, patrones y contratos transversales para construir interfaces accesibles, responsivas y componibles sin esconder el control del consumidor.
 
-**Zerina UI** es una librería UI tipada para React, diseñada para construir interfaces coherentes, accesibles, responsivas, animadas con intención y altamente componibles.
+> Estado: pre-1.0. La serie `0.x` todavía puede ajustar superficie pública mientras se estabiliza el contrato de la librería.
 
-Zerina UI propone una arquitectura de interfaz compuesta por primitivas, componentes, patrones de aplicación y contratos transversales para estilos, viewport, interacción, navegación y movimiento.
+## Instalación
 
-Está pensada para dashboards de producto, paneles de administración, herramientas internas, interfaces SaaS, proyectos de Tauri, aplicaciones mobile-first y productos React que necesitan una base UI flexible sin renunciar al control, la composición ni los tipos de TypeScript.
+```bash
+pnpm add zerina-ui react react-dom
+```
 
----
+También puedes usar npm o yarn.
 
-## Ejemplo rápido
+Peers requeridos:
+
+```text
+react      >=18 <20
+react-dom  >=18 <20
+```
+
+`framer-motion` y `lucide-react` son dependencias de `zerina-ui` y se instalan con el paquete.
+
+## Estilos
+
+Importa los estilos funcionales una vez en la aplicación:
+
+```tsx
+import "zerina-ui/styles.css";
+```
+
+El reset es opcional:
+
+```tsx
+import "zerina-ui/reset.css";
+```
+
+Los únicos entry points públicos del paquete son:
+
+```text
+zerina-ui
+zerina-ui/styles.css
+zerina-ui/reset.css
+```
+
+No se consideran API pública los paths internos de `src`, `core`, `helpers` o archivos individuales.
+
+## Inicio rápido
 
 ```tsx
 import {
-  ZerinaProvider,
   Button,
   Card,
   CardBody,
   Heading,
+  ZerinaProvider,
 } from "zerina-ui";
+
 import "zerina-ui/styles.css";
+
 
 export function App() {
   return (
     <ZerinaProvider>
-      <Card interactive>
+      <Card>
         <CardBody>
-          <Heading>Zerina UI</Heading>
-          <Button>Empieza a construir</Button>
+          <Heading>
+            Zerina UI
+          </Heading>
+
+          <Button
+            onPress={() => {
+              console.log(
+                "pressed",
+              );
+            }}
+          >
+            Continuar
+          </Button>
         </CardBody>
       </Card>
     </ZerinaProvider>
@@ -37,85 +84,213 @@ export function App() {
 }
 ```
 
----
+`ZerinaProvider` compone los providers transversales de overlay, viewport, motion, theme y toast.
 
-## Instalación
+## Capas de la librería
+
+### Primitivas
+
+Bloques reutilizables de bajo nivel:
+
+- formularios y controles;
+- layout;
+- tipografía;
+- navegación;
+- disclosure;
+- overlays.
+
+### Componentes
+
+Composiciones de UI más concretas, por ejemplo:
+
+- DataTable / EditableDataTable;
+- feedback;
+- tree;
+- media;
+- image viewer;
+- navigation menu;
+- theme switcher.
+
+### Patterns
+
+Patrones de aplicación que combinan primitivas sin duplicar mecánica transversal.
+
+### Core público deliberado
+
+La raíz también expone contratos reutilizables seleccionados:
+
+- `usePress` y focus-visible;
+- `UIMotionProvider`, `useUIMotion`, `MotionPresence`, `MotionPresenceGroup`, `MotionSwitch`;
+- `UIViewportProvider`, `useUIViewport`, `DEFAULT_UI_VIEWPORT_BREAKPOINTS`;
+- `OverlayProvider` y `Portal`.
+
+Los runtimes internos de overlay/motion/trigger no son entry points públicos.
+
+## Eventos y cancelación
+
+Las acciones compuestas respetan `event.preventDefault()`.
+
+Cuando una capa externa cancela un evento, la conducta interna posterior no debe ejecutarse. Esto aplica, entre otros, a acciones de slots y triggers compuestos.
+
+Ejemplo:
+
+```tsx
+<SearchInput
+  defaultValue="query"
+  slotProps={{
+    clearButton: {
+      onPress(event) {
+        if (!window.confirm("¿Limpiar?")) {
+          event.preventDefault();
+        }
+      },
+    },
+  }}
+/>
+```
+
+## Controlled y uncontrolled
+
+Los componentes que admiten ambos modos siguen la convención React:
+
+```tsx
+<Switch
+  defaultChecked
+/>
+
+<Switch
+  checked={enabled}
+  onChange={(event) => {
+    setEnabled(
+      event.currentTarget.checked,
+    );
+  }}
+/>
+```
+
+En modo controlado, el consumidor es dueño del estado. En modo no controlado, la primitiva mantiene el estado.
+
+## Tema
+
+`ZerinaProvider` incluye el sistema de tema. Para control directo también están disponibles `UIThemeProvider` y `useUITheme`.
+
+El contrato de tokens se resuelve desde un manifiesto canónico compartido por runtime y SSR.
+
+## Motion
+
+Para consumidores están disponibles:
+
+```tsx
+import {
+  MotionPresence,
+  MotionSwitch,
+  UIMotionProvider,
+  useUIMotion,
+} from "zerina-ui";
+```
+
+Los componentes de overlay usan internamente el mismo runtime de motion/foco/dismiss, pero esas piezas de implementación no forman parte de la API raíz.
+
+## Viewport
+
+```tsx
+import {
+  UIViewportProvider,
+  useUIViewport,
+} from "zerina-ui";
+```
+
+El provider centraliza viewport, orientación, densidad e input para evitar que cada componente mantenga su propia interpretación del entorno.
+
+## Accesibilidad
+
+Los contratos compartidos cubren, entre otros:
+
+- asociaciones ARIA compuestas sin IDs duplicados;
+- foco inicial y restore-focus de overlays;
+- containment de foco;
+- dismiss por Escape/pointer fuera según contrato;
+- controles nativos para estados de formularios;
+- presencia semántica coherente de `ReactNode`.
+
+La accesibilidad final también depende del contenido, labels y decisiones de la aplicación consumidora.
+
+## Desarrollo del repositorio
+
+Requiere pnpm. El repositorio fija la versión esperada mediante `packageManager`.
+
+Instalación:
 
 ```bash
-pnpm add zerina-ui
+pnpm install --frozen-lockfile
 ```
 
-```bash
-npm install zerina-ui
-```
-
-```bash
-yarn add zerina-ui
-```
-
-Zerina UI espera que React y React DOM estén disponibles como peer dependencies:
-
-```bash
-pnpm add react react-dom
-```
-
----
-
-## Requisitos
-
-```txt
-React >=18 <20
-React DOM >=18 <20
-TypeScript recomendado
-```
-
-Zerina UI utiliza internamente:
-
-```txt
-framer-motion
-lucide-react
-```
-
----
-
-Radme pendiente de actualizar
-
----
-
-# Desarrollo
-
-Instalar dependencias:
-
-```bash
-pnpm install
-```
-
-Ejecutar build:
-
-```bash
-pnpm build
-```
-
-Ejecutar TypeScript:
-
-```bash
-pnpm typecheck
-```
-
-Modo desarrollo:
+Desarrollo de la librería:
 
 ```bash
 pnpm dev
 ```
 
-Construir y validar paquete:
+TypeScript:
 
 ```bash
-pnpm pack:check
+pnpm typecheck
 ```
 
----
+Build:
 
-# Licencia
+```bash
+pnpm build
+```
 
-Este proyecto está licenciado bajo la licencia MIT. Consulta el archivo `LICENSE` para más información.
+### Validación completa
+
+La puerta de validación canónica es:
+
+```bash
+pnpm validate
+```
+
+Esa orden:
+
+1. restaura el workspace con lockfile congelado;
+2. asegura Chromium para Playwright;
+3. ejecuta typecheck, Vitest y build del harness;
+4. ejecuta la suite Chromium;
+5. ejecuta typecheck del paquete;
+6. construye y empaca la librería;
+7. instala el tarball en un consumidor temporal fuera del workspace;
+8. valida tipos y resolución ESM/CJS/CSS del paquete empacado;
+9. ejecuta `git diff --check` cuando existe un repositorio Git.
+
+Para verificar sólo distribución/consumo:
+
+```bash
+pnpm package:verify
+```
+
+## Distribución
+
+El tarball publicado contiene únicamente:
+
+- `dist/`;
+- `README.md`;
+- `LICENSE`;
+- `package.json`.
+
+El build genera:
+
+```text
+dist/index.js
+dist/index.cjs
+dist/index.d.ts
+dist/index.d.cts
+dist/styles.css
+dist/reset.css
+```
+
+Los sourcemaps pueden acompañar estos artefactos dentro de `dist`.
+
+## Licencia
+
+MIT. Consulta [`LICENSE`](./LICENSE).

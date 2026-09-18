@@ -8,37 +8,35 @@
 - `0.2.4` — contratos ReactNode/ARIA.
 - `0.2.5` — deduplicación estructural.
 - `0.2.6` — interacción + overlay.
+- `0.2.7` — superficie pública + limpieza.
 
-Versión distribuible actual: `0.2.6`.
+Versión distribuible actual: `0.2.7`.
 
 ## Actual
 
-### `0.2.7` — superficie pública + eliminación
+### `0.2.8` — proceso + distribución + documentación — CANDIDATO
 
-Incluye:
+Implementado:
 
-- reachability completo del source;
-- frontera explícita de motion/viewport;
-- eliminación de exports internos accidentales de la raíz;
-- eliminación de backups y resultados generados;
-- eliminación del `.git` anidado en `internal-test`;
-- política `.gitignore` coherente;
-- contrato automatizado de superficie pública;
-- documentación de API pública.
+- pnpm fijado en `10.34.5`;
+- `pnpm validate` como puerta única;
+- `validate.sh` eliminado;
+- clean cross-platform;
+- `pnpm package:verify`;
+- pack real;
+- instalación del tarball en consumidor temporal fuera del workspace;
+- verificación TypeScript, ESM, CJS y CSS;
+- comprobación de contenido distribuido;
+- README de consumidor reescrito;
+- documentación de distribución centralizada.
 
-No se detectaron módulos TS/TSX huérfanos; no se elimina código de producto sin evidencia.
+Pendiente:
 
-## Siguiente
+- ejecutar `pnpm validate` completo;
+- corregir cualquier divergencia que revele el consumidor limpio o la suite integral.
 
-### `0.2.8` — proceso + distribución + documentación de consumidor
-
-- una orden `pnpm validate`;
-- resolver/reproducir política pnpm de build scripts;
-- README real;
-- pack;
-- consumidor limpio desde tarball;
-- verificar JS/CSS/tipos/exports.
+## Siguiente hito
 
 ### `0.3.0`
 
-Validación integral y hito estable pre-1.0.
+Si `0.2.8` queda verde, se ejecutará una última validación integrada y revisión de cierre del estado/documentación. `0.3.0` será el hito estable pre-1.0.

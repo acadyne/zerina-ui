@@ -2,162 +2,273 @@
 
 ## Objetivo actual
 
-Llevar `zerina-ui` a `0.3.0` estable pre-1.0 mediante fases funcionales: contratos, deduplicación, interacción/overlay, superficie pública, limpieza, distribución y validación integral.
+Cerrar `0.2.8` y preparar el hito `0.3.0` estable pre-1.0.
 
 ## Estado actual
 
-- Versión cerrada y declarada: `0.2.6`.
-- Fases `0.2.1`–`0.2.6`: cerradas.
-- Proceso en curso: candidato `0.2.7` — superficie pública + eliminación de residuos.
-- `0.2.7` está implementado y pendiente de validación.
-- `0.2.8` quedará reservado para proceso reproducible, README, pack y consumidor limpio.
-- Todo bloque de validación enviado al usuario debe comenzar con `pnpm install --frozen-lockfile`.
+- Versión cerrada y declarada: `0.2.7`.
+- Fases `0.2.1`–`0.2.7`: cerradas.
+- Proceso en curso: candidato `0.2.8` — proceso, distribución y documentación.
+- `0.2.8` está implementado y pendiente de su primera ejecución integral.
+- Después de `0.2.8`, sólo queda la revisión/validación de hito `0.3.0`.
 
 ## Invariantes
 
-- No compatibilidad legacy sin consumidor/restricción vigente.
-- No conservar código o exports sólo porque existen.
-- Una API pública debe ser deliberada.
-- Una implementación interna no se promueve a contrato por aparecer en un barrel.
-- No borrar componentes públicos por similitud interna.
-- No eliminar source sólo por heurística: primero demostrar que no existe reachability/contrato.
-- La documentación describe el presente.
+- No legacy sin necesidad vigente.
+- No pipelines paralelos para la misma garantía.
+- Una release no se valida sólo con build.
+- La distribución se prueba desde el tarball, no importando source del workspace.
+- Los entry points públicos son `.`, `styles.css` y `reset.css`.
+- Todo bloque **manual/parcial** enviado al usuario comienza con `pnpm install --frozen-lockfile`.
+- La puerta automatizada canónica `pnpm validate` es autosuficiente y no necesita un install externo.
 
-## `0.2.6` — interacción + overlay — CERRADO
+## `0.2.7` — superficie pública + limpieza — CERRADO
 
-Validación final:
+Validación reportada:
 
+- workspace install: PASS;
 - harness typecheck: PASS;
-- pruebas unit/DOM dirigidas: PASS;
-- Chromium: 3/3 PASS;
+- tests de superficie/source: 44/44 PASS;
 - raíz typecheck: PASS;
-- raíz build + DTS: PASS.
+- build ESM/CJS/DTS: PASS.
 
-Contratos cerrados:
+Resultado vigente:
 
-- TriggerRuntime: cancelación progresiva por `preventDefault`;
-- Menu: intención de foco ligada a época de apertura;
-- Drawer/BottomSheet: runtime modal compartido;
-- FocusScope: restore-focus no es reatrapado durante transición de ownership;
-- pointer-down outside no fuerza restore al opener.
+- motion/viewport raíz con exports explícitos;
+- runtimes/helpers internos no forman parte de la API raíz;
+- 0 módulos TS/TSX huérfanos detectados;
+- backups/resultados generados/.git anidado eliminados;
+- política de ignores normalizada.
 
-La versión se incrementó a `0.2.6`.
+La versión se incrementó a `0.2.7`.
 
-## `0.2.7` — superficie pública + eliminación — CANDIDATO
+## `0.2.8` — proceso + distribución + documentación — CANDIDATO
 
-### 1. Reachability
+### 1. Reproducibilidad de pnpm
 
-Se analizó el grafo completo de imports/exports relativo a `src/index.ts`.
+`package.json` declara:
 
-Resultado:
+```json
+"packageManager": "pnpm@10.34.5"
+```
 
-- 291 módulos TS/TSX analizados;
-- 291 alcanzables desde la entrada pública;
-- 0 módulos source huérfanos.
+El workspace conserva:
 
-Decisión:
+```yaml
+packages:
+  - "internal-test"
 
-No eliminar módulos de producto por “unused” en esta fase. No existe evidencia estructural para hacerlo.
+allowBuilds:
+  esbuild: true
+```
 
-### 2. Frontera pública de core
+Esto elimina la discrepancia observada al inicio entre pnpm antiguo y la política de build scripts actual.
 
-`src/index.ts` dejó de hacer wildcard sobre:
+### 2. Validación única
 
-- `./core/motion`;
-- `./core/viewport`.
+Nuevo:
 
-Motion raíz conserva únicamente API de consumidor:
+```bash
+pnpm validate
+```
 
-- UIMotionProvider;
-- useUIMotion;
-- MotionPresence;
-- MotionPresenceGroup;
-- MotionSwitch;
-- tipos públicos.
+Owner: `scripts/validate.mjs`.
 
-Se retiraron de la raíz piezas de implementación:
+El script empieza por `pnpm install --frozen-lockfile`, instala/verifica Chromium y ejecuta todo el harness, typechecks, package verification y git whitespace check.
 
-- MotionOverlayPresence/Root/Backdrop/Panel;
-- helpers de presets;
-- useOptionalUIMotion.
+`validate.sh` fue eliminado para no mantener dos pipelines.
 
-Viewport raíz conserva:
+### 3. Clean portable
 
-- UIViewportProvider;
-- useUIViewport;
-- DEFAULT_UI_VIEWPORT_BREAKPOINTS;
-- tipos públicos.
+`pnpm clean` ya no depende de `rm -rf`; usa `scripts/clean.mjs`.
 
-Se retiraron de raíz:
+### 4. Verificación de distribución
 
-- resolveUIViewportKind;
-- useOptionalUIViewport.
+Nuevo:
 
-`core/interaction` permanece público porque `usePress` tiene consumidores vigentes y constituye una abstracción reusable.
+```bash
+pnpm package:verify
+```
 
-### 3. Entry points de paquete
+Hace build y ejecuta `scripts/verify-package.mjs`.
 
-`package.json` continúa publicando únicamente:
+El verificador:
 
-- `.`;
-- `./styles.css`;
-- `./reset.css`.
+- empaca el paquete real;
+- instala el `.tgz` en un proyecto temporal fuera del workspace;
+- valida contenido del paquete;
+- valida los tres entry points;
+- compila un consumidor TSX;
+- carga ESM;
+- carga CJS;
+- resuelve ambos CSS entry points;
+- elimina el consumidor temporal.
 
-No existen subpaths públicos de implementación.
+### 5. README
 
-### 4. Residuos eliminados
+README reescrito como documento de consumidor actual:
 
-Eliminados 8 backups `.bak.block4*` sin referencias activas.
+- instalación/peers;
+- estilos/reset;
+- quick start;
+- capas públicas;
+- controlled/uncontrolled;
+- cancelación;
+- tema/motion/viewport;
+- accesibilidad;
+- desarrollo;
+- validación;
+- distribución.
 
-Eliminado:
+Se eliminó el badge estático de “build passing” sin CI observable y la nota “README pendiente”.
 
-- `internal-test/test-results`;
-- `internal-test/.git` anidado.
+### 6. Documentación operativa
 
-El `.git` anidado:
+Nuevo `docs/DISTRIBUCION.md`.
 
-- no tenía remote;
-- no constituye un paquete/submodule declarado;
-- interfería conceptualmente con el workspace único.
+`docs/VALIDACION.md`, `VERSIONADO.md` y `ESTABILIZACION.md` fueron consolidados al estado actual.
 
-### 5. Ignore policy
+## Pendiente para cerrar `0.2.8`
 
-Creado `.gitignore` raíz.
+Ejecutar:
 
-Simplificado `internal-test/.gitignore` para ignorar sólo artefactos locales/generados relevantes, eliminando entradas históricas y contradictorias.
+```bash
+pnpm validate
+```
 
-### 6. Contrato añadido
+Cualquier fallo debe clasificarse como:
 
-`internal-test/tests/public-surface-contract.test.ts` verifica:
+- producto;
+- harness;
+- distribución;
+- entorno.
 
-- APIs públicas de motion/viewport siguen presentes;
-- runtimes/helpers internos no reaparecen en raíz;
-- no vuelven wildcard exports de motion/viewport;
-- package exports siguen limitados a los tres entry points deliberados.
-
-### 7. Documentación
-
-Nuevo `docs/SUPERFICIE_PUBLICA.md` define:
-
-- qué es API raíz;
-- qué permanece interno;
-- criterio de eliminación;
-- política de higiene.
-
-## Pendiente para cerrar `0.2.7`
-
-- instalar workspace;
-- typecheck harness;
-- ejecutar contrato de superficie pública;
-- ejecutar tests de API/source activos;
-- typecheck raíz;
-- build/DTS;
-- confirmar que la API estrechada no rompe imports internos ni el harness.
+No incrementar a `0.2.8` hasta quedar en verde.
 
 ## Siguiente paso
 
-Si `0.2.7` pasa:
+Si `pnpm validate` pasa:
 
-1. incrementar a `0.2.7`;
-2. consolidar docs;
-3. entrar a `0.2.8` — `pnpm validate`, reproducibilidad pnpm/esbuild, README real, pack e instalación desde tarball limpio.
+1. incrementar a `0.2.8`;
+2. consolidar bitácora;
+3. preparar `0.3.0`;
+4. ejecutar validación final de hito sin abrir nuevas refactorizaciones salvo blocker real.
+
+## Primera ejecución integral de `0.2.8`
+
+`pnpm validate` alcanzó la suite completa de Vitest.
+
+Resultado observado:
+
+- 40 archivos de test ejecutados;
+- 38 PASS;
+- 2 FAIL;
+- 388 tests totales;
+- 386 PASS;
+- 2 FAIL.
+
+Los dos fallos fueron clasificados como **harness desactualizado**, no producto:
+
+1. `forms-block5-source.test.ts` seguía buscando la implementación manual histórica de cancelación de `SearchInput`/`PasswordInput`.
+   - contrato vigente: `composeEventHandlers(external, internal)`;
+   - el test ahora comprueba esa composición central y que `ControlAction` usa el handler compuesto.
+
+2. `interaction-use-press-consumers.test.ts` seguía esperando `isFocused || press.state.focused`.
+   - contrato vigente de MenuItem: `press.state.focused` es la única fuente de foco lógico;
+   - `focusVisible` sigue separado;
+   - el test ahora comprueba además que no reaparezca `isFocused`.
+
+No se cambió código de producto para resolver estos fallos.
+
+`pnpm validate` debe ejecutarse de nuevo completo porque la primera ejecución se detuvo en Vitest y todavía falta comprobar las etapas posteriores de build del harness, Chromium completo, package verification y consumidor limpio.
+
+## Segunda ejecución integral de `0.2.8`
+
+`pnpm validate` avanzó más allá de Vitest.
+
+Resultados confirmados:
+
+- workspace install: PASS;
+- Chromium disponible: PASS;
+- internal-test typecheck: PASS;
+- Vitest completo: **388/388 PASS**;
+- internal-test build: PASS;
+- Playwright Chromium: **63/65 PASS**;
+- root typecheck/package verification: no ejecutados en esa corrida porque Chromium cortó el pipeline.
+
+### Fallos Chromium
+
+Los dos fallos comparten una sola causa de producto:
+
+- `Block 5: InputGroup distinguishes pointer and keyboard focus`;
+- `Block 4: pointer focus has no keyboard ring`.
+
+Ambos recibían `data-focus-visible` después de un click/pointer focus.
+
+### Causa raíz
+
+Owner: `src/core/interaction/focus/useFocusVisible.ts`.
+
+El tracker de modalidad se retenía por primera vez durante `handleFocus`.
+
+Orden real del navegador:
+
+```text
+pointerdown
+→ focus
+```
+
+Por tanto, cuando el tracker nacía dentro de `focus`, ya había perdido el
+`pointerdown` que causó ese foco.
+
+La implementación intentaba inferir la modalidad inicial con:
+
+```text
+element.matches(":focus-visible")
+```
+
+pero ese selector nativo no expresa exactamente el contrato de Zerina UI.
+Chromium puede considerar focus-visible un input de texto enfocado por pointer.
+
+Resultado: pointer focus podía clasificarse como keyboard focus.
+
+### Corrección
+
+`useFocusVisible` ahora retiene el tracker compartido del `document` en
+`useIsomorphicLayoutEffect`, antes de la primera interacción posible.
+
+El tracker sigue siendo único por Document y conserva reference counting.
+
+Consecuencias:
+
+- pointerdown queda observado antes de focus;
+- keydown queda observado antes de focus;
+- Input/InputGroup/Textarea/Select/usePress siguen consumiendo el mismo owner;
+- no se agregan parches locales por componente;
+- el fallback `:focus-visible` queda únicamente para un Document que aparezca
+  excepcionalmente por primera vez durante focus (por ejemplo, un ownerDocument
+  distinto).
+
+Se añadió un contrato source que impide volver a crear el tracker sólo después
+del primer focus.
+
+### Limpieza derivada del pipeline
+
+- El warning Vite de chunk >500 kB pertenece al harness interno y no es blocker
+  de la distribución de la librería.
+- No se hará code-splitting artificial del harness para ocultar ese warning.
+- `package:verify` todavía no ha sido observado en ejecución completa; sigue
+  pendiente después de que Chromium quede verde.
+
+## Limpieza adicional del proceso detectada durante la segunda ejecución
+
+El log mostró que ejecutar manualmente `pnpm install --frozen-lockfile` antes de `pnpm validate` duplicaba trabajo, porque `validate` ya instala el workspace.
+
+Contrato corregido:
+
+- validación completa: ejecutar sólo `pnpm validate`;
+- validaciones parciales/manuales: comenzar con `pnpm install --frozen-lockfile`.
+
+Además, `scripts/validate.mjs` ahora comprueba que la versión activa de pnpm coincida exactamente con `package.json#packageManager` antes de instalar o probar.
+
+Con esto, la declaración `pnpm@10.34.5` deja de ser sólo documentación y se vuelve una precondición ejecutable.

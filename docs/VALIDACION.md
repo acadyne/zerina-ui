@@ -1,49 +1,91 @@
 # Validación
 
-## Regla obligatoria
+## Puerta canónica
 
-Todo bloque de validación local comienza con:
+La validación completa del repositorio es:
 
 ```bash
-pnpm install --frozen-lockfile
+pnpm validate
 ```
 
-Los snapshots no incluyen `node_modules`.
+`pnpm validate` es autosuficiente: comprueba la versión fijada de pnpm y ejecuta `pnpm install --frozen-lockfile` internamente.
 
-## Estado cerrado
+No ejecutar un `pnpm install` adicional antes de esta puerta y no mantener listas manuales alternativas como proceso de release.
 
-`0.2.1`–`0.2.6` están validados para sus scopes.
+Owner: `scripts/validate.mjs`.
 
-`0.2.6` cerró con:
+## Qué valida
+
+- workspace/lockfile;
+- Chromium de Playwright;
+- typecheck del harness;
+- Vitest completo;
+- build del harness;
+- Playwright Chromium completo;
+- typecheck raíz;
+- build ESM/CJS/CSS/DTS;
+- pack;
+- instalación desde tarball en consumidor limpio;
+- TypeScript del consumidor;
+- resolución runtime ESM/CJS;
+- entry points CSS;
+- contenido del paquete;
+- whitespace Git cuando existe `.git`.
+
+## Verificación de distribución aislada
+
+```bash
+pnpm package:verify
+```
+
+Este comando construye el paquete antes de empacarlo.
+
+## Estado
+
+`0.2.1`–`0.2.7` están cerrados para sus scopes.
+
+`0.2.7` cerró con:
 
 - harness typecheck PASS;
-- unit/DOM PASS;
-- Chromium 3/3 PASS;
+- 44/44 tests dirigidos PASS;
 - root typecheck PASS;
 - build + DTS PASS.
 
-## Validación de `0.2.7`
+`0.2.8` no se cierra hasta ejecutar `pnpm validate` completo.
 
-```bash
-pnpm install --frozen-lockfile
+## Primer resultado integral de `0.2.8`
 
-pnpm --filter zerina-ui-internal-test typecheck
+La primera ejecución de `pnpm validate` se detuvo en Vitest:
 
-pnpm --filter zerina-ui-internal-test exec vitest run \
-  tests/public-surface-contract.test.ts \
-  tests/forms-public-api-and-source.test.ts \
-  tests/family-deduplication-source.test.ts \
-  tests/interaction-overlay-source.test.ts
-
-pnpm typecheck
-
-pnpm build
+```text
+Test Files   2 failed | 38 passed (40)
+Tests        2 failed | 386 passed (388)
 ```
 
-Criterio de cierre:
+Ambos fallos eran contratos source históricos:
 
-- imports públicos vigentes siguen resolviendo;
-- internals retirados no aparecen desde `zerina-ui`;
-- API raíz no vuelve a usar wildcard para motion/viewport;
-- contratos source anteriores siguen verdes;
-- root typecheck y DTS confirman que los exports explícitos son completos.
+- Block 5 esperaba composición manual en vez de `composeEventHandlers`;
+- MenuItem esperaba una fuente `isFocused` ya eliminada.
+
+Los tests fueron actualizados al contrato vigente. No cambió producto.
+
+Debe repetirse `pnpm validate` completo porque las fases posteriores al Vitest no llegaron a ejecutarse.
+
+## Segundo resultado integral de `0.2.8`
+
+La segunda ejecución alcanzó Chromium:
+
+```text
+Vitest      388/388 PASS
+Chromium     63/65 PASS
+```
+
+Los dos fallos eran el mismo bug central de modalidad: `useFocusVisible`
+empezaba a observar el Document durante `focus`, después del `pointerdown` que
+había causado ese foco.
+
+Se corrigió el owner central para retener el tracker desde layout.
+
+Debe repetirse `pnpm validate` completo. Aún falta observar en verde las etapas
+posteriores a Chromium, especialmente `package:verify` y el consumidor desde
+tarball.

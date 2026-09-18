@@ -35,6 +35,42 @@ function readSource(
 describe(
   "usePress consumer source contracts",
   () => {
+
+    it(
+      "tracks document modality before the first focus event",
+      () => {
+        const focusSource =
+          readSource(
+            "core/interaction/focus/useFocusVisible.ts",
+          );
+
+        expect(
+          focusSource,
+        ).toContain(
+          "useIsomorphicLayoutEffect",
+        );
+
+        expect(
+          focusSource,
+        ).toMatch(
+          /useIsomorphicLayoutEffect\([\s\S]*?retainTrackerForDocument\(\s*document\s*\)/,
+        );
+
+        expect(
+          focusSource,
+        ).toMatch(
+          /ownerDocument\.addEventListener\(\s*"pointerdown"/,
+        );
+
+        expect(
+          focusSource,
+        ).toMatch(
+          /ownerDocument\.addEventListener\(\s*"keydown"/,
+        );
+      },
+    );
+
+
     const consumers = [
       {
         name:
@@ -120,7 +156,13 @@ describe(
         expect(
           source,
         ).toMatch(
-          /const\s+focused\s*=\s*isFocused\s*\|\|\s*press\.state\.focused\s*;/s,
+          /const\s+focused\s*=\s*press\.state\.focused\s*;/s,
+        );
+
+        expect(
+          source,
+        ).not.toMatch(
+          /\bisFocused\b/,
         );
 
         expect(

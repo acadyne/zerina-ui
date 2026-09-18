@@ -139,3 +139,20 @@ Posee:
 Drawer/BottomSheet aportan recipes, contenido y diferencias de presentación.
 
 Los slots no pueden reemplazar invariantes de ownership/foco/dismiss.
+
+## 12. Modalidad y focus-visible
+
+Owner: `src/core/interaction/focus/useFocusVisible.ts`.
+
+El contrato visual de Zerina UI no delega su semántica a `:focus-visible` del navegador.
+
+Reglas:
+
+- `pointerdown` / actividad de puntero → foco lógico sí, ring de teclado no;
+- `keydown` sin modificadores → foco posterior puede ser focus-visible;
+- focus programático sigue la última modalidad observada;
+- blur/disabled limpian focused y focus-visible;
+- el tracker es compartido por `Document`;
+- el tracker debe estar activo **antes del primer focus**, para no perder el evento que causó ese foco.
+
+`:focus-visible` nativo sólo puede actuar como fallback excepcional cuando aparece un `ownerDocument` que no estaba siendo observado. No es la fuente primaria del contrato visual.

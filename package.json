@@ -1,6 +1,6 @@
 {
   "name": "zerina-ui",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Primitives, components, patterns and styles for React apps.",
   "license": "MIT",
   "type": "module",
@@ -45,13 +45,14 @@
     "./reset.css": "./dist/reset.css"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "node scripts/clean.mjs",
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "pack:check": "pnpm typecheck && pnpm build && pnpm pack",
-    "test:internal": "pnpm --dir internal-test dev",
-    "test:internal:build": "pnpm --dir internal-test build"
+    "test:internal": "pnpm --filter zerina-ui-internal-test dev",
+    "test:internal:build": "pnpm --filter zerina-ui-internal-test build",
+    "validate": "node scripts/validate.mjs",
+    "package:verify": "pnpm build && node scripts/verify-package.mjs"
   },
   "peerDependencies": {
     "react": ">=18 <20",
@@ -69,5 +70,6 @@
     "react-dom": "^18.3.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "packageManager": "pnpm@10.34.5"
 }

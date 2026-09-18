@@ -8,6 +8,8 @@ Esta carpeta contiene documentación **vigente**, agrupada por función. No pret
 - [`CONTRATOS.md`](./CONTRATOS.md): contratos transversales que deben permanecer coherentes.
 - [`ESTABILIZACION.md`](./ESTABILIZACION.md): problemas y procesos todavía abiertos para llegar al siguiente hito estable.
 - [`VALIDACION.md`](./VALIDACION.md): qué significa “validado” y cómo se comprueba.
+- [`DISTRIBUCION.md`](./DISTRIBUCION.md): pipeline único, pack y consumo desde tarball limpio.
+- [`SUPERFICIE_PUBLICA.md`](./SUPERFICIE_PUBLICA.md): entry points y frontera pública deliberada.
 - [`VERSIONADO.md`](./VERSIONADO.md): relación entre procesos cerrados y versiones.
 
 La memoria operacional canónica está en [`../BITACORA.md`](../BITACORA.md).

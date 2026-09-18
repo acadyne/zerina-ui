@@ -286,13 +286,13 @@ describe(
         expect(
           searchInput,
         ).toMatch(
-          /<ControlAction[\s\S]*?onPress=\{\(event\) => \{[\s\S]*?clearButtonSlotOnPress\?\.\([\s\S]*?event\.defaultPrevented[\s\S]*?handleClear\s*\(/,
+          /const\s+handleClearPress\s*=\s*composeEventHandlers<[\s\S]*?clearButtonSlotOnPress[\s\S]*?handleClear[\s\S]*?<ControlAction[\s\S]*?onPress=\{\s*handleClearPress\s*\}/,
         );
 
         expect(
           passwordInput,
         ).toMatch(
-          /<ControlAction[\s\S]*?onPress=\{\(event\) => \{[\s\S]*?toggleButtonSlotOnPress\?\.\([\s\S]*?event\.defaultPrevented[\s\S]*?handleToggle\s*\(/,
+          /const\s+handleTogglePress\s*=\s*composeEventHandlers<[\s\S]*?toggleButtonSlotOnPress[\s\S]*?handleToggle[\s\S]*?<ControlAction[\s\S]*?onPress=\{\s*handleTogglePress\s*\}/,
         );
       },
     );
