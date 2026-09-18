@@ -1,0 +1,152 @@
+import {
+  readFileSync,
+} from "node:fs";
+
+import {
+  resolve,
+} from "node:path";
+
+import {
+  describe,
+  expect,
+  it,
+} from "vitest";
+
+
+function readSource(
+  relativePath: string,
+): string {
+  const path =
+    resolve(
+      process.cwd(),
+      "..",
+      "src",
+      relativePath,
+    );
+
+
+  return readFileSync(
+    path,
+    "utf-8",
+  );
+}
+
+
+describe(
+  "usePress consumer source contracts",
+  () => {
+    const consumers = [
+      {
+        name:
+          "Button",
+
+        path:
+          "primitives/forms/Button.tsx",
+      },
+
+      {
+        name:
+          "IconButton",
+
+        path:
+          "primitives/forms/IconButton.tsx",
+      },
+
+      {
+        name:
+          "Pressable",
+
+        path:
+          "primitives/forms/Pressable.tsx",
+      },
+
+      {
+        name:
+          "MenuItem",
+
+        path:
+          "primitives/overlay/menu/MenuItem.tsx",
+      },
+
+      {
+        name:
+          "Toast",
+
+        path:
+          "components/feedback/Toast.tsx",
+      },
+
+      {
+        name:
+          "Tag",
+
+        path:
+          "components/display/Tag.tsx",
+      },
+    ];
+
+
+    it.each(
+      consumers,
+    )(
+      "$name consumes the canonical usePress hook",
+      ({
+        path,
+      }) => {
+        const source =
+          readSource(
+            path,
+          );
+
+
+        expect(
+          source,
+        ).toMatch(
+          /\busePress(?:\s*<|\s*\()/,
+        );
+      },
+    );
+
+
+    it(
+      "MenuItem separates logical focus from focus visibility",
+      () => {
+        const source =
+          readSource(
+            "primitives/overlay/menu/MenuItem.tsx",
+          );
+
+
+        expect(
+          source,
+        ).toMatch(
+          /const\s+focused\s*=\s*isFocused\s*\|\|\s*press\.state\.focused\s*;/s,
+        );
+
+        expect(
+          source,
+        ).toMatch(
+          /const\s+focusVisible\s*=\s*press\.state\.focusVisible\s*;/s,
+        );
+
+        expect(
+          source,
+        ).toMatch(
+          /"data-focus-visible"\s*:\s*focusVisible\s*(?:\|\|\s*undefined|\?\s*["']{2}\s*:\s*undefined)/s,
+        );
+
+        expect(
+          source,
+        ).not.toMatch(
+          /"data-focus-visible"\s*:\s*isFocused/,
+        );
+
+        expect(
+          source,
+        ).not.toMatch(
+          /focusVisible\s*:\s*isFocused/,
+        );
+      },
+    );
+  },
+);

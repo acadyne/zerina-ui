@@ -26,8 +26,48 @@ export * from "./primitives/disclosure";
 export * from "./patterns";
 export * from "./theme";
 
-export * from "./core/motion";
-export * from "./core/viewport";
+export {
+  MotionPresence,
+  MotionPresenceGroup,
+  MotionSwitch,
+  UIMotionProvider,
+  useUIMotion,
+} from "./core/motion";
+
+export type {
+  MotionPresenceGroupProps,
+  MotionPresenceProps,
+  MotionSwitchProps,
+  UIMotionAppTransition,
+  UIMotionContextValue,
+  UIMotionIntent,
+  UIMotionLevel,
+  UIMotionPreference,
+  UIMotionPreset,
+  UIMotionProviderProps,
+  UIMotionState,
+  UIMotionTransitionDirection,
+} from "./core/motion";
+
+export {
+  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+  UIViewportProvider,
+  useUIViewport,
+} from "./core/viewport";
+
+export type {
+  UIDensity,
+  UIDensityMode,
+  UIInputKind,
+  UIOrientation,
+  UIViewportBreakpoints,
+  UIViewportContextValue,
+  UIViewportInfo,
+  UIViewportKind,
+  UIViewportMode,
+  UIViewportProviderProps,
+} from "./core/viewport";
+
 export * from "./core/interaction";
 
 export * from "./provider";

@@ -1,0 +1,16 @@
+.DS_Store
+.git/
+dist/
+archivos_pedidos.txt
+.gitignore
+internal-test/
+node_modules/
+LICENSE
+pnpm-lock.yamls
+README.md
+zerina-ui-0.1.2.tgz
+uso
+examinar
+eee
+internal-test
+internal-test-2
