@@ -1,6 +1,7 @@
 // src/core/motion/UIMotionProvider.tsx
 import React from "react";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
+import { useControllableValue } from "../react/useControllableValue";
 import { useMediaQuery } from "../dom";
 import type {
   UIMotionIntent,
@@ -136,11 +137,20 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
     false
   );
 
-  const isControlled = level !== undefined;
-  const [internalLevel, setInternalLevel] =
-    React.useState<UIMotionLevel>(defaultLevel);
+  const {
+    value:
+      currentLevel,
 
-  const currentLevel = isControlled ? level : internalLevel;
+    setUncontrolledValue:
+      setInternalLevel,
+  } =
+    useControllableValue<UIMotionLevel>({
+      value:
+        level,
+
+      defaultValue:
+        defaultLevel,
+    });
 
   const effectiveLevel = React.useMemo(
     () =>
@@ -158,13 +168,18 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
 
   const setLevel = React.useCallback(
     (nextLevel: UIMotionLevel) => {
-      if (!isControlled) {
-        setInternalLevel(nextLevel);
-      }
+      setInternalLevel(
+        nextLevel
+      );
 
-      onLevelChange?.(nextLevel);
+      onLevelChange?.(
+        nextLevel
+      );
     },
-    [isControlled, onLevelChange]
+    [
+      onLevelChange,
+      setInternalLevel,
+    ]
   );
 
   const shouldAnimate = effectiveLevel !== "none";

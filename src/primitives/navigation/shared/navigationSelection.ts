@@ -1,5 +1,9 @@
 import React from "react";
 
+import {
+  useControllableValue,
+} from "../../../core/react/useControllableValue";
+
 import type {
   UIPressEvent,
 } from "../../../core/interaction";
@@ -49,20 +53,23 @@ export function useNavigationSelection({
   defaultValue = null,
   onValueChange,
 }: UseNavigationSelectionOptions): NavigationSelectionState {
-  const isControlled =
-    value !== undefined;
+  const {
+    value:
+      currentValue,
 
-  const [
-    internalValue,
-    setInternalValue,
-  ] = React.useState<string | null>(
-    defaultValue,
-  );
+    setUncontrolledValue:
+      setInternalValue,
+  } =
+    useControllableValue<
+      string | null
+    >({
+      value:
+        value === undefined
+          ? undefined
+          : value ?? null,
 
-  const currentValue =
-    isControlled
-      ? value ?? null
-      : internalValue;
+      defaultValue,
+    });
 
   const setValue =
     React.useCallback(
@@ -77,8 +84,7 @@ export function useNavigationSelection({
             : "change";
 
         if (
-          reason === "change" &&
-          !isControlled
+          reason === "change"
         ) {
           setInternalValue(
             nextValue,
@@ -98,8 +104,8 @@ export function useNavigationSelection({
       },
       [
         currentValue,
-        isControlled,
         onValueChange,
+        setInternalValue,
       ],
     );
 

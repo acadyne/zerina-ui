@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
+
+import {
   Search,
   X,
 } from "lucide-react";
@@ -155,30 +159,32 @@ export const SearchInput =
         });
 
 
-      const isControlled =
-        value !==
-        undefined;
-
-
-      const [
-        internalValue,
-        setInternalValue,
-      ] =
-        React.useState(
-          defaultValue == null
-            ? ""
-            : String(
-                defaultValue
-              )
-        );
-
-
-      const currentValue =
-        isControlled
-          ? String(
+      const controlledValue =
+        value === undefined
+          ? undefined
+          : String(
               value ?? ""
-            )
-          : internalValue;
+            );
+
+
+      const {
+        value:
+          currentValue,
+
+        setUncontrolledValue:
+          setInternalValue,
+      } =
+        useControllableValue<string>({
+          value:
+            controlledValue,
+
+          defaultValue:
+            defaultValue == null
+              ? ""
+              : String(
+                  defaultValue
+                ),
+        });
 
 
       const showClear =
@@ -287,13 +293,9 @@ export const SearchInput =
               event.currentTarget
                 .value;
 
-            if (
-              !isControlled
-            ) {
-              setInternalValue(
-                nextValue
-              );
-            }
+            setInternalValue(
+              nextValue
+            );
 
             onValueChange?.(
               nextValue
@@ -319,13 +321,9 @@ export const SearchInput =
               return;
             }
 
-            if (
-              !isControlled
-            ) {
-              setInternalValue(
-                ""
-              );
-            }
+            setInternalValue(
+              ""
+            );
 
             onClear?.();
             onValueChange?.(
@@ -333,9 +331,9 @@ export const SearchInput =
             );
           },
           [
-            isControlled,
             onClear,
             onValueChange,
+            setInternalValue,
             state.disabled,
             state.readOnly,
           ]
@@ -449,9 +447,7 @@ export const SearchInput =
             }
 
             value={
-              isControlled
-                ? value
-                : internalValue
+              currentValue
             }
 
             onChange={

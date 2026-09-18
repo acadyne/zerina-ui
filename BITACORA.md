@@ -7,15 +7,15 @@
 - Fase activa: **B — convergencia de formularios**.
 - B1 text controls + field messages: **CERRADA**.
 - B2 choice controls: **CERRADA**.
-- B3 press bridge: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- B4 controlled/uncontrolled simple: pendiente.
+- B3 press bridge: **CERRADA**.
+- B4 controlled/uncontrolled simple: **IMPLEMENTADA — CANDIDATO CORREGIDO, PENDIENTE DE VALIDACIÓN**.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró B2
+## Validación que cerró B3
 
 ```text
-tests dirigidos B2       55/55 PASS
-Vitest completo         421/421 PASS
+tests dirigidos B3       44/44 PASS
+Vitest completo         431/431 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -26,164 +26,126 @@ ESM/CJS/CSS                   PASS
 Validation complete.
 ```
 
-## B2 — resultado vigente
+## B4 — decisión
 
-Owner:
+Sí existe una abstracción común, pero sólo para la fuente de verdad.
 
-`src/primitives/forms/use-choice-control-runtime.ts`
+Nuevo owner:
 
-Consumers:
+`src/core/react/useControllableValue.ts`
 
-- Checkbox;
-- Radio;
-- Switch.
-
-El runtime posee:
-
-- `useChoiceControl`;
-- focus/blur;
-- click/change;
-- readOnly guard;
-- root state attrs;
-- native input/ARIA común.
-
-Wrappers conservan:
-
-- Checkbox: indeterminate;
-- Radio: RadioGroup/name/value;
-- Switch: role/track/thumb.
-
-`ChoiceControlRoot` usa `hasRenderableNode`.
-
-## B3 — scope
-
-Familia:
-
-- Button;
-- IconButton;
-- Pressable;
-- Card interactiva.
-
-Objetivo:
-
-centralizar únicamente el puente:
+Contrato:
 
 ```text
-public handlers
-→ root slot handlers
-→ usePress
+value !== undefined
+→ controlled
+
+value === undefined
+→ internal state
 ```
 
-sin compartir markup, recipe ni API pública.
+El helper:
 
-## B3 — cambios implementados
+- inicializa internal state desde `defaultValue`;
+- ignora internal writes mientras está controlled;
+- no sincroniza el valor controlled hacia internal state;
+- no ejecuta callbacks;
+- no normaliza;
+- no conoce disabled/readOnly;
+- no conoce semántica de dominio.
 
-Nuevo owner interno:
+Esto preserva el timing existente de cada consumidor.
 
-`src/core/interaction/press/usePressSlotBridge.ts`
+## Consumidores migrados
 
-Posee:
+Simples:
 
-- composición public → slot;
-- configuración común de `usePress`;
-- política de cancelación progresiva;
-- política explícita de cleanup.
+- Collapsible;
+- Accordion;
+- NavigationList;
+- SearchInput;
+- RadioGroup;
+- UIMotionProvider.
 
-### Eventos activos
+Engines especializados que sólo delegan source-of-truth:
 
-```text
-public prop
-→ root slot
-→ internal
-```
+- useNavigationSelection;
+- useChoiceControl.
 
-`preventDefault()` corta toda capa posterior.
+## Consumidores no migrados
 
-### Eventos de cleanup
+Deliberadamente permanecen especializados:
 
-```text
-pointerleave
-pointerup
-pointercancel
-lostpointercapture
-blur
-```
+- AdaptiveScaffold;
+- NavigationStack;
+- TabScaffold.
 
-public + slot + cleanup interno siguen ejecutándose aunque una capa anterior llame `preventDefault()`.
+Motivo:
 
-Esto conserva liberación de pressed/focus/pointer state.
+coordinan normalización y/o múltiples estados relacionados. Pertenecen a Fase D, no a un hook escalar.
 
-## B3 — diferencias preservadas
-
-### Button
-
-- loading;
-- icons;
-- action recipe;
-- native button.
-
-### IconButton
-
-- icon-only;
-- aria label;
-- icon recipe.
-
-### Pressable
-
-- polymorphism;
-- `onLongPress`;
-- `longPressDelay`;
-- native-interactive detection.
-
-### Card
-
-- sólo interactiva cuando existe `onPress`;
-- loading;
-- role/tabIndex condicional;
-- layout/context propio.
-
-No se creó `ButtonBase`.
-
-`usePressSlotBridge` permanece interno y no se exporta desde `core/interaction/press/index.ts`.
-
-## Tests B3 añadidos/ajustados
+## Tests B4
 
 Nuevos:
 
-- `forms-phase-b3-ownership.test.ts`;
-- `forms-phase-b3-behavior.test.tsx`.
-
-Actualizado:
-
-- `interaction-use-press-consumers.test.ts`.
+- `forms-phase-b4-ownership.test.ts`;
+- `forms-phase-b4-behavior.test.tsx`.
 
 Protegen:
 
-- owner único del bridge;
-- wrappers sin `composeEventHandlers` local;
-- wrappers sin llamada directa a `usePress`;
-- cancelación progresiva de pointer-down;
-- cleanup después de preventDefault;
-- slot click cancelando `onPress`;
-- diferencias propias de Pressable/Card.
+- owner único;
+- scope deliberado;
+- controlled write rejection;
+- persistencia del último estado uncontrolled;
+- Collapsible uncontrolled commit;
+- controlled rejected update.
 
-## Verificación estática disponible
-
-- imports relativos de archivos modificados: **0 rotos**;
-- Button/IconButton/Pressable/Card: sin `composeEventHandlers` local;
-- Button/IconButton/Pressable/Card: sin llamada directa a `usePress`;
-- bridge no exportado por el barrel público.
-
-## Criterio de cierre B3
+## Criterio de cierre B4 / Fase B
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests B3 dirigidos
-Block 7 completo
-interaction-use-press-consumers
+tests B4 dirigidos
+regresión forms relevante
 pnpm validate
 ```
 
-Sólo después se abre B4.
+Si queda verde:
+
+1. B4 se marca CERRADA;
+2. Fase B completa se marca CERRADA;
+3. se consolidan mapa/contratos/bitácora;
+4. se abre Fase C — triggers y overlays.
+
+## Corrección del candidato B4
+
+La primera validación detectó un residuo de la implementación anterior en `SearchInput`.
+
+El estado ya había migrado a:
+
+```text
+currentValue
+setInternalValue
+```
+
+pero el JSX todavía renderizaba:
+
+```text
+isControlled ? value : internalValue
+```
+
+Esos símbolos ya no existían.
+
+Corrección aplicada:
+
+```text
+value={currentValue}
+```
+
+Además, el test de ownership B4 ahora exige que `SearchInput` no contenga referencias a:
+
+- `isControlled`;
+- `internalValue`.
+
+No cambió el diseño de `useControllableValue`; fue una migración incompleta localizada en el wrapper.

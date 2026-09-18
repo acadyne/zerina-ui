@@ -1,5 +1,9 @@
 // src/primitives/navigation/NavigationList.tsx
 import React from "react";
+
+import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
 import {
   defineSlotRecipe,
   resolveMergedSlot,
@@ -1428,21 +1432,22 @@ export const NavigationList =
     styles,
     slotProps,
   }: NavigationListProps<TMeta>) => {
-    const isControlled =
-      openIds !== undefined;
+    const {
+      value:
+        currentOpenIds,
 
-    const [
-      internalOpenIds,
-      setInternalOpenIds,
-    ] =
-      React.useState<string[]>(
-        defaultOpenIds
-      );
+      setUncontrolledValue:
+        setInternalOpenIds,
+    } =
+      useControllableValue<
+        string[]
+      >({
+        value:
+          openIds,
 
-    const currentOpenIds =
-      isControlled
-        ? openIds
-        : internalOpenIds;
+        defaultValue:
+          defaultOpenIds,
+      });
 
     const openIdSet =
       React.useMemo(
@@ -1459,21 +1464,17 @@ export const NavigationList =
           nextIds:
             string[]
         ) => {
-          if (
-            !isControlled
-          ) {
-            setInternalOpenIds(
-              nextIds
-            );
-          }
+          setInternalOpenIds(
+            nextIds
+          );
 
           onOpenIdsChange?.(
             nextIds
           );
         },
         [
-          isControlled,
           onOpenIdsChange,
+          setInternalOpenIds,
         ]
       );
 

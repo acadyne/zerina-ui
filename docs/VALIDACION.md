@@ -168,3 +168,47 @@ pnpm validate
 ```
 
 B3 sólo se cierra con `Validation complete.`.
+
+## Fase B3 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos B3       44/44 PASS
+Vitest completo         431/431 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+Validation complete.
+```
+
+## Candidato Fase B4
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/forms-phase-b4-ownership.test.ts \
+  tests/forms-phase-b4-behavior.test.tsx \
+  tests/forms-block5-behavior.test.tsx \
+  tests/forms-block6-behavior.test.tsx \
+  tests/forms-radio.test.tsx \
+  tests/settings-list-current-contract.test.tsx \
+  tests/family-deduplication-contracts.test.tsx
+
+pnpm validate
+```
+
+B4 sólo se cierra con `Validation complete.`.
+
+### Corrección del primer candidato B4
+
+El primer intento falló antes de la puerta integral porque `SearchInput` conservaba una rama JSX obsoleta con `isControlled/internalValue`.
+
+El candidato corregido usa `currentValue` como única fuente renderizada y el source contract impide reintroducir esos símbolos locales.

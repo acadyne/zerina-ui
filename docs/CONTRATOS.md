@@ -304,3 +304,48 @@ Wrappers retain their real differences:
 - Card: interactivity only when `onPress` exists, loading/layout semantics.
 
 `usePressSlotBridge` is internal and is not exported from the public interaction barrel.
+
+## 15. Controlled / uncontrolled simple
+
+Owner:
+
+`src/core/react/useControllableValue.ts`
+
+This helper owns only:
+
+```text
+controlled when value !== undefined
+uncontrolled value initialized from defaultValue
+internal writes ignored while controlled
+controlled values are not copied into internal state
+```
+
+It deliberately does NOT own:
+
+- domain callbacks;
+- validation;
+- disabled/readOnly policy;
+- normalization;
+- reselect semantics;
+- paired/multi-state transitions.
+
+Consumers currently using it:
+
+- Collapsible;
+- Accordion;
+- NavigationList;
+- SearchInput;
+- RadioGroup;
+- UIMotionProvider;
+- useNavigationSelection;
+- useChoiceControl.
+
+Specialized engines remain specialized; they only delegate the source-of-truth layer.
+
+Not migrated:
+
+- AdaptiveScaffold;
+- NavigationStack;
+- TabScaffold.
+
+Those owners coordinate normalization and/or multiple pieces of state and belong to the later state-engine phase.

@@ -1,5 +1,9 @@
 // src/primitives/disclosure/Collapsible.tsx
 import React from "react";
+
+import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
 import {
   motion,
   type HTMLMotionProps,
@@ -152,20 +156,20 @@ export const Collapsible:
       id ??
       `collapsible-${reactId}`;
 
-    const isControlled =
-      open !== undefined;
+    const {
+      value:
+        currentOpen,
 
-    const [
-      internalOpen,
-      setInternalOpen,
-    ] = React.useState(
-      defaultOpen
-    );
+      setUncontrolledValue:
+        setInternalOpen,
+    } =
+      useControllableValue({
+        value:
+          open,
 
-    const currentOpen =
-      isControlled
-        ? Boolean(open)
-        : internalOpen;
+        defaultValue:
+          defaultOpen,
+      });
 
     const handleOpenChange =
       React.useCallback(
@@ -176,13 +180,9 @@ export const Collapsible:
             return;
           }
 
-          if (
-            !isControlled
-          ) {
-            setInternalOpen(
-              nextOpen
-            );
-          }
+          setInternalOpen(
+            nextOpen
+          );
 
           onOpenChange?.(
             nextOpen
@@ -190,8 +190,8 @@ export const Collapsible:
         },
         [
           disabled,
-          isControlled,
           onOpenChange,
+          setInternalOpen,
         ]
       );
 

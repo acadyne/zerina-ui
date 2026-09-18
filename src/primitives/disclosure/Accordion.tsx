@@ -1,5 +1,9 @@
 // src/primitives/disclosure/Accordion.tsx
 import React from "react";
+
+import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
 import {
   resolveSlot,
   type SlotPropsMap,
@@ -217,26 +221,32 @@ export const Accordion =
       },
       ref
     ) => {
-      const isControlled =
-        value !== undefined;
-
-      const [
-        internalValue,
-        setInternalValue,
-      ] =
-        React.useState<string[]>(
-          () =>
-            normalizeValue(
-              defaultValue
-            )
-        );
-
-      const currentValue =
-        isControlled
-          ? normalizeValue(
+      const controlledValue =
+        value === undefined
+          ? undefined
+          : normalizeValue(
               value
-            )
-          : internalValue;
+            );
+
+      const {
+        value:
+          currentValue,
+
+        setUncontrolledValue:
+          setInternalValue,
+      } =
+        useControllableValue<
+          string[]
+        >({
+          value:
+            controlledValue,
+
+          defaultValue:
+            () =>
+              normalizeValue(
+                defaultValue
+              ),
+        });
 
       const toggleItem =
         React.useCallback(
@@ -285,13 +295,9 @@ export const Accordion =
                     ];
             }
 
-            if (
-              !isControlled
-            ) {
-              setInternalValue(
-                nextValue
-              );
-            }
+            setInternalValue(
+              nextValue
+            );
 
             onValueChange?.(
               emitValue(
@@ -304,8 +310,8 @@ export const Accordion =
             collapsible,
             currentValue,
             disabled,
-            isControlled,
             onValueChange,
+            setInternalValue,
             type,
           ]
         );

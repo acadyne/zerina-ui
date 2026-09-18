@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
+
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -147,22 +151,20 @@ export const RadioGroup =
       },
       ref
     ) => {
-      const controlled =
-        value !== undefined;
+      const {
+        value:
+          currentValue,
 
-      const [
-        internalValue,
-        setInternalValue,
-      ] = React.useState<
-        string | undefined
-      >(
-        defaultValue
-      );
+        setUncontrolledValue:
+          setInternalValue,
+      } =
+        useControllableValue<
+          string | undefined
+        >({
+          value,
 
-      const currentValue =
-        controlled
-          ? value
-          : internalValue;
+          defaultValue,
+        });
 
       const fieldControl =
         useFieldControl({
@@ -199,11 +201,9 @@ export const RadioGroup =
               return;
             }
 
-            if (!controlled) {
-              setInternalValue(
-                nextValue
-              );
-            }
+            setInternalValue(
+              nextValue
+            );
 
             onValueChange?.(
               nextValue,
@@ -211,10 +211,10 @@ export const RadioGroup =
             );
           },
           [
-            controlled,
             fieldControl.disabled,
             fieldControl.readOnly,
             onValueChange,
+            setInternalValue,
           ]
         );
 

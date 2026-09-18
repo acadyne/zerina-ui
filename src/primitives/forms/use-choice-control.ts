@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
+
+import {
   useFocusVisible,
 } from "../../core/interaction/focus";
 
@@ -126,34 +130,34 @@ export function useChoiceControl({
 
   onCheckedChange,
 }: UseChoiceControlOptions) {
-  const externallyControlled =
-    checked !==
-      undefined ||
-    managed;
-
-
-  const [
-    internalChecked,
-    setInternalChecked,
-  ] =
-    React.useState(
-      Boolean(
-        defaultChecked
-      )
-    );
-
-
-  const resolvedChecked =
-    checked !==
-      undefined
+  const controlledChecked =
+    checked !== undefined
       ? Boolean(
-        checked
-      )
+          checked
+        )
       : managed
         ? Boolean(
-          managedChecked
-        )
-        : internalChecked;
+            managedChecked
+          )
+        : undefined;
+
+
+  const {
+    value:
+      resolvedChecked,
+
+    setUncontrolledValue:
+      setInternalChecked,
+  } =
+    useControllableValue<boolean>({
+      value:
+        controlledChecked,
+
+      defaultValue:
+        Boolean(
+          defaultChecked
+        ),
+    });
 
 
   const fieldControl =
@@ -232,13 +236,9 @@ export function useChoiceControl({
             .checked;
 
 
-        if (
-          !externallyControlled
-        ) {
-          setInternalChecked(
-            nextChecked
-          );
-        }
+        setInternalChecked(
+          nextChecked
+        );
 
 
         onCheckedChange?.(
@@ -247,9 +247,9 @@ export function useChoiceControl({
         );
       },
       [
-        externallyControlled,
         fieldControl.readOnly,
         onCheckedChange,
+        setInternalChecked,
       ]
     );
 

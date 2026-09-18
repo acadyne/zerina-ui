@@ -1148,7 +1148,7 @@ con cancelación progresiva.
 
 Estado:
 
-**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+**CERRADO**
 
 Familia:
 
@@ -1221,7 +1221,7 @@ Tests nuevos protegen:
 
 Estado:
 
-**PENDIENTE DE CORTE FINAL**
+**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
 
 No se introducirá un `useControllableState` hasta probar que los consumidores simples comparten exactamente:
 
@@ -1240,3 +1240,32 @@ Candidatos iniciales:
 - UIMotionProvider.
 
 Engines complejos quedan fuera.
+
+#### Implementación B4
+
+Nuevo owner:
+
+`src/core/react/useControllableValue.ts`
+
+El helper posee únicamente la fuente de verdad controlled/uncontrolled.
+
+Migrados:
+
+- Collapsible;
+- Accordion;
+- NavigationList;
+- SearchInput;
+- RadioGroup;
+- UIMotionProvider;
+- useNavigationSelection;
+- useChoiceControl.
+
+Se preserva el timing de cada dominio porque callbacks y guards permanecen fuera del helper.
+
+No migrados deliberadamente:
+
+- AdaptiveScaffold;
+- NavigationStack;
+- TabScaffold.
+
+Estos coordinan normalización y/o múltiples estados; centralizarlos en un hook escalar borraría semántica.
