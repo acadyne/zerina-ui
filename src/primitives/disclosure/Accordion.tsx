@@ -6,6 +6,7 @@ import {
 } from "../../core/react/useControllableValue";
 import {
   resolveSlot,
+  resolveSlotLayers,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
@@ -476,14 +477,6 @@ export const AccordionItem =
         accordion.disabled ||
         disabled;
 
-      const resolvedStyles =
-        styles ??
-        accordion.styles;
-
-      const resolvedSlotProps =
-        slotProps ??
-        accordion.slotProps;
-
       const itemCtx =
         React.useMemo<
           AccordionItemContextValue
@@ -495,30 +488,37 @@ export const AccordionItem =
             disabled:
               finalDisabled,
 
-            styles:
-              resolvedStyles,
-
-            slotProps:
-              resolvedSlotProps,
+            styles,
+            slotProps,
           }),
           [
             value,
             open,
             finalDisabled,
-            resolvedStyles,
-            resolvedSlotProps,
+            styles,
+            slotProps,
           ]
         );
 
       const itemSlot =
-        resolveSlot<AccordionSlot>({
-          slot: "item",
+        resolveSlotLayers<AccordionSlot>({
+          slots: [
+            "item",
+          ],
 
-          styles:
-            resolvedStyles,
+          layers: [
+            {
+              styles:
+                accordion.styles,
 
-          slotProps:
-            resolvedSlotProps,
+              slotProps:
+                accordion.slotProps,
+            },
+            {
+              styles,
+              slotProps,
+            },
+          ],
 
           className,
           style,
@@ -611,16 +611,6 @@ export const AccordionTrigger =
       const item =
         useAccordionItemContext();
 
-      const resolvedStyles =
-        styles ??
-        item.styles ??
-        accordion?.styles;
-
-      const resolvedSlotProps =
-        slotProps ??
-        item.slotProps ??
-        accordion?.slotProps;
-
       const content =
         typeof children ===
         "function"
@@ -631,14 +621,31 @@ export const AccordionTrigger =
           : children;
 
       const triggerSlot =
-        resolveSlot<AccordionSlot>({
-          slot: "trigger",
+        resolveSlotLayers<AccordionSlot>({
+          slots: [
+            "trigger",
+          ],
 
-          styles:
-            resolvedStyles,
+          layers: [
+            {
+              styles:
+                accordion?.styles,
 
-          slotProps:
-            resolvedSlotProps,
+              slotProps:
+                accordion?.slotProps,
+            },
+            {
+              styles:
+                item.styles,
+
+              slotProps:
+                item.slotProps,
+            },
+            {
+              styles,
+              slotProps,
+            },
+          ],
 
           className,
           style,
@@ -653,15 +660,31 @@ export const AccordionTrigger =
         });
 
       const triggerLabelSlot =
-        resolveSlot<AccordionSlot>({
-          slot:
+        resolveSlotLayers<AccordionSlot>({
+          slots: [
             "triggerLabel",
+          ],
 
-          styles:
-            resolvedStyles,
+          layers: [
+            {
+              styles:
+                accordion?.styles,
 
-          slotProps:
-            resolvedSlotProps,
+              slotProps:
+                accordion?.slotProps,
+            },
+            {
+              styles:
+                item.styles,
+
+              slotProps:
+                item.slotProps,
+            },
+            {
+              styles,
+              slotProps,
+            },
+          ],
 
           baseProps: {
             "data-ui-accordion-trigger-label":
@@ -731,25 +754,32 @@ export const AccordionContent =
       const item =
         useOptionalAccordionItemContext();
 
-      const resolvedStyles =
-        styles ??
-        item?.styles ??
-        accordion?.styles;
-
-      const resolvedSlotProps =
-        slotProps ??
-        item?.slotProps ??
-        accordion?.slotProps;
-
       const contentSlot =
-        resolveSlot<AccordionSlot>({
-          slot: "content",
+        resolveSlotLayers<AccordionSlot>({
+          slots: [
+            "content",
+          ],
 
-          styles:
-            resolvedStyles,
+          layers: [
+            {
+              styles:
+                accordion?.styles,
 
-          slotProps:
-            resolvedSlotProps,
+              slotProps:
+                accordion?.slotProps,
+            },
+            {
+              styles:
+                item?.styles,
+
+              slotProps:
+                item?.slotProps,
+            },
+            {
+              styles,
+              slotProps,
+            },
+          ],
 
           className,
           style,

@@ -525,3 +525,107 @@ y permite `AnimatePresenceProps` como import type.
 No hubo cambios de producto.
 
 Revalidar D3 con el mismo bloque.
+
+## Fase D3 / Fase D cerradas
+
+Resultado reportado:
+
+```text
+tests dirigidos D3       30/30 PASS
+Vitest completo         495/495 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase E1
+
+Verificación estática del snapshot:
+
+```text
+whole-map styles fallback      0
+whole-map slotProps fallback   0
+resolveSlot/context mismatch   0
+broken relative imports        0
+```
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/semantics-phase-e1-slot-precedence-ownership.test.ts \
+  tests/semantics-phase-e1-slot-precedence-behavior.test.tsx \
+  tests/slot-resolution.test.ts \
+  tests/forms-phase-b1-behavior.test.tsx \
+  tests/forms-phase-b2-behavior.test.tsx \
+  tests/forms-phase-b3-behavior.test.tsx \
+  tests/overlay-phase-c1-trigger-behavior.test.tsx
+
+pnpm validate
+```
+
+E1 sólo se cierra con `Validation complete.`.
+
+## Candidato Fase E1 fix1
+
+La primera corrida detectó:
+
+```text
+Dialog resolveSlot import      FAIL
+ownership E1 false positive    FAIL
+```
+
+Fix1:
+
+- restaura el import legítimo de `resolveSlot` en Dialog;
+- corrige el ownership test para aceptar el owner N-layer de Accordion sin diluir el contrato.
+
+Revalidar desde cero con el mismo bloque E1 completo.
+
+## Fase E1 cerrada
+
+Resultado reportado sobre fix1:
+
+```text
+tests dirigidos E1       52/52 PASS
+Vitest completo         512/512 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase E2
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/semantics-phase-e2-layout-matrix-ownership.test.ts \
+  tests/semantics-phase-e2-layout-matrix-behavior.test.tsx \
+  tests/semantics-phase-e1-slot-precedence-behavior.test.tsx \
+  tests/public-surface-contract.test.ts
+
+pnpm validate
+```
+
+E2 sólo se cierra con `Validation complete.`.

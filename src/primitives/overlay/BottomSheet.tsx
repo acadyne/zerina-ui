@@ -11,6 +11,7 @@ import {
 } from "../../core/overlay";
 import {
   defineSlotRecipe,
+  resolveContextualSlot,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -443,7 +444,7 @@ export const BottomSheet:
       );
 
     const rootSlot =
-      resolveSlot<BottomSheetSlot>({
+      resolveContextualSlot<BottomSheetSlot>({
         slot: "root",
         styles,
         slotProps,
@@ -681,16 +682,17 @@ export const BottomSheetHandle =
       } = indicatorProps ?? {};
 
       const handleSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot: "handle",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -703,17 +705,18 @@ export const BottomSheetHandle =
         });
 
       const handleIndicatorSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot:
             "handleIndicator",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className:
             indicatorClassName,
@@ -778,16 +781,17 @@ export const BottomSheetHeader =
         useOptionalBottomSheetContext();
 
       const headerSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot: "header",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -842,16 +846,17 @@ export const BottomSheetBody =
         useOptionalBottomSheetContext();
 
       const bodySlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot: "body",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -906,16 +911,17 @@ export const BottomSheetFooter =
         useOptionalBottomSheetContext();
 
       const footerSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot: "footer",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -970,16 +976,17 @@ export const BottomSheetTitle =
         useOptionalBottomSheetContext();
 
       const titleSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot: "title",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -1034,17 +1041,18 @@ export const BottomSheetDescription =
         useOptionalBottomSheetContext();
 
       const descriptionSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot:
             "description",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -1104,17 +1112,18 @@ export const BottomSheetClose =
         useOptionalBottomSheetContext();
 
       const closeButtonSlot =
-        resolveSlot<BottomSheetSlot>({
+        resolveContextualSlot<BottomSheetSlot>({
           slot:
             "closeButton",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,

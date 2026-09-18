@@ -6,6 +6,7 @@ import {
 } from "../../core/overlay";
 import {
   defineSlotRecipe,
+  resolveContextualSlot,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -692,16 +693,18 @@ export const DialogContent =
         useOptionalDialogContext();
 
       const contentSlot =
-        resolveSlot<DialogSlot>({
-          slot: "content",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "content",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -756,16 +759,18 @@ export const DialogHeader =
         useOptionalDialogContext();
 
       const headerSlot =
-        resolveSlot<DialogSlot>({
-          slot: "header",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "header",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -820,16 +825,18 @@ export const DialogBody =
         useOptionalDialogContext();
 
       const bodySlot =
-        resolveSlot<DialogSlot>({
-          slot: "body",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "body",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -884,16 +891,18 @@ export const DialogFooter =
         useOptionalDialogContext();
 
       const footerSlot =
-        resolveSlot<DialogSlot>({
-          slot: "footer",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "footer",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -970,16 +979,18 @@ export const DialogTitle =
       }, [ctx.setTitleMounted]);
 
       const titleSlot =
-        resolveSlot<DialogSlot>({
-          slot: "title",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "title",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -1055,16 +1066,18 @@ export const DialogDescription =
       }, [ctx.setDescriptionMounted]);
 
       const descriptionSlot =
-        resolveSlot<DialogSlot>({
-          slot: "description",
+        resolveContextualSlot<DialogSlot>({
+          slot:
+            "description",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,

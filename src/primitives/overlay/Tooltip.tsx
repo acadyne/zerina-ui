@@ -14,7 +14,7 @@ import {
 } from "../../core/motion";
 import {
   defineSlotRecipe,
-  resolveSlot,
+  resolveContextualSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -378,16 +378,18 @@ export const TooltipTrigger =
         >(null);
 
       const triggerSlot =
-        resolveSlot<TooltipSlot>({
-          slot: "trigger",
+        resolveContextualSlot<TooltipSlot>({
+          slot:
+            "trigger",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -616,7 +618,12 @@ export const TooltipTrigger =
           }}
 
           eventLayers={[
-            triggerSlot,
+            slotProps?.trigger ??
+              {},
+
+            ctx.slotProps
+              ?.trigger ??
+              {},
           ]}
 
           passiveHandlers={{
@@ -744,14 +751,6 @@ export const TooltipContent =
         React.useState<HTMLDivElement | null>(
           null
         );
-
-      const resolvedStyles =
-        styles ??
-        ctx.styles;
-
-      const resolvedSlotProps =
-        slotProps ??
-        ctx.slotProps;
 
       const variants =
         motionState.getVariants(
@@ -942,16 +941,19 @@ export const TooltipContent =
                 });
 
               const contentSlot =
-                resolveSlot<TooltipSlot>(
+                resolveContextualSlot<TooltipSlot>(
                   {
                     slot:
                       "content",
 
-                    styles:
-                      resolvedStyles,
+                    contextStyles:
+                      ctx.styles,
 
-                    slotProps:
-                      resolvedSlotProps,
+                    contextSlotProps:
+                      ctx.slotProps,
+
+                    styles,
+                    slotProps,
 
                     className,
                     style,

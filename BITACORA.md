@@ -6,17 +6,19 @@
 - Fase A: **CERRADA**.
 - Fase B: **CERRADA**.
 - Fase C: **CERRADA**.
-- Fase activa: **D — state engines y shells de producto**.
-- D1 DataTable shell: **CERRADA**.
-- D2 NavigationStack / TabScaffold: **CERRADA**.
-- D3 MotionPresence / MotionSwitch: **CANDIDATO CORREGIDO — PENDIENTE DE VALIDACIÓN**.
+- Fase D: **CERRADA**.
+- Fase activa: **E — semántica de slots, layout y tipos**.
+- E1 Slot precedence: **CERRADA**.
+- E2 Layout prop matrix: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- E3 Recipe convergence: pendiente.
+- E4 Tipos estructuralmente equivalentes: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró D2
+## Validación que cerró E1
 
 ```text
-tests dirigidos D2       33/33 PASS
-Vitest completo         487/487 PASS
+tests dirigidos E1       52/52 PASS
+Vitest completo         512/512 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -28,153 +30,161 @@ git whitespace                PASS
 Validation complete.
 ```
 
-La corrida final fue limpia: no reapareció el warning `act(...)` de AnimatePresence.
-
-## D1 — resultado vigente
+## E1 — resultado vigente
 
 Owners:
 
-- `useDataTableShell`;
-- `DataTableShellFrame`.
+- `resolveSlotLayers`;
+- `resolveLayeredSlot`;
+- `resolveContextualSlot`;
+- `resolveSlot`.
 
-## D2 — resultado vigente
-
-Owner interno:
-
-`src/patterns/navigation-stack/useNavigationEntries.ts`
-
-Posee:
-
-- IDs y sequence;
-- controlled/uncontrolled;
-- normalization;
-- transition direction;
-- current/currentIndex/canGoBack;
-- set/update entries;
-- push/replace/pop/popToRoot/reset.
-
-NavigationStack y TabScaffold conservan sus políticas de producto.
-
-## D3 — decisión
-
-MotionPresence y MotionSwitch duplicaban la misma mecánica de app-transition.
-
-Nuevo owner interno:
-
-`src/core/motion/MotionAppFrame.tsx`
-
-Posee:
+Precedencia declarativa:
 
 ```text
-useOptionalUIMotion
-→ effective preset
-→ getAppTransitionVariants
-→ getTransition
-→ AnimatePresence
-→ motion.div
+base → context(s) → local → direct className/style
 ```
 
-## D3 — APIs preservadas
-
-### MotionPresence
-
-Conserva:
-
-- `present`;
-- `motionKey?`;
-- default key `"motion-presence"`.
-
-### MotionSwitch
-
-Conserva:
-
-- `motionKey` obligatorio;
-- siempre presenta un frame.
-
-Ambos conservan sin cambios:
-
-- preset;
-- direction;
-- mode;
-- initial;
-- transitionIntent;
-- className;
-- style;
-- remaining motion div props.
-
-`MotionAppFrame` no se exporta por ningún barrel público.
-
-## D3 — verificación estática
+Pipeline semántico de eventos:
 
 ```text
-MotionPresence direct motion engine owners    0
-MotionSwitch direct motion engine owners      0
-MotionAppFrame public exposure                0
-broken relative imports                       0
+public/child → local slot → inherited slot → internal
 ```
 
-## D3 — tests
+## E2 — decisión
+
+La familia de layout no debe tener una API plana artificial.
+
+Hay dos contratos deliberados.
+
+### Full layout frame
+
+`Flex`, `Grid`, `Stack`
+
+Owner de tipo interno:
+
+`LayoutFrameProps`
+
+Incluye:
+
+```text
+SizeProps
++ SpaceProps
++ SurfaceProps
+```
+
+### Flow layout frame
+
+`Inline`, `Wrap`
+
+Owner de tipo interno:
+
+`FlowLayoutFrameProps`
+
+Incluye:
+
+```text
+SpaceProps
++ w
++ minH
+```
+
+No incluye deliberadamente:
+
+- surface props;
+- `h`;
+- `minW/maxW/maxH`;
+- overflow genérico.
+
+## E2 — inconsistencia corregida
+
+Inline y Wrap duplicaban manualmente casi todo `SpaceProps`, pero omitían:
+
+- `mx`;
+- `my`.
+
+Ahora extienden `FlowLayoutFrameProps` y soportan ambos aliases.
+
+No se añadieron surface props ni el resto de SizeProps.
+
+## E2 — diferencias preservadas
+
+```text
+Flex
+  display flex/inline-flex
+  gap
+  direction/wrap/overflow
+
+Grid
+  display grid/inline-grid
+  gap/rowGap/columnGap
+  columns/rows/auto tracks
+
+Stack
+  flex/inline-flex
+  spacing
+  direction/wrap/overflow
+  divider suppresses gap
+
+Inline
+  inline-flex
+  gap
+  configurable wrap
+  divider + child normalization
+
+Wrap
+  flex
+  spacing/rowSpacing/columnSpacing
+  flex-wrap always wrap
+  optional WrapItem
+```
+
+`gap` y `spacing` no se renombran.
+
+## E2 — invariantes
+
+En los cinco primitives:
+
+```text
+layout props/helpers
+→ style directo
+```
+
+`style` sigue siendo override final.
+
+Los tipos helper de matriz permanecen internos; no se agregan al barrel público.
+
+## E2 — tests
 
 Nuevos:
 
-- `state-phase-d3-motion-frame-ownership.test.ts`;
-- `state-phase-d3-motion-frame-behavior.test.tsx`.
+- `semantics-phase-e2-layout-matrix-ownership.test.ts`;
+- `semantics-phase-e2-layout-matrix-behavior.test.tsx`.
 
 Cubren:
 
-- owner único;
-- wrappers sin mecánica duplicada;
-- key contract opcional/obligatorio;
-- MotionAppFrame interno;
-- MotionPresence `present=false`;
-- forwarding de host props;
-- MotionSwitch siempre presente.
+- full-frame vs flow-frame ownership;
+- helper types no públicos;
+- size/space/surface comunes en full frames;
+- `mx/my` en Inline/Wrap;
+- defaults distintos de los cinco primitives;
+- `style` como override final.
 
-## Criterio de cierre D3 / Fase D
+## Verificación estática disponible
+
+```text
+broken relative imports   0
+```
+
+## Criterio de cierre E2
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests D3 dirigidos
-regresión D2/public surface
+tests E2 dirigidos
+regresión E1/public surface
 pnpm validate
 ```
 
-Si queda verde:
-
-1. D3 se marca CERRADA;
-2. Fase D completa se marca CERRADA;
-3. se abre Fase E — slot/layout/recipes/types.
-
-## Corrección del candidato D3
-
-La primera validación D3 mostró:
-
-```text
-internal-test typecheck                     PASS
-behavior D3                              3/3 PASS
-regresión D2                            5/5 PASS
-public surface                         17/17 PASS
-ownership D3                            3/5 PASS
-```
-
-Los dos fallos eran falsos positivos del test de ownership.
-
-Causa:
-
-los wrappers ya no renderizan `<AnimatePresence>` ni lo importan como valor, pero conservan legítimamente el tipo público:
-
-```text
-AnimatePresenceProps["mode"]
-```
-
-El test prohibía la cadena genérica `AnimatePresence`, por lo que confundía dependencia de tipos con ownership de runtime.
-
-Corrección:
-
-- ahora prohíbe `<AnimatePresence`, que es la mecánica JSX duplicada real;
-- además prohíbe un import de valor de `AnimatePresence` desde `framer-motion`;
-- permite `AnimatePresenceProps` como type-only dependency.
-
-No se modificó producto, API ni `MotionAppFrame`.
+Sólo después se abre E3.

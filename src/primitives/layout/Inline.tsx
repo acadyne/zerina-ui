@@ -1,10 +1,19 @@
 // src/primitives/layout/Inline.tsx
 import React, { forwardRef, useMemo } from "react";
-import { getMinWidthFixStyles, getSpacingStyles } from "../../helpers";
+import {
+  getMinWidthFixStyles,
+  getSpacingStyles,
+} from "../../helpers";
+import type {
+  FlowLayoutFrameProps,
+} from "./layoutFrame.types";
 import { withDividers } from "../../utils/withDividers";
 import { normalizeInlineChild } from "../../utils/layout.utils";
 
-export interface InlineProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface InlineProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    FlowLayoutFrameProps {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -16,22 +25,6 @@ export interface InlineProps extends React.HTMLAttributes<HTMLDivElement> {
 
   divider?: React.ReactNode;
 
-  w?: React.CSSProperties["width"];
-  minH?: React.CSSProperties["minHeight"];
-
-  p?: React.CSSProperties["padding"];
-  px?: React.CSSProperties["paddingLeft"];
-  py?: React.CSSProperties["paddingTop"];
-  pt?: React.CSSProperties["paddingTop"];
-  pb?: React.CSSProperties["paddingBottom"];
-  pl?: React.CSSProperties["paddingLeft"];
-  pr?: React.CSSProperties["paddingRight"];
-
-  m?: React.CSSProperties["margin"];
-  mt?: React.CSSProperties["marginTop"];
-  mb?: React.CSSProperties["marginBottom"];
-  ml?: React.CSSProperties["marginLeft"];
-  mr?: React.CSSProperties["marginRight"];
 }
 
 export const Inline = forwardRef<HTMLDivElement, InlineProps>(
@@ -60,6 +53,8 @@ export const Inline = forwardRef<HTMLDivElement, InlineProps>(
       pr,
 
       m,
+      mx,
+      my,
       mt,
       mb,
       ml,
@@ -101,6 +96,8 @@ export const Inline = forwardRef<HTMLDivElement, InlineProps>(
             pl,
             pr,
             m,
+            mx,
+            my,
             mt,
             mb,
             ml,

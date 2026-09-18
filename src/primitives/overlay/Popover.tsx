@@ -15,7 +15,7 @@ import {
 } from "../../core/motion";
 import {
   defineSlotRecipe,
-  resolveSlot,
+  resolveContextualSlot,
   toMotionSlotProps,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -334,17 +334,18 @@ export const PopoverTrigger =
 
 
       const triggerSlot =
-        resolveSlot<PopoverSlot>({
+        resolveContextualSlot<PopoverSlot>({
           slot:
             "trigger",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -400,7 +401,12 @@ export const PopoverTrigger =
           }}
 
           eventLayers={[
-            triggerSlot,
+            slotProps?.trigger ??
+              {},
+
+            ctx.slotProps
+              ?.trigger ??
+              {},
           ]}
 
           onPress={
@@ -528,14 +534,6 @@ export const PopoverContent =
       const motionState =
         useOptionalUIMotion();
 
-      const resolvedStyles =
-        styles ??
-        ctx.styles;
-
-      const resolvedSlotProps =
-        slotProps ??
-        ctx.slotProps;
-
       const variants =
         motionState.getVariants(
           "popover",
@@ -578,14 +576,18 @@ export const PopoverContent =
           : ctx.triggerId;
 
       const focusScopeSlot =
-        resolveSlot<PopoverSlot>({
-          slot: "focusScope",
+        resolveContextualSlot<PopoverSlot>({
+          slot:
+            "focusScope",
 
-          styles:
-            resolvedStyles,
+          contextStyles:
+            ctx.styles,
 
-          slotProps:
-            resolvedSlotProps,
+          contextSlotProps:
+            ctx.slotProps,
+
+          styles,
+          slotProps,
 
           baseStyle:
             DEFAULT_POPOVER_RECIPE_STYLES
@@ -662,16 +664,19 @@ export const PopoverContent =
                 });
 
               const dismissableLayerSlot =
-                resolveSlot<PopoverSlot>(
+                resolveContextualSlot<PopoverSlot>(
                   {
                     slot:
                       "dismissableLayer",
 
-                    styles:
-                      resolvedStyles,
+                    contextStyles:
+                      ctx.styles,
 
-                    slotProps:
-                      resolvedSlotProps,
+                    contextSlotProps:
+                      ctx.slotProps,
+
+                    styles,
+                    slotProps,
 
                     baseStyle:
                       recipeStyles
@@ -680,16 +685,19 @@ export const PopoverContent =
                 );
 
               const contentSlot =
-                resolveSlot<PopoverSlot>(
+                resolveContextualSlot<PopoverSlot>(
                   {
                     slot:
                       "content",
 
-                    styles:
-                      resolvedStyles,
+                    contextStyles:
+                      ctx.styles,
 
-                    slotProps:
-                      resolvedSlotProps,
+                    contextSlotProps:
+                      ctx.slotProps,
+
+                    styles,
+                    slotProps,
 
                     className,
                     style,
@@ -847,16 +855,18 @@ export const PopoverHeader =
         useOptionalPopoverContext();
 
       const headerSlot =
-        resolveSlot<PopoverSlot>({
-          slot: "header",
+        resolveContextualSlot<PopoverSlot>({
+          slot:
+            "header",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -909,16 +919,18 @@ export const PopoverBody =
         useOptionalPopoverContext();
 
       const bodySlot =
-        resolveSlot<PopoverSlot>({
-          slot: "body",
+        resolveContextualSlot<PopoverSlot>({
+          slot:
+            "body",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -971,16 +983,18 @@ export const PopoverFooter =
         useOptionalPopoverContext();
 
       const footerSlot =
-        resolveSlot<PopoverSlot>({
-          slot: "footer",
+        resolveContextualSlot<PopoverSlot>({
+          slot:
+            "footer",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,

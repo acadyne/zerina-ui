@@ -708,3 +708,206 @@ The following public props keep the same meaning in both wrappers:
 - remaining motion div props.
 
 `MotionAppFrame` is internal and is not exported by `core/motion` or the package root.
+
+## 21. Precedencia transversal de slots
+
+Owners:
+
+- `resolveSlotLayers`;
+- `resolveLayeredSlot`;
+- `resolveContextualSlot`;
+- `resolveSlot`.
+
+### Valores y estilos
+
+La precedencia declarativa es de menor a mayor especificidad:
+
+```text
+base
+→ contexto amplio
+→ contexto intermedio
+→ local
+→ className/style directos
+```
+
+`resolveSlotLayers` expresa N capas explícitas.
+
+`resolveLayeredSlot` es el caso contexto + local sobre uno o varios slots.
+
+`resolveContextualSlot` es el caso contexto + local para un único slot.
+
+`resolveSlot` sigue siendo el caso sin contexto heredado.
+
+Reglas:
+
+- `className` se concatena en orden;
+- `style` se mergea en orden;
+- props normales usan last-defined-wins;
+- `undefined` no borra una capa anterior;
+- `false`, `0` y `""` son valores explícitos.
+
+No usar:
+
+```text
+styles ?? context.styles
+slotProps ?? context.slotProps
+```
+
+para compound components. Un mapa local no debe borrar slots de contexto que no redefine.
+
+### Handlers dentro del resolver
+
+Los resolvers de slots NO componen eventos automáticamente.
+
+Para una misma key:
+
+```text
+context onClick
+→ local onClick
+```
+
+el handler local reemplaza al de contexto.
+
+Motivo: un resolver declarativo no puede decidir si el evento representa:
+
+- conducta cancelable;
+- cleanup técnico;
+- evento ya consumido por otro runtime.
+
+### Pipelines semánticos de eventos
+
+Cuando un componente posee conducta interna sobre un evento, las capas externas se componen explícitamente mediante los owners de `core/interaction`.
+
+Orden transversal:
+
+```text
+prop pública / child
+→ slot local
+→ slot contexto / heredado
+→ conducta interna
+```
+
+Después de cada capa:
+
+```text
+defaultPrevented
+→ detener capas posteriores
+```
+
+Las excepciones de cleanup siguen requiriendo `checkDefaultPrevented:false`.
+
+### Invariantes internas
+
+IDs estructurales, `type`, roles, enlaces ARIA y otros invariantes que el componente necesita para ser válido no se delegan al resolver como overrides libres. El componente los aplica después de las capas externas o los mantiene en su runtime semántico.
+
+### Migración E1
+
+Se eliminaron fallbacks de mapa completo en:
+
+- Card;
+- Accordion;
+- Drawer;
+- BottomSheet;
+- Popover;
+- Tooltip;
+- Dialog.
+
+Accordion usa tres capas explícitas:
+
+```text
+Accordion
+→ AccordionItem
+→ subcomponente local
+```
+
+Input/Textarea ahora siguen:
+
+```text
+prop pública
+→ slot local
+→ focus-visible internal
+```
+
+igual que los demás controles con pipeline semántico.
+
+## 22. Layout prop matrix
+
+La familia se divide en dos contratos deliberados.
+
+### Full layout frame
+
+Consumidores:
+
+- Flex;
+- Grid;
+- Stack.
+
+Tipo interno:
+
+`LayoutFrameProps`
+
+Incluye:
+
+```text
+SizeProps
++ SpaceProps
++ SurfaceProps
+```
+
+Por tanto comparten:
+
+- `w/h/minW/maxW/minH/maxH`;
+- `p/px/py/pt/pb/pl/pr`;
+- `m/mx/my/mt/mb/ml/mr`;
+- `bg/color/rounded/shadow/border`.
+
+### Flow layout frame
+
+Consumidores:
+
+- Inline;
+- Wrap.
+
+Tipo interno:
+
+`FlowLayoutFrameProps`
+
+Incluye:
+
+```text
+SpaceProps
++ w
++ minH
+```
+
+Es deliberadamente más estrecho:
+
+- no surface props;
+- no `h/minW/maxW/maxH`;
+- no `inline` toggle porque cada primitive fija su display;
+- no overflow genérico.
+
+E2 completa `mx` y `my` para Inline/Wrap al dejar de duplicar manualmente `SpaceProps`.
+
+### Diferencias semánticas preservadas
+
+| Primitive | Display | Gap API | Wrap policy | Extra semantics |
+| --- | --- | --- | --- | --- |
+| Flex | flex / inline-flex | `gap` | configurable | direction, overflow |
+| Grid | grid / inline-grid | `gap/rowGap/columnGap` | grid-owned | columns/rows/auto tracks |
+| Stack | flex / inline-flex | `spacing` | configurable | divider suppresses gap |
+| Inline | inline-flex | `gap` | configurable | divider + child normalization |
+| Wrap | flex | `spacing/rowSpacing/columnSpacing` | always wrap | optional WrapItem |
+
+No se renombran `gap`/`spacing`: expresan APIs históricas y semántica de divider distinta.
+
+### Precedencia de style
+
+En los cinco primitives:
+
+```text
+layout props/helpers
+→ style directo
+```
+
+`style` permanece como override final.

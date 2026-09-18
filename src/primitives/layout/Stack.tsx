@@ -1,21 +1,19 @@
 // // src/primitives/layout/Stack.tsx
 import React, { forwardRef, useMemo } from "react";
 import {
-  type SizeProps,
-  type SpaceProps,
-  type SurfaceProps,
   getMinWidthFixStyles,
   getSizeStyles,
   getSpacingStyles,
   getSurfaceStyles,
 } from "../../helpers";
+import type {
+  LayoutFrameProps,
+} from "./layoutFrame.types";
 import { withDividers } from "../../utils/withDividers";
 
 export interface StackProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    SizeProps,
-    SpaceProps,
-    SurfaceProps {
+    LayoutFrameProps {
   children?: React.ReactNode;
   className?: string;
 

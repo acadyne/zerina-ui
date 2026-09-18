@@ -11,6 +11,7 @@ import {
 } from "../../core/overlay";
 import {
   defineSlotRecipe,
+  resolveContextualSlot,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -404,7 +405,7 @@ export const Drawer:
       );
 
     const rootSlot =
-      resolveSlot<DrawerSlot>({
+      resolveContextualSlot<DrawerSlot>({
         slot: "root",
         styles,
         slotProps,
@@ -632,16 +633,17 @@ export const DrawerHeader =
         useOptionalDrawerContext();
 
       const headerSlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "header",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -696,16 +698,17 @@ export const DrawerBody =
         useOptionalDrawerContext();
 
       const bodySlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "body",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -760,16 +763,17 @@ export const DrawerFooter =
         useOptionalDrawerContext();
 
       const footerSlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "footer",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -824,16 +828,17 @@ export const DrawerTitle =
         useOptionalDrawerContext();
 
       const titleSlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "title",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -888,16 +893,17 @@ export const DrawerDescription =
         useOptionalDrawerContext();
 
       const descriptionSlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "description",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,
@@ -957,16 +963,17 @@ export const DrawerClose =
         useOptionalDrawerContext();
 
       const closeButtonSlot =
-        resolveSlot<DrawerSlot>({
+        resolveContextualSlot<DrawerSlot>({
           slot: "closeButton",
 
-          styles:
-            styles ??
+          contextStyles:
             ctx?.styles,
 
-          slotProps:
-            slotProps ??
+          contextSlotProps:
             ctx?.slotProps,
+
+          styles,
+          slotProps,
 
           className,
           style,

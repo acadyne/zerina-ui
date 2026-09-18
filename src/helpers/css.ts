@@ -189,6 +189,25 @@ export interface ResolveSlotOptions<TSlot extends string> {
   baseProps?: SlotElementProps;
 }
 
+export interface ResolveContextualSlotOptions<
+  TSlot extends string,
+> {
+  slot: TSlot;
+
+  contextStyles?: SlotStyleMap<TSlot>;
+  contextSlotProps?: SlotPropsMap<TSlot>;
+
+  styles?: SlotStyleMap<TSlot>;
+  slotProps?: SlotPropsMap<TSlot>;
+
+  className?: string;
+  style?: React.CSSProperties;
+
+  baseStyle?: React.CSSProperties;
+  baseProps?: SlotElementProps;
+}
+
+
 export interface ResolveLayeredSlotOptions<
   TSlot extends string,
 > {
@@ -218,7 +237,9 @@ interface SeparatedSlotElementProps {
   rest: SlotRestProps;
 }
 
-interface SlotLayer<TSlot extends string> {
+export interface SlotResolutionLayer<
+  TSlot extends string,
+> {
   styles?: SlotStyleMap<TSlot>;
   slotProps?: SlotPropsMap<TSlot>;
 }
@@ -229,9 +250,18 @@ interface ResolvedSlotLayer {
   rest: SlotRestProps;
 }
 
-interface ResolveSlotsOptions<TSlot extends string> {
+export interface ResolveSlotLayersOptions<
+  TSlot extends string,
+> {
   slots: readonly TSlot[];
-  layers: readonly SlotLayer<TSlot>[];
+
+  /**
+   * Menor → mayor precedencia.
+   *
+   * Cada layer se resuelve de izquierda a derecha.
+   */
+  layers:
+    readonly SlotResolutionLayer<TSlot>[];
 
   className?: string;
   style?: React.CSSProperties;
@@ -284,7 +314,7 @@ function mergeDefinedSlotProperties(
 
 function resolveSlotLayer<TSlot extends string>(
   slots: readonly TSlot[],
-  layer: SlotLayer<TSlot>
+  layer: SlotResolutionLayer<TSlot>
 ): ResolvedSlotLayer {
   const declaredStyles: React.CSSProperties[] = [];
 
@@ -342,7 +372,7 @@ function resolveSlots<TSlot extends string>({
 
   baseStyle,
   baseProps,
-}: ResolveSlotsOptions<TSlot>): SlotElementProps {
+}: ResolveSlotLayersOptions<TSlot>): SlotElementProps {
   const separatedBase =
     separateSlotElementProps(baseProps);
 
@@ -398,6 +428,18 @@ function resolveSlots<TSlot extends string>({
   };
 }
 
+export function resolveSlotLayers<
+  TSlot extends string,
+>(
+  options:
+    ResolveSlotLayersOptions<TSlot>
+): SlotElementProps {
+  return resolveSlots(
+    options
+  );
+}
+
+
 export function resolveSlot<TSlot extends string>({
   slot,
 
@@ -410,7 +452,7 @@ export function resolveSlot<TSlot extends string>({
   baseStyle,
   baseProps,
 }: ResolveSlotOptions<TSlot>): SlotElementProps {
-  return resolveSlots({
+  return resolveSlotLayers({
     slots: [slot],
 
     layers: [
@@ -451,7 +493,7 @@ export function resolveMergedSlot<TSlot extends string>({
   baseStyle?: React.CSSProperties;
   baseProps?: SlotElementProps;
 }): SlotElementProps {
-  return resolveSlots({
+  return resolveSlotLayers({
     slots,
 
     layers: [
@@ -468,6 +510,43 @@ export function resolveMergedSlot<TSlot extends string>({
     baseProps,
   });
 }
+
+export function resolveContextualSlot<
+  TSlot extends string,
+>({
+  slot,
+
+  contextStyles,
+  contextSlotProps,
+
+  styles,
+  slotProps,
+
+  className,
+  style,
+
+  baseStyle,
+  baseProps,
+}: ResolveContextualSlotOptions<TSlot>): SlotElementProps {
+  return resolveLayeredSlot({
+    slots: [
+      slot,
+    ],
+
+    contextStyles,
+    contextSlotProps,
+
+    styles,
+    slotProps,
+
+    className,
+    style,
+
+    baseStyle,
+    baseProps,
+  });
+}
+
 
 export function resolveLayeredSlot<
   TSlot extends string,
@@ -486,7 +565,7 @@ export function resolveLayeredSlot<
   baseStyle,
   baseProps,
 }: ResolveLayeredSlotOptions<TSlot>): SlotElementProps {
-  return resolveSlots({
+  return resolveSlotLayers({
     slots,
 
     layers: [

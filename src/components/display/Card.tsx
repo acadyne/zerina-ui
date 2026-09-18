@@ -14,6 +14,7 @@ import {
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
+  resolveContextualSlot,
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -112,7 +113,7 @@ function CardLoadingContent({
     background: "var(--ui-skeleton-bg)",
   };
 
-  const loadingSlot = resolveSlot<CardSlot>({
+  const loadingSlot = resolveContextualSlot<CardSlot>({
     slot: "loading",
     styles,
     slotProps,
@@ -453,10 +454,17 @@ export const CardHeader = React.forwardRef<
   ) => {
     const ctx = useOptionalCardContext();
 
-    const headerSlot = resolveSlot<CardSlot>({
+    const headerSlot = resolveContextualSlot<CardSlot>({
       slot: "header",
-      styles: styles ?? ctx?.styles,
-      slotProps: slotProps ?? ctx?.slotProps,
+
+          contextStyles:
+            ctx?.styles,
+
+          contextSlotProps:
+            ctx?.slotProps,
+
+          styles,
+          slotProps,
       className,
       style,
       baseStyle: {
@@ -493,10 +501,17 @@ export const CardBody = React.forwardRef<
   ) => {
     const ctx = useOptionalCardContext();
 
-    const bodySlot = resolveSlot<CardSlot>({
+    const bodySlot = resolveContextualSlot<CardSlot>({
       slot: "body",
-      styles: styles ?? ctx?.styles,
-      slotProps: slotProps ?? ctx?.slotProps,
+
+          contextStyles:
+            ctx?.styles,
+
+          contextSlotProps:
+            ctx?.slotProps,
+
+          styles,
+          slotProps,
       className,
       style,
       baseStyle: {
@@ -533,10 +548,17 @@ export const CardFooter = React.forwardRef<
   ) => {
     const ctx = useOptionalCardContext();
 
-    const footerSlot = resolveSlot<CardSlot>({
+    const footerSlot = resolveContextualSlot<CardSlot>({
       slot: "footer",
-      styles: styles ?? ctx?.styles,
-      slotProps: slotProps ?? ctx?.slotProps,
+
+          contextStyles:
+            ctx?.styles,
+
+          contextSlotProps:
+            ctx?.slotProps,
+
+          styles,
+          slotProps,
       className,
       style,
       baseStyle: {

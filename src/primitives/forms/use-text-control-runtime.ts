@@ -118,12 +118,11 @@ export function useTextControlRuntime<
 
 
   /*
-   * Conserva la precedencia existente de los text controls:
+   * Precedencia transversal de eventos externos:
    *
-   * slot local -> prop pública -> estado interno de focus-visible.
+   * prop pública -> slot local -> conducta interna.
    *
-   * La fase global de slot precedence decidirá después si esta precedencia
-   * debe cambiar transversalmente. Este runtime sólo evita dos owners.
+   * preventDefault() corta progresivamente las capas posteriores.
    */
   const focus =
     useFocusVisible<TElement>({
@@ -132,14 +131,14 @@ export function useTextControlRuntime<
 
       onFocus:
         composeEventHandlers(
-          slotOnFocus,
           onFocus,
+          slotOnFocus,
         ),
 
       onBlur:
         composeEventHandlers(
-          slotOnBlur,
           onBlur,
+          slotOnBlur,
         ),
     });
 

@@ -416,7 +416,7 @@ Cambios futuros de focus/dismiss/trigger no requieren sincronizar múltiples ker
 
 - D1 DataTable shell: **CERRADA**.
 - D2 Navigation entries: **CERRADA**.
-- D3 Motion presence duplication: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- D3 Motion presence duplication: **CERRADA**.
 
 ## Objetivo
 
@@ -501,6 +501,13 @@ Extraer el frame/helper común sin cambiar API pública.
 ---
 
 # Fase E — semántica de slots, layout y tipos
+
+## Estado actual de Fase E
+
+- E1 Slot precedence: **CERRADA**.
+- E2 Layout prop matrix: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- E3 Recipe convergence: pendiente.
+- E4 Tipos estructuralmente equivalentes: pendiente.
 
 ## Objetivo
 

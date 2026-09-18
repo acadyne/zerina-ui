@@ -1,8 +1,17 @@
 // src/primitives/layout/Wrap.tsx
 import React, { forwardRef, useMemo } from "react";
-import { getMinWidthFixStyles, getSpacingStyles } from "../../helpers";
+import {
+  getMinWidthFixStyles,
+  getSpacingStyles,
+} from "../../helpers";
+import type {
+  FlowLayoutFrameProps,
+} from "./layoutFrame.types";
 
-export interface WrapProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface WrapProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    FlowLayoutFrameProps {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -16,22 +25,6 @@ export interface WrapProps extends React.HTMLAttributes<HTMLDivElement> {
 
   shouldWrapChildren?: boolean;
 
-  w?: React.CSSProperties["width"];
-  minH?: React.CSSProperties["minHeight"];
-
-  p?: React.CSSProperties["padding"];
-  px?: React.CSSProperties["paddingLeft"];
-  py?: React.CSSProperties["paddingTop"];
-  pt?: React.CSSProperties["paddingTop"];
-  pb?: React.CSSProperties["paddingBottom"];
-  pl?: React.CSSProperties["paddingLeft"];
-  pr?: React.CSSProperties["paddingRight"];
-
-  m?: React.CSSProperties["margin"];
-  mt?: React.CSSProperties["marginTop"];
-  mb?: React.CSSProperties["marginBottom"];
-  ml?: React.CSSProperties["marginLeft"];
-  mr?: React.CSSProperties["marginRight"];
 }
 
 export interface WrapItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -68,6 +61,8 @@ export const Wrap = forwardRef<HTMLDivElement, WrapProps>(
       pr,
 
       m,
+      mx,
+      my,
       mt,
       mb,
       ml,
@@ -106,6 +101,8 @@ export const Wrap = forwardRef<HTMLDivElement, WrapProps>(
             pl,
             pr,
             m,
+            mx,
+            my,
             mt,
             mb,
             ml,

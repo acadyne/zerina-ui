@@ -934,6 +934,51 @@ Después decidir si debe expandirse `resolveLayeredSlot`.
 
 ---
 
+
+### Estado E1
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Decisión:
+
+```text
+declarative slot values:
+base → context layer(s) → local → direct className/style
+
+semantic event pipeline:
+public/child → local slot → inherited/context slot → internal
+```
+
+El resolver declarativo conserva reemplazo de handlers por especificidad; no compone eventos automáticamente.
+
+Nuevo owner de N capas:
+
+`resolveSlotLayers`.
+
+Nuevo convenience owner de un slot contexto + local:
+
+`resolveContextualSlot`.
+
+Migraciones:
+
+- Card;
+- Accordion;
+- Drawer;
+- BottomSheet;
+- Popover;
+- Tooltip;
+- Dialog.
+
+Resultado estático:
+
+```text
+styles ?? context.styles fallbacks      0
+slotProps ?? context.slotProps fallbacks 0
+broken relative imports                 0
+```
+
+Además Input/Textarea abandonan la excepción histórica `slot → public` y quedan en `public → local slot → internal`.
+
 ## P2.6 — controlled/uncontrolled
 
 No existe un `useControllableState` genérico.
@@ -1781,3 +1826,76 @@ Validation complete.
 ```
 
 La corrida final no emitió el warning `act(...)` de AnimatePresence.
+
+---
+
+# Cierre de Fase D
+
+**CERRADA**
+
+Validación final reportada al cerrar D3:
+
+```text
+tests dirigidos D3       30/30 PASS
+Vitest completo         495/495 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+Owners consolidados durante D:
+
+- `useDataTableShell`;
+- `DataTableShellFrame`;
+- `useNavigationEntries`;
+- `MotionAppFrame`.
+
+Fase E parte de este baseline.
+
+## Corte dirigido E2 — Layout prop matrix
+
+Estado:
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Matriz resultante:
+
+```text
+FULL FRAME
+Flex / Grid / Stack
+→ SizeProps + SpaceProps + SurfaceProps
+
+FLOW FRAME
+Inline / Wrap
+→ SpaceProps + w + minH
+```
+
+Decisión:
+
+- no ampliar Inline/Wrap con surface props;
+- no ampliar Inline/Wrap con todo SizeProps;
+- completar `mx`/`my`, ausentes sólo por duplicación manual;
+- mantener `gap` vs `spacing`;
+- mantener defaults y policies de wrap propios.
+
+Nuevo owner interno:
+
+`src/primitives/layout/layoutFrame.types.ts`
+
+Tipos:
+
+- `LayoutFrameProps`;
+- `FlowLayoutFrameProps`.
+
+No se exportan desde el barrel público.
+
+Tests:
+
+- `semantics-phase-e2-layout-matrix-ownership.test.ts`;
+- `semantics-phase-e2-layout-matrix-behavior.test.tsx`.

@@ -1,20 +1,18 @@
 // src/primitives/layout/Flex.tsx
 import React, { forwardRef } from "react";
 import {
-  type SizeProps,
-  type SpaceProps,
-  type SurfaceProps,
   getMinWidthFixStyles,
   getSizeStyles,
   getSpacingStyles,
   getSurfaceStyles,
 } from "../../helpers";
+import type {
+  LayoutFrameProps,
+} from "./layoutFrame.types";
 
 export interface FlexProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    SizeProps,
-    SpaceProps,
-    SurfaceProps {
+    LayoutFrameProps {
   children?: React.ReactNode;
   className?: string;
 
