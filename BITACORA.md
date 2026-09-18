@@ -5,17 +5,18 @@
 - Versión cerrada: `0.3.0`.
 - Fase A: **CERRADA**.
 - Fase B: **CERRADA**.
-- Fase activa: **C — triggers y overlays**.
-- C1 trigger runtime único: **CERRADA**.
-- C2 floating overlays: **CERRADA**.
-- C3 Dialog → modal runtime: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- Fase C — triggers y overlays: **CERRADA**.
+- Fase activa: **D — state engines y shells de producto**.
+- D1 DataTable shell: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- D2 NavigationStack / TabScaffold: pendiente.
+- D3 MotionPresence / MotionSwitch: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró C2
+## Validación que cerró Fase C
 
 ```text
-tests dirigidos C2       14/14 PASS
-Vitest completo         460/460 PASS
+tests dirigidos C3       18/18 PASS
+Vitest completo         467/467 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -27,177 +28,91 @@ git whitespace                PASS
 Validation complete.
 ```
 
-## C3 — objetivo
+## Fase C — owners resultantes
 
-Eliminar el último owner paralelo de mecánica modal.
+- `TriggerRuntime` con modos press/passive;
+- `FloatingOverlayRuntime`;
+- `ModalOverlayRuntime`.
 
-Familias:
+## D1 — decisión
 
-- Dialog;
-- Drawer;
-- BottomSheet.
+DataTable y EditableDataTable no necesitan un componente público común.
 
-Invariantes:
+Sí necesitan dos owners internos complementarios:
 
-- preservar `Dialog modal=false`;
-- no cambiar API pública;
-- no mover recipes;
-- no cambiar timing de dismiss;
-- no cambiar autoFocus/restoreFocus;
-- no ampliar accidentalmente slot forwarding de Dialog;
-- Drawer/BottomSheet deben seguir siendo modales.
+### Estado
 
-## C3 — decisión
+`src/components/data-table/useDataTableShell.ts`
 
-`ModalOverlayRuntime` ahora posee modalidad atómica.
+Posee:
 
-```text
-modal=true
-→ backdrop
-→ contain focus
-→ scroll lock
-→ aria-modal="true"
+- `useDataTableState`;
+- responsive mode;
+- row identity;
+- selection;
+- CSV export;
+- skeleton row/column counts.
 
-modal=false
-→ sin backdrop
-→ sin contain
-→ sin scroll lock
-→ sin aria-modal
-```
+### Composición
 
-Se mantienen independientes:
+`src/components/data-table/DataTableShellFrame.tsx`
 
-- autoFocus;
-- restoreFocus;
-- initialFocusRef;
-- closeOnEscape;
-- closeOnPointerDownOutside;
-- portalled/container.
+Posee:
 
-## C3 — cambios implementados
+- DataTableRoot;
+- DataTableToolbar;
+- loading/skeleton;
+- mobile/desktop branch;
+- DataTablePagination.
 
-### ModalOverlayRuntime
+## D1 — diferencias preservadas
 
-Generalizado para:
+### DataTable
 
-- Dialog;
-- Drawer;
-- BottomSheet.
+Conserva:
 
-Prop interna nueva:
+- `DataTableMobileCards` estático;
+- `DataTableDesktop`;
+- `renderActions`.
 
-`modal?: boolean` con default `true`.
+### EditableDataTable
 
-El antiguo prop interno `positionerSlot` se renombró a:
+Conserva:
 
-`dismissableLayerSlot`
+- derivación de searchable columns;
+- `handleCellChange`;
+- coerción;
+- validación de identidad post-edit;
+- `handleAddRow`;
+- `handleDeleteRows`;
+- renderers editables.
 
-para describir el owner real y permitir que cada familia adapte su nombre público.
+El shell común no conoce `onDataChange` ni semántica de edición.
 
-### Dialog
-
-Ya no posee directamente:
-
-- DismissableLayer;
-- FocusScope;
-- ScrollLock;
-- MotionOverlayPresence;
-- MotionOverlayRoot;
-- MotionOverlayBackdrop;
-- MotionOverlayPanel;
-- Portal.
-
-Ahora delega todo ese kernel en `ModalOverlayRuntime`.
-
-Conserva local:
-
-- `dialogRecipe`;
-- IDs/title/description mounting;
-- public `modal`;
-- slots;
-- context;
-- subcomponentes;
-- close/domain callbacks.
-
-Panel:
-
-```text
-panelAs="div"
-panelKind="dialog"
-```
-
-### Drawer / BottomSheet
-
-No cambia su semántica.
-
-Siguen usando el default:
-
-```text
-modal=true
-```
-
-Sólo adaptan su slot público `positioner` al prop interno `dismissableLayerSlot`.
-
-## Compatibilidad de slots Dialog
-
-Antes de C3, Dialog sólo reenviaba:
-
-```text
-dismissableLayer.className
-dismissableLayer.style
-focusScope.className
-focusScope.style
-```
-
-C3 conserva exactamente esa frontera al adaptar los slots al runtime.
-
-No se amplió el forwarding de props/eventos.
-
-## Tests C3
+## D1 — tests
 
 Nuevos:
 
-- `overlay-phase-c3-modal-runtime-ownership.test.ts`;
-- `overlay-phase-c3-modal-runtime-behavior.test.tsx`.
+- `state-phase-d1-data-table-shell-ownership.test.ts`;
+- `state-phase-d1-data-table-shell-behavior.test.tsx`.
 
-Actualizado:
+Protegen:
 
-- `interaction-overlay-source.test.ts`.
+- owners únicos;
+- wrappers sin hooks/shell JSX duplicado;
+- mutaciones editables fuera del shell;
+- mismo lifecycle root/toolbar/pagination;
+- mismo loading/skeleton branch.
 
-Cubren:
-
-- tres familias sobre un owner;
-- ausencia de kernels directos;
-- modalidad atómica en runtime;
-- Dialog modal con backdrop/aria-modal/scroll lock;
-- Dialog non-modal sin backdrop/aria-modal/scroll lock;
-- recipe y decisión pública modal permanecen en Dialog.
-
-## Verificación estática disponible
-
-```text
-Dialog direct modal-runtime internals      0
-Drawer direct modal-runtime internals      0
-BottomSheet direct modal-runtime internals 0
-ModalOverlayRuntime consumers              3
-relative imports broken                    0
-```
-
-## Criterio de cierre C3 / Fase C
+## Criterio de cierre D1
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests C3 dirigidos
-modal runtime regression
-Dialog regression
+tests D1 dirigidos
+regresión DataTable/family
 pnpm validate
 ```
 
-Si queda verde:
-
-1. C3 se marca CERRADA;
-2. Fase C completa se marca CERRADA;
-3. mapa/contratos/bitácora se consolidan;
-4. se abre Fase D — state engines y product shells.
+Sólo después se abre D2.

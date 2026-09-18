@@ -1,23 +1,26 @@
 // src/components/data-table/DataTable.tsx
-import { useMemo } from "react";
 import type {
   DataTableColumn,
   DataTableProps,
   DataTableRowId,
 } from "./dataTable.types";
+
 import {
-  useDataTableExport,
-  useDataTableResponsiveMode,
-  useDataTableSelection,
-  useDataTableState,
-} from "./hooks";
-import { DataTableRoot } from "./DataTableRoot";
-import { DataTableToolbar } from "./DataTableToolbar";
-import { DataTableDesktop } from "./DataTableDesktop";
-import { DataTableMobileCards } from "./DataTableMobileCards";
-import { DataTablePagination } from "./DataTablePagination";
-import { DataTableSkeleton } from "./DataTableSkeleton";
-import { createDataTableRowIdResolver } from "./dataTable.utils";
+  useDataTableShell,
+} from "./useDataTableShell";
+
+import {
+  DataTableShellFrame,
+} from "./DataTableShellFrame";
+
+import {
+  DataTableDesktop,
+} from "./DataTableDesktop";
+
+import {
+  DataTableMobileCards,
+} from "./DataTableMobileCards";
+
 
 export function DataTable<
   T extends Record<string, unknown>,
@@ -29,160 +32,226 @@ export function DataTable<
   selectedIds = [],
   onSelectionChange,
 
-  exportFilename = "tabla_datos",
-  enableExportCSV = false,
+  exportFilename =
+    "tabla_datos",
+
+  enableExportCSV =
+    false,
+
   renderActions,
-  enableSearch = false,
-  initialRowsPerPage = 10,
+
+  enableSearch =
+    false,
+
+  initialRowsPerPage =
+    10,
 
   searchKeys,
   getRowId,
 
-  dense = true,
+  dense =
+    true,
 
-  loading = false,
+  loading =
+    false,
+
   loadingRows,
   loadingColumns,
   loadingFallback,
 
   emptyState,
 
-  mobileMode = "inherit",
+  mobileMode =
+    "inherit",
+
   mobileBreakpoint,
 
-  enableSelection = true,
+  enableSelection =
+    true,
 
   styles,
   slotProps,
-}: DataTableProps<T, IDType>) {
-  const table = useDataTableState<T, DataTableColumn<T>>({
-    data,
-    columns,
-    searchKeys,
-    initialRowsPerPage,
-  });
+}: DataTableProps<
+  T,
+  IDType
+>) {
+  const runtime =
+    useDataTableShell<
+      T,
+      IDType,
+      DataTableColumn<T>
+    >({
+      data,
+      columns,
 
-  const isMobile = useDataTableResponsiveMode({
-    mobileMode,
-    mobileBreakpoint,
-  });
+      searchKeys,
+      initialRowsPerPage,
 
-  const getId = useMemo(
-    () =>
-      createDataTableRowIdResolver(
-        data,
-        getRowId
-      ),
-    [data, getRowId]
-  );
+      mobileMode,
+      mobileBreakpoint,
 
-  const selection = useDataTableSelection<T, IDType>({
-    rows: table.paginatedData,
-    allRows: data,
-    selectedIds,
-    onSelectionChange,
-    getRowId: getId,
-  });
+      selectedIds,
+      onSelectionChange,
 
-  const csv = useDataTableExport<T>({
-    rows: table.sortedData,
-    columns: table.visibleColumns,
-    filename: exportFilename,
-  });
+      getRowId,
 
-  const skeletonColumnCount = Math.max(
-    3,
-    loadingColumns ?? table.visibleColumns.length + (enableSelection ? 1 : 0)
-  );
+      exportFilename,
+      enableSelection,
 
-  const skeletonRowCount = Math.max(1, loadingRows ?? table.rowsPerPage);
+      loadingRows,
+      loadingColumns,
+    });
+
+
+  const {
+    table,
+    selection,
+    getId,
+  } = runtime;
+
 
   return (
-    <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
-      <DataTableToolbar
-        search={table.search}
-        onSearchChange={
-          table.setSearch
-        }
-        enableSearch={
-          enableSearch
-        }
-        enableExportCSV={
-          enableExportCSV
-        }
-        canExport={
-          csv.canExport
-        }
-        exportHref={
-          csv.href
-        }
-        exportFilename={
-          csv.download
-        }
-        renderActions={
-          renderActions
-        }
-        rowsPerPage={
-          table.rowsPerPage
-        }
-        onRowsPerPageChange={
-          table.setRowsPerPage
-        }
-        styles={styles}
-        slotProps={slotProps}
-      />
+    <DataTableShellFrame
+      runtime={
+        runtime
+      }
 
-      {loading ? (
-        <DataTableSkeleton
-          rows={skeletonRowCount}
-          columns={skeletonColumnCount}
-          fallback={loadingFallback}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      ) : isMobile ? (
+      loading={
+        loading
+      }
+
+      loadingFallback={
+        loadingFallback
+      }
+
+      enableSearch={
+        enableSearch
+      }
+
+      enableExportCSV={
+        enableExportCSV
+      }
+
+      renderActions={
+        renderActions
+      }
+
+      styles={
+        styles
+      }
+
+      slotProps={
+        slotProps
+      }
+
+      mobileContent={
         <DataTableMobileCards
-          rows={table.paginatedData}
-          columns={table.visibleColumns}
-          selectedIds={selection.selectedIds}
-          enableSelection={enableSelection}
-          getRowId={getId}
-          onToggleRow={selection.toggleSelectRow}
-          emptyState={emptyState}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      ) : (
-        <DataTableDesktop
-          rows={table.paginatedData}
-          columns={table.visibleColumns}
-          selectedIds={selection.selectedIds}
-          enableSelection={enableSelection}
-          getRowId={getId}
-          onToggleRow={selection.toggleSelectRow}
-          onToggleAll={selection.toggleSelectAll}
-          isAllPageSelected={selection.isAllPageSelected}
-          isSomePageSelected={selection.isSomePageSelected}
-          sortConfig={table.sortConfig}
-          onSort={table.toggleSort}
-          dense={dense}
-          emptyState={emptyState}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      )}
+          rows={
+            table.paginatedData
+          }
 
-      {!loading ? (
-        <DataTablePagination
-          page={table.safeCurrentPage}
-          totalPages={table.totalPages}
-          totalRows={table.sortedData.length}
-          onPreviousPage={table.goToPreviousPage}
-          onNextPage={table.goToNextPage}
-          styles={styles}
-          slotProps={slotProps}
+          columns={
+            table.visibleColumns
+          }
+
+          selectedIds={
+            selection.selectedIds
+          }
+
+          enableSelection={
+            enableSelection
+          }
+
+          getRowId={
+            getId
+          }
+
+          onToggleRow={
+            selection
+              .toggleSelectRow
+          }
+
+          emptyState={
+            emptyState
+          }
+
+          styles={
+            styles
+          }
+
+          slotProps={
+            slotProps
+          }
         />
-      ) : null}
-    </DataTableRoot>
+      }
+
+      desktopContent={
+        <DataTableDesktop
+          rows={
+            table.paginatedData
+          }
+
+          columns={
+            table.visibleColumns
+          }
+
+          selectedIds={
+            selection.selectedIds
+          }
+
+          enableSelection={
+            enableSelection
+          }
+
+          getRowId={
+            getId
+          }
+
+          onToggleRow={
+            selection
+              .toggleSelectRow
+          }
+
+          onToggleAll={
+            selection
+              .toggleSelectAll
+          }
+
+          isAllPageSelected={
+            selection
+              .isAllPageSelected
+          }
+
+          isSomePageSelected={
+            selection
+              .isSomePageSelected
+          }
+
+          sortConfig={
+            table.sortConfig
+          }
+
+          onSort={
+            table.toggleSort
+          }
+
+          dense={
+            dense
+          }
+
+          emptyState={
+            emptyState
+          }
+
+          styles={
+            styles
+          }
+
+          slotProps={
+            slotProps
+          }
+        />
+      }
+    />
   );
 }

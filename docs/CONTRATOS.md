@@ -551,3 +551,51 @@ Panel differences remain explicit:
 Dialog historically forwarded only `className` and `style` from its `dismissableLayer` and `focusScope` slots.
 
 The migration preserves that boundary when adapting those slots into `ModalOverlayRuntime`; it does not silently expose new DOM/event forwarding.
+
+## 18. DataTable shell
+
+State owner:
+
+`src/components/data-table/useDataTableShell.ts`
+
+Structural owner:
+
+`src/components/data-table/DataTableShellFrame.tsx`
+
+Both `DataTable` and `EditableDataTable` consume these owners.
+
+`useDataTableShell` owns:
+
+- table/search/sort/pagination state;
+- responsive mode;
+- row identity resolver;
+- selection;
+- CSV export;
+- loading skeleton cardinality.
+
+`DataTableShellFrame` owns:
+
+- DataTableRoot;
+- toolbar;
+- loading/skeleton branch;
+- mobile/desktop switch;
+- pagination.
+
+Variant-specific ownership remains outside:
+
+### DataTable
+
+- static mobile renderer;
+- static desktop renderer;
+- custom toolbar `renderActions`.
+
+### EditableDataTable
+
+- searchable-column derivation;
+- cell coercion/edit mutation;
+- row identity validation after edit;
+- add row;
+- delete selected rows;
+- editable mobile/desktop renderers.
+
+The shared shell does not know `onDataChange`, cell editors, add/delete policies or editable column types.

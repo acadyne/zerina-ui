@@ -372,3 +372,42 @@ pnpm validate
 ```
 
 C3 y Fase C sólo se cierran con `Validation complete.`.
+
+## Fase C3 / Fase C cerradas
+
+Resultado reportado:
+
+```text
+tests dirigidos C3       18/18 PASS
+Vitest completo         467/467 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase D1
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/state-phase-d1-data-table-shell-ownership.test.ts \
+  tests/state-phase-d1-data-table-shell-behavior.test.tsx \
+  tests/family-deduplication-contracts.test.tsx \
+  tests/family-deduplication-source.test.ts \
+  tests/forms-block6-behavior.test.tsx
+
+pnpm validate
+```
+
+D1 sólo se cierra con `Validation complete.`.

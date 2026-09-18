@@ -1,26 +1,35 @@
 // src/components/data-table/EditableDataTable.tsx
-import { useMemo } from "react";
+import {
+  useMemo,
+} from "react";
+
 import type {
   DataTableRowId,
   EditableDataTableColumn,
   EditableDataTableProps,
 } from "./dataTable.types";
+
 import {
   coerceEditableValue,
   createDataTableRowIdResolver,
 } from "./dataTable.utils";
+
 import {
-  useDataTableExport,
-  useDataTableResponsiveMode,
-  useDataTableSelection,
-  useDataTableState,
-} from "./hooks";
-import { DataTableRoot } from "./DataTableRoot";
-import { DataTableToolbar } from "./DataTableToolbar";
-import { DataTableMobileCards } from "./DataTableMobileCards";
-import { DataTablePagination } from "./DataTablePagination";
-import { DataTableSkeleton } from "./DataTableSkeleton";
-import { DataTableEditableDesktop } from "./DataTableEditableDesktop";
+  useDataTableShell,
+} from "./useDataTableShell";
+
+import {
+  DataTableShellFrame,
+} from "./DataTableShellFrame";
+
+import {
+  DataTableMobileCards,
+} from "./DataTableMobileCards";
+
+import {
+  DataTableEditableDesktop,
+} from "./DataTableEditableDesktop";
+
 
 export function EditableDataTable<
   T extends Record<string, unknown>,
@@ -28,6 +37,7 @@ export function EditableDataTable<
 >({
   data,
   columns,
+
   onDataChange,
   onCellChange,
 
@@ -37,277 +47,461 @@ export function EditableDataTable<
   getRowId,
   createEmptyRow,
 
-  exportFilename = "tabla_editable",
-  enableExportCSV = true,
-  enableSearch = true,
-  initialRowsPerPage = 10,
+  exportFilename =
+    "tabla_editable",
 
-  dense = true,
+  enableExportCSV =
+    true,
 
-  loading = false,
+  enableSearch =
+    true,
+
+  initialRowsPerPage =
+    10,
+
+  dense =
+    true,
+
+  loading =
+    false,
+
   loadingRows,
   loadingColumns,
   loadingFallback,
 
   emptyState,
 
-  mobileMode = "inherit",
+  mobileMode =
+    "inherit",
+
   mobileBreakpoint,
 
-  enableAddRow = true,
-  enableDeleteRows = true,
-  enableSelection = true,
+  enableAddRow =
+    true,
+
+  enableDeleteRows =
+    true,
+
+  enableSelection =
+    true,
 
   styles,
   slotProps,
-}: EditableDataTableProps<T, IDType>) {
-  const searchKeys = useMemo(
-    () =>
-      columns
-        .filter((column) => column.searchable !== false)
-        .map((column) => column.accessor),
-    [columns]
-  );
-
-  const table = useDataTableState<T, EditableDataTableColumn<T>>({
-    data,
-    columns,
-    searchKeys,
-    initialRowsPerPage,
-  });
-
-  const isMobile = useDataTableResponsiveMode({
-    mobileMode,
-    mobileBreakpoint,
-  });
-
-  const getId = useMemo(
-    () =>
-      createDataTableRowIdResolver(
-        data,
-        getRowId
-      ),
-    [data, getRowId]
-  );
-
-  const selection = useDataTableSelection<T, IDType>({
-    rows: table.paginatedData,
-    allRows: data,
-    selectedIds,
-    onSelectionChange,
-    getRowId: getId,
-  });
-
-  const csv = useDataTableExport<T>({
-    rows: table.sortedData,
-    columns: table.visibleColumns,
-    filename: exportFilename,
-  });
-
-  const handleCellChange = (
-    row: T,
-    _visibleRowIndex: number,
-    column: EditableDataTableColumn<T>,
-    rawValue: string
-  ) => {
-    const rowId = getId(row);
-    const rowIndex = data.findIndex(
-      (item) => getId(item) === rowId
+}: EditableDataTableProps<
+  T,
+  IDType
+>) {
+  const searchKeys =
+    useMemo(
+      () =>
+        columns
+          .filter(
+            (
+              column,
+            ) =>
+              column.searchable !==
+              false,
+          )
+          .map(
+            (
+              column,
+            ) =>
+              column.accessor,
+          ),
+      [
+        columns,
+      ],
     );
 
-    if (rowIndex < 0) {
+
+  const runtime =
+    useDataTableShell<
+      T,
+      IDType,
+      EditableDataTableColumn<T>
+    >({
+      data,
+      columns,
+
+      searchKeys,
+      initialRowsPerPage,
+
+      mobileMode,
+      mobileBreakpoint,
+
+      selectedIds,
+      onSelectionChange,
+
+      getRowId,
+
+      exportFilename,
+      enableSelection,
+
+      loadingRows,
+      loadingColumns,
+    });
+
+
+  const {
+    table,
+    selection,
+    getId,
+  } = runtime;
+
+
+  const handleCellChange = (
+    row:
+      T,
+
+    _visibleRowIndex:
+      number,
+
+    column:
+      EditableDataTableColumn<T>,
+
+    rawValue:
+      string,
+  ) => {
+    const rowId =
+      getId(
+        row,
+      );
+
+
+    const rowIndex =
+      data.findIndex(
+        (
+          item,
+        ) =>
+          getId(
+            item,
+          ) ===
+          rowId,
+      );
+
+
+    if (
+      rowIndex <
+      0
+    ) {
       throw new Error(
-        "EditableDataTable could not locate the edited row by its ID."
+        "EditableDataTable could not locate the edited row by its ID.",
       );
     }
 
+
     const previousValue =
-      data[rowIndex][column.accessor];
+      data[
+        rowIndex
+      ][
+        column.accessor
+      ];
+
 
     const nextValue =
       coerceEditableValue(
         rawValue,
-        column.type
+        column.type,
       );
 
+
     const nextRow = {
-      ...data[rowIndex],
-      [column.accessor]: nextValue,
+      ...data[
+        rowIndex
+      ],
+
+      [
+        column.accessor
+      ]:
+        nextValue,
     };
 
-    const nextRows = [...data];
-    nextRows[rowIndex] = nextRow;
 
-    /*
-     * La identidad de una fila es ownership estructural, no un valor editable.
-     * La colección se valida antes de cualquier callback para impedir estados
-     * duplicados, inválidos o parcialmente notificados.
-     */
+    const nextRows = [
+      ...data,
+    ];
+
+    nextRows[
+      rowIndex
+    ] =
+      nextRow;
+
+
     const nextGetId =
       createDataTableRowIdResolver(
         nextRows,
-        getRowId
+        getRowId,
       );
+
 
     const nextRowId =
-      nextGetId(nextRow);
+      nextGetId(
+        nextRow,
+      );
 
-    if (nextRowId !== rowId) {
+
+    if (
+      nextRowId !==
+      rowId
+    ) {
       throw new Error(
-        "EditableDataTable row identity cannot change during cell editing."
+        "EditableDataTable row identity cannot change during cell editing.",
       );
     }
+
 
     onCellChange?.({
       rowId,
-      column: column.accessor,
+
+      column:
+        column.accessor,
+
       previousValue,
       nextValue,
-      row: nextRow,
+
+      row:
+        nextRow,
     });
 
-    onDataChange(nextRows);
-  };
 
-  const handleAddRow = () => {
-    const nextRow = createEmptyRow();
-    const nextRows = [...data, nextRow];
-
-    // La fila nueva debe entrar al mismo dominio de identidad antes de
-    // notificarse; no puede aparecer una renderización parcialmente válida.
-    createDataTableRowIdResolver(
+    onDataChange(
       nextRows,
-      getRowId
     );
-
-    onDataChange(nextRows);
   };
 
-  const handleDeleteRows = () => {
-    if (!selection.selectedIds.length) {
-      return;
-    }
 
-    const nextRows = data.filter(
-      (row) =>
-        !selection.selectedIdSet.has(
-          getId(row)
-        )
-    );
+  const handleAddRow =
+    () => {
+      const nextRow =
+        createEmptyRow();
 
-    onDataChange(nextRows);
-    onSelectionChange?.([]);
-    table.resetPage();
-  };
+      const nextRows = [
+        ...data,
+        nextRow,
+      ];
 
-  const skeletonColumnCount = Math.max(
-    3,
-    loadingColumns ?? table.visibleColumns.length + (enableSelection ? 1 : 0)
-  );
 
-  const skeletonRowCount = Math.max(1, loadingRows ?? table.rowsPerPage);
+      createDataTableRowIdResolver(
+        nextRows,
+        getRowId,
+      );
+
+
+      onDataChange(
+        nextRows,
+      );
+    };
+
+
+  const handleDeleteRows =
+    () => {
+      if (
+        !selection
+          .selectedIds
+          .length
+      ) {
+        return;
+      }
+
+
+      const nextRows =
+        data.filter(
+          (
+            row,
+          ) =>
+            !selection
+              .selectedIdSet
+              .has(
+                getId(
+                  row,
+                ),
+              ),
+        );
+
+
+      onDataChange(
+        nextRows,
+      );
+
+      onSelectionChange?.(
+        [],
+      );
+
+      table.resetPage();
+    };
+
 
   return (
-    <DataTableRoot loading={loading} styles={styles} slotProps={slotProps}>
-      <DataTableToolbar
-        search={table.search}
-        onSearchChange={
-          table.setSearch
-        }
-        enableSearch={
-          enableSearch
-        }
-        enableExportCSV={
-          enableExportCSV
-        }
-        canExport={
-          csv.canExport
-        }
-        exportHref={
-          csv.href
-        }
-        exportFilename={
-          csv.download
-        }
-        rowsPerPage={
-          table.rowsPerPage
-        }
-        onRowsPerPageChange={
-          table.setRowsPerPage
-        }
-        enableAddRow={
-          enableAddRow
-        }
-        onAddRow={
-          handleAddRow
-        }
-        enableDeleteRows={
-          enableDeleteRows
-        }
-        canDeleteRows={
-          selection.selectedIds.length > 0
-        }
-        onDeleteRows={
-          handleDeleteRows
-        }
-        styles={styles}
-        slotProps={slotProps}
-      />
+    <DataTableShellFrame
+      runtime={
+        runtime
+      }
 
-      {loading ? (
-        <DataTableSkeleton
-          rows={skeletonRowCount}
-          columns={skeletonColumnCount}
-          fallback={loadingFallback}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      ) : isMobile ? (
+      loading={
+        loading
+      }
+
+      loadingFallback={
+        loadingFallback
+      }
+
+      enableSearch={
+        enableSearch
+      }
+
+      enableExportCSV={
+        enableExportCSV
+      }
+
+      enableAddRow={
+        enableAddRow
+      }
+
+      onAddRow={
+        handleAddRow
+      }
+
+      enableDeleteRows={
+        enableDeleteRows
+      }
+
+      canDeleteRows={
+        selection
+          .selectedIds
+          .length >
+        0
+      }
+
+      onDeleteRows={
+        handleDeleteRows
+      }
+
+      styles={
+        styles
+      }
+
+      slotProps={
+        slotProps
+      }
+
+      mobileContent={
         <DataTableMobileCards
           editable
-          rows={table.paginatedData}
-          columns={table.visibleColumns}
-          selectedIds={selection.selectedIds}
-          enableSelection={enableSelection}
-          getRowId={getId}
-          onToggleRow={selection.toggleSelectRow}
-          onCellChange={handleCellChange}
-          emptyState={emptyState}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      ) : (
-        <DataTableEditableDesktop
-          rows={table.paginatedData}
-          columns={table.visibleColumns}
-          selectedIds={selection.selectedIds}
-          enableSelection={enableSelection}
-          getRowId={getId}
-          onToggleRow={selection.toggleSelectRow}
-          onToggleAll={selection.toggleSelectAll}
-          isAllPageSelected={selection.isAllPageSelected}
-          isSomePageSelected={selection.isSomePageSelected}
-          sortConfig={table.sortConfig}
-          onSort={table.toggleSort}
-          dense={dense}
-          emptyState={emptyState}
-          onCellChange={handleCellChange}
-          styles={styles}
-          slotProps={slotProps}
-        />
-      )}
 
-      {!loading ? (
-        <DataTablePagination
-          page={table.safeCurrentPage}
-          totalPages={table.totalPages}
-          totalRows={table.sortedData.length}
-          onPreviousPage={table.goToPreviousPage}
-          onNextPage={table.goToNextPage}
-          styles={styles}
-          slotProps={slotProps}
+          rows={
+            table.paginatedData
+          }
+
+          columns={
+            table.visibleColumns
+          }
+
+          selectedIds={
+            selection.selectedIds
+          }
+
+          enableSelection={
+            enableSelection
+          }
+
+          getRowId={
+            getId
+          }
+
+          onToggleRow={
+            selection
+              .toggleSelectRow
+          }
+
+          onCellChange={
+            handleCellChange
+          }
+
+          emptyState={
+            emptyState
+          }
+
+          styles={
+            styles
+          }
+
+          slotProps={
+            slotProps
+          }
         />
-      ) : null}
-    </DataTableRoot>
+      }
+
+      desktopContent={
+        <DataTableEditableDesktop
+          rows={
+            table.paginatedData
+          }
+
+          columns={
+            table.visibleColumns
+          }
+
+          selectedIds={
+            selection.selectedIds
+          }
+
+          enableSelection={
+            enableSelection
+          }
+
+          getRowId={
+            getId
+          }
+
+          onToggleRow={
+            selection
+              .toggleSelectRow
+          }
+
+          onToggleAll={
+            selection
+              .toggleSelectAll
+          }
+
+          isAllPageSelected={
+            selection
+              .isAllPageSelected
+          }
+
+          isSomePageSelected={
+            selection
+              .isSomePageSelected
+          }
+
+          sortConfig={
+            table.sortConfig
+          }
+
+          onSort={
+            table.toggleSort
+          }
+
+          dense={
+            dense
+          }
+
+          emptyState={
+            emptyState
+          }
+
+          onCellChange={
+            handleCellChange
+          }
+
+          styles={
+            styles
+          }
+
+          slotProps={
+            slotProps
+          }
+        />
+      }
+    />
   );
 }

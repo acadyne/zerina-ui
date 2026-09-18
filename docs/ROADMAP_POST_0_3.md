@@ -30,7 +30,7 @@ React 19 consumer PASS
 Fase A  CERRADA
 Fase B  CERRADA
 Fase C  ACTIVA — C1/C2 cerradas; C3 implementada, pendiente de validación
-Fase D  PENDIENTE DE B/C
+Fase D  ACTIVA — D1 implementada, pendiente de validación
 Fase E  pendiente de evidencia de B/C/D
 Fase F  pendiente
 Hito G  pendiente

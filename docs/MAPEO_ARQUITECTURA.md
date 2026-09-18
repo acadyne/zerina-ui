@@ -670,6 +670,54 @@ No fusionar DataTable y EditableDataTable.
 
 ---
 
+
+### Estado D1
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Owners nuevos:
+
+- `useDataTableShell`;
+- `DataTableShellFrame`.
+
+Duplicación centralizada:
+
+```text
+state/search/sort/pagination
+responsive mode
+row identity
+selection
+CSV
+skeleton counts
+root
+toolbar
+loading branch
+mobile/desktop switch
+pagination
+```
+
+Diferencias preservadas:
+
+```text
+DataTable:
+  static renderers
+  renderActions
+
+EditableDataTable:
+  searchKeys derivation
+  cell editing/coercion
+  identity validation after edit
+  add/delete
+  editable renderers
+```
+
+No se fusionaron los componentes públicos.
+
+Tests:
+
+- `state-phase-d1-data-table-shell-ownership.test.ts`;
+- `state-phase-d1-data-table-shell-behavior.test.tsx`.
+
 ## P1.8 — NavigationStack / TabScaffold
 
 Comparten ownership de:
@@ -1535,3 +1583,30 @@ Tests C2:
 - `overlay-phase-c2-floating-runtime-behavior.test.tsx`.
 
 Cubren ownership, scope deliberado, presencia y `portalled={false}` sin dependencia accidental de OverlayProvider.
+
+---
+
+# Cierre de Fase C
+
+**CERRADA**
+
+Validación final reportada al cerrar C3:
+
+```text
+tests dirigidos C3       18/18 PASS
+Vitest completo         467/467 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+Validation complete.
+```
+
+Owners consolidados durante C:
+
+- `TriggerRuntime` press/passive;
+- `FloatingOverlayRuntime`;
+- `ModalOverlayRuntime`.
+
+Fase D parte de este baseline.
