@@ -37,6 +37,11 @@ describe(
     it(
       "keeps modal runtime mechanics in one owner",
       () => {
+        const dialog =
+          readRelative(
+            "../../src/primitives/overlay/Dialog.tsx",
+          );
+
         const drawer =
           readRelative(
             "../../src/primitives/overlay/Drawer.tsx",
@@ -54,6 +59,7 @@ describe(
 
         for (
           const family of [
+            dialog,
             drawer,
             sheet,
           ]

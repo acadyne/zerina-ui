@@ -481,3 +481,73 @@ No se añade un segundo runtime universal.
 - Tooltip mantiene su outside-pointer owner actual.
 
 La razón es estructural: esas capas no ocupan la misma posición ni comparten la misma política. El engine común de dismiss ya existe en `DismissableLayer`; forzar otra abstracción superior introduciría callbacks/opciones opacas sin eliminar un segundo engine real.
+
+## 18. Modal overlay runtime
+
+Owner:
+
+`src/primitives/overlay/shared/ModalOverlayRuntime.tsx`
+
+Consumers:
+
+- Dialog;
+- Drawer;
+- BottomSheet.
+
+The runtime owns:
+
+```text
+MotionOverlayPresence
+→ MotionOverlayRoot
+→ optional MotionOverlayBackdrop
+→ DismissableLayer
+→ FocusScope
+→ MotionOverlayPanel
+→ optional ScrollLock
+→ optional Portal
+```
+
+### Atomic modality
+
+`modal` is one semantic decision:
+
+```text
+modal=true
+→ backdrop
+→ contain focus
+→ body scroll lock
+→ aria-modal="true"
+
+modal=false
+→ no backdrop
+→ no focus containment
+→ no scroll lock
+→ no aria-modal
+```
+
+This matches Dialog's existing public contract and keeps Drawer/BottomSheet modal by default.
+
+Independent decisions remain independent:
+
+- autoFocus;
+- restoreFocus;
+- initialFocusRef;
+- dismiss on Escape;
+- dismiss on pointer-down outside;
+- portal/container.
+
+### Family ownership
+
+The runtime does not own recipes, family slot names, title/description mounting, header/body/footer, close buttons or domain callbacks.
+
+Panel differences remain explicit:
+
+- Dialog: `panelAs="div"`, `panelKind="dialog"`;
+- Drawer: `panelAs="aside"`, `panelKind="drawer"`, placement;
+- BottomSheet: `panelAs="section"`, `panelKind="bottom-sheet"`.
+
+### Dialog slot compatibility
+
+Dialog historically forwarded only `className` and `style` from its `dismissableLayer` and `focusScope` slots.
+
+The migration preserves that boundary when adapting those slots into `ModalOverlayRuntime`; it does not silently expose new DOM/event forwarding.

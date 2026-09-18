@@ -323,3 +323,52 @@ pnpm validate
 ```
 
 C2 sólo se cierra con `Validation complete.`.
+
+## Fase C2 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos C2       14/14 PASS
+Vitest completo         460/460 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase C3
+
+Verificación estática del snapshot:
+
+```text
+Dialog direct modal-runtime internals      0
+Drawer direct modal-runtime internals      0
+BottomSheet direct modal-runtime internals 0
+ModalOverlayRuntime consumers              3
+relative imports broken                    0
+```
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/overlay-phase-c3-modal-runtime-ownership.test.ts \
+  tests/overlay-phase-c3-modal-runtime-behavior.test.tsx \
+  tests/modal-overlay-runtime.test.tsx \
+  tests/interaction-overlay-source.test.ts \
+  tests/dialog-contracts-phase-a.test.tsx
+
+pnpm validate
+```
+
+C3 y Fase C sólo se cierran con `Validation complete.`.

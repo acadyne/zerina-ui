@@ -29,7 +29,7 @@ React 19 consumer PASS
 ```text
 Fase A  CERRADA
 Fase B  CERRADA
-Fase C  ACTIVA — C1 cerrada; C2 implementada, pendiente de validación
+Fase C  ACTIVA — C1/C2 cerradas; C3 implementada, pendiente de validación
 Fase D  PENDIENTE DE B/C
 Fase E  pendiente de evidencia de B/C/D
 Fase F  pendiente
@@ -374,18 +374,19 @@ Esto evita un runtime universal lleno de callbacks/configuración opaca y mantie
 
 ### C3. Dialog hacia runtime modal
 
-Generalizar `ModalOverlayRuntime` para representar:
+Generalizar `ModalOverlayRuntime` con modalidad atómica:
 
-- modal / non-modal;
-- backdrop;
-- focus containment;
-- restore focus;
-- scroll lock;
-- aria-modal.
+```text
+modal=true
+→ backdrop + focus containment + scroll lock + aria-modal
 
-Migrar Dialog si el contrato queda más claro que el owner actual.
+modal=false
+→ ninguno de los cuatro
+```
 
-Drawer y BottomSheet no deben perder su semántica existente.
+`restoreFocus`, `autoFocus`, dismiss y portal permanecen decisiones independientes.
+
+Migrar Dialog al mismo runtime que Drawer/BottomSheet sin mover recipes ni subcomponentes.
 
 ## Out of scope
 

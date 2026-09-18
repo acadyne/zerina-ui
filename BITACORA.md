@@ -7,15 +7,15 @@
 - Fase B: **CERRADA**.
 - Fase activa: **C — triggers y overlays**.
 - C1 trigger runtime único: **CERRADA**.
-- C2 floating overlays: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- C3 Dialog → modal runtime: pendiente.
+- C2 floating overlays: **CERRADA**.
+- C3 Dialog → modal runtime: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró C1
+## Validación que cerró C2
 
 ```text
-tests dirigidos C1       11/11 PASS
-Vitest completo         454/454 PASS
+tests dirigidos C2       14/14 PASS
+Vitest completo         460/460 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -27,151 +27,177 @@ git whitespace                PASS
 Validation complete.
 ```
 
-La revalidación fue limpia: no reapareció el warning de `onPress` sobre hosts DOM.
+## C3 — objetivo
 
-## C2 — decisión final
+Eliminar el último owner paralelo de mecánica modal.
 
-La inspección concreta mostró que el owner común correcto es estructural.
+Familias:
 
-Nuevo:
+- Dialog;
+- Drawer;
+- BottomSheet.
 
-`src/core/overlay/FloatingOverlayRuntime.tsx`
+Invariantes:
 
-Posee:
+- preservar `Dialog modal=false`;
+- no cambiar API pública;
+- no mover recipes;
+- no cambiar timing de dismiss;
+- no cambiar autoFocus/restoreFocus;
+- no ampliar accidentalmente slot forwarding de Dialog;
+- Drawer/BottomSheet deben seguir siendo modales.
 
-```text
-present
-→ MotionPresenceGroup
-→ optional Portal
-→ FloatingLayer
-→ floating ref/style/placement plumbing
-```
+## C3 — decisión
 
-Consumidores:
-
-- PopoverContent;
-- MenuContent;
-- NavigationMenuPanel;
-- TooltipContent.
-
-## C2 — responsabilidades centralizadas
-
-- anchor ref;
-- open/present plumbing;
-- placement;
-- offset;
-- flip;
-- shift;
-- viewport padding;
-- z-index;
-- matchAnchorWidth;
-- resize/scroll updates;
-- floating element ref;
-- MotionPresenceGroup;
-- portal/container.
-
-Resultado estático:
+`ModalOverlayRuntime` ahora posee modalidad atómica.
 
 ```text
-direct <FloatingLayer> en los 4 consumidores        0
-direct <MotionPresenceGroup> en los 4 consumidores  0
-direct <Portal> en los 4 consumidores                0
-FloatingOverlayRuntime consumers                     4
+modal=true
+→ backdrop
+→ contain focus
+→ scroll lock
+→ aria-modal="true"
+
+modal=false
+→ sin backdrop
+→ sin contain
+→ sin scroll lock
+→ sin aria-modal
 ```
 
-## C2 — diferencias preservadas
+Se mantienen independientes:
 
-### Popover
-
-Mantiene local:
-
-- recipe;
-- DismissableLayer;
-- FocusScope;
-- trapFocus;
 - autoFocus;
 - restoreFocus;
-- role/ARIA.
+- initialFocusRef;
+- closeOnEscape;
+- closeOnPointerDownOutside;
+- portalled/container.
 
-### Menu
+## C3 — cambios implementados
 
-Mantiene local:
+### ModalOverlayRuntime
 
-- layered dismissable slot;
+Generalizado para:
+
+- Dialog;
+- Drawer;
+- BottomSheet.
+
+Prop interna nueva:
+
+`modal?: boolean` con default `true`.
+
+El antiguo prop interno `positionerSlot` se renombró a:
+
+`dismissableLayerSlot`
+
+para describir el owner real y permitir que cada familia adapte su nombre público.
+
+### Dialog
+
+Ya no posee directamente:
+
 - DismissableLayer;
-- roving/menu keyboard;
-- restore-focus policy;
-- menu role/ARIA.
+- FocusScope;
+- ScrollLock;
+- MotionOverlayPresence;
+- MotionOverlayRoot;
+- MotionOverlayBackdrop;
+- MotionOverlayPanel;
+- Portal.
 
-### NavigationMenuPanel
+Ahora delega todo ese kernel en `ModalOverlayRuntime`.
 
-Mantiene local:
+Conserva local:
 
-- DismissableLayer;
-- Escape/outside callbacks específicos;
-- depth/layer;
-- navigation semantics.
+- `dialogRecipe`;
+- IDs/title/description mounting;
+- public `modal`;
+- slots;
+- context;
+- subcomponentes;
+- close/domain callbacks.
 
-### Tooltip
-
-Mantiene local:
-
-- hover/focus/touch lifecycle;
-- custom outside-pointer detection;
-- role tooltip;
-- recipe.
-
-Tooltip NO se migra a DismissableLayer en C2 porque eso introduciría dependencia de OverlayProvider y cambiaría su estructura/semántica no-portalled.
-
-## Invariante `portalled={false}`
-
-`FloatingOverlayRuntime` no usa `<Portal disabled>`.
-
-Hace branch explícito:
+Panel:
 
 ```text
-portalled
-→ Portal
-else
-→ animated directamente
+panelAs="div"
+panelKind="dialog"
 ```
 
-Motivo: `Portal` consulta OverlayProvider antes de procesar `disabled`.
+### Drawer / BottomSheet
 
-## Tests C2
+No cambia su semántica.
+
+Siguen usando el default:
+
+```text
+modal=true
+```
+
+Sólo adaptan su slot público `positioner` al prop interno `dismissableLayerSlot`.
+
+## Compatibilidad de slots Dialog
+
+Antes de C3, Dialog sólo reenviaba:
+
+```text
+dismissableLayer.className
+dismissableLayer.style
+focusScope.className
+focusScope.style
+```
+
+C3 conserva exactamente esa frontera al adaptar los slots al runtime.
+
+No se amplió el forwarding de props/eventos.
+
+## Tests C3
 
 Nuevos:
 
-- `overlay-phase-c2-floating-runtime-ownership.test.ts`;
-- `overlay-phase-c2-floating-runtime-behavior.test.tsx`.
+- `overlay-phase-c3-modal-runtime-ownership.test.ts`;
+- `overlay-phase-c3-modal-runtime-behavior.test.tsx`.
 
-Protegen:
+Actualizado:
 
-- owner estructural único;
-- ausencia de dismiss/focus en el runtime;
-- diferencias locales deliberadas;
-- no ejecutar floating render cuando `present=false`;
-- `portalled=false` sin OverlayProvider;
-- Tooltip no-portalled sin OverlayProvider.
+- `interaction-overlay-source.test.ts`.
 
-## Verificación disponible en snapshot
+Cubren:
 
-- TypeScript syntax parse de archivos modificados: PASS.
-- No quedan usos JSX directos de FloatingLayer/MotionPresenceGroup/Portal en los cuatro consumidores.
+- tres familias sobre un owner;
+- ausencia de kernels directos;
+- modalidad atómica en runtime;
+- Dialog modal con backdrop/aria-modal/scroll lock;
+- Dialog non-modal sin backdrop/aria-modal/scroll lock;
+- recipe y decisión pública modal permanecen en Dialog.
 
-## Criterio de cierre C2
+## Verificación estática disponible
+
+```text
+Dialog direct modal-runtime internals      0
+Drawer direct modal-runtime internals      0
+BottomSheet direct modal-runtime internals 0
+ModalOverlayRuntime consumers              3
+relative imports broken                    0
+```
+
+## Criterio de cierre C3 / Fase C
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests C2 dirigidos
-regresión C1/overlay/modal
+tests C3 dirigidos
+modal runtime regression
+Dialog regression
 pnpm validate
 ```
 
 Si queda verde:
 
-1. C2 se marca CERRADA;
-2. se abre C3;
-3. C3 generaliza ModalOverlayRuntime sólo donde pueda expresar Dialog modal/non-modal sin borrar diferencias.
+1. C3 se marca CERRADA;
+2. Fase C completa se marca CERRADA;
+3. mapa/contratos/bitácora se consolidan;
+4. se abre Fase D — state engines y product shells.

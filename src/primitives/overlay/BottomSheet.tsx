@@ -568,7 +568,7 @@ export const BottomSheet:
               backdropSlot,
             )
           }
-          positionerSlot={
+          dismissableLayerSlot={
             positionerSlot
           }
           focusScopeSlot={

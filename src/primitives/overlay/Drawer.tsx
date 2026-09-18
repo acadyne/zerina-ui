@@ -532,7 +532,7 @@ export const Drawer:
               backdropSlot,
             )
           }
-          positionerSlot={
+          dismissableLayerSlot={
             positionerSlot
           }
           focusScopeSlot={

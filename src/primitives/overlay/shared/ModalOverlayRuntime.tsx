@@ -30,6 +30,15 @@ export interface ModalOverlayRuntimeProps {
   open: boolean;
   overlayId: string;
 
+  /**
+   * Política modal atómica.
+   *
+   * true  -> backdrop + focus containment + scroll lock + aria-modal
+   * false -> none of the above
+   */
+  modal?:
+    boolean;
+
   onDismiss:
     () => void;
 
@@ -64,7 +73,7 @@ export interface ModalOverlayRuntimeProps {
   backdropSlot:
     MotionSlotProps;
 
-  positionerSlot:
+  dismissableLayerSlot:
     SlotElementProps;
 
   focusScopeSlot:
@@ -93,12 +102,17 @@ export interface ModalOverlayRuntimeProps {
 
 
 /**
- * Runtime modal único para superficies laterales/inferiores.
+ * Runtime modal único para Dialog, Drawer y BottomSheet.
  *
- * Las recipes siguen perteneciendo a Drawer/BottomSheet. Esta frontera posee
- * únicamente la mecánica transversal:
+ * Las recipes permanecen en cada familia. Esta frontera posee únicamente la
+ * mecánica transversal:
  *
- * Presence -> Backdrop -> DismissableLayer -> FocusScope -> Panel -> ScrollLock.
+ * Presence -> optional Backdrop -> DismissableLayer -> FocusScope
+ * -> Panel -> optional ScrollLock.
+ *
+ * `modal` es una política atómica: backdrop, focus containment, scroll lock y
+ * aria-modal cambian juntos. restoreFocus/autoFocus siguen siendo decisiones
+ * independientes del consumidor.
  *
  * Los slots se aplican antes de las invariantes para que estilos/atributos DOM
  * sean extensibles sin permitir que un slot sustituya ownership, foco o dismiss.
@@ -108,6 +122,8 @@ export function ModalOverlayRuntime({
 
   open,
   overlayId,
+
+  modal = true,
 
   onDismiss,
 
@@ -123,7 +139,7 @@ export function ModalOverlayRuntime({
 
   rootSlot,
   backdropSlot,
-  positionerSlot,
+  dismissableLayerSlot,
   focusScopeSlot,
   panelSlot,
 
@@ -141,12 +157,14 @@ export function ModalOverlayRuntime({
       <MotionOverlayRoot
         {...rootSlot}
       >
-        <MotionOverlayBackdrop
-          {...backdropSlot}
-        />
+        {modal ? (
+          <MotionOverlayBackdrop
+            {...backdropSlot}
+          />
+        ) : null}
 
         <DismissableLayer
-          {...positionerSlot}
+          {...dismissableLayerSlot}
           overlayId={
             overlayId
           }
@@ -171,7 +189,9 @@ export function ModalOverlayRuntime({
         >
           <FocusScope
             {...focusScopeSlot}
-            contain
+            contain={
+              modal
+            }
             autoFocus={
               autoFocus
             }
@@ -187,7 +207,11 @@ export function ModalOverlayRuntime({
                 panelPlacement
               }
               role="dialog"
-              aria-modal="true"
+              aria-modal={
+                modal
+                  ? "true"
+                  : undefined
+              }
               aria-labelledby={
                 labelledBy
               }
@@ -199,7 +223,9 @@ export function ModalOverlayRuntime({
             </MotionOverlayPanel>
           </FocusScope>
 
-          <ScrollLock />
+          {modal ? (
+            <ScrollLock />
+          ) : null}
         </DismissableLayer>
       </MotionOverlayRoot>
     </MotionOverlayPresence>

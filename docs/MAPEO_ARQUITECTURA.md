@@ -590,6 +590,47 @@ Después migrar Dialog.
 
 ---
 
+### Estado C3
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Resolución:
+
+- `ModalOverlayRuntime` ahora representa modalidad atómica mediante `modal`;
+- Dialog delega presence/backdrop/dismiss/focus/panel/scroll-lock/portal al runtime;
+- Drawer y BottomSheet conservan el comportamiento modal por defecto;
+- Dialog `modal=false` mantiene no-backdrop, no-contain, no-scroll-lock y ausencia de `aria-modal`;
+- recipes y subcomponentes permanecen locales.
+
+Ownership resultante:
+
+```text
+Dialog       → ModalOverlayRuntime
+Drawer       → ModalOverlayRuntime
+BottomSheet  → ModalOverlayRuntime
+```
+
+Ya no hay JSX directo de:
+
+- DismissableLayer;
+- FocusScope;
+- ScrollLock;
+- MotionOverlayPresence;
+- MotionOverlayBackdrop;
+- MotionOverlayPanel;
+
+en esas tres familias.
+
+Compatibilidad preservada:
+
+Dialog sigue reenviando sólo `className/style` desde `dismissableLayer` y `focusScope`, igual que antes de la migración.
+
+Tests C3:
+
+- `overlay-phase-c3-modal-runtime-ownership.test.ts`;
+- `overlay-phase-c3-modal-runtime-behavior.test.tsx`;
+- `interaction-overlay-source.test.ts` ampliado a Dialog.
+
 ## P1.7 — DataTable / EditableDataTable todavía duplican shell
 
 `DataTableDesktopBase` ya resolvió la duplicación del renderer desktop.
@@ -1442,7 +1483,7 @@ Tooltip se deja al final: primero hay que decidir si su outside-pointer implemen
 
 ### Implementación C2
 
-**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+**CERRADA**
 
 Nuevo owner:
 

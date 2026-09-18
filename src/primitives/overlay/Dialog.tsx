@@ -2,18 +2,8 @@
 import React from "react";
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import {
-  DismissableLayer,
-  FocusScope,
   getLayerZIndex,
-  Portal,
-  ScrollLock,
 } from "../../core/overlay";
-import {
-  MotionOverlayBackdrop,
-  MotionOverlayPanel,
-  MotionOverlayPresence,
-  MotionOverlayRoot,
-} from "../../core/motion";
 import {
   defineSlotRecipe,
   resolveSlot,
@@ -25,6 +15,10 @@ import {
   Button,
   type ButtonProps,
 } from "../forms/Button";
+
+import {
+  ModalOverlayRuntime,
+} from "./shared/ModalOverlayRuntime";
 
 type DialogSize =
   | "sm"
@@ -562,116 +556,109 @@ export const Dialog:
           recipeStyles.panel,
       });
 
-    /*
-     * MotionOverlay conserva la política de presencia y movimiento.
-     * La recipe no define estados animados ni transiciones de Framer Motion.
-     */
-    const content = (
+    return (
       <DialogContext.Provider
-        value={contextValue}
+        value={
+          contextValue
+        }
       >
-        <MotionOverlayPresence
-          open={open}
-        >
-          <MotionOverlayRoot
-            {...toMotionSlotProps(
+        <ModalOverlayRuntime
+          open={
+            open
+          }
+
+          overlayId={
+            overlayId
+          }
+
+          modal={
+            modal
+          }
+
+          onDismiss={
+            handleDismiss
+          }
+
+          closeOnEscape={
+            closeOnEscape
+          }
+
+          closeOnPointerDownOutside={
+            closeOnPointerDownOutside
+          }
+
+          autoFocus={
+            autoFocus
+          }
+
+          restoreFocus={
+            restoreFocus
+          }
+
+          initialFocusRef={
+            initialFocusRef
+          }
+
+          portalled={
+            portalled
+          }
+
+          container={
+            container
+          }
+
+          rootSlot={
+            toMotionSlotProps(
               rootSlot
-            )}
-          >
-            {modal ? (
-              <MotionOverlayBackdrop
-                {...toMotionSlotProps(
-                  backdropSlot
-                )}
-              />
-            ) : null}
+            )
+          }
 
-            {/*
-             * DismissableLayer, FocusScope y ScrollLock son
-             * responsabilidades de Overlay, no de Styling.
-             */}
-            <DismissableLayer
-              overlayId={overlayId}
-              layer={getLayerZIndex(
-                "modal"
-              )}
-              enabled={open}
-              restoreFocus={
-                restoreFocus
-              }
-              dismissOnEscape={
-                closeOnEscape
-              }
-              dismissOnPointerDownOutside={
-                closeOnPointerDownOutside
-              }
-              onDismiss={
-                handleDismiss
-              }
-              className={
-                dismissableLayerSlot.className
-              }
-              style={
-                dismissableLayerSlot.style
-              }
-            >
-              <FocusScope
-                contain={modal}
-                autoFocus={autoFocus}
-                initialFocusRef={
-                  initialFocusRef
-                }
-                className={
-                  focusScopeSlot.className
-                }
-                style={
-                  focusScopeSlot.style
-                }
-              >
-                <MotionOverlayPanel
-                  {...toMotionSlotProps(
-                    panelSlot
-                  )}
-                  as="div"
-                  kind="dialog"
-                  role="dialog"
-                  aria-modal={
-                    modal
-                      ? true
-                      : undefined
-                  }
-                  aria-labelledby={
-                    hasTitle
-                      ? titleId
-                      : undefined
-                  }
-                  aria-describedby={
-                    hasDescription
-                      ? descriptionId
-                      : undefined
-                  }
-                >
-                  {children}
-                </MotionOverlayPanel>
-              </FocusScope>
+          backdropSlot={
+            toMotionSlotProps(
+              backdropSlot
+            )
+          }
 
-              {modal ? (
-                <ScrollLock />
-              ) : null}
-            </DismissableLayer>
-          </MotionOverlayRoot>
-        </MotionOverlayPresence>
+          dismissableLayerSlot={{
+            className:
+              dismissableLayerSlot.className,
+
+            style:
+              dismissableLayerSlot.style,
+          }}
+
+          focusScopeSlot={{
+            className:
+              focusScopeSlot.className,
+
+            style:
+              focusScopeSlot.style,
+          }}
+
+          panelSlot={
+            toMotionSlotProps(
+              panelSlot
+            )
+          }
+
+          panelAs="div"
+          panelKind="dialog"
+
+          labelledBy={
+            hasTitle
+              ? titleId
+              : undefined
+          }
+
+          describedBy={
+            hasDescription
+              ? descriptionId
+              : undefined
+          }
+        >
+          {children}
+        </ModalOverlayRuntime>
       </DialogContext.Provider>
-    );
-
-    return portalled ? (
-      <Portal
-        container={container}
-      >
-        {content}
-      </Portal>
-    ) : (
-      content
     );
   };
 
