@@ -5,156 +5,134 @@
 - Versión cerrada: `0.3.0`.
 - Fase A: **CERRADA**.
 - Fase activa: **B — convergencia de formularios**.
-- Subfase actual: **B1 — text controls + field messages**.
-- B1: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- B2 choice controls: mapeada, no implementada.
+- B1 text controls + field messages: **CERRADA**.
+- B2 choice controls: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - B3 press bridge: mapeada, no implementada.
+- B4 controlled/uncontrolled simple: pendiente de corte final.
 - No se asignó todavía una versión siguiente.
 
-## Baseline al abrir Fase B
+## Validación que cerró B1
 
 ```text
-tests dirigidos Fase A      23/23 PASS
-Vitest completo            405/405 PASS
-Chromium                     65/65 PASS
-React 18 consumer                PASS
-React 19 consumer                PASS
+tests dirigidos B1       78/78 PASS
+Vitest completo         413/413 PASS
+Chromium                  65/65 PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
 Validation complete.
 ```
 
-## Scope de Fase B
+## B1 — resultado vigente
 
-1. text controls;
-2. choice controls;
-3. press bridge;
-4. field messages;
-5. controlled/uncontrolled simple sólo donde haya equivalencia real.
+Owners:
 
-Fuera de scope:
+- `useTextControlRuntime`;
+- `FieldMessageFrame`.
 
-- overlays;
-- DataTable;
-- navigation stack;
-- slot precedence global;
-- layout/types globales.
+Consumers:
 
-## B1 — cambios implementados
+- Input / Textarea;
+- HelpText / FormErrorMessage.
 
-### Text controls
+No cambió API pública.
+
+## B2 — scope
+
+Familia:
+
+- Checkbox;
+- Radio;
+- Switch.
+
+Invariantes:
+
+- no fusionar wrappers;
+- conservar indeterminate;
+- conservar RadioGroup;
+- conservar switch role/track/thumb;
+- no mover slot precedence global a esta fase;
+- obedecer la cancelación progresiva cerrada en Fase A.
+
+## B2 — cambios implementados
 
 Nuevo owner:
 
-`src/primitives/forms/use-text-control-runtime.ts`
+`src/primitives/forms/use-choice-control-runtime.ts`
 
 Posee:
 
-- field state;
-- focus-visible;
-- InputGroup descendant state;
-- ARIA;
-- native state común;
-- data-state común.
+- llamada a `useChoiceControl`;
+- composición de focus/blur;
+- composición click/change;
+- readOnly guard;
+- common root state props;
+- common native input + ARIA props.
 
-`Input` conserva:
+Orden de eventos:
 
-- input nativo;
-- type;
-- appearance;
-- leftPadding;
-- layout específico.
+```text
+public prop
+→ input slot
+→ internal choice behavior
+```
 
-`Textarea` conserva:
+`preventDefault()` detiene toda capa posterior.
 
-- textarea nativo;
-- resize;
-- layout específico.
+Wrappers conservan:
 
-No se cambió API pública.
+### Checkbox
 
-### Field messages
+- native checkbox;
+- indeterminate property;
+- `aria-checked="mixed"`;
+- indicator/mark.
 
-Nuevo owner:
+### Radio
 
-`src/primitives/forms/FieldMessageFrame.tsx`
+- RadioGroup;
+- managed selection;
+- name/value;
+- indicator dot.
 
-`HelpText` y `FormErrorMessage` son wrappers finos.
+### Switch
 
-El frame posee:
+- native checkbox;
+- `role="switch"`;
+- `aria-checked`;
+- track/thumb.
 
-- FieldContext;
-- node presence;
-- field ID;
-- invalid gating;
-- role;
-- tipografía compartida.
+### Label presence
 
-No se cambió API pública.
+`ChoiceControlRoot` usa `hasRenderableNode`.
 
-### Tests B1
+Resultado:
 
-Nuevos:
+- label `{0}` válida;
+- null/undefined/booleans ausentes según owner central.
 
-- `forms-phase-b1-ownership.test.ts`;
-- `forms-phase-b1-behavior.test.tsx`.
+## Tests B2 añadidos
+
+- `forms-phase-b2-ownership.test.ts`;
+- `forms-phase-b2-behavior.test.tsx`.
 
 Protegen:
 
-- ownership del runtime;
-- wrappers nativos separados;
-- equivalencia Field/ARIA/data-state;
-- numeric ReactNode;
-- boolean absence;
-- error visibility.
+- owner runtime único;
+- diferencias legítimas en wrappers;
+- numeric labels;
+- progressive cancellation public → slot → internal;
+- slot cancellation antes del commit interno.
 
-## B2 — mapa vigente
-
-Choice controls ya comparten `useChoiceControl`, pero todavía duplican:
-
-- handlers del input slot;
-- focus/blur;
-- click/change;
-- readOnly guard;
-- root state attrs;
-- native input props;
-- label slot.
-
-Diferencias legítimas:
-
-- Checkbox: indeterminate;
-- Radio: group/value/name;
-- Switch: role/track/thumb.
-
-Owner candidato:
-
-`useChoiceControlRuntime`
-
-sin fusionar markup.
-
-## B3 — mapa vigente
-
-Button/IconButton/Pressable/Card repiten el bridge:
-
-```text
-slot root handlers
-→ composeEventHandlers
-→ usePress
-```
-
-Owner candidato:
-
-`usePressSlotBridge`.
-
-No crear BaseButton público.
-
-## Criterio para cerrar B1
+## Criterio de cierre B2
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests B1 dirigidos
-regresión forms relevante
+tests B2 dirigidos
+regresión completa Block 6 / SettingsList
 pnpm validate
 ```
 
-Sólo después se implementa B2.
+Sólo después se abre B3.

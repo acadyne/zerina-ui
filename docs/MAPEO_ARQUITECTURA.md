@@ -999,7 +999,7 @@ para cada familia identificar exactamente:
 
 Estado:
 
-**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+**CERRADO**
 
 #### Input / Textarea
 
@@ -1066,7 +1066,7 @@ Decisión:
 
 Estado:
 
-**MAPEADO — NO IMPLEMENTADO TODAVÍA**
+**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
 
 Familia:
 
@@ -1112,6 +1112,37 @@ Owner candidato:
 `useChoiceControlRuntime` sobre `useChoiceControl`, con helpers de root/input props.
 
 No fusionar markup visual.
+
+#### Implementación B2
+
+Nuevo owner:
+
+`src/primitives/forms/use-choice-control-runtime.ts`
+
+Centraliza:
+
+- composición de focus/blur;
+- composición click/change;
+- guard readOnly;
+- root state attrs;
+- native input props;
+- ARIA compartida.
+
+Checkbox/Radio/Switch ya no poseen `composeEventHandlers` ni llaman directamente a `useChoiceControl`.
+
+La resolución visual de slots permanece deliberadamente en cada wrapper y se revisará en Fase E junto con la precedencia global de slots.
+
+También se corrigió `ChoiceControlRoot` para usar `hasRenderableNode(label)` en lugar de `Boolean(label)`.
+
+La composición de choice controls ahora obedece el contrato global:
+
+```text
+public prop
+→ input slot
+→ internal
+```
+
+con cancelación progresiva.
 
 ### B3 — press bridge
 

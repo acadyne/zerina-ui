@@ -217,3 +217,42 @@ Reglas:
 - el tracker debe estar activo **antes del primer focus**, para no perder el evento que causó ese foco.
 
 `:focus-visible` nativo sólo puede actuar como fallback excepcional cuando aparece un `ownerDocument` que no estaba siendo observado. No es la fuente primaria del contrato visual.
+
+## 13. Choice controls
+
+Semantic runtime:
+
+`src/primitives/forms/use-choice-control-runtime.ts`
+
+Consumers:
+
+- Checkbox;
+- Radio;
+- Switch.
+
+The runtime owns:
+
+- `useChoiceControl`;
+- focus composition;
+- click/change composition;
+- readOnly change guard;
+- common root state attributes;
+- common native input/ARIA props.
+
+Event order:
+
+```text
+public prop
+→ input slot
+→ internal choice behavior
+```
+
+The global progressive-cancellation contract applies: `preventDefault()` stops every later layer.
+
+Wrappers retain real differences:
+
+- Checkbox: `indeterminate` and mixed ARIA state;
+- Radio: RadioGroup management, value/name and radio indicator;
+- Switch: `role="switch"`, track and thumb.
+
+`ChoiceControlRoot` uses `hasRenderableNode` for labels. Numeric `0` is therefore a valid label; booleans/null/undefined are absent according to the central ReactNode contract.

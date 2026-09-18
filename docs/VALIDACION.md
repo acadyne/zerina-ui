@@ -96,3 +96,39 @@ pnpm validate
 ```
 
 B1 sólo se cierra con `Validation complete.`.
+
+## Fase B1 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos B1       78/78 PASS
+Vitest completo         413/413 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+Validation complete.
+```
+
+## Candidato Fase B2
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/forms-phase-b2-ownership.test.ts \
+  tests/forms-phase-b2-behavior.test.tsx \
+  tests/forms-block6-behavior.test.tsx \
+  tests/forms-block6-source.test.ts \
+  tests/forms-radio.test.tsx \
+  tests/settings-list-current-contract.test.tsx
+
+pnpm validate
+```
+
+B2 sólo se cierra con `Validation complete.`.

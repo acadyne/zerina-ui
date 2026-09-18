@@ -1,5 +1,9 @@
 import React from "react";
 
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
 import type {
   SlotElementProps,
 } from "../../helpers/css";
@@ -31,8 +35,8 @@ export function ChoiceControlRoot({
   children,
 }: ChoiceControlRootProps) {
   const hasLabel =
-    Boolean(
-      label
+    hasRenderableNode(
+      label,
     );
 
 

@@ -5,10 +5,6 @@ import React, {
 } from "react";
 
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
-
-import {
   setRef,
 } from "../../core/interaction/events";
 
@@ -33,8 +29,9 @@ import type {
 } from "./choice-control-types";
 
 import {
-  useChoiceControl,
-} from "./use-choice-control";
+  useChoiceControlRuntime,
+  type ChoiceInputSlotEventProps,
+} from "./use-choice-control-runtime";
 
 
 export type CheckboxSlot =
@@ -155,66 +152,8 @@ export const Checkbox =
         );
 
 
-      const inputSlotProps =
-        slotProps?.input;
-
-
-      const slotOnFocus =
-        inputSlotProps
-          ?.onFocus as
-          | React.FocusEventHandler<HTMLInputElement>
-          | undefined;
-
-
-      const slotOnBlur =
-        inputSlotProps
-          ?.onBlur as
-          | React.FocusEventHandler<HTMLInputElement>
-          | undefined;
-
-
-      const slotOnClick =
-        inputSlotProps
-          ?.onClick as
-          | React.MouseEventHandler<HTMLInputElement>
-          | undefined;
-
-
-      const slotOnChange =
-        inputSlotProps
-          ?.onChange as
-          | React.ChangeEventHandler<HTMLInputElement>
-          | undefined;
-
-
-      const externalOnFocus =
-        composeEventHandlers<
-          React.FocusEvent<HTMLInputElement>
-        >(
-          onFocus,
-          slotOnFocus,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        );
-
-
-      const externalOnBlur =
-        composeEventHandlers<
-          React.FocusEvent<HTMLInputElement>
-        >(
-          onBlur,
-          slotOnBlur,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        );
-
-
-      const choice =
-        useChoiceControl({
+      const runtime =
+        useChoiceControlRuntime({
           id,
 
           checked,
@@ -232,12 +171,21 @@ export const Checkbox =
           ariaLabelledBy,
           ariaDescribedBy,
 
-          onFocus:
-            externalOnFocus,
+          onFocus,
+          onBlur,
+          onClick,
+          onChange,
 
-          onBlur:
-            externalOnBlur,
+          inputSlotProps:
+            slotProps?.input as
+              | ChoiceInputSlotEventProps
+              | undefined,
         });
+
+
+      const {
+        choice,
+      } = runtime;
 
 
       useEffect(() => {
@@ -309,44 +257,10 @@ export const Checkbox =
             "data-label-placement":
               labelPlacement,
 
-            "data-checked":
-              choice.checked ||
-              undefined,
+            ...runtime.rootStateProps,
 
             "data-indeterminate":
               indeterminate ||
-              undefined,
-
-            "data-disabled":
-              choice
-                .fieldControl
-                .disabled ||
-              undefined,
-
-            "data-invalid":
-              choice
-                .fieldControl
-                .invalid ||
-              undefined,
-
-            "data-required":
-              choice
-                .fieldControl
-                .required ||
-              undefined,
-
-            "data-readonly":
-              choice
-                .fieldControl
-                .readOnly ||
-              undefined,
-
-            "data-focused":
-              choice.focused ||
-              undefined,
-
-            "data-focus-visible":
-              choice.focusVisible ||
               undefined,
           },
 
@@ -470,74 +384,6 @@ export const Checkbox =
         });
 
 
-      const externalOnClick =
-        composeEventHandlers<
-          React.MouseEvent<HTMLInputElement>
-        >(
-          onClick,
-          slotOnClick,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        );
-
-
-      const handleClick =
-        composeEventHandlers<
-          React.MouseEvent<HTMLInputElement>
-        >(
-          externalOnClick,
-          choice.handleClick
-        );
-
-
-      const externalOnChange =
-        composeEventHandlers<
-          React.ChangeEvent<HTMLInputElement>
-        >(
-          onChange,
-          slotOnChange,
-          {
-            checkDefaultPrevented:
-              false,
-          }
-        );
-
-
-      const handleChange = (
-        event:
-          React.ChangeEvent<HTMLInputElement>
-      ): void => {
-        if (
-          choice
-            .fieldControl
-            .readOnly
-        ) {
-          event.preventDefault();
-
-          return;
-        }
-
-
-        externalOnChange(
-          event
-        );
-
-
-        if (
-          event.defaultPrevented
-        ) {
-          return;
-        }
-
-
-        choice.handleChange(
-          event
-        );
-      };
-
-
       return (
         <ChoiceControlRoot
           controlId={
@@ -565,11 +411,7 @@ export const Checkbox =
               {...inputSlot}
               {...rest}
 
-              id={
-                choice
-                  .fieldControl
-                  .id
-              }
+              {...runtime.inputProps}
 
               ref={
                 setRefs
@@ -577,85 +419,10 @@ export const Checkbox =
 
               type="checkbox"
 
-              data-ui="choice-input"
-
-              checked={
-                choice.checked
-              }
-
-              disabled={
-                choice
-                  .fieldControl
-                  .disabled
-              }
-
-              required={
-                choice
-                  .fieldControl
-                  .required
-              }
-
               aria-checked={
                 indeterminate
                   ? "mixed"
                   : choice.checked
-              }
-
-              aria-invalid={
-                choice
-                  .fieldControl
-                  .ariaInvalid
-              }
-
-              aria-required={
-                choice
-                  .fieldControl
-                  .ariaRequired
-              }
-
-              aria-readonly={
-                choice
-                  .fieldControl
-                  .ariaReadOnly
-              }
-
-              aria-describedby={
-                choice
-                  .fieldControl
-                  .ariaDescribedBy
-              }
-
-              aria-labelledby={
-                choice
-                  .fieldControl
-                  .ariaLabelledBy
-              }
-
-              data-readonly={
-                choice
-                  .fieldControl
-                  .readOnly ||
-                undefined
-              }
-
-              onClick={
-                handleClick
-              }
-
-              onChange={
-                handleChange
-              }
-
-              onFocus={
-                choice
-                  .focusProps
-                  .onFocus
-              }
-
-              onBlur={
-                choice
-                  .focusProps
-                  .onBlur
               }
             />
 
