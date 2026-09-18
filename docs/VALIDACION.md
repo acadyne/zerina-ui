@@ -212,3 +212,63 @@ B4 sólo se cierra con `Validation complete.`.
 El primer intento falló antes de la puerta integral porque `SearchInput` conservaba una rama JSX obsoleta con `isControlled/internalValue`.
 
 El candidato corregido usa `currentValue` como única fuente renderizada y el source contract impide reintroducir esos símbolos locales.
+
+## Fase B4 / Fase B cerradas
+
+Resultado reportado:
+
+```text
+tests dirigidos B4       73/73 PASS
+Vitest completo         447/447 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase C1
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/overlay-phase-c1-trigger-ownership.test.ts \
+  tests/overlay-phase-c1-trigger-behavior.test.tsx \
+  tests/trigger-runtime-cancellation.test.ts \
+  tests/event-layer-cancellation.test.ts \
+  tests/interaction-overlay-source.test.ts
+
+pnpm validate
+```
+
+C1 sólo se cierra con `Validation complete.`.
+
+### C1 — revalidación por warning React
+
+La primera puerta C1 terminó en `Validation complete.`, pero emitió un warning de React porque `onPress: undefined` seguía materializado como key DOM en un trigger pasivo.
+
+El candidato corregido elimina la key para hosts DOM y añade una aserción explícita de ausencia del warning.
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/overlay-phase-c1-trigger-behavior.test.tsx \
+  tests/overlay-phase-c1-trigger-ownership.test.ts \
+  tests/trigger-runtime-cancellation.test.ts
+
+pnpm validate
+```

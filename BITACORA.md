@@ -4,18 +4,18 @@
 
 - Versión cerrada: `0.3.0`.
 - Fase A: **CERRADA**.
-- Fase activa: **B — convergencia de formularios**.
-- B1 text controls + field messages: **CERRADA**.
-- B2 choice controls: **CERRADA**.
-- B3 press bridge: **CERRADA**.
-- B4 controlled/uncontrolled simple: **IMPLEMENTADA — CANDIDATO CORREGIDO, PENDIENTE DE VALIDACIÓN**.
+- Fase B — convergencia de formularios: **CERRADA**.
+- Fase activa: **C — triggers y overlays**.
+- C1 trigger runtime único: **CORREGIDA — PENDIENTE DE REVALIDACIÓN LIMPIA**.
+- C2 floating overlays: **MAPEADA — IMPLEMENTACIÓN BLOQUEADA HASTA CIERRE LIMPIO DE C1**.
+- C3 Dialog → modal runtime: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró B3
+## Validación que cerró Fase B
 
 ```text
-tests dirigidos B3       44/44 PASS
-Vitest completo         431/431 PASS
+tests dirigidos B4       73/73 PASS
+Vitest completo         447/447 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -23,129 +23,214 @@ build ESM/CJS/DTS             PASS
 React 18 consumer             PASS
 React 19 consumer             PASS
 ESM/CJS/CSS                   PASS
+git whitespace                PASS
 Validation complete.
 ```
 
-## B4 — decisión
+## Fase B — owners resultantes
 
-Sí existe una abstracción común, pero sólo para la fuente de verdad.
+- `useTextControlRuntime`;
+- `FieldMessageFrame`;
+- `useChoiceControlRuntime`;
+- `usePressSlotBridge`;
+- `useControllableValue`.
 
-Nuevo owner:
-
-`src/core/react/useControllableValue.ts`
-
-Contrato:
-
-```text
-value !== undefined
-→ controlled
-
-value === undefined
-→ internal state
-```
-
-El helper:
-
-- inicializa internal state desde `defaultValue`;
-- ignora internal writes mientras está controlled;
-- no sincroniza el valor controlled hacia internal state;
-- no ejecuta callbacks;
-- no normaliza;
-- no conoce disabled/readOnly;
-- no conoce semántica de dominio.
-
-Esto preserva el timing existente de cada consumidor.
-
-## Consumidores migrados
-
-Simples:
-
-- Collapsible;
-- Accordion;
-- NavigationList;
-- SearchInput;
-- RadioGroup;
-- UIMotionProvider.
-
-Engines especializados que sólo delegan source-of-truth:
-
-- useNavigationSelection;
-- useChoiceControl.
-
-## Consumidores no migrados
-
-Deliberadamente permanecen especializados:
+Engines complejos deliberadamente diferidos a Fase D:
 
 - AdaptiveScaffold;
 - NavigationStack;
 - TabScaffold.
 
-Motivo:
+## Fase C — objetivo
 
-coordinan normalización y/o múltiples estados relacionados. Pertenecen a Fase D, no a un hook escalar.
+Reducir runtimes paralelos de interacción/overlay sin fusionar componentes con semánticas distintas.
 
-## Tests B4
+Scope:
 
-Nuevos:
+1. C1 — trigger runtime;
+2. C2 — floating overlays;
+3. C3 — Dialog hacia modal runtime.
 
-- `forms-phase-b4-ownership.test.ts`;
-- `forms-phase-b4-behavior.test.tsx`.
+Fuera de scope:
 
-Protegen:
+- DataTable;
+- navigation state;
+- layout;
+- slot precedence global;
+- rediseño visual.
 
-- owner único;
-- scope deliberado;
-- controlled write rejection;
-- persistencia del último estado uncontrolled;
-- Collapsible uncontrolled commit;
-- controlled rejected update.
+## C1 — decisión
 
-## Criterio de cierre B4 / Fase B
+Popover y Tooltip compartían infraestructura de trigger pero NO la misma semántica.
+
+### Modo `press`
+
+Consumidores:
+
+- MenuTrigger;
+- CollapsibleTrigger;
+- PopoverTrigger.
+
+Adquiere activación vía `usePress` y protocolo press-target.
+
+### Modo `passive`
+
+Consumidor:
+
+- TooltipTrigger.
+
+Comparte:
+
+- refs;
+- asChild;
+- merge class/style;
+- element props;
+- event layers;
+- ARIA ownership.
+
+Pero no convierte automáticamente un elemento `asChild` pasivo en botón.
+
+Ejemplo:
+
+```text
+TooltipTrigger asChild + <span>
+→ sigue siendo span
+→ sin role="button"
+→ sin tabIndex inventado
+```
+
+## C1 — cambios implementados
+
+`TriggerRuntime` ahora expone internamente:
+
+```text
+interactionMode="press" | "passive"
+```
+
+PopoverTrigger:
+
+```text
+TriggerRuntime press
+```
+
+TooltipTrigger:
+
+```text
+TriggerRuntime passive
+```
+
+El modo passive también reconoce Zerina press-targets:
+
+- Button;
+- IconButton;
+- Pressable.
+
+Conserva el `onPress` del hijo y sólo entrega un click real a la capa pasiva cuando el native event corresponde a click. No sintetiza un segundo press.
+
+Retirado:
+
+`src/primitives/overlay/triggerProps.ts`
+
+Ya no existen consumidores de:
+
+`mergeTriggerProps`.
+
+## C1 — tests añadidos
+
+- `overlay-phase-c1-trigger-ownership.test.ts`;
+- `overlay-phase-c1-trigger-behavior.test.tsx`.
+
+Cubren:
+
+- Popover/Tooltip con owner único;
+- eliminación del runtime paralelo;
+- Tooltip span sin button semantics;
+- child preventDefault cortando slot + internal;
+- Popover activado por Pressable press-target;
+- child cancelando activación Popover.
+
+## Verificación estática disponible
+
+- imports relativos de `src`: 0 rotos;
+- `mergeTriggerProps`: 0 consumidores;
+- `triggerProps.ts`: eliminado.
+
+## Criterio de cierre C1
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests B4 dirigidos
-regresión forms relevante
+tests C1 dirigidos
+trigger/event regression
 pnpm validate
 ```
 
-Si queda verde:
+Sólo después se abre C2.
 
-1. B4 se marca CERRADA;
-2. Fase B completa se marca CERRADA;
-3. se consolidan mapa/contratos/bitácora;
-4. se abre Fase C — triggers y overlays.
+## C1 — residuo detectado por validación
 
-## Corrección del candidato B4
-
-La primera validación detectó un residuo de la implementación anterior en `SearchInput`.
-
-El estado ya había migrado a:
+La validación funcional fue verde:
 
 ```text
-currentValue
-setInternalValue
+tests dirigidos C1       18/18 PASS
+Vitest completo         454/454 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18/19 consumers         PASS
+Validation complete.
 ```
 
-pero el JSX todavía renderizaba:
+Pero React emitió:
 
 ```text
-isControlled ? value : internalValue
+Unknown event handler property `onPress`
 ```
 
-Esos símbolos ya no existían.
+sobre un `<span>` pasivo.
 
-Corrección aplicada:
+Causa:
+
+`PassiveTriggerRoot` incluía la key `onPress` en `renderedProps` aun cuando su valor era `undefined`.
+
+Corrección:
+
+- `onPress` ya no existe en el objeto DOM por defecto;
+- sólo se materializa si `pressTarget === true`;
+- el test C1 ahora espía `console.error` y prohíbe explícitamente ese warning.
+
+C1 no se declara cerrada hasta una revalidación limpia.
+
+## C2 — mapa listo
+
+La frontera elegida es un `FloatingOverlayRuntime` estructural.
+
+Debe compartir:
 
 ```text
-value={currentValue}
+FloatingLayer
+presence/portal
+optional dismiss wrapper
+optional focus wrapper
+floating ref/style/side plumbing
 ```
 
-Además, el test de ownership B4 ahora exige que `SearchInput` no contenga referencias a:
+No debe poseer:
 
-- `isControlled`;
-- `internalValue`.
+- open state;
+- recipes;
+- roles/ARIA;
+- menu navigation;
+- tooltip timers/touch;
+- domain callbacks.
 
-No cambió el diseño de `useControllableValue`; fue una migración incompleta localizada en el wrapper.
+Orden propuesto:
+
+```text
+Popover
+→ NavigationMenuPanel
+→ Menu
+→ Tooltip
+```
+
+No se implementa C2 hasta cerrar C1 sin warnings.

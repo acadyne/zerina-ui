@@ -24,11 +24,8 @@ import {
 } from "../../helpers/css";
 import { setRef } from "../../core/interaction/events";
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
-import {
-  mergeTriggerProps,
-} from "./triggerProps";
+  TriggerRuntime,
+} from "../../core/interaction/trigger";
 
 type PopoverPlacement =
   | "top"
@@ -337,9 +334,11 @@ export const PopoverTrigger =
       const ctx =
         usePopoverContext();
 
+
       const triggerSlot =
         resolveSlot<PopoverSlot>({
-          slot: "trigger",
+          slot:
+            "trigger",
 
           styles:
             styles ??
@@ -353,39 +352,8 @@ export const PopoverTrigger =
           style,
         });
 
-      const setRefs =
-        React.useCallback(
-          (
-            node:
-              | HTMLElement
-              | null
-          ) => {
-            ctx.setTriggerNode(
-              node
-            );
 
-            setRef(
-              ref,
-              node
-            );
-
-            setRef(
-              (
-                children as React.ReactElement & {
-                  ref?: React.Ref<HTMLElement>;
-                }
-              ).ref,
-              node
-            );
-          },
-          [
-            children,
-            ctx,
-            ref,
-          ]
-        );
-
-      const handleClick =
+      const handlePress =
         React.useCallback(
           () => {
             ctx.onOpenChange?.(
@@ -398,45 +366,28 @@ export const PopoverTrigger =
           ]
         );
 
-      if (
-        asChild &&
-        React.isValidElement<
-          TriggerChildProps
-        >(children)
-      ) {
-        const {
-          className:
-            mergedClassName,
 
-          style:
-            mergedStyle,
+      return (
+        <TriggerRuntime
+          asChild={
+            asChild
+          }
 
-          onClick:
-            mergedOnClick,
+          interactionMode="press"
 
-          ...mergedRest
-        } = mergeTriggerProps(
-          children.props,
-          triggerSlot
-        );
+          forwardedRef={
+            ref
+          }
 
-        return React.cloneElement(
-          children,
-          {
-            /*
-             * El slot puede aportar atributos públicos, pero identidad y
-             * relaciones ARIA pertenecen al contrato interno del Popover.
-             */
-            ...mergedRest,
+          onNodeChange={
+            ctx.setTriggerNode
+          }
 
-            ref: setRefs,
-            id: ctx.triggerId,
+          elementProps={{
+            ...triggerSlot,
 
-            className:
-              mergedClassName,
-
-            style:
-              mergedStyle,
+            id:
+              ctx.triggerId,
 
             "aria-haspopup":
               "dialog",
@@ -448,72 +399,22 @@ export const PopoverTrigger =
               ctx.open
                 ? ctx.contentId
                 : undefined,
+          }}
 
-            onClick:
-              composeEventHandlers(
-                mergedOnClick,
-                handleClick
-              ),
-          } as TriggerChildProps &
-            React.HTMLAttributes<HTMLElement> & {
-              ref:
-                React.Ref<HTMLElement>;
-            }
-        );
-      }
+          eventLayers={[
+            triggerSlot,
+          ]}
 
-      const {
-        className:
-          triggerClassName,
-
-        style:
-          triggerStyle,
-
-        onClick:
-          triggerOnClick,
-
-        ...triggerRest
-      } = triggerSlot;
-
-      return (
-        <button
-          {...triggerRest}
-
-          ref={
-            setRefs as React.Ref<HTMLButtonElement>
-          }
-
-          id={ctx.triggerId}
-          type="button"
-
-          aria-haspopup="dialog"
-          aria-expanded={ctx.open}
-          aria-controls={
-            ctx.open
-              ? ctx.contentId
-              : undefined
-          }
-
-          className={
-            triggerClassName
-          }
-
-          style={
-            triggerStyle
-          }
-
-          onClick={
-            composeEventHandlers(
-              triggerOnClick,
-              handleClick
-            )
+          onPress={
+            handlePress
           }
         >
           {children}
-        </button>
+        </TriggerRuntime>
       );
     }
   );
+
 
 PopoverTrigger.displayName =
   "PopoverTrigger";

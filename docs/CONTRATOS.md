@@ -349,3 +349,63 @@ Not migrated:
 - TabScaffold.
 
 Those owners coordinate normalization and/or multiple pieces of state and belong to the later state-engine phase.
+
+## 16. Trigger runtime modes
+
+Owner:
+
+`src/core/interaction/trigger/TriggerRuntime.tsx`
+
+There is one structural trigger runtime with two explicit interaction modes.
+
+### `press`
+
+Used by activation triggers:
+
+- MenuTrigger;
+- CollapsibleTrigger;
+- PopoverTrigger.
+
+It owns:
+
+- `asChild`;
+- refs;
+- class/style merge;
+- child → slot layer composition;
+- press-target protocol;
+- disabled activation semantics;
+- `usePress`;
+- keyboard activation.
+
+### `passive`
+
+Used by TooltipTrigger.
+
+It owns the same structural composition but does not invent activation semantics for `asChild`.
+
+Therefore a passive trigger wrapping:
+
+```tsx
+<span />
+```
+
+does not automatically gain:
+
+```text
+role="button"
+tabIndex=0
+```
+
+Passive event order is:
+
+```text
+child
+→ event layer(s)
+→ passive internal handler
+```
+
+with progressive `preventDefault()` cancellation.
+
+When a passive trigger wraps a Zerina press-target (`Button`, `IconButton`, `Pressable`), the runtime preserves the child's `onPress` owner. A real click from that press cycle is exposed to the passive click layer through the same native React event; no second click/press is synthesized.
+
+`src/primitives/overlay/triggerProps.ts` is retired. Popover and Tooltip no longer own independent child/ref/class/style/event merge code.

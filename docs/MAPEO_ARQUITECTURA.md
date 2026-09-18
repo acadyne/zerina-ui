@@ -479,6 +479,22 @@ si deja de tener consumidores.
 
 ---
 
+
+### Estado C1
+
+**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+
+Resolución:
+
+- PopoverTrigger → `TriggerRuntime interactionMode="press"`;
+- TooltipTrigger → `TriggerRuntime interactionMode="passive"`;
+- passive mode conserva asChild sin inventar button semantics;
+- press-target children se integran sin un segundo press owner;
+- `triggerProps.ts` retirado;
+- `mergeTriggerProps` retirado.
+
+Tests C1 cubren ownership, span pasivo, cancelación progresiva y Popover sobre Pressable.
+
 ## P1.5 — runtime de overlays flotantes repetido
 
 Aparecen cuatro owners de `FloatingLayer`:
@@ -1221,7 +1237,7 @@ Tests nuevos protegen:
 
 Estado:
 
-**IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**
+**CERRADO**
 
 No se introducirá un `useControllableState` hasta probar que los consumidores simples comparten exactamente:
 
@@ -1269,3 +1285,157 @@ No migrados deliberadamente:
 - TabScaffold.
 
 Estos coordinan normalización y/o múltiples estados; centralizarlos en un hook escalar borraría semántica.
+
+---
+
+# Cierre de Fase B
+
+**CERRADA**
+
+Validación final reportada al cerrar B4:
+
+```text
+tests dirigidos B4       73/73 PASS
+Vitest completo         447/447 PASS
+Chromium                  65/65 PASS
+typechecks/build              PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+Validation complete.
+```
+
+Owners consolidados durante B:
+
+- `useTextControlRuntime`;
+- `FieldMessageFrame`;
+- `useChoiceControlRuntime`;
+- `usePressSlotBridge`;
+- `useControllableValue`.
+
+La Fase C parte de este baseline.
+
+## Corte dirigido C2 — floating overlays
+
+Estado:
+
+**MAPEADO — NO IMPLEMENTADO**
+
+### Owner base ya existente
+
+`FloatingLayer` debe seguir siendo owner únicamente de posicionamiento:
+
+- anchor/floating refs;
+- placement;
+- offset;
+- flip;
+- shift;
+- viewport padding;
+- fixed strategy;
+- matchAnchorWidth;
+- floating coordinates/style.
+
+No debe absorber dismiss, focus ni motion.
+
+### Mecánica repetida comprobada
+
+Familias:
+
+- MenuContent;
+- PopoverContent;
+- TooltipContent;
+- NavigationMenuPanel.
+
+La repetición útil aparece por encima de `FloatingLayer`:
+
+```text
+open + anchor presence
+→ FloatingLayer
+→ recipe by floatingStyle/side
+→ optional DismissableLayer
+→ optional FocusScope
+→ motion surface
+→ MotionPresenceGroup
+→ optional Portal
+```
+
+### Diferencias legítimas
+
+#### MenuContent
+
+- roving/menu keyboard ownership;
+- menu role/tree of items;
+- open-intent focus epoch;
+- dismiss + focus restore;
+- menu-specific aria/ids.
+
+#### PopoverContent
+
+- optional trapFocus;
+- optional autoFocus;
+- optional restoreFocus;
+- pointer/escape dismiss policies;
+- optional matchAnchorWidth.
+
+#### TooltipContent
+
+- no FocusScope;
+- no modal ownership;
+- outside pointer detection currently custom;
+- hover/focus/touch lifecycle stays in Tooltip;
+- role tooltip.
+
+#### NavigationMenuPanel
+
+- navigation-specific branches;
+- dismiss/focus policies tied to navigation;
+- panel semantics and layout remain local.
+
+### Frontera elegida para C2
+
+Crear un runtime **estructural**, no un “overlay universal”.
+
+Candidato:
+
+`FloatingOverlayRuntime`
+
+Debe poseer sólo:
+
+1. `FloatingLayer`;
+2. render gate `open && anchor`;
+3. optional Portal;
+4. MotionPresenceGroup;
+5. optional DismissableLayer wrapper;
+6. optional FocusScope wrapper;
+7. plumbing de floating ref/style/side.
+
+El consumidor seguirá resolviendo:
+
+- recipe;
+- slot props;
+- role/ARIA;
+- children;
+- keyboard semantics;
+- open state;
+- dismiss callback;
+- focus policy;
+- tooltip timers/touch.
+
+### Orden de migración recomendado
+
+1. PopoverContent;
+2. NavigationMenuPanel;
+3. MenuContent;
+4. TooltipContent.
+
+Popover es el mejor primer consumidor porque ya usa DismissableLayer + FocusScope sin el roving-focus específico de Menu.
+
+Tooltip se deja al final: primero hay que decidir si su outside-pointer implementation puede delegar en DismissableLayer sin cambiar hover/touch semantics.
+
+### No hacer
+
+- no mover `setOpen` al runtime;
+- no parametrizar recetas con callbacks opacos;
+- no fusionar Menu/Popover/Tooltip;
+- no hacer que `FloatingLayer` conozca dismiss/focus;
+- no migrar Tooltip custom outside handling hasta tener equivalencia probada.

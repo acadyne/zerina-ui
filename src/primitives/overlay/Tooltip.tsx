@@ -23,11 +23,8 @@ import {
 } from "../../helpers/css";
 import { setRef } from "../../core/interaction/events";
 import {
-  composeEventHandlers,
-} from "../../core/interaction/events/composeEventHandlers";
-import {
-  mergeTriggerProps,
-} from "./triggerProps";
+  TriggerRuntime,
+} from "../../core/interaction/trigger";
 import {
   clearOwnedWindowTimeout,
   getNodeEventRoot,
@@ -431,46 +428,6 @@ export const TooltipTrigger =
         };
       }, [clearTimers]);
 
-      const childRef =
-        (
-          children as React.ReactElement & {
-            ref?: React.Ref<HTMLElement>;
-          }
-        ).ref;
-
-      /*
-       * La identidad del elemento React puede cambiar en cada render aunque
-       * su ref no cambie. Depender de la ref real evita ciclos null → node
-       * que alterarían artificialmente el nodo committed del anchor.
-       */
-      const setRefs =
-        React.useCallback(
-          (
-            node:
-              | HTMLElement
-              | null
-          ) => {
-            setAnchorNode(
-              node
-            );
-
-            setRef(
-              ref,
-              node
-            );
-
-            setRef(
-              childRef,
-              node
-            );
-          },
-          [
-            childRef,
-            ref,
-            setAnchorNode,
-          ]
-        );
-
       const scheduleOpen =
         React.useCallback(() => {
           clearTimers();
@@ -632,209 +589,64 @@ export const TooltipTrigger =
           ]
         );
 
-      if (
-        asChild &&
-        React.isValidElement<
-          TriggerChildProps
-        >(children)
-      ) {
-        const {
-          className:
-            mergedClassName,
+      return (
+        <TriggerRuntime
+          asChild={
+            asChild
+          }
 
-          style:
-            mergedStyle,
+          interactionMode="passive"
 
-          onPointerEnter:
-            mergedOnPointerEnter,
+          forwardedRef={
+            ref
+          }
 
-          onPointerLeave:
-            mergedOnPointerLeave,
+          onNodeChange={
+            setAnchorNode
+          }
 
-          onPointerDown:
-            mergedOnPointerDown,
+          elementProps={{
+            ...triggerSlot,
 
-          onFocus:
-            mergedOnFocus,
-
-          onBlur:
-            mergedOnBlur,
-
-          onClick:
-            mergedOnClick,
-
-          ...mergedRest
-        } = mergeTriggerProps(
-          children.props,
-          triggerSlot
-        );
-
-        return React.cloneElement(
-          children,
-          {
-            /*
-             * Los atributos del slot son públicos; la identidad y la relación
-             * con el contenido siguen siendo invariantes del Tooltip.
-             */
-            ...mergedRest,
-
-            ref: setRefs,
-            id: triggerId,
-
-            className:
-              mergedClassName,
-
-            style:
-              mergedStyle,
+            id:
+              triggerId,
 
             "aria-describedby":
               open
                 ? contentId
                 : undefined,
+          }}
 
+          eventLayers={[
+            triggerSlot,
+          ]}
+
+          passiveHandlers={{
             onPointerEnter:
-              composeEventHandlers(
-                mergedOnPointerEnter,
-                handlePointerEnter
-              ),
+              handlePointerEnter,
 
             onPointerLeave:
-              composeEventHandlers(
-                mergedOnPointerLeave,
-                handlePointerLeave
-              ),
+              handlePointerLeave,
 
             onPointerDown:
-              composeEventHandlers(
-                mergedOnPointerDown,
-                handlePointerDown
-              ),
+              handlePointerDown,
 
             onFocus:
-              composeEventHandlers(
-                mergedOnFocus,
-                handleFocus
-              ),
+              handleFocus,
 
             onBlur:
-              composeEventHandlers(
-                mergedOnBlur,
-                handleBlur
-              ),
+              handleBlur,
 
             onClick:
-              composeEventHandlers(
-                mergedOnClick,
-                handleClick
-              ),
-          } as TriggerChildProps &
-            React.HTMLAttributes<HTMLElement> & {
-              ref:
-                React.Ref<HTMLElement>;
-            }
-        );
-      }
-
-      const {
-        className:
-          triggerClassName,
-
-        style:
-          triggerStyle,
-
-        onPointerEnter:
-          triggerOnPointerEnter,
-
-        onPointerLeave:
-          triggerOnPointerLeave,
-
-        onPointerDown:
-          triggerOnPointerDown,
-
-        onFocus:
-          triggerOnFocus,
-
-        onBlur:
-          triggerOnBlur,
-
-        onClick:
-          triggerOnClick,
-
-        ...triggerRest
-      } = triggerSlot;
-
-      return (
-        <button
-          {...triggerRest}
-
-          ref={
-            setRefs as React.Ref<HTMLButtonElement>
-          }
-
-          id={triggerId}
-          type="button"
-
-          aria-describedby={
-            open
-              ? contentId
-              : undefined
-          }
-
-          className={
-            triggerClassName
-          }
-
-          style={
-            triggerStyle
-          }
-
-          onPointerEnter={
-            composeEventHandlers(
-              triggerOnPointerEnter,
-              handlePointerEnter
-            )
-          }
-
-          onPointerLeave={
-            composeEventHandlers(
-              triggerOnPointerLeave,
-              handlePointerLeave
-            )
-          }
-
-          onPointerDown={
-            composeEventHandlers(
-              triggerOnPointerDown,
-              handlePointerDown
-            )
-          }
-
-          onFocus={
-            composeEventHandlers(
-              triggerOnFocus,
-              handleFocus
-            )
-          }
-
-          onBlur={
-            composeEventHandlers(
-              triggerOnBlur,
-              handleBlur
-            )
-          }
-
-          onClick={
-            composeEventHandlers(
-              triggerOnClick,
-              handleClick
-            )
-          }
+              handleClick,
+          }}
         >
           {children}
-        </button>
+        </TriggerRuntime>
       );
     }
   );
+
 
 TooltipTrigger.displayName =
   "TooltipTrigger";

@@ -503,12 +503,26 @@ function blockDisabledActivation(
 }
 
 
+export type TriggerInteractionMode =
+  | "press"
+  | "passive";
+
+
 export interface TriggerRuntimeProps {
   asChild?:
     boolean;
 
   children:
     React.ReactNode;
+
+  /**
+   * `press` adquiere semántica de activación y usa usePress.
+   *
+   * `passive` sólo compone DOM/ref/slot handlers. No convierte un asChild
+   * no interactivo en button semántico. Tooltip usa este modo.
+   */
+  interactionMode?:
+    TriggerInteractionMode;
 
   disabled?:
     boolean;
@@ -528,7 +542,14 @@ export interface TriggerRuntimeProps {
   eventLayers?:
     readonly TriggerEventLayer[];
 
-  onPress:
+  /**
+   * Sólo aplica a interactionMode="passive".
+   * Se ejecuta después de child + eventLayers.
+   */
+  passiveHandlers?:
+    React.HTMLAttributes<HTMLElement>;
+
+  onPress?:
     (
       event:
         UIPressEvent<HTMLElement>
@@ -1124,7 +1145,7 @@ function PressTargetTriggerRoot({
           return;
         }
 
-        onPress(
+        onPress?.(
           event
         );
       },
@@ -1426,6 +1447,411 @@ function PressTargetTriggerRoot({
 }
 
 
+
+interface PassiveTriggerRootProps
+  extends Omit<
+    TriggerRuntimeProps,
+    | "asChild"
+    | "interactionMode"
+    | "onPress"
+    | "onKeyDown"
+  > {
+  host?:
+    "button";
+
+  child?:
+    React.ReactElement<TriggerElementProps>;
+}
+
+
+/**
+ * Trigger estructural sin semántica de activación.
+ *
+ * Conserva:
+ *
+ * child -> slot layers -> passive handlers
+ *
+ * y centraliza ref/class/style/ARIA sin imponer role/button semantics al
+ * elemento recibido mediante asChild.
+ */
+function PassiveTriggerRoot({
+  host,
+  child,
+  children,
+
+  forwardedRef,
+  onNodeChange,
+
+  elementProps,
+  eventLayers =
+    [],
+  passiveHandlers =
+    {},
+}: PassiveTriggerRootProps) {
+  const childProps:
+    TriggerElementProps =
+    child?.props ??
+    {};
+
+  const childRef =
+    child
+      ? getElementRef(
+          child
+        )
+      : undefined;
+
+  const setRefs =
+    useTriggerRefs({
+      childRef,
+      forwardedRef,
+      onNodeChange,
+    });
+
+  const className =
+    mergeTriggerClassName(
+      childProps.className,
+      elementProps.className
+    );
+
+  const style =
+    mergeTriggerStyle(
+      childProps.style,
+      elementProps.style
+    );
+
+
+  const passiveClick =
+    composeTriggerEvent<
+      React.MouseEvent<HTMLElement>
+    >({
+      childHandler:
+        childProps.onClick,
+
+      layers:
+        eventLayers,
+
+      getLayerHandler:
+        (
+          layer
+        ) =>
+          layer.onClick,
+
+      internalHandler:
+        passiveHandlers.onClick,
+    });
+
+
+  const pressTarget =
+    child
+      ? isTriggerPressTarget(
+          child.type
+        )
+      : false;
+
+
+  const childOnPress =
+    childProps.onPress;
+
+
+  const handlePressTargetPress =
+    React.useCallback(
+      (
+        event:
+          UIPressEvent<HTMLElement>
+      ) => {
+        childOnPress?.(
+          event
+        );
+
+        if (
+          event.defaultPrevented
+        ) {
+          return;
+        }
+
+        if (
+          event.nativeEvent
+            .type !==
+          "click"
+        ) {
+          return;
+        }
+
+        passiveClick?.(
+          event.nativeEvent as
+            React.MouseEvent<HTMLElement>
+        );
+      },
+      [
+        childOnPress,
+        passiveClick,
+      ]
+    );
+
+
+  const renderedProps:
+    TriggerElementProps &
+    React.RefAttributes<HTMLElement> = {
+      ...omitManagedTriggerProps(
+        childProps
+      ),
+
+      ...omitManagedTriggerProps(
+        elementProps
+      ),
+
+      ref:
+        setRefs,
+
+      className,
+      style,
+
+      onPointerEnter:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onPointerEnter,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onPointerEnter,
+
+          internalHandler:
+            passiveHandlers.onPointerEnter,
+        }),
+
+      onPointerLeave:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onPointerLeave,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onPointerLeave,
+
+          internalHandler:
+            passiveHandlers.onPointerLeave,
+        }),
+
+      onPointerDown:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onPointerDown,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onPointerDown,
+
+          internalHandler:
+            passiveHandlers.onPointerDown,
+        }),
+
+      onPointerUp:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onPointerUp,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onPointerUp,
+
+          internalHandler:
+            passiveHandlers.onPointerUp,
+        }),
+
+      onPointerCancel:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onPointerCancel,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onPointerCancel,
+
+          internalHandler:
+            passiveHandlers.onPointerCancel,
+        }),
+
+      onLostPointerCapture:
+        composeTriggerEvent<
+          React.PointerEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onLostPointerCapture,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onLostPointerCapture,
+
+          internalHandler:
+            passiveHandlers.onLostPointerCapture,
+        }),
+
+      onFocus:
+        composeTriggerEvent<
+          React.FocusEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onFocus,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onFocus,
+
+          internalHandler:
+            passiveHandlers.onFocus,
+        }),
+
+      onBlur:
+        composeTriggerEvent<
+          React.FocusEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onBlur,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onBlur,
+
+          internalHandler:
+            passiveHandlers.onBlur,
+        }),
+
+      onKeyDown:
+        composeTriggerEvent<
+          React.KeyboardEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onKeyDown,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onKeyDown,
+
+          internalHandler:
+            passiveHandlers.onKeyDown,
+        }),
+
+      onKeyUp:
+        composeTriggerEvent<
+          React.KeyboardEvent<HTMLElement>
+        >({
+          childHandler:
+            childProps.onKeyUp,
+
+          layers:
+            eventLayers,
+
+          getLayerHandler:
+            (
+              layer
+            ) =>
+              layer.onKeyUp,
+
+          internalHandler:
+            passiveHandlers.onKeyUp,
+        }),
+
+      onClick:
+        pressTarget
+          ? undefined
+          : passiveClick,
+    };
+
+
+  /*
+   * onPress no es un evento DOM. Incluso `onPress: undefined` provoca warning
+   * de React cuando se propaga a un host como <span>. Sólo materializamos la
+   * prop cuando el child implementa explícitamente el protocolo press-target.
+   */
+  if (
+    pressTarget
+  ) {
+    renderedProps.onPress =
+      handlePressTargetPress;
+  }
+
+
+  if (
+    host ===
+    "button"
+  ) {
+    renderedProps.type =
+      "button";
+  }
+
+
+  if (child) {
+    return React.cloneElement(
+      child,
+      renderedProps
+    );
+  }
+
+
+  return React.createElement(
+    host ??
+    "button",
+    renderedProps,
+    children
+  );
+}
+
+
 function requireTriggerChild(
   children:
     React.ReactNode
@@ -1461,6 +1887,9 @@ export function TriggerRuntime({
 
   children,
 
+  interactionMode =
+    "press",
+
   disabled =
     false,
 
@@ -1469,10 +1898,79 @@ export function TriggerRuntime({
 
   elementProps,
   eventLayers,
+  passiveHandlers,
 
   onPress,
   onKeyDown,
 }: TriggerRuntimeProps) {
+  if (
+    interactionMode ===
+    "passive"
+  ) {
+    if (!asChild) {
+      return (
+        <PassiveTriggerRoot
+          host="button"
+
+          forwardedRef={
+            forwardedRef
+          }
+
+          onNodeChange={
+            onNodeChange
+          }
+
+          elementProps={
+            elementProps
+          }
+
+          eventLayers={
+            eventLayers
+          }
+
+          passiveHandlers={
+            passiveHandlers
+          }
+        >
+          {children}
+        </PassiveTriggerRoot>
+      );
+    }
+
+    return (
+      <PassiveTriggerRoot
+        child={
+          requireTriggerChild(
+            children
+          )
+        }
+
+        forwardedRef={
+          forwardedRef
+        }
+
+        onNodeChange={
+          onNodeChange
+        }
+
+        elementProps={
+          elementProps
+        }
+
+        eventLayers={
+          eventLayers
+        }
+
+        passiveHandlers={
+          passiveHandlers
+        }
+      >
+        {children}
+      </PassiveTriggerRoot>
+    );
+  }
+
+
   if (!asChild) {
     return (
       <IntrinsicTriggerRoot
