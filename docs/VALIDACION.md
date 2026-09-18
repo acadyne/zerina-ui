@@ -1,91 +1,90 @@
 # Validación
 
-## Puerta canónica
-
-La validación completa del repositorio es:
+## Puerta única
 
 ```bash
 pnpm validate
 ```
 
-`pnpm validate` es autosuficiente: comprueba la versión fijada de pnpm y ejecuta `pnpm install --frozen-lockfile` internamente.
+Es autosuficiente. No necesita un `pnpm install` externo.
 
-No ejecutar un `pnpm install` adicional antes de esta puerta y no mantener listas manuales alternativas como proceso de release.
+## Cobertura de la puerta
 
-Owner: `scripts/validate.mjs`.
-
-## Qué valida
-
-- workspace/lockfile;
-- Chromium de Playwright;
-- typecheck del harness;
+- versión exacta de pnpm;
+- lockfile/workspace;
+- harness TypeScript;
 - Vitest completo;
 - build del harness;
-- Playwright Chromium completo;
-- typecheck raíz;
+- Chromium completo;
+- paquete TypeScript;
 - build ESM/CJS/CSS/DTS;
-- pack;
-- instalación desde tarball en consumidor limpio;
+- pack real;
+- consumidores limpios React 18 y React 19;
 - TypeScript del consumidor;
-- resolución runtime ESM/CJS;
-- entry points CSS;
-- contenido del paquete;
-- whitespace Git cuando existe `.git`.
+- ESM/CJS/CSS;
+- contenido y exports del tarball;
+- whitespace Git.
 
-## Verificación de distribución aislada
+## Estado cerrado de `0.2.8`
+
+Validación reportada:
+
+- pnpm 10.34.5: PASS;
+- workspace install: PASS;
+- internal-test typecheck: PASS;
+- Vitest: 389/389 PASS;
+- internal-test build: PASS;
+- Chromium: 65/65 PASS;
+- package typecheck: PASS;
+- build ESM/CJS/DTS: PASS;
+- pack: PASS;
+- consumidor limpio React 18: PASS;
+- ESM/CJS/CSS: PASS;
+- git whitespace: PASS.
+
+## Candidato `0.3.0`
+
+Añade:
+
+- build automático en `prepack`;
+- `pnpm validate` en `prepublishOnly`;
+- segundo consumidor limpio con React 19;
+- tests de contrato del proceso de release.
+
+Para cerrar:
 
 ```bash
-pnpm package:verify
+pnpm validate
 ```
 
-Este comando construye el paquete antes de empacarlo.
+## Primer resultado de `0.3.0`
 
-## Estado
+El primer run confirmó toda la puerta hasta React 19. React 18 quedó completamente verde.
 
-`0.2.1`–`0.2.7` están cerrados para sus scopes.
+React 19 falló dentro de `lucide-react@0.468.0` por el tipo removido `ReactSVG`.
 
-`0.2.7` cerró con:
+Se actualizó Lucide a `^0.475.0` en root/harness/lockfile. Debe repetirse la puerta completa:
 
-- harness typecheck PASS;
-- 44/44 tests dirigidos PASS;
-- root typecheck PASS;
-- build + DTS PASS.
+```bash
+pnpm validate
+```
 
-`0.2.8` no se cierra hasta ejecutar `pnpm validate` completo.
+No se acepta `skipLibCheck` como solución al peer range.
 
-## Primer resultado integral de `0.2.8`
+## Segundo resultado de `0.3.0`
 
-La primera ejecución de `pnpm validate` se detuvo en Vitest:
+Después de corregir los tipos React 19 con Lucide 0.475.0, el consumidor React 18 reveló una regresión CJS de esa versión:
 
 ```text
-Test Files   2 failed | 38 passed (40)
-Tests        2 failed | 386 passed (388)
+ReferenceError: require is not defined in ES module scope
 ```
 
-Ambos fallos eran contratos source históricos:
+Se reemplazó el baseline por `lucide-react@^0.507.0`, que declara React 19 estable y publica el entry CJS sin marcar el paquete como ESM.
 
-- Block 5 esperaba composición manual en vez de `composeEventHandlers`;
-- MenuItem esperaba una fuente `isFocused` ya eliminada.
+Debe repetirse la puerta completa:
 
-Los tests fueron actualizados al contrato vigente. No cambió producto.
-
-Debe repetirse `pnpm validate` completo porque las fases posteriores al Vitest no llegaron a ejecutarse.
-
-## Segundo resultado integral de `0.2.8`
-
-La segunda ejecución alcanzó Chromium:
-
-```text
-Vitest      388/388 PASS
-Chromium     63/65 PASS
+```bash
+pnpm validate
 ```
 
-Los dos fallos eran el mismo bug central de modalidad: `useFocusVisible`
-empezaba a observar el Document durante `focus`, después del `pointerdown` que
-había causado ese foco.
-
-Se corrigió el owner central para retener el tracker desde layout.
-
-Debe repetirse `pnpm validate` completo. Aún falta observar en verde las etapas
-posteriores a Chromium, especialmente `package:verify` y el consumidor desde
-tarball.
+No se debilita el smoke CJS: forma parte del contrato público de `zerina-ui`.

@@ -1,6 +1,6 @@
 {
   "name": "zerina-ui",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Primitives, components, patterns and styles for React apps.",
   "license": "MIT",
   "type": "module",
@@ -52,7 +52,9 @@
     "test:internal": "pnpm --filter zerina-ui-internal-test dev",
     "test:internal:build": "pnpm --filter zerina-ui-internal-test build",
     "validate": "node scripts/validate.mjs",
-    "package:verify": "pnpm build && node scripts/verify-package.mjs"
+    "package:verify": "node scripts/verify-package.mjs",
+    "prepack": "pnpm build",
+    "prepublishOnly": "pnpm validate"
   },
   "peerDependencies": {
     "react": ">=18 <20",
@@ -60,7 +62,7 @@
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
-    "lucide-react": "^0.468.0"
+    "lucide-react": "^0.507.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -59,11 +59,42 @@ const tarball =
     "zerina-ui.tgz",
   );
 
-const consumer =
-  join(
-    tempRoot,
-    "consumer",
-  );
+
+const REACT_CONSUMERS = [
+  {
+    label:
+      "react-18",
+
+    react:
+      "18.3.1",
+
+    reactDom:
+      "18.3.1",
+
+    reactTypes:
+      "18.3.31",
+
+    reactDomTypes:
+      "18.3.7",
+  },
+
+  {
+    label:
+      "react-19",
+
+    react:
+      "19.0.0",
+
+    reactDom:
+      "19.0.0",
+
+    reactTypes:
+      "19.0.0",
+
+    reactDomTypes:
+      "19.0.0",
+  },
+];
 
 
 function run(
@@ -117,25 +148,15 @@ function assert(
 }
 
 
-try {
-  run(
-    pnpm,
-    [
-      "pack",
-      "--out",
-      tarball,
-    ],
-    root,
-    "pack zerina-ui",
-  );
-
-  assert(
-    existsSync(
-      tarball,
-    ),
-    "pnpm pack did not create the expected tarball.",
-  );
-
+function writeConsumer({
+  consumer,
+  packageName,
+  typescriptVersion,
+  react,
+  reactDom,
+  reactTypes,
+  reactDomTypes,
+}) {
   mkdirSync(
     consumer,
     {
@@ -152,28 +173,6 @@ try {
     ),
   );
 
-  const rootPackage =
-    JSON.parse(
-      readFileSync(
-        resolve(
-          root,
-          "package.json",
-        ),
-        "utf8",
-      ),
-    );
-
-  const harnessPackage =
-    JSON.parse(
-      readFileSync(
-        resolve(
-          root,
-          "internal-test/package.json",
-        ),
-        "utf8",
-      ),
-    );
-
   writeFileSync(
     join(
       consumer,
@@ -182,7 +181,7 @@ try {
     JSON.stringify(
       {
         name:
-          "zerina-ui-clean-consumer",
+          packageName,
 
         private:
           true,
@@ -194,35 +193,20 @@ try {
           "zerina-ui":
             "file:./zerina-ui.tgz",
 
-          react:
-            harnessPackage
-              .dependencies
-              .react,
-
+          react,
           "react-dom":
-            harnessPackage
-              .dependencies[
-                "react-dom"
-              ],
+            reactDom,
         },
 
         devDependencies: {
           "@types/react":
-            harnessPackage
-              .devDependencies[
-                "@types/react"
-              ],
+            reactTypes,
 
           "@types/react-dom":
-            harnessPackage
-              .devDependencies[
-                "@types/react-dom"
-              ],
+            reactDomTypes,
 
           typescript:
-            harnessPackage
-              .devDependencies
-              .typescript,
+            typescriptVersion,
         },
       },
       null,
@@ -407,17 +391,13 @@ console.log(
 `,
     "utf8",
   );
+}
 
-  run(
-    pnpm,
-    [
-      "install",
-      "--ignore-scripts",
-    ],
-    consumer,
-    "install clean consumer",
-  );
 
+function verifyInstalledPackage({
+  consumer,
+  rootPackage,
+}) {
   const installed =
     join(
       consumer,
@@ -502,29 +482,114 @@ console.log(
       ]),
     "Packed exports differ from the intended public entry points.",
   );
+}
+
+
+try {
+  const rootPackage =
+    JSON.parse(
+      readFileSync(
+        resolve(
+          root,
+          "package.json",
+        ),
+        "utf8",
+      ),
+    );
+
+  const harnessPackage =
+    JSON.parse(
+      readFileSync(
+        resolve(
+          root,
+          "internal-test/package.json",
+        ),
+        "utf8",
+      ),
+    );
 
   run(
     pnpm,
     [
-      "exec",
-      "tsc",
-      "--noEmit",
+      "pack",
+      "--out",
+      tarball,
     ],
-    consumer,
-    "typecheck clean consumer",
+    root,
+    "pack zerina-ui",
   );
 
-  run(
-    node,
-    [
-      "smoke.mjs",
-    ],
-    consumer,
-    "runtime entry-point smoke",
+  assert(
+    existsSync(
+      tarball,
+    ),
+    "pnpm pack did not create the expected tarball.",
   );
+
+
+  for (
+    const matrix
+    of REACT_CONSUMERS
+  ) {
+    const consumer =
+      join(
+        tempRoot,
+        matrix.label,
+      );
+
+    writeConsumer({
+      consumer,
+
+      packageName:
+        `zerina-ui-clean-consumer-${matrix.label}`,
+
+      typescriptVersion:
+        harnessPackage
+          .devDependencies
+          .typescript,
+
+      ...matrix,
+    });
+
+    run(
+      pnpm,
+      [
+        "install",
+        "--ignore-scripts",
+      ],
+      consumer,
+      `install clean consumer (${matrix.label})`,
+    );
+
+    verifyInstalledPackage({
+      consumer,
+      rootPackage,
+    });
+
+    run(
+      pnpm,
+      [
+        "exec",
+        "tsc",
+        "--noEmit",
+      ],
+      consumer,
+      `typecheck clean consumer (${matrix.label})`,
+    );
+
+    run(
+      node,
+      [
+        "smoke.mjs",
+      ],
+      consumer,
+      `runtime entry-point smoke (${matrix.label})`,
+    );
+  }
+
 
   process.stdout.write(
-    "\nPackage verification complete.\n",
+    "\nPackage verification complete for React 18 and React 19.\n",
   );
 } finally {
   rmSync(

@@ -1,16 +1,22 @@
 # Distribución y proceso
 
+## Estado
+
+La serie `0.2.x` terminó en `0.2.8`.
+
+El candidato actual es `0.3.0`, hito estable pre-1.0.
+
 ## Package manager
 
-El repositorio declara:
+El repositorio fija:
 
 ```json
-{
-  "packageManager": "pnpm@10.34.5"
-}
+"packageManager": "pnpm@10.34.5"
 ```
 
-`pnpm-workspace.yaml` incluye explícitamente `internal-test` y aprueba únicamente el build script de `esbuild`:
+`pnpm validate` comprueba que la versión activa coincida exactamente.
+
+## Workspace
 
 ```yaml
 packages:
@@ -20,57 +26,71 @@ allowBuilds:
   esbuild: true
 ```
 
-No se usa `pnpm approve-builds` como paso manual del proceso normal: la decisión está codificada en el workspace.
+La decisión de permitir el build script de esbuild está codificada; no depende de aprobación manual.
 
 ## Puerta canónica
-
-La única puerta completa de validación es:
 
 ```bash
 pnpm validate
 ```
 
-Owner: `scripts/validate.mjs`.
+Ejecuta:
 
-El script ejecuta, en orden:
+1. versión de pnpm;
+2. install congelado;
+3. Chromium;
+4. typecheck del harness;
+5. Vitest completo;
+6. build del harness;
+7. Chromium completo;
+8. typecheck del paquete;
+9. `package:verify`;
+10. whitespace Git cuando existe repositorio.
 
-1. install congelado;
-2. instalación/verificación de Chromium;
-3. typecheck del harness;
-4. Vitest completo;
-5. build del harness;
-6. Playwright Chromium completo;
-7. typecheck del paquete;
-8. `pnpm package:verify`;
-9. `git diff --check` cuando existe `.git`.
+## Pack
 
-No mantener un segundo pipeline paralelo en shell.
+`prepack` ejecuta:
+
+```bash
+pnpm build
+```
+
+Por tanto `pnpm pack` y el pack que precede a una publicación nunca deben reutilizar un `dist` obsoleto.
+
+## Publish
+
+`prepublishOnly` ejecuta:
+
+```bash
+pnpm validate
+```
+
+Una publicación normal queda detrás de la misma puerta que se usa para estabilizar el repositorio.
 
 ## Verificación del paquete
-
-Comando:
 
 ```bash
 pnpm package:verify
 ```
 
-Owners:
+`package:verify`:
 
-- script de package: build;
-- `scripts/verify-package.mjs`: pack + consumidor limpio.
+- ejecuta `pnpm pack`;
+- `prepack` genera el build;
+- instala el mismo tarball en consumidores temporales fuera del workspace;
+- prueba React 18.3.1;
+- prueba React 19.0.0;
+- compila TypeScript con los tipos correspondientes;
+- carga ESM y CJS;
+- resuelve ambos CSS entry points;
+- valida contenido y `exports`.
 
-El verificador:
+La matriz refleja el peer range publicado:
 
-1. crea un tarball con `pnpm pack`;
-2. crea un proyecto temporal fuera del workspace;
-3. instala el tarball como dependencia;
-4. comprueba que existen JS ESM/CJS, DTS y CSS;
-5. comprueba que source/docs internas/scripts no se distribuyen;
-6. confirma los tres entry points públicos;
-7. compila un consumidor TypeScript/React;
-8. prueba resolución runtime ESM y CJS;
-9. prueba resolución de `styles.css` y `reset.css`;
-10. elimina el proyecto temporal.
+```text
+react      >=18 <20
+react-dom  >=18 <20
+```
 
 ## Contenido distribuible
 
@@ -80,50 +100,37 @@ El verificador:
 - `README.md`;
 - `LICENSE`.
 
-`package.json#exports` limita la superficie instalable a:
+Entry points:
 
 - `.`;
 - `./styles.css`;
 - `./reset.css`.
 
-## Build
+No se distribuyen source, harness, docs internas, scripts ni bitácora.
 
-Owner: `tsup.config.ts`.
+## Warning del harness
 
-Entradas:
+Vite puede advertir que el bundle monolítico del harness supera 500 kB.
 
-- `src/index.ts`;
-- `src/styles.css`;
-- `src/reset.css`.
+No es un blocker del paquete:
 
-Formatos JS:
+- el harness existe para integración y cobertura;
+- no se distribuye;
+- el tamaño del paquete se verifica en el tarball real.
 
-- ESM;
-- CJS.
+No introducir code splitting artificial únicamente para ocultar ese warning.
 
-Tipos:
+## Compatibilidad transitiva del peer range React
 
-- `dist/index.d.ts`;
-- `dist/index.d.cts`.
+El peer range de Zerina UI sólo se considera válido si las dependencias runtime directas también lo soportan.
 
-Peers externos al bundle:
+Baseline actual:
 
-- React;
-- React DOM.
-
-Dependencias runtime externas:
-
-- framer-motion;
-- lucide-react.
-
-## Release pre-1.0
-
-Antes de considerar una versión lista:
-
-```bash
-pnpm validate
+```text
+framer-motion  ^12.38.0  → React 18/19
+lucide-react   ^0.507.0  → React 18/19 + ESM/CJS compatible
 ```
 
-debe terminar en verde desde la raíz del repositorio.
+La compatibilidad se considera válida sólo si el tarball funciona en los consumidores limpios. `peerDependencies`, typecheck aislado o `skipLibCheck` no sustituyen esa prueba.
 
-No publicar basándose únicamente en `pnpm build`.
+La serie Lucide `0.470–0.475` tuvo una regresión de empaquetado ESM/CJS; no debe usarse como baseline de distribución de Zerina UI.

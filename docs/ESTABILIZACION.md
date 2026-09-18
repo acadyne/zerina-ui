@@ -1,42 +1,33 @@
 # Estabilización vigente
 
-## Cerrado
+## Fases cerradas
 
 - `0.2.1` — SettingsList.
-- `0.2.2` — acciones cancelables de slots.
+- `0.2.2` — acciones cancelables.
 - `0.2.3` — tokens.
-- `0.2.4` — contratos ReactNode/ARIA.
+- `0.2.4` — contratos internos.
 - `0.2.5` — deduplicación estructural.
 - `0.2.6` — interacción + overlay.
 - `0.2.7` — superficie pública + limpieza.
+- `0.2.8` — proceso + distribución + documentación.
 
-Versión distribuible actual: `0.2.7`.
+Versión cerrada actual: `0.2.8`.
 
-## Actual
+## Hito actual
 
-### `0.2.8` — proceso + distribución + documentación — CANDIDATO
+### `0.3.0` — release hardening
 
-Implementado:
+No abre nuevos refactors de componentes.
 
-- pnpm fijado en `10.34.5`;
-- `pnpm validate` como puerta única;
-- `validate.sh` eliminado;
-- clean cross-platform;
-- `pnpm package:verify`;
-- pack real;
-- instalación del tarball en consumidor temporal fuera del workspace;
-- verificación TypeScript, ESM, CJS y CSS;
-- comprobación de contenido distribuido;
-- README de consumidor reescrito;
-- documentación de distribución centralizada.
+Endurece únicamente garantías de release:
 
-Pendiente:
+- `prepack` construye siempre;
+- `prepublishOnly` exige `pnpm validate`;
+- `package:verify` prueba el peer range real en React 18 y React 19;
+- contrato automático impide relajar accidentalmente estas garantías.
 
-- ejecutar `pnpm validate` completo;
-- corregir cualquier divergencia que revele el consumidor limpio o la suite integral.
+## Criterio de cierre
 
-## Siguiente hito
+`pnpm validate` completo debe quedar verde con la matriz React 18/19.
 
-### `0.3.0`
-
-Si `0.2.8` queda verde, se ejecutará una última validación integrada y revisión de cierre del estado/documentación. `0.3.0` será el hito estable pre-1.0.
+Si pasa, `0.3.0` puede declararse como hito estable pre-1.0.

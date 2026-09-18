@@ -2,273 +2,256 @@
 
 ## Objetivo actual
 
-Cerrar `0.2.8` y preparar el hito `0.3.0` estable pre-1.0.
+Cerrar el hito `0.3.0` estable pre-1.0.
 
-## Estado actual
+## Estado
 
-- Versión cerrada y declarada: `0.2.7`.
-- Fases `0.2.1`–`0.2.7`: cerradas.
-- Proceso en curso: candidato `0.2.8` — proceso, distribución y documentación.
-- `0.2.8` está implementado y pendiente de su primera ejecución integral.
-- Después de `0.2.8`, sólo queda la revisión/validación de hito `0.3.0`.
+- Versión cerrada y declarada: `0.2.8`.
+- Todas las fases `0.2.1`–`0.2.8`: cerradas.
+- Candidato actual: `0.3.0` — release hardening.
+- No hay refactors funcionales abiertos.
+- No hay blockers conocidos de producto después de la validación integral de `0.2.8`.
 
-## Invariantes
+## Validación que cerró `0.2.8`
 
-- No legacy sin necesidad vigente.
-- No pipelines paralelos para la misma garantía.
-- Una release no se valida sólo con build.
-- La distribución se prueba desde el tarball, no importando source del workspace.
-- Los entry points públicos son `.`, `styles.css` y `reset.css`.
-- Todo bloque **manual/parcial** enviado al usuario comienza con `pnpm install --frozen-lockfile`.
-- La puerta automatizada canónica `pnpm validate` es autosuficiente y no necesita un install externo.
+Reportado por el usuario:
 
-## `0.2.7` — superficie pública + limpieza — CERRADO
-
-Validación reportada:
-
-- workspace install: PASS;
+- pnpm exacto `10.34.5`: PASS;
+- install congelado: PASS;
 - harness typecheck: PASS;
-- tests de superficie/source: 44/44 PASS;
-- raíz typecheck: PASS;
-- build ESM/CJS/DTS: PASS.
+- Vitest: **389/389 PASS**;
+- harness build: PASS;
+- Chromium: **65/65 PASS**;
+- package typecheck: PASS;
+- ESM/CJS/DTS: PASS;
+- pack: PASS;
+- instalación fuera del workspace: PASS;
+- TypeScript del consumidor: PASS;
+- ESM/CJS/CSS: PASS;
+- whitespace Git: PASS.
 
-Resultado vigente:
+El tarball observado contiene únicamente dist + README + LICENSE + manifest.
 
-- motion/viewport raíz con exports explícitos;
-- runtimes/helpers internos no forman parte de la API raíz;
-- 0 módulos TS/TSX huérfanos detectados;
-- backups/resultados generados/.git anidado eliminados;
-- política de ignores normalizada.
+`0.2.8` queda cerrado y `package.json` se incrementó a `0.2.8`.
 
-La versión se incrementó a `0.2.7`.
+## Candidato `0.3.0`
 
-## `0.2.8` — proceso + distribución + documentación — CANDIDATO
+### Alcance
 
-### 1. Reproducibilidad de pnpm
+Sólo garantías de release. No reabrir componentes, overlay, forms, theme ni navegación salvo blocker demostrado por validación.
 
-`package.json` declara:
+### 1. Pack siempre fresco
+
+Nuevo lifecycle:
 
 ```json
-"packageManager": "pnpm@10.34.5"
+"prepack": "pnpm build"
 ```
 
-El workspace conserva:
+`pnpm pack` y el pack previo a publicación construyen desde source antes de generar el tarball.
 
-```yaml
-packages:
-  - "internal-test"
+`package:verify` ya no ejecuta un build manual separado; usa el mismo camino real:
 
-allowBuilds:
-  esbuild: true
+```text
+package:verify
+→ pnpm pack
+→ prepack
+→ pnpm build
 ```
 
-Esto elimina la discrepancia observada al inicio entre pnpm antiguo y la política de build scripts actual.
+### 2. Publish detrás de la puerta canónica
 
-### 2. Validación única
+Nuevo lifecycle:
+
+```json
+"prepublishOnly": "pnpm validate"
+```
+
+La publicación normal exige la misma validación integral usada por el repositorio.
+
+No hay recursión:
+
+- `publish` ejecuta `prepublishOnly`;
+- `validate` ejecuta `package:verify`;
+- `package:verify` ejecuta `pack`;
+- `pack` ejecuta `prepack`, no `prepublishOnly`.
+
+### 3. Peer range realmente probado
+
+El manifest declara:
+
+```text
+react      >=18 <20
+react-dom  >=18 <20
+```
+
+Hasta `0.2.8`, el consumidor limpio sólo verificaba React 18.
+
+`package:verify` ahora instala el mismo tarball en dos consumidores independientes:
+
+- React 18.3.1 + tipos 18;
+- React 19.0.0 + tipos 19.
+
+En ambos ejecuta:
+
+- install fuera del workspace;
+- typecheck TSX;
+- ESM smoke;
+- CJS smoke;
+- CSS resolution;
+- contenido/exports del paquete.
+
+### 4. Contrato automatizado
 
 Nuevo:
+
+`internal-test/tests/release-process-contract.test.ts`
+
+Impide relajar accidentalmente:
+
+- `prepack`;
+- `prepublishOnly`;
+- pnpm exacto;
+- cobertura React 18/19 del verifier.
+
+## No blockers
+
+El warning de Vite por chunk >500 kB pertenece sólo al harness interno y no se considera blocker. No se distribuye y no representa el tamaño/estructura del paquete instalado.
+
+## Criterio final
+
+Ejecutar únicamente:
 
 ```bash
 pnpm validate
 ```
 
-Owner: `scripts/validate.mjs`.
+Si queda verde con ambos consumidores, incrementar `package.json` a `0.3.0` y declarar cerrado el hito.
 
-El script empieza por `pnpm install --frozen-lockfile`, instala/verifica Chromium y ejecuta todo el harness, typechecks, package verification y git whitespace check.
+## Primera validación del candidato `0.3.0`
 
-`validate.sh` fue eliminado para no mantener dos pipelines.
+La puerta avanzó hasta el segundo consumidor limpio.
 
-### 3. Clean portable
+Resultados:
 
-`pnpm clean` ya no depende de `rm -rf`; usa `scripts/clean.mjs`.
+- pnpm/version/install: PASS;
+- harness typecheck: PASS;
+- Vitest: **392/392 PASS**;
+- harness build: PASS;
+- Chromium: **65/65 PASS**;
+- package typecheck: PASS;
+- prepack/build ESM/CJS/DTS: PASS;
+- tarball: PASS;
+- consumidor React 18: install + typecheck + ESM/CJS/CSS PASS;
+- consumidor React 19: install PASS, typecheck FAIL.
 
-### 4. Verificación de distribución
+### Causa
 
-Nuevo:
+No es un fallo de tipos de Zerina UI.
 
-```bash
-pnpm package:verify
-```
+El error nace en:
 
-Hace build y ejecuta `scripts/verify-package.mjs`.
+`lucide-react@0.468.0/dist/lucide-react.d.ts`
 
-El verificador:
+que importa `ReactSVG` desde React. Ese tipo fue eliminado en `@types/react` 19.
 
-- empaca el paquete real;
-- instala el `.tgz` en un proyecto temporal fuera del workspace;
-- valida contenido del paquete;
-- valida los tres entry points;
-- compila un consumidor TSX;
-- carga ESM;
-- carga CJS;
-- resuelve ambos CSS entry points;
-- elimina el consumidor temporal.
+Además, la propia versión 0.468.0 declara React 19 RC en su peer range, no React 19 estable.
 
-### 5. README
-
-README reescrito como documento de consumidor actual:
-
-- instalación/peers;
-- estilos/reset;
-- quick start;
-- capas públicas;
-- controlled/uncontrolled;
-- cancelación;
-- tema/motion/viewport;
-- accesibilidad;
-- desarrollo;
-- validación;
-- distribución.
-
-Se eliminó el badge estático de “build passing” sin CI observable y la nota “README pendiente”.
-
-### 6. Documentación operativa
-
-Nuevo `docs/DISTRIBUCION.md`.
-
-`docs/VALIDACION.md`, `VERSIONADO.md` y `ESTABILIZACION.md` fueron consolidados al estado actual.
-
-## Pendiente para cerrar `0.2.8`
-
-Ejecutar:
-
-```bash
-pnpm validate
-```
-
-Cualquier fallo debe clasificarse como:
-
-- producto;
-- harness;
-- distribución;
-- entorno.
-
-No incrementar a `0.2.8` hasta quedar en verde.
-
-## Siguiente paso
-
-Si `pnpm validate` pasa:
-
-1. incrementar a `0.2.8`;
-2. consolidar bitácora;
-3. preparar `0.3.0`;
-4. ejecutar validación final de hito sin abrir nuevas refactorizaciones salvo blocker real.
-
-## Primera ejecución integral de `0.2.8`
-
-`pnpm validate` alcanzó la suite completa de Vitest.
-
-Resultado observado:
-
-- 40 archivos de test ejecutados;
-- 38 PASS;
-- 2 FAIL;
-- 388 tests totales;
-- 386 PASS;
-- 2 FAIL.
-
-Los dos fallos fueron clasificados como **harness desactualizado**, no producto:
-
-1. `forms-block5-source.test.ts` seguía buscando la implementación manual histórica de cancelación de `SearchInput`/`PasswordInput`.
-   - contrato vigente: `composeEventHandlers(external, internal)`;
-   - el test ahora comprueba esa composición central y que `ControlAction` usa el handler compuesto.
-
-2. `interaction-use-press-consumers.test.ts` seguía esperando `isFocused || press.state.focused`.
-   - contrato vigente de MenuItem: `press.state.focused` es la única fuente de foco lógico;
-   - `focusVisible` sigue separado;
-   - el test ahora comprueba además que no reaparezca `isFocused`.
-
-No se cambió código de producto para resolver estos fallos.
-
-`pnpm validate` debe ejecutarse de nuevo completo porque la primera ejecución se detuvo en Vitest y todavía falta comprobar las etapas posteriores de build del harness, Chromium completo, package verification y consumidor limpio.
-
-## Segunda ejecución integral de `0.2.8`
-
-`pnpm validate` avanzó más allá de Vitest.
-
-Resultados confirmados:
-
-- workspace install: PASS;
-- Chromium disponible: PASS;
-- internal-test typecheck: PASS;
-- Vitest completo: **388/388 PASS**;
-- internal-test build: PASS;
-- Playwright Chromium: **63/65 PASS**;
-- root typecheck/package verification: no ejecutados en esa corrida porque Chromium cortó el pipeline.
-
-### Fallos Chromium
-
-Los dos fallos comparten una sola causa de producto:
-
-- `Block 5: InputGroup distinguishes pointer and keyboard focus`;
-- `Block 4: pointer focus has no keyboard ring`.
-
-Ambos recibían `data-focus-visible` después de un click/pointer focus.
-
-### Causa raíz
-
-Owner: `src/core/interaction/focus/useFocusVisible.ts`.
-
-El tracker de modalidad se retenía por primera vez durante `handleFocus`.
-
-Orden real del navegador:
-
-```text
-pointerdown
-→ focus
-```
-
-Por tanto, cuando el tracker nacía dentro de `focus`, ya había perdido el
-`pointerdown` que causó ese foco.
-
-La implementación intentaba inferir la modalidad inicial con:
-
-```text
-element.matches(":focus-visible")
-```
-
-pero ese selector nativo no expresa exactamente el contrato de Zerina UI.
-Chromium puede considerar focus-visible un input de texto enfocado por pointer.
-
-Resultado: pointer focus podía clasificarse como keyboard focus.
+Esto demuestra que el peer range de Zerina UI (`>=18 <20`) no podía considerarse verdadero con la dependencia anterior.
 
 ### Corrección
 
-`useFocusVisible` ahora retiene el tracker compartido del `document` en
-`useIsomorphicLayoutEffect`, antes de la primera interacción posible.
+Actualizado `lucide-react` en root y harness:
 
-El tracker sigue siendo único por Document y conserva reference counting.
+```json
+"lucide-react": "^0.475.0"
+```
 
-Consecuencias:
+Actualizado `pnpm-lock.yaml` a `0.475.0`.
 
-- pointerdown queda observado antes de focus;
-- keydown queda observado antes de focus;
-- Input/InputGroup/Textarea/Select/usePress siguen consumiendo el mismo owner;
-- no se agregan parches locales por componente;
-- el fallback `:focus-visible` queda únicamente para un Document que aparezca
-  excepcionalmente por primera vez durante focus (por ejemplo, un ownerDocument
-  distinto).
+La versión 0.475.0 declara:
 
-Se añadió un contrato source que impide volver a crear el tracker sólo después
-del primer focus.
+```text
+react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+```
 
-### Limpieza derivada del pipeline
+y ya no depende del tipo removido `ReactSVG`.
 
-- El warning Vite de chunk >500 kB pertenece al harness interno y no es blocker
-  de la distribución de la librería.
-- No se hará code-splitting artificial del harness para ocultar ese warning.
-- `package:verify` todavía no ha sido observado en ejecución completa; sigue
-  pendiente después de que Chromium quede verde.
+No se cambia `framer-motion`: la versión actual 12.38.0 ya declara React 18 y 19 en sus peer dependencies.
 
-## Limpieza adicional del proceso detectada durante la segunda ejecución
+### Contrato añadido
 
-El log mostró que ejecutar manualmente `pnpm install --frozen-lockfile` antes de `pnpm validate` duplicaba trabajo, porque `validate` ya instala el workspace.
+`release-process-contract.test.ts` fija `^0.475.0` como baseline de Lucide para evitar volver accidentalmente a una versión que sólo soporte React 19 RC.
 
-Contrato corregido:
+La versión sigue en `0.2.8`. `0.3.0` no se cierra hasta que `pnpm validate` confirme ambos consumidores.
 
-- validación completa: ejecutar sólo `pnpm validate`;
-- validaciones parciales/manuales: comenzar con `pnpm install --frozen-lockfile`.
+## Segunda validación del candidato `0.3.0`
 
-Además, `scripts/validate.mjs` ahora comprueba que la versión activa de pnpm coincida exactamente con `package.json#packageManager` antes de instalar o probar.
+La actualización a Lucide `0.475.0` resolvió el bloqueo de tipos React 19, pero la puerta encontró un segundo defecto de distribución antes incluso de llegar al consumidor React 19.
 
-Con esto, la declaración `pnpm@10.34.5` deja de ser sólo documentación y se vuelve una precondición ejecutable.
+Resultados antes del fallo:
+
+- pnpm/version/install: PASS;
+- harness typecheck: PASS;
+- Vitest: **393/393 PASS**;
+- harness build: PASS;
+- Chromium: **65/65 PASS**;
+- package typecheck: PASS;
+- prepack/build ESM/CJS/DTS: PASS;
+- tarball: PASS;
+- consumidor React 18: install + typecheck PASS;
+- consumidor React 18: runtime CJS FAIL.
+
+### Causa
+
+`lucide-react@0.475.0` publica:
+
+```text
+main -> dist/cjs/lucide-react.js
+```
+
+pero su paquete quedó marcado como ESM en esa serie. En Node 24, `require("zerina-ui")` termina resolviendo el CJS de Lucide como módulo ESM y falla con:
+
+```text
+ReferenceError: require is not defined in ES module scope
+```
+
+No es correcto:
+
+- quitar el smoke CJS;
+- usar un loader especial;
+- ocultarlo con bundling accidental;
+- declarar CJS en Zerina UI si una dependencia runtime rompe ese camino.
+
+### Corrección
+
+Baseline actualizado a:
+
+```json
+"lucide-react": "^0.507.0"
+```
+
+`0.507.0` cumple simultáneamente:
+
+- peer de React 19 estable;
+- tipos sin `ReactSVG`;
+- `main: dist/cjs/lucide-react.js`;
+- paquete publicado sin `"type": "module"`, por lo que ese `main` vuelve a ser CommonJS real.
+
+El lockfile queda fijado en `0.507.0`.
+
+### Criterio reforzado
+
+La compatibilidad de una dependencia runtime no se valida sólo por peerDependencies o typecheck.
+
+Para `0.3.0` debe pasar, desde el tarball:
+
+```text
+React 18:
+  TS + ESM + CJS + CSS
+
+React 19:
+  TS + ESM + CJS + CSS
+```
+
+La versión sigue en `0.2.8` hasta una puerta completamente verde.
