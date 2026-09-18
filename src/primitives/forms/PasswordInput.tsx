@@ -5,6 +5,10 @@ import {
   EyeOff,
 } from "lucide-react";
 
+import {
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+
 import type {
   UIPressEvent,
 } from "../../core/interaction";
@@ -221,6 +225,15 @@ export const PasswordInput =
       };
 
 
+      const handleTogglePress =
+        composeEventHandlers<
+          UIPressEvent<HTMLButtonElement>
+        >(
+          toggleButtonSlotOnPress,
+          handleToggle
+        );
+
+
       return (
         <InputGroup
           {...groupSlot}
@@ -317,21 +330,9 @@ export const PasswordInput =
                 state.disabled
               }
 
-              onPress={(event) => {
-                toggleButtonSlotOnPress?.(
-                  event
-                );
-
-                if (
-                  event.defaultPrevented
-                ) {
-                  return;
-                }
-
-                handleToggle(
-                  event
-                );
-              }}
+              onPress={
+                handleTogglePress
+              }
             >
               {visible ? (
                 <EyeOff

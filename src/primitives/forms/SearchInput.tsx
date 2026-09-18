@@ -356,6 +356,15 @@ export const SearchInput =
       };
 
 
+      const handleClearPress =
+        composeEventHandlers<
+          UIPressEvent<HTMLButtonElement>
+        >(
+          clearButtonSlotOnPress,
+          handleClear
+        );
+
+
       return (
         <InputGroup
           {...groupSlot}
@@ -467,21 +476,9 @@ export const SearchInput =
 
                 aria-label="Limpiar búsqueda"
 
-                onPress={(event) => {
-                  clearButtonSlotOnPress?.(
-                    event
-                  );
-
-                  if (
-                    event.defaultPrevented
-                  ) {
-                    return;
-                  }
-
-                  handleClear(
-                    event
-                  );
-                }}
+                onPress={
+                  handleClearPress
+                }
               >
                 <X
                   size={14}
