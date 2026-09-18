@@ -1,23 +1,19 @@
-# Versionado durante estabilización
+# Versionado
 
-## Estado
+## Estado actual
 
-Versión cerrada: `0.2.8`.
+Versión cerrada:
 
-Candidato: `0.3.0`.
+```text
+0.3.0
+```
 
-## `0.3.0`
+Es el hito estable pre-1.0 posterior al ciclo completo de estabilización `0.2.x`.
 
-Es el hito estable pre-1.0 después de cerrar todas las fases `0.2.x`.
+## Siguiente ciclo
 
-No pretende congelar la API como `1.0.0`, pero sí establece:
+No se asigna todavía una versión siguiente.
 
-- API raíz deliberada;
-- contratos transversales probados;
-- browser real;
-- distribución reproducible;
-- pack limpio;
-- consumidores React 18/19;
-- publicación protegida por validación completa.
+Primero se realizará un nuevo mapeo arquitectónico.
 
-La versión sólo se incrementará a `0.3.0` después de `pnpm validate` verde con estas garantías.
+La siguiente versión se definirá sólo cuando exista un conjunto coherente de mejoras derivadas de ese mapa.

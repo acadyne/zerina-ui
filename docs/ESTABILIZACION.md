@@ -1,33 +1,30 @@
 # Estabilización vigente
 
-## Fases cerradas
+## Hito cerrado
 
-- `0.2.1` — SettingsList.
-- `0.2.2` — acciones cancelables.
-- `0.2.3` — tokens.
-- `0.2.4` — contratos internos.
-- `0.2.5` — deduplicación estructural.
-- `0.2.6` — interacción + overlay.
-- `0.2.7` — superficie pública + limpieza.
-- `0.2.8` — proceso + distribución + documentación.
+`0.3.0` está cerrado como hito estable pre-1.0.
 
-Versión cerrada actual: `0.2.8`.
+Validación final:
 
-## Hito actual
+- 393/393 Vitest;
+- 65/65 Chromium;
+- typechecks;
+- build ESM/CJS/DTS;
+- tarball;
+- consumidores React 18/19;
+- ESM/CJS/CSS;
+- whitespace Git.
 
-### `0.3.0` — release hardening
+## Siguiente ciclo
 
-No abre nuevos refactors de componentes.
+El siguiente ciclo no parte de bugs abiertos.
 
-Endurece únicamente garantías de release:
+Objetivo:
 
-- `prepack` construye siempre;
-- `prepublishOnly` exige `pnpm validate`;
-- `package:verify` prueba el peer range real en React 18 y React 19;
-- contrato automático impide relajar accidentalmente estas garantías.
+- mapear bifurcaciones;
+- detectar múltiples owners;
+- identificar diferencias accidentales entre familias;
+- reducir costo de mantenimiento;
+- preparar decisiones posteriores sin abrir refactors por intuición.
 
-## Criterio de cierre
-
-`pnpm validate` completo debe quedar verde con la matriz React 18/19.
-
-Si pasa, `0.3.0` puede declararse como hito estable pre-1.0.
+La prioridad será arquitectura y contratos, no cantidad de archivos modificados.

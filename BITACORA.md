@@ -1,257 +1,191 @@
 # BITACORA
 
-## Objetivo actual
-
-Cerrar el hito `0.3.0` estable pre-1.0.
-
 ## Estado
 
-- Versión cerrada y declarada: `0.2.8`.
-- Todas las fases `0.2.1`–`0.2.8`: cerradas.
-- Candidato actual: `0.3.0` — release hardening.
-- No hay refactors funcionales abiertos.
-- No hay blockers conocidos de producto después de la validación integral de `0.2.8`.
+- Versión cerrada y declarada: `0.3.0`.
+- Hito pre-1.0 estable: **CERRADO**.
+- Fases `0.2.1`–`0.2.8`: cerradas.
+- Validación integral: verde.
+- Siguiente trabajo: nuevo mapeo de arquitectura y contratos para detectar bifurcaciones, inconsistencias y oportunidades de simplificación.
 
-## Validación que cerró `0.2.8`
+## Validación que cerró `0.3.0`
 
 Reportado por el usuario:
 
 - pnpm exacto `10.34.5`: PASS;
 - install congelado: PASS;
-- harness typecheck: PASS;
-- Vitest: **389/389 PASS**;
-- harness build: PASS;
+- internal-test typecheck: PASS;
+- Vitest: **393/393 PASS**;
+- internal-test build: PASS;
 - Chromium: **65/65 PASS**;
 - package typecheck: PASS;
-- ESM/CJS/DTS: PASS;
-- pack: PASS;
-- instalación fuera del workspace: PASS;
-- TypeScript del consumidor: PASS;
-- ESM/CJS/CSS: PASS;
-- whitespace Git: PASS.
+- prepack/build ESM/CJS/DTS: PASS;
+- tarball: PASS;
+- consumidor limpio React 18:
+  - install PASS;
+  - TypeScript PASS;
+  - ESM PASS;
+  - CJS PASS;
+  - CSS PASS;
+- consumidor limpio React 19:
+  - install PASS;
+  - TypeScript PASS;
+  - ESM PASS;
+  - CJS PASS;
+  - CSS PASS;
+- git whitespace: PASS.
 
-El tarball observado contiene únicamente dist + README + LICENSE + manifest.
-
-`0.2.8` queda cerrado y `package.json` se incrementó a `0.2.8`.
-
-## Candidato `0.3.0`
-
-### Alcance
-
-Sólo garantías de release. No reabrir componentes, overlay, forms, theme ni navegación salvo blocker demostrado por validación.
-
-### 1. Pack siempre fresco
-
-Nuevo lifecycle:
-
-```json
-"prepack": "pnpm build"
-```
-
-`pnpm pack` y el pack previo a publicación construyen desde source antes de generar el tarball.
-
-`package:verify` ya no ejecuta un build manual separado; usa el mismo camino real:
+Resultado final:
 
 ```text
-package:verify
-→ pnpm pack
-→ prepack
-→ pnpm build
+Validation complete.
 ```
 
-### 2. Publish detrás de la puerta canónica
+## Garantías vigentes
 
-Nuevo lifecycle:
+### Superficie pública
 
-```json
-"prepublishOnly": "pnpm validate"
-```
+Entry points públicos:
 
-La publicación normal exige la misma validación integral usada por el repositorio.
+- `zerina-ui`
+- `zerina-ui/styles.css`
+- `zerina-ui/reset.css`
 
-No hay recursión:
+No son API pública:
 
-- `publish` ejecuta `prepublishOnly`;
-- `validate` ejecuta `package:verify`;
-- `package:verify` ejecuta `pack`;
-- `pack` ejecuta `prepack`, no `prepublishOnly`.
+- `src/*`
+- `core/*` internos
+- `helpers/*`
+- runtimes internos
+- harness/tests/docs operativas
 
-### 3. Peer range realmente probado
+### React
 
-El manifest declara:
+Peer range:
 
 ```text
 react      >=18 <20
 react-dom  >=18 <20
 ```
 
-Hasta `0.2.8`, el consumidor limpio sólo verificaba React 18.
+Verificado contra:
 
-`package:verify` ahora instala el mismo tarball en dos consumidores independientes:
+- React 18.3.1
+- React 19.0.0
 
-- React 18.3.1 + tipos 18;
-- React 19.0.0 + tipos 19.
+### Dependencias runtime relevantes
 
-En ambos ejecuta:
+- `framer-motion ^12.38.0`
+- `lucide-react ^0.507.0`
 
-- install fuera del workspace;
-- typecheck TSX;
-- ESM smoke;
-- CJS smoke;
-- CSS resolution;
-- contenido/exports del paquete.
+Lucide 0.507.0 es el baseline elegido porque cumple simultáneamente:
 
-### 4. Contrato automatizado
+- React 19 estable;
+- tipos compatibles;
+- ESM;
+- CJS real.
 
-Nuevo:
+### Release
 
-`internal-test/tests/release-process-contract.test.ts`
+- `prepack` ejecuta build;
+- `prepublishOnly` ejecuta `pnpm validate`;
+- `package:verify` instala el tarball fuera del workspace;
+- `pnpm validate` es la puerta canónica.
 
-Impide relajar accidentalmente:
+### Interacción y foco
 
-- `prepack`;
-- `prepublishOnly`;
-- pnpm exacto;
-- cobertura React 18/19 del verifier.
+- `preventDefault()` cancela conducta compuesta posterior;
+- TriggerRuntime tiene orden progresivo estable;
+- focus-visible usa tracker central por `Document`;
+- pointer/keyboard se distinguen antes del primer focus;
+- Menu liga intención de foco a época de apertura;
+- Drawer/BottomSheet comparten runtime modal;
+- FocusScope no reatrapa restore-focus al perder ownership.
 
-## No blockers
+### Contratos internos compartidos
 
-El warning de Vite por chunk >500 kB pertenece sólo al harness interno y no se considera blocker. No se distribuye y no representa el tamaño/estructura del paquete instalado.
+Owners únicos vigentes:
 
-## Criterio final
+- presencia de ReactNode;
+- merge de IDs ARIA;
+- selection engine de navigation;
+- renderer compartido de destinos;
+- DataTable desktop base;
+- frame de dialogs orientados a target;
+- modal overlay runtime;
+- focus-visible tracker;
+- composition helpers de eventos.
 
-Ejecutar únicamente:
+## Residuos ya eliminados
 
-```bash
-pnpm validate
-```
+- backups `.bak.*`;
+- `internal-test/test-results`;
+- `.git` anidado de `internal-test`;
+- exports accidentales de motion/viewport;
+- pipeline duplicado `validate.sh`;
+- source contracts históricos que fijaban implementaciones obsoletas.
 
-Si queda verde con ambos consumidores, incrementar `package.json` a `0.3.0` y declarar cerrado el hito.
+## Estado estructural conocido
 
-## Primera validación del candidato `0.3.0`
+Último análisis previo:
 
-La puerta avanzó hasta el segundo consumidor limpio.
+- 291 módulos TS/TSX;
+- 291 alcanzables desde `src/index.ts`;
+- 0 módulos source huérfanos detectados.
 
-Resultados:
+Esto NO implica que no existan duplicaciones o bifurcaciones internas. Sólo significa que no hay módulos totalmente desconectados de la entrada pública.
 
-- pnpm/version/install: PASS;
-- harness typecheck: PASS;
-- Vitest: **392/392 PASS**;
-- harness build: PASS;
-- Chromium: **65/65 PASS**;
-- package typecheck: PASS;
-- prepack/build ESM/CJS/DTS: PASS;
-- tarball: PASS;
-- consumidor React 18: install + typecheck + ESM/CJS/CSS PASS;
-- consumidor React 19: install PASS, typecheck FAIL.
+## Nuevo objetivo de auditoría
 
-### Causa
+El siguiente mapeo debe buscar **bifurcaciones de responsabilidad**, no sólo archivos duplicados.
 
-No es un fallo de tipos de Zerina UI.
+Ejes:
 
-El error nace en:
+1. múltiples owners para la misma semántica;
+2. familias con APIs parecidas pero reglas distintas sin razón actual;
+3. estados derivados calculados de formas diferentes;
+4. controlled/uncontrolled implementado más de una vez;
+5. cancelación/event ordering divergente;
+6. focus/hover/press/keyboard modelados con rutas distintas;
+7. ARIA generada por capas diferentes;
+8. slots resueltos con mecánicas paralelas;
+9. overlays con kernels parcialmente duplicados;
+10. recipes/variants que codifican lógica de producto;
+11. helpers públicos usados sólo internamente;
+12. tipos estructuralmente equivalentes con nombres diferentes;
+13. componentes que son wrappers casi vacíos sin contrato propio;
+14. tests que fijan source shape en vez de comportamiento;
+15. paths de build/harness que no representan consumo real;
+16. ramas condicionales que existen sólo por historia, no por contrato vigente.
 
-`lucide-react@0.468.0/dist/lucide-react.d.ts`
+## Regla para el nuevo mapeo
 
-que importa `ReactSVG` desde React. Ese tipo fue eliminado en `@types/react` 19.
+No asumir que similitud = duplicación.
 
-Además, la propia versión 0.468.0 declara React 19 RC en su peer range, no React 19 estable.
+Para cada candidato registrar:
 
-Esto demuestra que el peer range de Zerina UI (`>=18 <20`) no podía considerarse verdadero con la dependencia anterior.
+- owner actual;
+- consumidores;
+- contrato observable;
+- diferencias reales;
+- diferencias accidentales;
+- riesgo de unificar;
+- posible owner común;
+- evidencia;
+- recomendación:
+  - mantener separado;
+  - compartir helper;
+  - compartir engine;
+  - fusionar;
+  - eliminar;
+  - investigar.
 
-### Corrección
+## Próximo paso
 
-Actualizado `lucide-react` en root y harness:
-
-```json
-"lucide-react": "^0.475.0"
-```
-
-Actualizado `pnpm-lock.yaml` a `0.475.0`.
-
-La versión 0.475.0 declara:
-
-```text
-react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-```
-
-y ya no depende del tipo removido `ReactSVG`.
-
-No se cambia `framer-motion`: la versión actual 12.38.0 ya declara React 18 y 19 en sus peer dependencies.
-
-### Contrato añadido
-
-`release-process-contract.test.ts` fija `^0.475.0` como baseline de Lucide para evitar volver accidentalmente a una versión que sólo soporte React 19 RC.
-
-La versión sigue en `0.2.8`. `0.3.0` no se cierra hasta que `pnpm validate` confirme ambos consumidores.
-
-## Segunda validación del candidato `0.3.0`
-
-La actualización a Lucide `0.475.0` resolvió el bloqueo de tipos React 19, pero la puerta encontró un segundo defecto de distribución antes incluso de llegar al consumidor React 19.
-
-Resultados antes del fallo:
-
-- pnpm/version/install: PASS;
-- harness typecheck: PASS;
-- Vitest: **393/393 PASS**;
-- harness build: PASS;
-- Chromium: **65/65 PASS**;
-- package typecheck: PASS;
-- prepack/build ESM/CJS/DTS: PASS;
-- tarball: PASS;
-- consumidor React 18: install + typecheck PASS;
-- consumidor React 18: runtime CJS FAIL.
-
-### Causa
-
-`lucide-react@0.475.0` publica:
+Construir un mapa por familias y contratos, priorizado por:
 
 ```text
-main -> dist/cjs/lucide-react.js
+impacto × duplicación × riesgo de divergencia × frecuencia de cambio
 ```
 
-pero su paquete quedó marcado como ESM en esa serie. En Node 24, `require("zerina-ui")` termina resolviendo el CJS de Lucide como módulo ESM y falla con:
-
-```text
-ReferenceError: require is not defined in ES module scope
-```
-
-No es correcto:
-
-- quitar el smoke CJS;
-- usar un loader especial;
-- ocultarlo con bundling accidental;
-- declarar CJS en Zerina UI si una dependencia runtime rompe ese camino.
-
-### Corrección
-
-Baseline actualizado a:
-
-```json
-"lucide-react": "^0.507.0"
-```
-
-`0.507.0` cumple simultáneamente:
-
-- peer de React 19 estable;
-- tipos sin `ReactSVG`;
-- `main: dist/cjs/lucide-react.js`;
-- paquete publicado sin `"type": "module"`, por lo que ese `main` vuelve a ser CommonJS real.
-
-El lockfile queda fijado en `0.507.0`.
-
-### Criterio reforzado
-
-La compatibilidad de una dependencia runtime no se valida sólo por peerDependencies o typecheck.
-
-Para `0.3.0` debe pasar, desde el tarball:
-
-```text
-React 18:
-  TS + ESM + CJS + CSS
-
-React 19:
-  TS + ESM + CJS + CSS
-```
-
-La versión sigue en `0.2.8` hasta una puerta completamente verde.
+El objetivo ya no es “hacer pasar la suite”; es reducir el número de lugares donde una misma decisión puede divergir en el futuro.
