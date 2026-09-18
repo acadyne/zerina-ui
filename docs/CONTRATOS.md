@@ -599,3 +599,64 @@ Variant-specific ownership remains outside:
 - editable mobile/desktop renderers.
 
 The shared shell does not know `onDataChange`, cell editors, add/delete policies or editable column types.
+
+## 19. Navigation history owner
+
+Internal owner:
+
+`src/patterns/navigation-stack/useNavigationEntries.ts`
+
+Consumers:
+
+- NavigationStack;
+- TabScaffold.
+
+The hook owns:
+
+- entry IDs;
+- entry sequence;
+- controlled/uncontrolled source of truth;
+- empty/fallback normalization;
+- transition direction;
+- current/currentIndex/canGoBack;
+- set/update entries;
+- push;
+- replace;
+- pop;
+- popToRoot;
+- reset.
+
+Empty policy is explicit:
+
+```text
+initialName === null
+→ history may be empty
+
+initialName is any string, including ""
+→ a fallback entry exists
+```
+
+NavigationStack passes its `initialName` directly.
+
+TabScaffold maps “no valid initial tab” to `null`.
+
+Domain-specific ownership remains local:
+
+### NavigationStack
+
+- screen registry;
+- missing-screen fallback;
+- motion preset/rendering;
+- NavigationStackContext shape.
+
+### TabScaffold
+
+- initial-tab selection;
+- active-tab derivation;
+- tab validation;
+- disabled-tab policy;
+- `resetToTab`;
+- `onTabChange`;
+- app bar / bottom navigation / scaffold composition.
+
+`useNavigationEntries` is internal and is not exported from the navigation-stack public barrel.

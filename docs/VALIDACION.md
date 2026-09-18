@@ -411,3 +411,60 @@ pnpm validate
 ```
 
 D1 sólo se cierra con `Validation complete.`.
+
+## Fase D1 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos D1       35/35 PASS
+Vitest completo         474/474 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase D2
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/state-phase-d2-navigation-entries-ownership.test.ts \
+  tests/state-phase-d2-navigation-entries-behavior.test.tsx \
+  tests/forms-phase-b4-ownership.test.ts \
+  tests/family-deduplication-contracts.test.tsx
+
+pnpm validate
+```
+
+D2 sólo se cierra con `Validation complete.`.
+
+### Corrección del primer candidato D2
+
+El primer intento falló por dos defectos del test nuevo:
+
+- import React sin uso;
+- expectativa síncrona sobre un swap gestionado por AnimatePresence.
+
+El candidato corregido prueba contratos síncronos observables del state engine y usa TabScaffold controlled para evitar que la prueba dependa del lifecycle motion.
+
+Revalidar con el mismo bloque D2.
+
+### Segunda corrección del candidato D2
+
+La segunda corrida pasó completa pero conservó un warning `act(...)` de AnimatePresence porque el test de NavigationStack seguía cambiando realmente el motion key.
+
+El test ahora usa NavigationStack controlled/rejected y verifica `onEntriesChange` sin disparar una transición MotionSwitch.
+
+Revalidar D2 con el mismo bloque.

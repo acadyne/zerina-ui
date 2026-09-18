@@ -673,7 +673,7 @@ No fusionar DataTable y EditableDataTable.
 
 ### Estado D1
 
-**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+**CERRADA**
 
 Owners nuevos:
 
@@ -745,6 +745,69 @@ con política de normalización explícita.
 ---
 
 # P2 — simplificaciones con menor riesgo
+
+
+### Estado D2
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Nuevo owner:
+
+`src/patterns/navigation-stack/useNavigationEntries.ts`
+
+Centraliza:
+
+```text
+entry IDs / sequence
+controlled vs uncontrolled
+fallback / empty normalization
+transition direction
+current / index / canGoBack
+setEntries / updateEntries
+push / replace / pop / popToRoot / reset
+```
+
+Diferencia de empty policy preservada explícitamente:
+
+```text
+NavigationStack:
+  initialName string
+  "" sigue siendo nombre válido
+
+TabScaffold:
+  sin tab inicial válido
+  → initialName = null
+  → historial vacío permitido
+```
+
+Permanecen locales:
+
+```text
+NavigationStack:
+  screen registry
+  missing-screen fallback
+  motion
+
+TabScaffold:
+  getInitialTab
+  getActiveTab
+  disabled-tab validation
+  resetToTab
+  onTabChange
+  scaffold UI
+```
+
+Retirados:
+
+- `createNavigationStackEntry`;
+- `createTabScaffoldEntry`.
+
+`useNavigationEntries` permanece interno.
+
+Tests:
+
+- `state-phase-d2-navigation-entries-ownership.test.ts`;
+- `state-phase-d2-navigation-entries-behavior.test.tsx`.
 
 ## P2.1 — MotionPresence / MotionSwitch
 
@@ -1610,3 +1673,44 @@ Owners consolidados durante C:
 - `ModalOverlayRuntime`.
 
 Fase D parte de este baseline.
+
+## Corte dirigido D3 — MotionPresence / MotionSwitch
+
+Estado:
+
+**MAPEADO — BLOQUEADO HASTA CIERRE LIMPIO DE D2**
+
+Coincidencia real:
+
+Ambos componentes duplican:
+
+```text
+useOptionalUIMotion
+→ effectivePreset
+→ getAppTransitionVariants
+→ getTransition
+→ AnimatePresence config
+→ motion.div config
+```
+
+Diferencia legítima:
+
+```text
+MotionPresence
+→ puede no renderizar frame según present
+
+MotionSwitch
+→ siempre renderiza exactamente un frame
+→ motionKey obligatorio
+```
+
+Frontera candidata:
+
+1. helper/hook interno para resolver la configuración de app transition;
+2. frame interno compartido para `AnimatePresence + motion.div`;
+3. wrappers públicos conservan sus props y sólo deciden:
+   - `present`;
+   - default motionKey;
+   - obligatoriedad de motionKey.
+
+No cambiar API pública, presets, mode, initial ni transitionIntent.

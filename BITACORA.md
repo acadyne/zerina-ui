@@ -5,18 +5,18 @@
 - Versión cerrada: `0.3.0`.
 - Fase A: **CERRADA**.
 - Fase B: **CERRADA**.
-- Fase C — triggers y overlays: **CERRADA**.
+- Fase C: **CERRADA**.
 - Fase activa: **D — state engines y shells de producto**.
-- D1 DataTable shell: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- D2 NavigationStack / TabScaffold: pendiente.
+- D1 DataTable shell: **CERRADA**.
+- D2 NavigationStack / TabScaffold: **CANDIDATO CORREGIDO — PENDIENTE DE VALIDACIÓN**.
 - D3 MotionPresence / MotionSwitch: pendiente.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró Fase C
+## Validación que cerró D1
 
 ```text
-tests dirigidos C3       18/18 PASS
-Vitest completo         467/467 PASS
+tests dirigidos D1       35/35 PASS
+Vitest completo         474/474 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -28,91 +28,196 @@ git whitespace                PASS
 Validation complete.
 ```
 
-## Fase C — owners resultantes
+## D1 — resultado vigente
 
-- `TriggerRuntime` con modos press/passive;
-- `FloatingOverlayRuntime`;
-- `ModalOverlayRuntime`.
+Owners:
 
-## D1 — decisión
+- `useDataTableShell`;
+- `DataTableShellFrame`.
 
-DataTable y EditableDataTable no necesitan un componente público común.
+DataTable y EditableDataTable ya no duplican state/search/sort/pagination, responsive mode, row identity, selection, export, loading shell ni pagination.
 
-Sí necesitan dos owners internos complementarios:
+Las mutaciones editables permanecen en EditableDataTable.
 
-### Estado
+## D2 — decisión
 
-`src/components/data-table/useDataTableShell.ts`
+NavigationStack y TabScaffold compartían un engine de historial real.
 
-Posee:
+Nuevo owner interno:
 
-- `useDataTableState`;
-- responsive mode;
-- row identity;
-- selection;
-- CSV export;
-- skeleton row/column counts.
-
-### Composición
-
-`src/components/data-table/DataTableShellFrame.tsx`
+`src/patterns/navigation-stack/useNavigationEntries.ts`
 
 Posee:
 
-- DataTableRoot;
-- DataTableToolbar;
-- loading/skeleton;
-- mobile/desktop branch;
-- DataTablePagination.
+- IDs y sequence;
+- controlled/uncontrolled;
+- normalización de vacío;
+- transition direction;
+- current/currentIndex/canGoBack;
+- setEntries/updateEntries;
+- push;
+- replace;
+- pop;
+- popToRoot;
+- reset.
 
-## D1 — diferencias preservadas
+## D2 — política de vacío
 
-### DataTable
+La diferencia no se expresa con un modo de producto.
+
+Se expresa con:
+
+```text
+initialName: string | null
+```
+
+Semántica:
+
+```text
+null
+→ historial vacío permitido
+
+cualquier string, incluido ""
+→ fallback entry válida
+```
+
+NavigationStack pasa `initialName` tal cual.
+
+TabScaffold convierte “sin tab inicial válido” a `null`.
+
+## D2 — ownership preservado
+
+### NavigationStack
 
 Conserva:
 
-- `DataTableMobileCards` estático;
-- `DataTableDesktop`;
-- `renderActions`.
+- screen registry;
+- screen fallback;
+- MotionSwitch;
+- motion preset;
+- NavigationStackContext.
 
-### EditableDataTable
+### TabScaffold
 
 Conserva:
 
-- derivación de searchable columns;
-- `handleCellChange`;
-- coerción;
-- validación de identidad post-edit;
-- `handleAddRow`;
-- `handleDeleteRows`;
-- renderers editables.
+- getInitialTab;
+- getActiveTab;
+- validación de tabs disabled;
+- resetToTab;
+- onTabChange;
+- app bar;
+- bottom navigation;
+- scaffold composition.
 
-El shell común no conoce `onDataChange` ni semántica de edición.
+## D2 — cleanup
 
-## D1 — tests
+Retirados:
+
+- `createNavigationStackEntry`;
+- `createTabScaffoldEntry`.
+
+Ya no existen en los wrappers:
+
+- React.useId para entries;
+- entrySequenceRef;
+- internalEntries;
+- internalTransitionDirection.
+
+`useNavigationEntries` no se exporta por API pública.
+
+## D2 — tests
 
 Nuevos:
 
-- `state-phase-d1-data-table-shell-ownership.test.ts`;
-- `state-phase-d1-data-table-shell-behavior.test.tsx`.
+- `state-phase-d2-navigation-entries-ownership.test.ts`;
+- `state-phase-d2-navigation-entries-behavior.test.tsx`.
 
-Protegen:
+Cubren:
 
-- owners únicos;
-- wrappers sin hooks/shell JSX duplicado;
-- mutaciones editables fuera del shell;
-- mismo lifecycle root/toolbar/pagination;
-- mismo loading/skeleton branch.
+- owner único;
+- helper interno no público;
+- retiro de factories paralelos;
+- push/replace/pop/popToRoot/reset;
+- dirección de transición;
+- controlled rejected update;
+- diferencia `null` vs `""`;
+- wiring real de NavigationStack;
+- resetToTab real de TabScaffold.
 
-## Criterio de cierre D1
+## Verificación estática disponible
+
+```text
+broken relative imports                     0
+NavigationStack local entry-state owners    0
+TabScaffold local entry-state owners        0
+```
+
+## Criterio de cierre D2
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests D1 dirigidos
-regresión DataTable/family
+tests D2 dirigidos
+regresión state/family
 pnpm validate
 ```
 
-Sólo después se abre D2.
+Sólo después se abre D3.
+
+## Corrección del candidato D2
+
+La primera validación detectó dos problemas en el test nuevo, no en el engine:
+
+1. import `React` sin uso con `noUnusedLocals`;
+2. una aserción que esperaba el swap de `MotionSwitch/AnimatePresence` de forma sincrónica.
+
+Además, el test de `TabScaffold.resetToTab` provocaba un warning `act(...)` al cambiar realmente el `motionKey`.
+
+Corrección:
+
+- se retiró el import inutilizado;
+- NavigationStack prueba ahora el wiring mediante `onEntriesChange` + transition direction;
+- TabScaffold se prueba en modo controlled y rechazado:
+  - `resetToTab("settings")` emite entries `["settings"]`;
+  - direction `replace`;
+  - `onTabChange("settings")`;
+  - el render controlado permanece en `home`;
+  - no cambia el motionKey, por lo que el test no depende del lifecycle asíncrono de Framer Motion.
+
+No cambió `useNavigationEntries` ni el producto.
+
+## Segunda corrección del candidato D2
+
+La segunda validación fue funcionalmente verde:
+
+```text
+tests dirigidos D2       33/33 PASS
+Vitest completo         487/487 PASS
+Chromium                  65/65 PASS
+Validation complete.
+```
+
+pero el test de wiring de NavigationStack todavía provocaba un warning `act(...)` de AnimatePresence.
+
+Causa:
+
+el test usaba NavigationStack uncontrolled. `navigation.push()` actualizaba realmente el stack y cambiaba el `motionKey`, por lo que Framer Motion programaba su lifecycle interno después del `act` del click helper.
+
+Corrección:
+
+NavigationStack se prueba ahora en modo controlled/rejected, igual que TabScaffold:
+
+```text
+entries=["home"]
+transitionDirection="replace"
+push("detail")
+→ onEntriesChange(["home","detail"], "forward")
+→ render controlado permanece en home
+→ motionKey no cambia
+```
+
+Esto prueba el wiring real del shared history owner sin hacer depender D2 del lifecycle asíncrono de MotionSwitch, que pertenece a D3.
+
+No cambió producto ni `useNavigationEntries`.

@@ -412,6 +412,12 @@ Cambios futuros de focus/dismiss/trigger no requieren sincronizar múltiples ker
 
 # Fase D — state engines y shells de producto
 
+## Estado actual de Fase D
+
+- D1 DataTable shell: **CERRADA**.
+- D2 Navigation entries: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- D3 Motion presence duplication: pendiente.
+
 ## Objetivo
 
 Centralizar duplicación de estado/composición que no pertenece a forms ni overlays.

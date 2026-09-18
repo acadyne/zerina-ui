@@ -2,8 +2,6 @@
 import React from "react";
 import { Box } from "../../primitives/layout";
 import type {
-  NavigationStackEntry,
-  NavigationStackParams,
   NavigationStackScreenProps,
   RegisteredNavigationStackScreen,
 } from "./navigationStack.types";
@@ -30,18 +28,6 @@ function hasNavigationStackScreenMarker(
       NAVIGATION_STACK_SCREEN_MARKER
     ) === true
   );
-}
-
-export function createNavigationStackEntry(
-  key: string,
-  name: string,
-  params?: NavigationStackParams
-): NavigationStackEntry {
-  return {
-    key,
-    name,
-    params,
-  };
 }
 
 export function isNavigationStackScreenElement(

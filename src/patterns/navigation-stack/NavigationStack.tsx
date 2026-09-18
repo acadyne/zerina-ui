@@ -12,17 +12,17 @@ import { getNavigationStackMotionPreset } from "./navigationStack.motion";
 import type {
   NavigationStackComponent,
   NavigationStackContextValue,
-  NavigationStackEntry,
-  NavigationStackParams,
   NavigationStackProps,
   NavigationStackScreenRenderProps,
-  NavigationStackTransitionDirection,
 } from "./navigationStack.types";
 import {
   collectNavigationStackScreens,
-  createNavigationStackEntry,
   renderMissingNavigationStackScreen,
 } from "./navigationStack.utils";
+
+import {
+  useNavigationEntries,
+} from "./useNavigationEntries";
 
 const NavigationStackRoot =
   React.forwardRef<
@@ -53,192 +53,78 @@ const NavigationStackRoot =
     ...rest
   } = props;
 
-  const isControlled =
-    controlledEntries !== undefined;
+  const history =
+    useNavigationEntries({
+      initialName,
+      initialParams,
 
-  const entryId =
-    React.useId().replace(/:/g, "");
+      entries:
+        controlledEntries,
 
-  const entrySequenceRef =
-    React.useRef(1);
+      transitionDirection:
+        controlledTransitionDirection,
 
-  const fallbackEntry =
-    React.useMemo(
-      () =>
-        createNavigationStackEntry(
-          `${entryId}-fallback`,
-          initialName,
-          initialParams
-        ),
-      [
-        entryId,
-        initialName,
-        initialParams,
-      ]
-    );
+      onEntriesChange,
+    });
 
-  const createEntry = React.useCallback(
-    (
-      name: string,
-      params?: NavigationStackParams
-    ): NavigationStackEntry => {
-      const key =
-        `${entryId}-${entrySequenceRef.current}`;
 
-      entrySequenceRef.current += 1;
+  const {
+    entries:
+      stackEntries,
 
-      return createNavigationStackEntry(
-        key,
-        name,
-        params
-      );
-    },
-    [entryId]
-  );
+    transitionDirection,
 
-  const [
-    internalEntries,
-    setInternalEntries,
-  ] = React.useState<
-    NavigationStackEntry[]
-  >(() => [
-    fallbackEntry,
-  ]);
+    current,
+    currentIndex,
+    canGoBack,
 
-  const [
-    internalTransitionDirection,
-    setInternalTransitionDirection,
-  ] = React.useState<NavigationStackTransitionDirection>("replace");
+    push,
+    replace,
+    pop,
+    popToRoot,
+    reset,
+  } = history;
 
-  const providedEntries =
-    controlledEntries !== undefined
-      ? controlledEntries
-      : internalEntries;
-
-  const stackEntries =
-    providedEntries.length > 0
-      ? providedEntries
-      : [
-          fallbackEntry,
-        ];
-
-  const transitionDirection =
-    controlledEntries !== undefined
-      ? controlledTransitionDirection
-      : internalTransitionDirection;
 
   const screens = React.useMemo(
     () => collectNavigationStackScreens(children),
     [children]
   );
 
-  const setEntries = React.useCallback(
-    (
-      nextEntries: NavigationStackEntry[],
-      nextTransitionDirection: NavigationStackTransitionDirection
-    ) => {
-      const normalizedEntries =
-        nextEntries.length > 0
-          ? nextEntries
-          : [
-              createEntry(
-                initialName,
-                initialParams
-              ),
-            ];
+  const navigation =
+    React.useMemo<
+      NavigationStackContextValue
+    >(
+      () => ({
+        entries:
+          stackEntries,
 
-      if (!isControlled) {
-        setInternalEntries(normalizedEntries);
-        setInternalTransitionDirection(nextTransitionDirection);
-      }
+        current,
 
-      onEntriesChange?.(
-        normalizedEntries,
-        nextTransitionDirection
-      );
-    },
-    [
-      createEntry,
-      initialName,
-      initialParams,
-      isControlled,
-      onEntriesChange,
-    ]
-  );
+        index:
+          currentIndex,
 
-  const currentIndex = Math.max(0, stackEntries.length - 1);
-  const current = stackEntries[currentIndex] ?? null;
-  const canGoBack = stackEntries.length > 1;
+        canGoBack,
 
-  const navigation = React.useMemo<NavigationStackContextValue>(
-    () => ({
-      entries: stackEntries,
-      current,
-      index: currentIndex,
-      canGoBack,
+        push,
+        replace,
+        pop,
+        popToRoot,
+        reset,
+      }),
+      [
+        stackEntries,
+        current,
+        currentIndex,
+        canGoBack,
+        push,
+        replace,
+        pop,
+        popToRoot,
+        reset,
+      ],
+    );
 
-      push: (name, params) => {
-        setEntries(
-          [
-            ...stackEntries,
-            createEntry(name, params),
-          ],
-          "forward"
-        );
-      },
-
-      replace: (name, params) => {
-        setEntries(
-          [
-            ...stackEntries.slice(0, -1),
-            createEntry(name, params),
-          ],
-          "replace"
-        );
-      },
-
-      pop: () => {
-        if (stackEntries.length <= 1) {
-          return;
-        }
-
-        setEntries(
-          stackEntries.slice(0, -1),
-          "back"
-        );
-      },
-
-      popToRoot: () => {
-        if (stackEntries.length <= 1) {
-          return;
-        }
-
-        setEntries(
-          [
-            stackEntries[0] ??
-              fallbackEntry,
-          ],
-          "back"
-        );
-      },
-
-      reset: (name, params) => {
-        setEntries(
-          [createEntry(name, params)],
-          "replace"
-        );
-      },
-    }),
-  [
-    stackEntries,
-    current,
-    currentIndex,
-    canGoBack,
-    createEntry,
-    fallbackEntry,
-    setEntries,
-  ]
-  );
 
   const activeScreen =
     current

@@ -3,7 +3,6 @@ import React from "react";
 import { Box } from "../../../primitives/layout";
 import type {
   NavigationStackEntry,
-  NavigationStackParams,
 } from "../../navigation-stack";
 import type {
   TabScaffoldHeaderValue,
@@ -11,18 +10,6 @@ import type {
   TabScaffoldScreen,
   TabScaffoldTab,
 } from "./tabScaffold.types";
-
-export function createTabScaffoldEntry(
-  key: string,
-  name: string,
-  params?: NavigationStackParams
-): NavigationStackEntry {
-  return {
-    key,
-    name,
-    params,
-  };
-}
 
 export function resolveTabScaffoldHeaderValue(
   value: TabScaffoldHeaderValue | undefined,

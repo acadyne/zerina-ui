@@ -9,10 +9,11 @@ import { Box } from "../../../primitives/layout";
 import { BottomNavigation } from "../../../primitives/navigation/bottom-navigation";
 import {
   NavigationStack,
-  type NavigationStackEntry,
-  type NavigationStackParams,
-  type NavigationStackTransitionDirection,
 } from "../../navigation-stack";
+
+import {
+  useNavigationEntries,
+} from "../../navigation-stack/useNavigationEntries";
 import { BackButton } from "../BackButton";
 import { Scaffold } from "../Scaffold";
 import { TopAppBar } from "../TopAppBar";
@@ -23,7 +24,6 @@ import type {
   TabScaffoldRenderContext,
 } from "./tabScaffold.types";
 import {
-  createTabScaffoldEntry,
   getActiveTab,
   getInitialTab,
   getTabScaffoldScreenMeta,
@@ -159,143 +159,43 @@ export const TabScaffold =
     [tabs, initialTabProp]
   );
 
-  const entryId =
-    React.useId().replace(/:/g, "");
+  const history =
+    useNavigationEntries({
+      initialName:
+        initialTab ||
+        null,
 
-  const entrySequenceRef =
-    React.useRef(1);
-
-  const fallbackEntry =
-    React.useMemo(
-      () =>
-        createTabScaffoldEntry(
-          `${entryId}-fallback`,
-          initialTab,
-          initialParams
-        ),
-      [
-        entryId,
-        initialParams,
-        initialTab,
-      ]
-    );
-
-  const createEntry = React.useCallback(
-    (
-      name: string,
-      params?: NavigationStackParams
-    ): NavigationStackEntry => {
-      const key =
-        `${entryId}-${entrySequenceRef.current}`;
-
-      entrySequenceRef.current += 1;
-
-      return createTabScaffoldEntry(
-        key,
-        name,
-        params
-      );
-    },
-    [entryId]
-  );
-
-  const isControlled =
-    controlledEntries !== undefined;
-
-  const [
-    internalEntries,
-    setInternalEntries,
-  ] =
-    React.useState<
-      NavigationStackEntry[]
-    >(() =>
-      initialTab
-        ? [
-            fallbackEntry,
-          ]
-        : []
-    );
-
-  const [
-    internalTransitionDirection,
-    setInternalTransitionDirection,
-  ] = React.useState<NavigationStackTransitionDirection>("replace");
-
-  const providedEntries =
-    controlledEntries !== undefined
-      ? controlledEntries
-      : internalEntries;
-
-  const stackEntries =
-    providedEntries.length > 0
-      ? providedEntries
-      : initialTab
-        ? [
-            fallbackEntry,
-          ]
-        : [];
-
-  const stackTransitionDirection =
-    controlledEntries !== undefined
-      ? controlledTransitionDirection
-      : internalTransitionDirection;
-
-  const setEntries = React.useCallback(
-    (
-      nextEntries: NavigationStackEntry[],
-      nextTransitionDirection: NavigationStackTransitionDirection
-    ) => {
-      const normalizedEntries =
-        nextEntries.length > 0
-          ? nextEntries
-          : initialTab
-            ? [
-                createEntry(
-                  initialTab,
-                  initialParams
-                ),
-              ]
-            : [];
-
-      if (!isControlled) {
-        setInternalEntries(normalizedEntries);
-        setInternalTransitionDirection(nextTransitionDirection);
-      }
-
-      onEntriesChange?.(
-        normalizedEntries,
-        nextTransitionDirection
-      );
-    },
-    [
       initialParams,
-      initialTab,
-      isControlled,
+
+      entries:
+        controlledEntries,
+
+      transitionDirection:
+        controlledTransitionDirection,
+
       onEntriesChange,
-    ]
-  );
+    });
 
-  const updateEntries = React.useCallback(
-    (
-      updater:
-        | NavigationStackEntry[]
-        | ((
-          currentEntries: NavigationStackEntry[]
-        ) => NavigationStackEntry[]),
-      transitionDirection: NavigationStackTransitionDirection
-    ) => {
-      const nextEntries =
-        typeof updater === "function"
-          ? updater(stackEntries)
-          : updater;
 
-      setEntries(nextEntries, transitionDirection);
-    },
-    [setEntries, stackEntries]
-  );
+  const {
+    entries:
+      stackEntries,
 
-  const current =
-    stackEntries[stackEntries.length - 1] ?? null;
+    transitionDirection:
+      stackTransitionDirection,
+
+    current,
+    canGoBack,
+
+    setEntries,
+
+    push,
+    replace,
+    pop,
+    popToRoot,
+    reset,
+  } = history;
+
 
   const activeTab = getActiveTab({
     entries: stackEntries,
@@ -303,99 +203,72 @@ export const TabScaffold =
     initialTab,
   });
 
-  const canGoBack = stackEntries.length > 1;
+  const contextValue =
+    React.useMemo<
+      TabScaffoldContextValue
+    >(
+      () => ({
+        entries:
+          stackEntries,
 
-  const contextValue = React.useMemo<TabScaffoldContextValue>(
-    () => ({
-      entries: stackEntries,
-      current,
-      activeTab,
-      canGoBack,
+        current,
+        activeTab,
+        canGoBack,
 
-      setEntries,
+        setEntries,
 
-      push: (name, params) => {
-        updateEntries(
-          (currentEntries) => [
-            ...currentEntries,
-            createEntry(name, params),
-          ],
-          "forward"
-        );
-      },
+        push,
+        replace,
+        pop,
+        popToRoot,
+        reset,
 
-      replace: (name, params) => {
-        updateEntries(
-          (currentEntries) => [
-            ...currentEntries.slice(0, -1),
-            createEntry(name, params),
-          ],
-          "replace"
-        );
-      },
+        resetToTab: (
+          tab,
+        ) => {
+          const target =
+            tabs.find(
+              (
+                item,
+              ) =>
+                item.value ===
+                tab,
+            );
 
-      pop: () => {
-        if (stackEntries.length <= 1) {
-          return;
-        }
 
-        updateEntries(
-          stackEntries.slice(0, -1),
-          "back"
-        );
-      },
+          if (
+            !target ||
+            target.disabled
+          ) {
+            return;
+          }
 
-      popToRoot: () => {
-        if (stackEntries.length <= 1) {
-          return;
-        }
 
-        updateEntries(
-          [
-            stackEntries[0] ??
-              fallbackEntry,
-          ],
-          "back"
-        );
-      },
+          reset(
+            tab,
+          );
 
-      reset: (name, params) => {
-        updateEntries(
-          [createEntry(name, params)],
-          "replace"
-        );
-      },
+          onTabChange?.(
+            tab,
+          );
+        },
+      }),
+      [
+        stackEntries,
+        current,
+        activeTab,
+        canGoBack,
+        setEntries,
+        push,
+        replace,
+        pop,
+        popToRoot,
+        reset,
+        tabs,
+        onTabChange,
+      ],
+    );
 
-      resetToTab: (tab) => {
-        const target = tabs.find(
-          (item) => item.value === tab
-        );
-
-        if (!target || target.disabled) {
-          return;
-        }
-
-        updateEntries(
-          [createEntry(tab)],
-          "replace"
-        );
-
-        onTabChange?.(tab);
-      },
-    }),
-    [
-      activeTab,
-      canGoBack,
-      createEntry,
-      current,
-      fallbackEntry,
-      onTabChange,
-      setEntries,
-      stackEntries,
-      tabs,
-      updateEntries,
-    ]
-  );
 
   const renderContext =
     React.useMemo<TabScaffoldRenderContext>(
