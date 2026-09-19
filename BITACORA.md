@@ -4,45 +4,31 @@
 
 Refactorizar `zerina-ui` sin obligaciones de compatibilidad histórica, eliminando procesos duplicados y dejando un único owner por mecánica transversal.
 
-La demo sigue disponible como consumidor real y se retomará después de consolidar la arquitectura.
+La demo permanece como consumidor de integración para fases posteriores.
 
-## Invariante de compatibilidad vigente
+## Invariante de compatibilidad
 
-El usuario autorizó explícitamente cambios breaking y no desea legacy.
+El usuario autorizó cambios breaking y no desea legacy.
 
 Por tanto:
 
-- no crear aliases deprecated para APIs redundantes;
-- no mantener dos caminos para la misma mecánica;
-- si una abstracción deja de tener responsabilidad propia, eliminarla;
-- actualizar consumidores y tests al contrato único;
-- cada fase debe quedar completa dentro de su scope, sin adapters temporales.
+- no mantener aliases deprecated para responsabilidades eliminadas;
+- no conservar dos procesos para la misma mecánica;
+- actualizar todos los consumidores al owner único;
+- no dejar implementaciones parciales ni adapters temporales;
+- cada extracción debe quedar acompañada de regresión.
 
-Dado este criterio, la siguiente versión objetivo debe tratarse como una evolución breaking respecto a `0.4.0`; semánticamente encaja mejor como `0.5.0` que como patch `0.4.1`. La metadata final se cambiará sólo al cierre.
+La evolución apunta semánticamente a `0.5.0`; la metadata se cambiará al cierre.
 
 ## Estado actual
 
-- Fase 1 — superficie pública + package gate: CERRADA Y VALIDADA.
-- Fase 2A — fundamentos unificados: IMPLEMENTADA, pendiente únicamente del `pnpm validate` canónico del usuario.
+- Fase 1 — superficie pública + package gate: **CERRADA Y VALIDADA**.
+- Fase 2A — fundamentos unificados: **IMPLEMENTADA R3, PENDIENTE DE `pnpm validate`**.
 - Fase 2B — Navigation Destinations: no iniciada.
 - Fase 2C — ownership de Scaffold: no iniciada.
 - Fase 3 — Navigation Presenter/política responsive: no iniciada.
 
-## Fase 1 validada
-
-El usuario ejecutó `pnpm validate` con PASS integral:
-
-- 79 archivos Vitest;
-- 579 tests;
-- 65 Chromium;
-- typechecks;
-- build;
-- pack;
-- consumers React 18 y 19;
-- ESM/CJS/CSS smoke;
-- whitespace.
-
-## Fase 2A implementada
+## Fase 2A — owners consolidados
 
 ### Safe-area
 
@@ -56,24 +42,10 @@ Eliminados:
 
 - `SafeEdges`;
 - `ScreenContentSafeAreaEdges`;
-- resolvers locales duplicados;
-- cálculos directos `env(safe-area-inset-*)` del código productivo TS/TSX.
+- resolvers locales;
+- conocimiento directo de variables safe-area en consumidores TS/TSX.
 
-Consumidores migrados al owner:
-
-- SafeArea;
-- Screen;
-- ScreenContent;
-- TopAppBar;
-- FloatingActionButton;
-- BottomNavigation;
-- NavigationRail;
-- Dialog;
-- Drawer;
-- BottomSheet;
-- ToastProvider.
-
-`Screen` suma ahora inset + safe-area.
+Los consumidores importan el owner central; `src/styles/safe-area.css` continúa definiendo las variables funcionales `--ui-safe-*-offset`.
 
 ### CSS sizing
 
@@ -83,24 +55,31 @@ Owner único:
 src/helpers/css.ts#cssSize
 ```
 
+Firma única:
+
+```ts
+cssSize(
+  value: number | string | undefined
+): string | undefined
+```
+
 Eliminados:
 
+- overloads redundantes;
 - `px`;
 - `toCssSize`;
 - `adaptiveScaffold.utils#cssSize`;
-- aliases internos de `cssSize` en navegación.
+- aliases de sizing en navegación.
 
 ### Scroll
 
-`PageScroll` eliminado completamente, incluido export público.
+`PageScroll` eliminado completamente.
 
-No se conservó alias.
-
-`ScrollArea` queda como motor de scroll. El ownership entre Scaffold/ScreenContent se resolverá en Fase 2C.
+`ScrollArea` queda como motor. El ownership de shell/content se resolverá en Fase 2C.
 
 ### Responsive
 
-Owner único de resolución responsive de componentes:
+Owner único:
 
 ```text
 src/core/viewport/useAdaptiveViewport.ts
@@ -109,66 +88,89 @@ src/core/viewport/useAdaptiveViewport.ts
 Consumido por:
 
 - AdaptiveScaffold;
-- useDataTableShell.
+- DataTable shell.
 
 Eliminados:
 
 - `useDataTableResponsiveMode`;
 - `resolveAdaptiveScaffoldMode`.
 
-Nuevo normalizador único:
+Breakpoints normalizados por `resolveUIViewportBreakpoints`.
+
+## Validaciones del usuario durante Fase 2A
+
+### Intento 1
+
+`pnpm validate` falló en typecheck con TS2769 por los overloads de `cssSize`.
+
+Corrección R2:
+
+- eliminar overloads;
+- una sola firma union-safe;
+- regresión de typecheck/runtime.
+
+### Intento 2 / siguiente avance real del gate
+
+El typecheck ya avanzó hasta Vitest.
+
+Vitest reportó:
 
 ```text
-resolveUIViewportBreakpoints
+1 failed | 81 passed
+588 passed | 1 failed
 ```
 
-consumido por `UIViewportProvider` y `useAdaptiveViewport`.
+Fallo:
 
-## Regresiones añadidas
+```text
+css-distribution.test.ts
+"uses only --ui-safe-* variables in safe-area consumers"
+```
 
-- `foundation-ownership-phase-2a.test.ts`;
-- `foundation-safe-area-phase-2a.test.tsx`;
-- `foundation-responsive-phase-2a.test.tsx`.
+Causa:
 
-Ajustados:
+La prueba pertenecía a la arquitectura anterior y exigía que `Screen`, `SafeArea` y `TopAppBar` conocieran directamente `--ui-safe-*`.
 
-- `public-surface-types.test.ts`;
-- `state-phase-d1-data-table-shell-ownership.test.ts`;
-- `scripts/verify-package.mjs`.
+Eso contradice la nueva invariante de owner único.
 
-## Validado en el runtime actual
+### Corrección R3
 
-- parse TypeScript/TSX: 446 archivos, 0 errores sintácticos;
-- imports relativos productivos rotos: 0;
-- `scripts/verify-package.mjs`: sintaxis Node PASS;
-- `cssSize`: una sola implementación;
-- `resolveSafeAreaEdges`: una sola implementación;
-- `PageScroll`: eliminado;
-- `useDataTableResponsiveMode`: eliminado;
-- `resolveAdaptiveScaffoldMode`: eliminado;
-- `env(safe-area-inset-*)` en TS/TSX productivo: 0.
+La regresión de distribución ahora exige:
+
+1. `src/helpers/safeArea.ts` es el único owner TypeScript de las variables normalizadas;
+2. los consumidores importan `helpers/safeArea`;
+3. los consumidores no contienen variables safe-area directas;
+4. no existen variables legacy `--safe-*`;
+5. `src/styles/safe-area.css` continúa definiendo `--ui-safe-*-offset`.
+
+Esto no relaja el contrato: lo actualiza para verificar la centralización buscada.
+
+## Validado en el runtime actual después de R3
+
+- las aserciones nuevas de ownership safe-area: PASS;
+- las cuatro variables `--ui-safe-*-offset` siguen definidas en `safe-area.css`: PASS;
+- consumidores seleccionados no contienen variables safe-area directas: PASS;
+- owner central no contiene variables legacy: PASS;
+- no se ha reintroducido ningún owner retirado.
 
 ## No validado
 
-- `pnpm validate` de Fase 2A aún debe ejecutarse en el entorno del usuario con dependencias instaladas.
-- No se ha iniciado Fase 2B.
-- No se han resuelto todavía las decisiones de ownership de scroll de Fase 2C.
-- No se ha modificado todavía la política de navegación jerárquica de Fase 3.
+- Falta un nuevo `pnpm validate` del usuario después de R3.
+- Fase 2A NO se considera cerrada hasta ese PASS integral.
+- Fase 2B no debe comenzar antes del PASS.
 
 ## Siguiente paso
 
-Ejecutar:
+Aplicar R3 y ejecutar primero:
+
+```bash
+pnpm --filter zerina-ui-internal-test test -- css-distribution.test.ts
+```
+
+Si pasa, ejecutar:
 
 ```bash
 pnpm validate
 ```
 
-sobre el checkpoint de Fase 2A.
-
-Si pasa, cerrar Fase 2A y comenzar Fase 2B:
-
-1. consolidar contexts de BottomNavigation/NavigationRail;
-2. consolidar resolución de props de destination item;
-3. consolidar recipe/helpers compartidos;
-4. eliminar implementaciones duplicadas;
-5. mantener APIs públicas distintas únicamente por sus diferencias reales de orientación/layout.
+Sólo después cerrar Fase 2A.

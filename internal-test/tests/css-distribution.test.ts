@@ -176,8 +176,14 @@ describe(
 
 
     it(
-      "uses only --ui-safe-* variables in safe-area consumers",
+      "routes safe-area consumers through the centralized owner",
       () => {
+        const owner =
+          readRepositoryFile(
+            "src/helpers/safeArea.ts",
+          );
+
+
         const consumers = [
           readRepositoryFile(
             "src/primitives/layout/Screen.tsx",
@@ -190,23 +196,39 @@ describe(
           readRepositoryFile(
             "src/patterns/scaffold/TopAppBar.tsx",
           ),
-        ].join(
-          "\n",
-        );
+        ];
 
 
         expect(
-          consumers,
+          owner,
         ).not.toMatch(
           /--safe-(?:top|right|bottom|left)\b/,
         );
 
 
         expect(
-          consumers,
+          owner,
         ).toMatch(
-          /--ui-safe-/,
+          /--ui-safe-(?:top|right|bottom|left)-offset/,
         );
+
+
+        for (
+          const consumer of consumers
+        ) {
+          expect(
+            consumer,
+          ).toContain(
+            "helpers/safeArea",
+          );
+
+
+          expect(
+            consumer,
+          ).not.toMatch(
+            /--(?:ui-)?safe-(?:top|right|bottom|left)/,
+          );
+        }
       },
     );
 
@@ -219,6 +241,7 @@ describe(
           "src/styles/safe-area.css",
           "src/styles/controls.css",
           "src/reset.css",
+          "src/helpers/safeArea.ts",
           "src/primitives/layout/Screen.tsx",
           "src/primitives/layout/SafeArea.tsx",
           "src/patterns/scaffold/TopAppBar.tsx",
