@@ -10,13 +10,13 @@ import {
 import {
   statusLabelRecipe,
   type StatusLabelColorScheme,
+  type StatusLabelRecipeSlot,
   type StatusLabelVariant,
 } from "./status-label-recipe";
 
 
 export type BadgeSlot =
-  | "root"
-  | "content";
+  StatusLabelRecipeSlot;
 
 
 export type BadgeStyles =

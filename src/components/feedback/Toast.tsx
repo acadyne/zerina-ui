@@ -14,6 +14,9 @@ import {
 } from "../../core/dom";
 import { usePress } from "../../core/interaction";
 import { useOptionalUIMotion } from "../../core/motion";
+import type {
+  FeedbackVariant,
+} from "./feedback.types";
 import {
   resolveSlot,
   toMotionSlotProps,
@@ -22,11 +25,7 @@ import {
 } from "../../helpers/css";
 
 export type ToastVariant =
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "neutral";
+  FeedbackVariant;
 
 export type ToastPauseReason =
   | "pointer"

@@ -5,51 +5,49 @@ import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
+import type {
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationBadgeOffset,
+  NavigationDestinationBadgePlacement,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationDestinationLabelBehavior,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
+} from "../shared/navigation-shared.types";
+import type {
+  NavigationSelectionContext,
+  NavigationSelectionReason,
+} from "../shared/navigationSelection";
 
 export type NavigationRailPosition =
-  | "fixed"
-  | "sticky"
-  | "static";
+  NavigationSurfacePosition;
 
 export type NavigationRailPlacement =
   | "left"
   | "right";
 
 export type NavigationRailVariant =
-  | "plain"
-  | "surface"
-  | "floating";
+  NavigationSurfaceVariant;
 
 export type NavigationRailLabelBehavior =
-  | "always"
-  | "active"
-  | "never";
+  NavigationDestinationLabelBehavior;
 
 export type NavigationRailIndicator =
-  | "background"
-  | "pill"
-  | "dot"
-  | "none";
+  NavigationDestinationIndicator;
 
 export type NavigationRailDensity =
-  | "compact"
-  | "comfortable";
+  NavigationDestinationDensity;
 
 export type NavigationRailBadgeAnchor =
-  | "icon"
-  | "content"
-  | "item";
+  NavigationDestinationBadgeAnchor;
 
 export type NavigationRailBadgePlacement =
-  | "top-end"
-  | "top-center"
-  | "inline-end";
+  NavigationDestinationBadgePlacement;
 
 export type NavigationRailItemShape =
-  | "rounded"
-  | "pill"
-  | "circle"
-  | "none";
+  NavigationDestinationItemShape;
 
 export type NavigationRailAlignment =
   | "start"
@@ -57,10 +55,8 @@ export type NavigationRailAlignment =
   | "end"
   | "stretch";
 
-export interface NavigationRailBadgeOffset {
-  x?: number | string;
-  y?: number | string;
-}
+export interface NavigationRailBadgeOffset
+  extends NavigationDestinationBadgeOffset {}
 
 export type NavigationRailSlot =
   | "root"
@@ -189,11 +185,7 @@ export interface NavigationRailItemProps
 
 
 export type NavigationRailSelectionReason =
-  | "change"
-  | "reselect";
+  NavigationSelectionReason;
 
-export interface NavigationRailSelectionContext {
-  value: string;
-  previousValue: string | null;
-  reason: NavigationRailSelectionReason;
-}
+export interface NavigationRailSelectionContext
+  extends NavigationSelectionContext {}

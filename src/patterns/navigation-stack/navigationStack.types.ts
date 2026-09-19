@@ -1,6 +1,9 @@
 // src/patterns/navigation-stack/navigationStack.types.ts
 import React from "react";
-import type { UIMotionAppTransition } from "../../core/motion";
+import type {
+  UIMotionAppTransition,
+  UIMotionTransitionDirection,
+} from "../../core/motion";
 import type {
   SlotPropsMap,
   SlotStyleMap,
@@ -14,9 +17,7 @@ export type NavigationStackAnimation = Extract<
 >;
 
 export type NavigationStackTransitionDirection =
-  | "forward"
-  | "back"
-  | "replace";
+  UIMotionTransitionDirection;
 
 export type NavigationStackSlot = "root" | "screen";
 

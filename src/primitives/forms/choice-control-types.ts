@@ -1,13 +1,15 @@
+import type {
+  ControlColorScheme,
+  ControlSize,
+} from "./shared-control-types";
+
+
 export type ChoiceControlSize =
-  | "sm"
-  | "md"
-  | "lg";
+  ControlSize;
 
 
 export type ChoiceControlColorScheme =
-  | "primary"
-  | "secondary"
-  | "danger";
+  ControlColorScheme;
 
 
 export type ChoiceControlLabelPlacement =

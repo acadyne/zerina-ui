@@ -1959,3 +1959,38 @@ Tests:
 
 - `semantics-phase-e2-layout-matrix-ownership.test.ts`;
 - `semantics-phase-e2-layout-matrix-behavior.test.tsx`.
+
+## Estado E4 — tipos estructuralmente equivalentes
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+Principio:
+
+```text
+same structure
+≠ same owner
+
+same structure + same semantic concept
+→ shared owner
+```
+
+Owners nuevos:
+
+- `primitives/forms/shared-control-types.ts`;
+- `primitives/navigation/shared/navigation-shared.types.ts`;
+- `components/feedback/feedback.types.ts`.
+
+Aliases hacia owners existentes:
+
+- Popover → FloatingPlacement;
+- Drawer → UIOverlayPlacement;
+- NavigationStack → UIMotionTransitionDirection;
+- List → UIDensity;
+- BadgeSlot → StatusLabelRecipeSlot;
+- navigation selection public family types → NavigationSelectionReason/Context.
+
+Public names are preserved.
+
+Inventario residual de unions simples duplicadas: 6 grupos.
+
+Todos permanecen separados deliberadamente por diferencia semántica.

@@ -1,14 +1,18 @@
+import type {
+  ControlColorScheme,
+  ControlSize,
+} from "./shared-control-types";
+
+
 export type ActionControlSize =
-  | "sm"
-  | "md"
-  | "lg";
+  ControlSize;
+
 
 export type ActionControlVariant =
   | "solid"
   | "outline"
   | "ghost";
 
+
 export type ActionControlColorScheme =
-  | "primary"
-  | "secondary"
-  | "danger";
+  ControlColorScheme;

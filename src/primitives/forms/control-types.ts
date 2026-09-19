@@ -1,7 +1,10 @@
+import type {
+  ControlSize,
+} from "./shared-control-types";
+
+
 export type TextControlSize =
-  | "sm"
-  | "md"
-  | "lg";
+  ControlSize;
 
 
 export type TextControlVariant =

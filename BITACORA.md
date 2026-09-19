@@ -10,15 +10,15 @@
 - Fase activa: **E — semántica de slots, layout y tipos**.
 - E1 Slot precedence: **CERRADA**.
 - E2 Layout prop matrix: **CERRADA**.
-- E3 Recipe convergence: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- E4 Tipos estructuralmente equivalentes: pendiente.
+- E3 Recipe convergence: **CERRADA**.
+- E4 Tipos estructuralmente equivalentes: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 - No se asignó todavía una versión siguiente.
 
-## Validación que cerró E2
+## Validación que cerró E3
 
 ```text
-tests dirigidos E2       34/34 PASS
-Vitest completo         523/523 PASS
+tests dirigidos E3       41/41 PASS
+Vitest completo         534/534 PASS
 Chromium                  65/65 PASS
 internal-test typecheck       PASS
 package typecheck             PASS
@@ -69,180 +69,241 @@ Inline/Wrap soportan `mx/my`.
 
 No se añadieron surface props ni todo SizeProps a flow primitives.
 
-## E3 — scope
+## E3 — resultado vigente
 
-Candidato principal:
+Owner interno:
+
+`src/components/display/status-label-recipe.ts`
+
+Comparte Badge / Tag:
 
 ```text
-Badge / Tag
+solid / subtle / outline
+primary / secondary / success / warning / danger / neutral
+tokens cromáticos
+root inline frame
+content truncation
 ```
 
-Ambos duplicaban exactamente:
+Permanece local:
 
-- variants `solid/subtle/outline`;
-- schemes `primary/secondary/success/warning/danger/neutral`;
-- tokens por scheme;
-- resolución cromática por variant;
-- inline root frame común;
-- truncado del content.
+```text
+Badge density
+Tag density
+Tag icons
+Tag remove/usePress
+```
 
-## E3 — decisión
+No se fusionaron los componentes.
+
+## E4 — criterio de centralización
+
+La igualdad estructural no es suficiente.
+
+Se centraliza sólo cuando dos o más tipos expresan el mismo concepto y ya participan del mismo runtime/familia semántica.
+
+Los nombres públicos existentes se conservan mediante aliases o interfaces que extienden el owner interno.
+
+## E4 — forms
 
 Nuevo owner interno:
 
-`src/components/display/status-label-recipe.ts`
+`src/primitives/forms/shared-control-types.ts`
 
 Posee:
 
 ```text
-StatusLabelVariant
-StatusLabelColorScheme
-STATUS_LABEL_SCHEMES
-getStatusLabelVariantStyle
-statusLabelRecipe
+ControlSize
+→ sm | md | lg
+
+ControlColorScheme
+→ primary | secondary | danger
 ```
 
-La recipe devuelve estilos para:
+Aliases:
 
 ```text
-root
-content
+ActionControlSize → ControlSize
+ChoiceControlSize → ControlSize
+TextControlSize   → ControlSize
+
+ActionControlColorScheme → ControlColorScheme
+ChoiceControlColorScheme → ControlColorScheme
 ```
 
-## E3 — semántica compartida
+No se centralizan los tamaños `sm/md/lg` de CommandPalette, TopAppBar, FloatingActionButton o Progress: comparten literales pero no el mismo contrato de control.
 
-Root común:
+## E4 — navigation destination family
+
+Nuevo owner interno:
+
+`src/primitives/navigation/shared/navigation-shared.types.ts`
+
+Posee:
 
 ```text
-display inline-flex
-align-items center
-justify-content center
-gap 0.35rem
-max-width 100%
-line-height 1
-white-space nowrap
+NavigationSurfacePosition
+NavigationSurfaceVariant
+NavigationDestinationLabelBehavior
+NavigationDestinationIndicator
+NavigationDestinationDensity
+NavigationDestinationBadgeAnchor
+NavigationDestinationBadgePlacement
+NavigationDestinationItemShape
+NavigationDestinationBadgeOffset
 ```
 
-Content común:
+BottomNavigation y NavigationRail mantienen sus nombres públicos como aliases.
+
+La selección usa el owner ya existente:
+
+`src/primitives/navigation/shared/navigationSelection.ts`
 
 ```text
-min-width 0
-overflow hidden
-text-overflow ellipsis
+BottomNavigationSelectionReason
+NavigationRailSelectionReason
+→ NavigationSelectionReason
+
+BottomNavigationSelectionContext
+NavigationRailSelectionContext
+→ NavigationSelectionContext
 ```
 
-Color/variant común:
+`NavigationDestinationItem` consume los mismos types compartidos y deja de declarar sus propias copies.
+
+## E4 — aliases semánticos entre subsistemas
 
 ```text
-solid
-subtle
-outline
-×
-primary
-secondary
-success
-warning
-danger
-neutral
+PopoverPlacement
+→ FloatingPlacement
+
+DrawerPlacement
+→ UIOverlayPlacement
+
+NavigationStackTransitionDirection
+→ UIMotionTransitionDirection
+
+ListDensity
+→ UIDensity
+
+AlertVariant / ToastVariant
+→ FeedbackVariant
+
+BadgeSlot
+→ StatusLabelRecipeSlot
 ```
 
-Los valores token son exactamente los que Badge y Tag ya usaban.
+Nuevo owner de feedback:
 
-## E3 — diferencias preservadas
-
-### Badge
-
-Permanece local:
+`src/components/feedback/feedback.types.ts`
 
 ```text
-minHeight 22
-padding 0.2rem 0.55rem
-fontSize 0.75rem
-fontWeight 700
-letterSpacing 0.02em
+FeedbackVariant
+→ info | success | warning | danger | neutral
 ```
 
-### Tag
+Todos los nombres públicos actuales permanecen intactos.
 
-Permanece local:
+## E4 — coincidencias deliberadamente NO centralizadas
+
+Quedan separadas aunque hoy sean estructuralmente iguales:
 
 ```text
-minHeight 28
-padding 0.28rem 0.7rem
-fontSize 0.78rem
-fontWeight 600
-letterSpacing 0.01em
-leftIcon
-rightIcon
-removeButton
-usePress
-stopPropagation de remove
+CommandTriggerSize / TopAppBarSize / FloatingActionButtonSize / ProgressSize
+→ no son el mismo contrato de control
+
+ActionSheetTone / ProgressVariant
+→ tone de acción vs estado visual de progreso
+
+AdaptiveScaffoldSideNavigationPlacement /
+ChoiceControlLabelPlacement /
+InputAdornmentPosition
+→ distintos dominios de start/end
+
+single-slot "root" types
+→ namespace de slots por componente, no un concepto compartido
+
+PressableElement / SupportedTriggerHost
+→ contratos de host distintos y frontera core/primitives
+
+NavigationRailPlacement / UIOverlayPlacement
+→ side de layout vs edge de overlay
 ```
 
-No se fusionaron Badge y Tag.
+E4 no crea aliases genéricos sólo para reducir conteo de unions.
 
-## E3 — otros candidatos
-
-Se inspeccionaron action-control y choice-control recipes.
-
-Decisión:
-
-**MANTENER SEPARADAS**.
-
-Razón:
-
-- action controls tienen schemes y estados hover/pressed propios;
-- choice controls tienen tamaño/labelPlacement/accent state;
-- no expresan el mismo concepto que una status label.
-
-## E3 — superficie pública
-
-`statusLabelRecipe`, `StatusLabelVariant` y `StatusLabelColorScheme` permanecen internos.
-
-BadgeProps/TagProps conservan estructuralmente los mismos valores aceptados para `variant` y `colorScheme`.
-
-No se añade entrypoint ni export público.
-
-## E3 — verificación estática
+## E4 — verificación estática
 
 ```text
-schemeMap copies in Badge/Tag          0
-solidBg owners                         1
-subtleBg owners                        1
-outlineBorder owners                   1
-status-label recipe public exposure    0
-broken relative imports                0
+broken relative imports                         0
+remaining duplicate simple-union groups         6
+all 6 remaining groups explicitly intentional
+new internal owners root-public                 0
 ```
 
-## E3 — tests
+## E4 — tests
 
 Nuevos:
 
-- `semantics-phase-e3-status-label-recipe-ownership.test.ts`;
-- `semantics-phase-e3-status-label-recipe-behavior.test.tsx`.
+- `semantics-phase-e4-type-equivalence-ownership.test.ts`;
+- `semantics-phase-e4-type-equivalence.test.ts`.
 
 Cubren:
 
-- owner único de schemes/variants;
-- Badge/Tag consumen la recipe;
-- recipe permanece interna;
-- solid/subtle/outline conservan tokens;
-- root/content common frame;
-- densidades Badge/Tag siguen distintas;
-- slot styles siguen por encima de la recipe;
-- Tag remove conserva `usePress`/stopPropagation.
+- ownership de control sizes/schemes;
+- ownership de navigation destination types;
+- aliases públicos BottomNavigation / NavigationRail;
+- shared selection reason/context;
+- Popover/Floating placement;
+- Drawer/overlay placement;
+- navigation/motion direction;
+- List/viewport density;
+- Alert/Toast feedback variant;
+- Badge/status-label slots;
+- owners internos fuera de barrels públicos;
+- no-merges deliberados.
 
-## Criterio de cierre E3
+## Criterio de cierre E4 / Fase E
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests E3 dirigidos
-regresión E2
-regresión usePress Tag
+tests E4 dirigidos
 public surface
+forms public/source regression
+navigation family regression
+E3 recipe regression
+overlay floating regression
 pnpm validate
 ```
 
-Sólo después se abre E4.
+Si queda verde:
+
+1. E4 se marca **CERRADA**;
+2. Fase E completa se marca **CERRADA**;
+3. se abre Fase F — clasificación de source tests + residuos/reachability.
+
+## Corrección del candidato E4
+
+La primera validación dirigida de E4 pasó `62/62`, pero `pnpm validate` detectó un contrato fuente histórico de Block 7 desactualizado:
+
+```text
+forms-block7-source.test.ts
+→ exigía ActionControlSize como union inline
+→ exigía ActionControlColorScheme como union inline
+```
+
+Eso contradice la centralización deliberada de E4:
+
+```text
+ActionControlSize → ControlSize
+ActionControlColorScheme → ControlColorScheme
+```
+
+Corrección:
+
+- Block 7 ahora verifica los aliases nominales en `action-control-types.ts`;
+- y verifica que `shared-control-types.ts` conserve exactamente los literales públicos anteriores.
+
+No cambió código de producto ni superficie pública.

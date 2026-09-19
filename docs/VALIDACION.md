@@ -679,3 +679,69 @@ pnpm validate
 ```
 
 E3 sólo se cierra con `Validation complete.`.
+
+## Fase E3 cerrada
+
+Resultado reportado:
+
+```text
+tests dirigidos E3       41/41 PASS
+Vitest completo         534/534 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato Fase E4
+
+Verificación estática:
+
+```text
+broken relative imports                     0
+remaining duplicate simple-union groups     6
+remaining groups intentional                6/6
+new internal owners root-public             0
+```
+
+Ejecutar:
+
+```bash
+pnpm install --frozen-lockfile
+
+pnpm --filter zerina-ui-internal-test typecheck
+
+pnpm --filter zerina-ui-internal-test exec vitest run \
+  tests/semantics-phase-e4-type-equivalence-ownership.test.ts \
+  tests/semantics-phase-e4-type-equivalence.test.ts \
+  tests/public-surface-contract.test.ts \
+  tests/forms-public-api-and-source.test.ts \
+  tests/family-deduplication-contracts.test.tsx \
+  tests/semantics-phase-e3-status-label-recipe-behavior.test.tsx \
+  tests/overlay-phase-c2-floating-runtime-behavior.test.tsx
+
+pnpm validate
+```
+
+E4 y Fase E sólo se cierran con `Validation complete.`.
+
+### Corrección del candidato E4
+
+La primera corrida dirigida de E4 pasó 62/62, pero el full suite detectó un source-contract histórico de Block 7 que todavía exigía las unions inline de `ActionControlSize` y `ActionControlColorScheme`.
+
+El test se actualizó para verificar:
+
+```text
+ActionControlSize → ControlSize
+ControlSize → sm | md | lg
+
+ActionControlColorScheme → ControlColorScheme
+ControlColorScheme → primary | secondary | danger
+```
+
+No hubo cambios de producto.

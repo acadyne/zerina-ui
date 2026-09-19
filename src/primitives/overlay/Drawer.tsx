@@ -9,6 +9,9 @@ import { X } from "lucide-react";
 import {
   getLayerZIndex,
 } from "../../core/overlay";
+import type {
+  UIOverlayPlacement,
+} from "../../core/motion/motion.overlay";
 import {
   defineSlotRecipe,
   resolveContextualSlot,
@@ -26,8 +29,7 @@ import {
 } from "./shared/ModalOverlayRuntime";
 
 export type DrawerPlacement =
-  | "left"
-  | "right";
+  UIOverlayPlacement;
 
 export type DrawerSlot =
   | "root"

@@ -506,8 +506,8 @@ Extraer el frame/helper común sin cambiar API pública.
 
 - E1 Slot precedence: **CERRADA**.
 - E2 Layout prop matrix: **CERRADA**.
-- E3 Recipe convergence: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- E4 Tipos estructuralmente equivalentes: pendiente.
+- E3 Recipe convergence: **CERRADA**.
+- E4 Tipos estructuralmente equivalentes: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
 
 ## Objetivo
 

@@ -28,21 +28,11 @@ import {
 } from "../../typography";
 
 
-export type NavigationDestinationBadgeAnchor =
-  | "icon"
-  | "content"
-  | "item";
-
-export type NavigationDestinationLabelBehavior =
-  | "always"
-  | "active"
-  | "never";
-
-export type NavigationDestinationIndicator =
-  | "background"
-  | "pill"
-  | "dot"
-  | "none";
+import type {
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationIndicator,
+  NavigationDestinationLabelBehavior,
+} from "./navigation-shared.types";
 
 export type NavigationDestinationSlot =
   | "item"

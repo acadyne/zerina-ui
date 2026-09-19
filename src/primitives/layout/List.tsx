@@ -18,7 +18,12 @@ import {
   useOptionalUIMotion,
 } from "../../core/motion";
 
-export type ListDensity = "compact" | "comfortable" | "spacious";
+import type {
+  UIDensity,
+} from "../../core/viewport";
+
+export type ListDensity =
+  UIDensity;
 
 export type ListVariant = "plain" | "surface" | "outlined";
 

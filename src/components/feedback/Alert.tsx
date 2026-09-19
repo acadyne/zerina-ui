@@ -7,13 +7,17 @@ import {
   TriangleAlert,
   XCircle,
 } from "lucide-react";
+import type {
+  FeedbackVariant,
+} from "./feedback.types";
 import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
 
-export type AlertVariant = "info" | "success" | "warning" | "danger" | "neutral";
+export type AlertVariant =
+  FeedbackVariant;
 
 export type AlertSlot =
   | "root"

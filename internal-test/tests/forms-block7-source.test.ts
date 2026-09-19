@@ -66,6 +66,11 @@ describe(
         "primitives/forms/action-control-types.ts",
       );
 
+    const sharedTypes =
+      readSource(
+        "primitives/forms/shared-control-types.ts",
+      );
+
     const formsIndex =
       readSource(
         "primitives/forms/index.ts",
@@ -174,7 +179,13 @@ describe(
         expect(
           types,
         ).toMatch(
-          /export type ActionControlSize\s*=\s*\|\s*"sm"\s*\|\s*"md"\s*\|\s*"lg"/s,
+          /export type ActionControlSize\s*=\s*ControlSize/s,
+        );
+
+        expect(
+          sharedTypes,
+        ).toMatch(
+          /export type ControlSize\s*=\s*\|\s*"sm"\s*\|\s*"md"\s*\|\s*"lg"/s,
         );
 
         expect(
@@ -186,7 +197,13 @@ describe(
         expect(
           types,
         ).toMatch(
-          /export type ActionControlColorScheme\s*=\s*\|\s*"primary"\s*\|\s*"secondary"\s*\|\s*"danger"/s,
+          /export type ActionControlColorScheme\s*=\s*ControlColorScheme/s,
+        );
+
+        expect(
+          sharedTypes,
+        ).toMatch(
+          /export type ControlColorScheme\s*=\s*\|\s*"primary"\s*\|\s*"secondary"\s*\|\s*"danger"/s,
         );
       },
     );

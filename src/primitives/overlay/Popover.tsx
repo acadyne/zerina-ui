@@ -9,6 +9,7 @@ import {
   FloatingOverlayRuntime,
   FocusScope,
   getLayerZIndex,
+  type FloatingPlacement,
 } from "../../core/overlay";
 import {
   useOptionalUIMotion,
@@ -26,18 +27,7 @@ import {
 } from "../../core/interaction/trigger";
 
 type PopoverPlacement =
-  | "top"
-  | "bottom"
-  | "left"
-  | "right"
-  | "top-start"
-  | "top-end"
-  | "bottom-start"
-  | "bottom-end"
-  | "left-start"
-  | "left-end"
-  | "right-start"
-  | "right-end";
+  FloatingPlacement;
 
 export type PopoverSlot =
   | "trigger"

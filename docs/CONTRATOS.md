@@ -982,3 +982,105 @@ The shared recipe does not own Tag remove/press semantics.
 `StatusLabelVariant`, `StatusLabelColorScheme` and `statusLabelRecipe` are internal implementation contracts and are not root-public.
 
 No other recipe family was merged in E3. Action controls and choice controls have different scheme domains and interactive-state semantics, so structural similarity is not sufficient to share this owner.
+
+## 24. Type equivalence ownership
+
+Structural equality alone is not an ownership rule.
+
+Types are centralized only when they represent the same semantic concept.
+
+Public names remain stable through aliases.
+
+### Form controls
+
+Internal owner:
+
+`src/primitives/forms/shared-control-types.ts`
+
+```text
+ControlSize
+→ ActionControlSize
+→ ChoiceControlSize
+→ TextControlSize
+
+ControlColorScheme
+→ ActionControlColorScheme
+→ ChoiceControlColorScheme
+```
+
+This does not apply to unrelated `sm/md/lg` APIs such as CommandPalette, TopAppBar, FloatingActionButton or Progress.
+
+### Navigation destination family
+
+Internal owner:
+
+`src/primitives/navigation/shared/navigation-shared.types.ts`
+
+Owns the common BottomNavigation / NavigationRail domains for:
+
+- surface position;
+- surface variant;
+- label behavior;
+- indicator;
+- density;
+- badge anchor;
+- badge placement;
+- item shape;
+- badge offset.
+
+Selection reason/context remain owned by `navigationSelection.ts`.
+
+BottomNavigation and NavigationRail retain their public family-specific names as aliases/interfaces over these owners.
+
+### Runtime-owned aliases
+
+When a wrapper exposes the exact domain consumed by a lower runtime, the lower runtime owns the union:
+
+```text
+Popover placement
+→ FloatingPlacement
+
+Drawer placement
+→ UIOverlayPlacement
+
+NavigationStack transition direction
+→ UIMotionTransitionDirection
+
+List density
+→ UIDensity
+```
+
+### Feedback
+
+Internal owner:
+
+`src/components/feedback/feedback.types.ts`
+
+```text
+FeedbackVariant
+→ info / success / warning / danger / neutral
+```
+
+AlertVariant and ToastVariant remain public aliases.
+
+### Recipe slot identity
+
+Badge exposes exactly the two slots owned by the status-label recipe:
+
+```text
+BadgeSlot
+→ StatusLabelRecipeSlot
+```
+
+### Intentional non-merges
+
+Do not centralize merely coincident unions when domains may evolve independently.
+
+Examples kept separate:
+
+- component-specific `"root"` slot unions;
+- unrelated `sm/md/lg` sizes outside the control family;
+- unrelated `start/end` placement domains;
+- ActionSheet tone vs Progress variant;
+- Pressable host vs TriggerRuntime host;
+- NavigationRail layout placement vs overlay placement.

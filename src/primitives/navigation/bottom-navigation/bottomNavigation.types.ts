@@ -5,56 +5,52 @@ import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
+import type {
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationBadgeOffset,
+  NavigationDestinationBadgePlacement,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationDestinationLabelBehavior,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
+} from "../shared/navigation-shared.types";
+import type {
+  NavigationSelectionContext,
+  NavigationSelectionReason,
+} from "../shared/navigationSelection";
 
 export type BottomNavigationPosition =
-  | "fixed"
-  | "sticky"
-  | "static";
+  NavigationSurfacePosition;
 
 export type BottomNavigationVariant =
-  | "plain"
-  | "surface"
-  | "floating";
+  NavigationSurfaceVariant;
 
 export type BottomNavigationLabelBehavior =
-  | "always"
-  | "active"
-  | "never";
+  NavigationDestinationLabelBehavior;
 
 export type BottomNavigationIndicator =
-  | "background"
-  | "pill"
-  | "dot"
-  | "none";
+  NavigationDestinationIndicator;
 
 export type BottomNavigationDensity =
-  | "compact"
-  | "comfortable";
+  NavigationDestinationDensity;
 
 export type BottomNavigationBadgeAnchor =
-  | "icon"
-  | "content"
-  | "item";
+  NavigationDestinationBadgeAnchor;
 
 export type BottomNavigationBadgePlacement =
-  | "top-end"
-  | "top-center"
-  | "inline-end";
+  NavigationDestinationBadgePlacement;
 
 export type BottomNavigationItemShape =
-  | "rounded"
-  | "pill"
-  | "circle"
-  | "none";
+  NavigationDestinationItemShape;
 
 export type BottomNavigationIconPosition =
   | "top"
   | "start";
 
-export interface BottomNavigationBadgeOffset {
-  x?: number | string;
-  y?: number | string;
-}
+export interface BottomNavigationBadgeOffset
+  extends NavigationDestinationBadgeOffset {}
 
 export type BottomNavigationSlot =
   | "root"
@@ -175,11 +171,7 @@ export interface BottomNavigationItemProps
 }
 
 export type BottomNavigationSelectionReason =
-  | "change"
-  | "reselect";
+  NavigationSelectionReason;
 
-export interface BottomNavigationSelectionContext {
-  value: string;
-  previousValue: string | null;
-  reason: BottomNavigationSelectionReason;
-}
+export interface BottomNavigationSelectionContext
+  extends NavigationSelectionContext {}
