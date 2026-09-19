@@ -15,6 +15,10 @@ import {
   it,
 } from "vitest";
 
+import {
+  cssSize,
+} from "../../src/helpers/css";
+
 const ROOT =
   resolve(
     process.cwd(),
@@ -42,6 +46,32 @@ function readSource(
 describe(
   "layout and responsive foundation ownership",
   () => {
+    it(
+      "normalizes optional CSS sizes through one union-safe contract",
+      () => {
+        const normalize = (
+          value: number | string | undefined
+        ): string | undefined =>
+          cssSize(value);
+
+        expect(
+          normalize(12)
+        ).toBe(
+          "12px"
+        );
+
+        expect(
+          normalize("2rem")
+        ).toBe(
+          "2rem"
+        );
+
+        expect(
+          normalize(undefined)
+        ).toBeUndefined();
+      }
+    );
+
     it(
       "keeps a single cssSize implementation",
       () => {

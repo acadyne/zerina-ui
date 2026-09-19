@@ -17,14 +17,6 @@ export function cssVar(name: string, fallback?: string): string {
 }
 
 export function cssSize(
-  value: number | string
-): string;
-
-export function cssSize(
-  value: undefined
-): undefined;
-
-export function cssSize(
   value: number | string | undefined
 ): string | undefined {
   if (value === undefined) {
