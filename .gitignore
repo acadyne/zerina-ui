@@ -12,3 +12,4 @@ internal-test/dist/
 internal-test/test-results/
 internal-test/playwright-report/
 internal-test/coverage/
+**.zip
