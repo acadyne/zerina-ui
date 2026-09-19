@@ -1,13 +1,16 @@
 // src/utils/withDividers.tsx
 import React from "react";
+import {
+  hasRenderableNode,
+} from "../core/react/nodePresence";
 
 export function withDividers(
   children: React.ReactNode,
   divider?: React.ReactNode
 ): React.ReactNode[] {
-  const items = React.Children.toArray(children).filter(Boolean);
+  const items = React.Children.toArray(children);
 
-  if (!divider || items.length <= 1) {
+  if (!hasRenderableNode(divider) || items.length <= 1) {
     return items;
   }
 

@@ -3,6 +3,16 @@ import React from "react";
 import { Search } from "lucide-react";
 import { usePress } from "../../core/interaction";
 import {
+  composeEventHandlerChain,
+} from "../../core/interaction/events";
+import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+import {
+  useControllableValue,
+} from "../../core/react/useControllableValue";
+import {
   cssSize,
   resolveMergedSlot,
   resolveSlot,
@@ -154,7 +164,7 @@ function itemMatchesSearch(item: CommandPaletteItem, search: string): boolean {
 }
 
 function getCommandPaletteDomId(prefix: string, id: string): string {
-  return `${prefix}-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  return `${prefix}-${encodeURIComponent(id)}`;
 }
 
 function groupItems(items: CommandPaletteItem[]): Array<{
@@ -208,8 +218,16 @@ export function CommandPalette({
   const inputId = `${idPrefix}-input`;
   const listId = `${idPrefix}-list`;
 
-  const [internalValue, setInternalValue] = React.useState(defaultValue);
-  const searchValue = value ?? internalValue;
+  const {
+    value:
+      searchValue,
+    setUncontrolledValue:
+      setInternalValue,
+  } =
+    useControllableValue<string>({
+      value,
+      defaultValue,
+    });
 
   const filteredItems = React.useMemo(
     () => items.filter((item) => itemMatchesSearch(item, searchValue)),
@@ -237,13 +255,13 @@ export function CommandPalette({
 
   const setSearchValue = React.useCallback(
     (nextValue: string) => {
-      if (value === undefined) {
-        setInternalValue(nextValue);
-      }
-
+      setInternalValue(nextValue);
       onValueChange?.(nextValue);
     },
-    [onValueChange, value]
+    [
+      onValueChange,
+      setInternalValue,
+    ]
   );
 
   const selectItem = React.useCallback(
@@ -378,14 +396,26 @@ export function CommandPalette({
    * El slot conserva presentación, atributos auxiliares y observadores.
    * La semántica combobox permanece bajo control del componente.
    *
-   * onChange observa después de actualizar el estado; onKeyDown observa
-   * primero para poder cancelar la navegación mediante preventDefault().
+   * Los eventos cancelables respetan la precedencia local slot -> internal:
+   * preventDefault() en el slot impide el commit de búsqueda o navegación.
    */
   const {
     onChange: inputSlotOnChange,
     onKeyDown: inputSlotOnKeyDown,
     ...inputSlotRest
   } = inputSlot;
+
+  const inputChangeHandler =
+    composeEventHandlerChain<
+      React.ChangeEvent<HTMLInputElement>
+    >(
+      inputSlotOnChange,
+      (event) => {
+        setSearchValue(
+          event.target.value,
+        );
+      },
+    );
 
   const inputAriaLabel =
     inputSlot["aria-label"] ?? "Buscar comandos";
@@ -465,10 +495,9 @@ export function CommandPalette({
               value={searchValue}
               placeholder={placeholder}
               leftPadding="2.35rem"
-              onChange={(event) => {
-                setSearchValue(event.target.value);
-                inputSlotOnChange?.(event);
-              }}
+              onChange={
+                inputChangeHandler
+              }
               onKeyDown={(event) => {
                 inputSlotOnKeyDown?.(event);
 
@@ -501,7 +530,11 @@ export function CommandPalette({
         </DialogHeader>
 
         <DialogBody {...bodySlot}>
-          <Box {...listSlot}>
+          <Box
+            {...listSlot}
+            id={listId}
+            role="listbox"
+          >
             {groupedItems.length > 0 ? (
               groupedItems.map((group) => {
                 const groupSlot = resolveSlot<CommandPaletteSlot>({
@@ -678,7 +711,9 @@ export function CommandPalette({
                             type="button"
                             id={itemDomId}
                             role="option"
+                            tabIndex={-1}
                             aria-selected={active}
+                            aria-disabled={item.disabled || undefined}
                             disabled={item.disabled}
                             data-ui-command-palette-item=""
                             data-active={active || undefined}
@@ -709,7 +744,7 @@ export function CommandPalette({
                             }}
                           >
                             <Flex align="center" gap="0.7rem" {...itemContentSlot}>
-                              {item.icon ? (
+                              {hasRenderableNode(item.icon) ? (
                                 <Box {...itemIconSlot}>{item.icon}</Box>
                               ) : null}
 
@@ -723,7 +758,7 @@ export function CommandPalette({
                                   {item.label}
                                 </Typography>
 
-                                {item.description ? (
+                                {hasNonEmptyRenderableNode(item.description) ? (
                                   <Typography
                                     as="div"
                                     size="xs"
@@ -907,7 +942,7 @@ export function CommandTrigger({
         </Box>
       </Flex>
 
-      {shortcut ? (
+      {hasNonEmptyRenderableNode(shortcut) ? (
         <Box
           as="span"
           aria-hidden="true"

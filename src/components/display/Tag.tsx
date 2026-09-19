@@ -1,5 +1,8 @@
 // src/components/display/Tag.tsx
 import React from "react";
+import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 
 import {
   usePress,
@@ -430,7 +433,9 @@ export const Tag =
           {...rest}
         >
           {
-            leftIcon
+            hasRenderableNode(
+              leftIcon
+            )
               ? (
                   <span
                     {...leftIconSlot}
@@ -450,7 +455,9 @@ export const Tag =
 
 
           {
-            rightIcon
+            hasRenderableNode(
+              rightIcon
+            )
               ? (
                   <span
                     {...rightIconSlot}

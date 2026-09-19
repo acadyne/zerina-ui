@@ -409,9 +409,9 @@ describe(
         expect(
           calls,
         ).toEqual([
+          "direct",
           "slot",
           "value",
-          "direct",
         ]);
       },
     );

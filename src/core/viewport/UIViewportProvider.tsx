@@ -1,5 +1,8 @@
 // src/core/viewport/UIViewportProvider.tsx
 import React from "react";
+import {
+  useControllableValue,
+} from "../react/useControllableValue";
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import { useMediaQuery, useViewportSize } from "../dom";
 import {
@@ -290,12 +293,19 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   const writtenAttributesRef =
     React.useRef<ViewportDocumentAttributeValues | null>(null);
 
-  const isModeControlled = mode !== undefined;
+  const {
+    value:
+      currentMode,
+    setUncontrolledValue:
+      setInternalMode,
+  } =
+    useControllableValue<UIViewportMode>({
+      value:
+        mode,
 
-  const [internalMode, setInternalMode] =
-    React.useState<UIViewportMode>(defaultMode);
-
-  const currentMode = isModeControlled ? mode : internalMode;
+      defaultValue:
+        defaultMode,
+    });
 
   const resolvedBreakpoints = React.useMemo<UIViewportBreakpoints>(
     () => ({
@@ -336,13 +346,17 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
       const nextMode =
         typeof action === "function" ? action(currentMode) : action;
 
-      if (!isModeControlled) {
-        setInternalMode(nextMode);
-      }
+      setInternalMode(
+        nextMode
+      );
 
       onModeChange?.(nextMode);
     },
-    [currentMode, isModeControlled, onModeChange]
+    [
+      currentMode,
+      onModeChange,
+      setInternalMode,
+    ]
   );
 
   const setAutoMode = React.useCallback(() => {

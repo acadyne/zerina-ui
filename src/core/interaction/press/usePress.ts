@@ -400,6 +400,7 @@ export function usePress<TElement extends HTMLElement>({
       keyboardActivationRef.current = false;
 
       if (
+        event.defaultPrevented ||
         disabled ||
         !isEventOwnedByNode(
           event,
@@ -485,7 +486,10 @@ export function usePress<TElement extends HTMLElement>({
 
       onKeyUp: composeEventHandlers(
         onKeyUp,
-        internalKeyUp
+        internalKeyUp,
+        {
+          checkDefaultPrevented: false,
+        }
       ),
 
       onClick: composeEventHandlers(

@@ -199,27 +199,16 @@ describe(
         );
 
 
-        const focusChain =
-          source.indexOf(
-            "composeEventHandlers(\n          onFocus,\n          slotOnFocus,",
-          );
-
-        const blurChain =
-          source.indexOf(
-            "composeEventHandlers(\n          onBlur,\n          slotOnBlur,",
-          );
-
-
         expect(
-          focusChain,
-        ).toBeGreaterThanOrEqual(
-          0,
+          source,
+        ).toMatch(
+          /composeEventHandlers\(\s*onFocus,\s*slotOnFocus,/,
         );
 
         expect(
-          blurChain,
-        ).toBeGreaterThanOrEqual(
-          0,
+          source,
+        ).toMatch(
+          /composeEventHandlers\(\s*onBlur,\s*slotOnBlur,/,
         );
       },
     );

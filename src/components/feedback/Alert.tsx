@@ -1,6 +1,10 @@
 // src/components/feedback/Alert.tsx
 import React from "react";
 import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+import {
   AlertCircle,
   CheckCircle2,
   Info,
@@ -214,7 +218,14 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         fontSize: "var(--ui-font-size-sm)",
         lineHeight: 1.45,
         color:
-          title || description ? "var(--ui-text-muted)" : "var(--ui-text)",
+          hasNonEmptyRenderableNode(
+            title
+          ) ||
+          hasNonEmptyRenderableNode(
+            description
+          )
+            ? "var(--ui-text-muted)"
+            : "var(--ui-text)",
       },
     });
 
@@ -233,16 +244,16 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           <div {...iconSlot}>{icon ?? config.icon}</div>
 
           <div {...contentSlot}>
-            {title ? <div {...titleSlot}>{title}</div> : null}
+            {hasNonEmptyRenderableNode(title) ? <div {...titleSlot}>{title}</div> : null}
 
-            {description ? (
+            {hasNonEmptyRenderableNode(description) ? (
               <div {...descriptionSlot}>{description}</div>
             ) : null}
 
-            {children ? <div {...childrenSlot}>{children}</div> : null}
+            {hasRenderableNode(children) ? <div {...childrenSlot}>{children}</div> : null}
           </div>
 
-          {action ? <div {...actionSlot}>{action}</div> : null}
+          {hasRenderableNode(action) ? <div {...actionSlot}>{action}</div> : null}
         </div>
       </div>
     );

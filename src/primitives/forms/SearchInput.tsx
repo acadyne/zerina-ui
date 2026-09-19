@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import {
+  composeEventHandlerChain,
   composeEventHandlers,
 } from "../../core/interaction/events/composeEventHandlers";
 
@@ -281,9 +282,11 @@ export const SearchInput =
 
 
       const handleChange =
-        composeEventHandlers<
+        composeEventHandlerChain<
           React.ChangeEvent<HTMLInputElement>
         >(
+          onChange,
+
           slotOnChange as
             | React.ChangeEventHandler<HTMLInputElement>
             | undefined,
@@ -299,10 +302,6 @@ export const SearchInput =
 
             onValueChange?.(
               nextValue
-            );
-
-            onChange?.(
-              event
             );
           }
         );

@@ -143,8 +143,8 @@ describe(
 
         expect(
           presence,
-        ).toContain(
-          'motionKey =\n    "motion-presence"',
+        ).toMatch(
+          /motionKey\s*=\s*"motion-presence"/,
         );
 
 

@@ -1,6 +1,9 @@
 // src/components/media/Avatar.tsx
 import React, { forwardRef, useMemo, useState } from "react";
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -245,9 +248,9 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
               imageOnError?.(event);
             }}
           />
-        ) : fallback ? (
+        ) : hasRenderableNode(fallback) ? (
           <span {...fallbackSlot}>{fallback}</span>
-        ) : icon ? (
+        ) : hasRenderableNode(icon) ? (
           <span {...iconSlot}>{icon}</span>
         ) : (
           <span {...initialsSlot}>{initials}</span>

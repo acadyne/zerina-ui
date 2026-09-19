@@ -1,6 +1,9 @@
 // src/primitives/layout/Inline.tsx
 import React, { forwardRef, useMemo } from "react";
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+import {
   getMinWidthFixStyles,
   getSpacingStyles,
 } from "../../helpers";
@@ -81,7 +84,7 @@ export const Inline = forwardRef<HTMLDivElement, InlineProps>(
           flexWrap: wrap,
           alignItems: align,
           justifyContent: justify,
-          gap: divider ? undefined : gap,
+          gap: hasRenderableNode(divider) ? undefined : gap,
 
           width: w,
           minHeight: minH,

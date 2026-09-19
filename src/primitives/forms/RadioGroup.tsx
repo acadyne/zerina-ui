@@ -256,6 +256,30 @@ export const RadioGroup =
           ]
         );
 
+      const semanticRootProps = {
+        id:
+          fieldControl.id,
+
+        role:
+          "radiogroup" as const,
+
+        "aria-invalid":
+          fieldControl.ariaInvalid,
+
+        "aria-required":
+          fieldControl.ariaRequired,
+
+        "aria-readonly":
+          fieldControl.ariaReadOnly,
+
+        "aria-labelledby":
+          fieldControl.ariaLabelledBy,
+
+        "aria-describedby":
+          fieldControl.ariaDescribedBy,
+      };
+
+
       const rootSlot =
         resolveSlot<RadioGroupSlot>({
           slot:
@@ -268,11 +292,7 @@ export const RadioGroup =
           style,
 
           baseProps: {
-            id:
-              fieldControl.id,
-
-            role:
-              "radiogroup",
+            ...semanticRootProps,
 
             "data-ui":
               "radio-group",
@@ -292,21 +312,6 @@ export const RadioGroup =
             "data-readonly":
               fieldControl.readOnly ||
               undefined,
-
-            "aria-invalid":
-              fieldControl.ariaInvalid,
-
-            "aria-required":
-              fieldControl.ariaRequired,
-
-            "aria-readonly":
-              fieldControl.ariaReadOnly,
-
-            "aria-labelledby":
-              fieldControl.ariaLabelledBy,
-
-            "aria-describedby":
-              fieldControl.ariaDescribedBy,
           },
         });
 
@@ -317,6 +322,7 @@ export const RadioGroup =
           <Stack
             {...rest}
             {...rootSlot}
+            {...semanticRootProps}
 
             ref={ref}
 

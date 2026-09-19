@@ -386,22 +386,22 @@ export const Select =
             composeEventHandlers<
               React.FocusEvent<HTMLSelectElement>
             >(
+              onFocus,
+
               slotOnFocus as
                 | React.FocusEventHandler<HTMLSelectElement>
-                | undefined,
-
-              onFocus
+                | undefined
             ),
 
           onBlur:
             composeEventHandlers<
               React.FocusEvent<HTMLSelectElement>
             >(
+              onBlur,
+
               slotOnBlur as
                 | React.FocusEventHandler<HTMLSelectElement>
-                | undefined,
-
-              onBlur
+                | undefined
             ),
         });
 
@@ -409,11 +409,11 @@ export const Select =
         composeEventHandlers<
           React.ChangeEvent<HTMLSelectElement>
         >(
+          onChange,
+
           slotOnChange as
             | React.ChangeEventHandler<HTMLSelectElement>
-            | undefined,
-
-          onChange
+            | undefined
         );
 
       const inputGroup =

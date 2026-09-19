@@ -1,6 +1,9 @@
 // src/components/theme-switcher/ThemeSwitcher.tsx
 
 import React from "react";
+import {
+  hasNonEmptyRenderableNode,
+} from "../../core/react/nodePresence";
 
 import {
   Button,
@@ -100,7 +103,9 @@ export function ThemeSwitcher({
           className={className}
           style={style}
         >
-          {label
+          {hasNonEmptyRenderableNode(
+            label
+          )
             ? (
                 <>
                   {label}:{" "}

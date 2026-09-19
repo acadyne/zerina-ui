@@ -107,6 +107,8 @@ describe(
       "primitives/forms/SearchInput.tsx",
       "primitives/forms/RadioGroup.tsx",
       "core/motion/UIMotionProvider.tsx",
+      "patterns/command/CommandPalette.tsx",
+      "core/viewport/UIViewportProvider.tsx",
       "primitives/navigation/shared/navigationSelection.ts",
       "primitives/forms/use-choice-control.ts",
     ])(

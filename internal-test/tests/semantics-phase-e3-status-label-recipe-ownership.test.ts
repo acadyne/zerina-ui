@@ -37,6 +37,17 @@ function readSource(
 }
 
 
+function normalizeSource(
+  source:
+    string,
+): string {
+  return source.replace(
+    /\s+/g,
+    " ",
+  );
+}
+
+
 describe(
   "Phase E3 status-label recipe ownership",
   () => {
@@ -127,17 +138,23 @@ describe(
           );
 
 
+        const normalized =
+          normalizeSource(
+            source,
+          );
+
+
         for (
           const semantic of [
-            "minHeight:\n              22",
-            'padding:\n              "0.2rem 0.55rem"',
-            'fontSize:\n              "0.75rem"',
-            "fontWeight:\n              700",
-            'letterSpacing:\n              "0.02em"',
+            "minHeight: 22",
+            'padding: "0.2rem 0.55rem"',
+            'fontSize: "0.75rem"',
+            "fontWeight: 700",
+            'letterSpacing: "0.02em"',
           ]
         ) {
           expect(
-            source,
+            normalized,
           ).toContain(
             semantic,
           );
@@ -155,20 +172,26 @@ describe(
           );
 
 
+        const normalized =
+          normalizeSource(
+            source,
+          );
+
+
         for (
           const semantic of [
             "usePress",
             "removeButton",
             "showRemove",
-            "minHeight:\n              28",
-            'padding:\n              "0.28rem 0.7rem"',
-            'fontSize:\n              "0.78rem"',
-            "fontWeight:\n              600",
-            'letterSpacing:\n              "0.01em"',
+            "minHeight: 28",
+            'padding: "0.28rem 0.7rem"',
+            'fontSize: "0.78rem"',
+            "fontWeight: 600",
+            'letterSpacing: "0.01em"',
           ]
         ) {
           expect(
-            source,
+            normalized,
           ).toContain(
             semantic,
           );

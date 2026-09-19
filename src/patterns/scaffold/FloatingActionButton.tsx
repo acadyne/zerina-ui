@@ -9,6 +9,10 @@ import { Pressable } from "../../primitives/forms";
 import { Box } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
 import type { UIPressEvent } from "../../core/interaction";
+import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import { getScaffoldLocalZIndex } from "./scaffoldLayers";
 
 export type FloatingActionButtonSize = "sm" | "md" | "lg";
@@ -181,7 +185,8 @@ export const FloatingActionButton = React.forwardRef<
       icon = "+",
       label,
       children,
-      extended = Boolean(label ?? children),
+      extended:
+        extendedProp,
       size = "md",
       variant = "solid",
       placement = "inline",
@@ -199,6 +204,13 @@ export const FloatingActionButton = React.forwardRef<
   ) => {
     const sizeStyles = FLOATING_ACTION_BUTTON_SIZE_MAP[size];
     const resolvedLabel = label ?? children;
+    const hasLabel =
+      hasNonEmptyRenderableNode(
+        resolvedLabel
+      );
+    const extended =
+      extendedProp ??
+      hasLabel;
 
     const rootSlot = resolveSlot<FloatingActionButtonSlot>({
       slot: "root",
@@ -286,9 +298,9 @@ export const FloatingActionButton = React.forwardRef<
         }}
         onPress={onPress}
       >
-        {icon ? <Box {...iconSlot}>{icon}</Box> : null}
+        {hasRenderableNode(icon) ? <Box {...iconSlot}>{icon}</Box> : null}
 
-        {extended && resolvedLabel ? (
+        {extended && hasLabel ? (
           <Typography
             as="span"
             size={sizeStyles.labelSize}

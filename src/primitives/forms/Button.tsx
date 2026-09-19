@@ -19,6 +19,10 @@ import {
 } from "../../core/interaction/press/usePressSlotBridge";
 
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+
+import {
   getSpinnerTransition,
   getSpinnerVariants,
   shouldAnimateSpinner,
@@ -523,7 +527,7 @@ export const Button =
             </>
           ) : (
             <>
-              {leftIcon ? (
+              {hasRenderableNode(leftIcon) ? (
                 <span
                   {...leftIconSlot}
                 >
@@ -537,7 +541,7 @@ export const Button =
                 {children}
               </span>
 
-              {rightIcon ? (
+              {hasRenderableNode(rightIcon) ? (
                 <span
                   {...rightIconSlot}
                 >

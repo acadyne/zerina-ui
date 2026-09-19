@@ -79,33 +79,33 @@ describe(
 
         expect(
           action,
-        ).toContain(
-          "ActionControlSize =\n  ControlSize",
+        ).toMatch(
+          /ActionControlSize\s*=\s*ControlSize/,
         );
 
         expect(
           choice,
-        ).toContain(
-          "ChoiceControlSize =\n  ControlSize",
+        ).toMatch(
+          /ChoiceControlSize\s*=\s*ControlSize/,
         );
 
         expect(
           text,
-        ).toContain(
-          "TextControlSize =\n  ControlSize",
+        ).toMatch(
+          /TextControlSize\s*=\s*ControlSize/,
         );
 
 
         expect(
           action,
-        ).toContain(
-          "ActionControlColorScheme =\n  ControlColorScheme",
+        ).toMatch(
+          /ActionControlColorScheme\s*=\s*ControlColorScheme/,
         );
 
         expect(
           choice,
-        ).toContain(
-          "ChoiceControlColorScheme =\n  ControlColorScheme",
+        ).toMatch(
+          /ChoiceControlColorScheme\s*=\s*ControlColorScheme/,
         );
       },
     );
@@ -237,44 +237,44 @@ describe(
 
         expect(
           popover,
-        ).toContain(
-          "PopoverPlacement =\n  FloatingPlacement",
+        ).toMatch(
+          /PopoverPlacement\s*=\s*FloatingPlacement/,
         );
 
         expect(
           drawer,
-        ).toContain(
-          "DrawerPlacement =\n  UIOverlayPlacement",
+        ).toMatch(
+          /DrawerPlacement\s*=\s*UIOverlayPlacement/,
         );
 
         expect(
           stack,
-        ).toContain(
-          "NavigationStackTransitionDirection =\n  UIMotionTransitionDirection",
+        ).toMatch(
+          /NavigationStackTransitionDirection\s*=\s*UIMotionTransitionDirection/,
         );
 
         expect(
           list,
-        ).toContain(
-          "ListDensity =\n  UIDensity",
+        ).toMatch(
+          /ListDensity\s*=\s*UIDensity/,
         );
 
         expect(
           alert,
-        ).toContain(
-          "AlertVariant =\n  FeedbackVariant",
+        ).toMatch(
+          /AlertVariant\s*=\s*FeedbackVariant/,
         );
 
         expect(
           toast,
-        ).toContain(
-          "ToastVariant =\n  FeedbackVariant",
+        ).toMatch(
+          /ToastVariant\s*=\s*FeedbackVariant/,
         );
 
         expect(
           badge,
-        ).toContain(
-          "BadgeSlot =\n  StatusLabelRecipeSlot",
+        ).toMatch(
+          /BadgeSlot\s*=\s*StatusLabelRecipeSlot/,
         );
       },
     );

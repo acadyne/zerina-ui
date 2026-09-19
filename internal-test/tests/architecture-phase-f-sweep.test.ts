@@ -451,43 +451,65 @@ describe(
 
 
     it(
-      "keeps controlled-state ownership on the three deliberate owners",
+      "keeps simple controlled state on the shared owner and specialized engines explicit",
       () => {
-        const owners =
-          collectFiles(
-            SRC,
-            TS_EXTENSIONS,
-          )
-            .filter(
-              (
-                file,
-              ) =>
-                /\b(?:const|let)\s+isControlled\b/.test(
-                  readFileSync(
-                    file,
-                    "utf8",
-                  ),
-                ),
-            )
-            .map(
-              (
-                file,
-              ) =>
-                relative(
-                  ROOT,
-                  file,
-                ),
-            )
-            .sort();
+        const simpleConsumers = [
+          "src/patterns/command/CommandPalette.tsx",
+          "src/core/viewport/UIViewportProvider.tsx",
+          "src/primitives/forms/SearchInput.tsx",
+          "src/primitives/forms/RadioGroup.tsx",
+          "src/primitives/navigation/NavigationList.tsx",
+        ];
 
 
-        expect(
-          owners,
-        ).toEqual([
-          "src/core/react/useControllableValue.ts",
+        for (
+          const relativePath
+          of simpleConsumers
+        ) {
+          const source =
+            readFileSync(
+              resolve(
+                ROOT,
+                relativePath,
+              ),
+              "utf8",
+            );
+
+
+          expect(
+            source,
+          ).toContain(
+            "useControllableValue",
+          );
+        }
+
+
+        const specializedOwners = [
           "src/patterns/navigation-stack/useNavigationEntries.ts",
           "src/patterns/scaffold/adaptive-scaffold/AdaptiveScaffold.tsx",
-        ]);
+        ];
+
+
+        for (
+          const relativePath
+          of specializedOwners
+        ) {
+          const source =
+            readFileSync(
+              resolve(
+                ROOT,
+                relativePath,
+              ),
+              "utf8",
+            );
+
+
+          expect(
+            source,
+          ).not.toContain(
+            "useControllableValue",
+          );
+        }
       },
     );
 

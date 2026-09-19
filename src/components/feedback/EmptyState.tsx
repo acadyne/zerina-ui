@@ -1,5 +1,9 @@
 // src/components/feedback/EmptyState.tsx
 import React from "react";
+import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import { Button } from "../../primitives/forms";
 import {
   resolveSlot,
@@ -249,7 +253,10 @@ export const EmptyState = React.forwardRef<
     const resolvedAction =
       action ??
       (
-        actionLabel && onAction
+        hasNonEmptyRenderableNode(
+          actionLabel
+        ) &&
+        onAction
           ? (
               <Button onPress={onAction}>
                 {actionLabel}
@@ -265,25 +272,25 @@ export const EmptyState = React.forwardRef<
         {...rest}
       >
         <div {...contentSlot}>
-          {icon ? (
+          {hasRenderableNode(icon) ? (
             <div {...iconSlot}>
               {icon}
             </div>
           ) : null}
 
-          {title ? (
+          {hasNonEmptyRenderableNode(title) ? (
             <TitleElement {...titleSlot}>
               {title}
             </TitleElement>
           ) : null}
 
-          {description ? (
+          {hasNonEmptyRenderableNode(description) ? (
             <div {...descriptionSlot}>
               {description}
             </div>
           ) : null}
 
-          {resolvedAction ? (
+          {hasRenderableNode(resolvedAction) ? (
             <div {...actionSlot}>
               {resolvedAction}
             </div>

@@ -1,5 +1,8 @@
 // src/components/feedback/Progress.tsx
 import React from "react";
+import {
+  hasNonEmptyRenderableNode,
+} from "../../core/react/nodePresence";
 import { motion } from "framer-motion";
 import {
   getProgressIndeterminateVariants,
@@ -109,6 +112,10 @@ export const Progress = React.forwardRef<
   ) => {
     const motionState = useOptionalUIMotion();
     const generatedLabelId = React.useId();
+    const hasLabel =
+      hasNonEmptyRenderableNode(
+        label
+      );
 
     const safeValue = clampProgress(
       value,
@@ -164,6 +171,31 @@ export const Progress = React.forwardRef<
       },
     });
 
+    const semanticRootProps = {
+      role: "progressbar" as const,
+
+      "aria-labelledby":
+        hasLabel
+          ? generatedLabelId
+          : undefined,
+
+      "aria-valuemin":
+        indeterminate
+          ? undefined
+          : min,
+
+      "aria-valuemax":
+        indeterminate
+          ? undefined
+          : max,
+
+      "aria-valuenow":
+        indeterminate
+          ? undefined
+          : safeValue,
+    };
+
+
     const rootSlot = resolveSlot<ProgressSlot>({
       slot: "root",
       styles,
@@ -172,27 +204,7 @@ export const Progress = React.forwardRef<
       style,
 
       baseProps: {
-        role: "progressbar",
-
-        "aria-labelledby":
-          label
-            ? labelSlot.id
-            : undefined,
-
-        "aria-valuemin":
-          indeterminate
-            ? undefined
-            : min,
-
-        "aria-valuemax":
-          indeterminate
-            ? undefined
-            : max,
-
-        "aria-valuenow":
-          indeterminate
-            ? undefined
-            : safeValue,
+        ...semanticRootProps,
 
         "data-ui-progress": "",
 
@@ -295,12 +307,16 @@ export const Progress = React.forwardRef<
       <div
         {...rest}
         {...rootSlot}
+        {...semanticRootProps}
         ref={ref}
       >
-        {label || showValue ? (
+        {hasLabel || showValue ? (
           <div {...labelRowSlot}>
-            {label ? (
-              <span {...labelSlot}>
+            {hasLabel ? (
+              <span
+                {...labelSlot}
+                id={generatedLabelId}
+              >
                 {label}
               </span>
             ) : (

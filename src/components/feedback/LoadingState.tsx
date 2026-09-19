@@ -1,6 +1,9 @@
 // src/components/feedback/LoadingState.tsx
 import React from "react";
 import {
+  hasNonEmptyRenderableNode,
+} from "../../core/react/nodePresence";
+import {
   resolveSlot,
   toMotionSlotProps,
   type SlotPropsMap,
@@ -206,7 +209,7 @@ export const LoadingState = React.forwardRef<
           decorative
         />
 
-          {label ? (
+          {hasNonEmptyRenderableNode(label) ? (
             <div {...labelSlot}>
               {label}
             </div>

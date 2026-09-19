@@ -1,6 +1,9 @@
 // // src/primitives/layout/Stack.tsx
 import React, { forwardRef, useMemo } from "react";
 import {
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
+import {
   getMinWidthFixStyles,
   getSizeStyles,
   getSpacingStyles,
@@ -87,7 +90,7 @@ export const Stack = forwardRef<HTMLDivElement, StackProps>(
         style={{
           display: inline ? "inline-flex" : "flex",
           flexDirection: direction,
-          gap: divider ? undefined : spacing,
+          gap: hasRenderableNode(divider) ? undefined : spacing,
           alignItems: align,
           justifyContent: justify,
           flexWrap: wrap,

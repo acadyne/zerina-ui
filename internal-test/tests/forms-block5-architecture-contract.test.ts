@@ -281,7 +281,7 @@ describe(
         expect(
           searchInput,
         ).toMatch(
-          /composeEventHandlers<[\s\S]*?slotOnChange[\s\S]*?onValueChange\?\.\([\s\S]*?onChange\?\.\(/,
+          /composeEventHandlerChain<[\s\S]*?onChange[\s\S]*?slotOnChange[\s\S]*?onValueChange\?\.\(/,
         );
 
         expect(

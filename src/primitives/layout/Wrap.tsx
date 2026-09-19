@@ -72,7 +72,7 @@ export const Wrap = forwardRef<HTMLDivElement, WrapProps>(
     },
     ref
   ) => {
-    const items = useMemo(() => React.Children.toArray(children).filter(Boolean), [children]);
+    const items = useMemo(() => React.Children.toArray(children), [children]);
 
     return (
       <div

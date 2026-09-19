@@ -13,6 +13,14 @@ import {
   isDOMNode,
 } from "../../core/dom";
 import { usePress } from "../../core/interaction";
+import {
+  composeEventHandlerChain,
+  composeEventHandlers,
+} from "../../core/interaction/events/composeEventHandlers";
+import {
+  hasNonEmptyRenderableNode,
+  hasRenderableNode,
+} from "../../core/react/nodePresence";
 import { useOptionalUIMotion } from "../../core/motion";
 import type {
   FeedbackVariant,
@@ -299,6 +307,72 @@ export const Toast = React.forwardRef<
       ...restWithoutInteractionHandlers
     } = rest;
 
+    const rootPointerEnterHandler =
+      composeEventHandlerChain<
+        React.PointerEvent<HTMLDivElement>
+      >(
+        rootOnPointerEnter,
+        slotOnRootPointerEnter,
+        () => {
+          handlePointerEnter();
+        }
+      );
+
+    const rootPointerLeaveHandler =
+      composeEventHandlers<
+        React.PointerEvent<HTMLDivElement>
+      >(
+        rootOnPointerLeave,
+        composeEventHandlers<
+          React.PointerEvent<HTMLDivElement>
+        >(
+          slotOnRootPointerLeave,
+          () => {
+            handlePointerLeave();
+          },
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+        {
+          checkDefaultPrevented:
+            false,
+        }
+      );
+
+    const rootFocusCaptureHandler =
+      composeEventHandlerChain<
+        React.FocusEvent<HTMLDivElement>
+      >(
+        rootOnFocusCapture,
+        slotOnRootFocusCapture,
+        () => {
+          handleFocusCapture();
+        }
+      );
+
+    const rootBlurCaptureHandler =
+      composeEventHandlers<
+        React.FocusEvent<HTMLDivElement>
+      >(
+        rootOnBlurCapture,
+        composeEventHandlers<
+          React.FocusEvent<HTMLDivElement>
+        >(
+          slotOnRootBlurCapture,
+          handleBlurCapture,
+          {
+            checkDefaultPrevented:
+              false,
+          }
+        ),
+        {
+          checkDefaultPrevented:
+            false,
+        }
+      );
+
     const innerSlot = resolveSlot<ToastSlot>({
       slot: "inner",
       styles,
@@ -456,26 +530,18 @@ export const Toast = React.forwardRef<
         {...restWithoutInteractionHandlers}
         {...rootSlotRest}
         ref={ref}
-        onPointerEnter={(event) => {
-          rootOnPointerEnter?.(event);
-          slotOnRootPointerEnter?.(event);
-          handlePointerEnter();
-        }}
-        onPointerLeave={(event) => {
-          rootOnPointerLeave?.(event);
-          slotOnRootPointerLeave?.(event);
-          handlePointerLeave();
-        }}
-        onFocusCapture={(event) => {
-          rootOnFocusCapture?.(event);
-          slotOnRootFocusCapture?.(event);
-          handleFocusCapture();
-        }}
-        onBlurCapture={(event) => {
-          rootOnBlurCapture?.(event);
-          slotOnRootBlurCapture?.(event);
-          handleBlurCapture(event);
-        }}
+        onPointerEnter={
+          rootPointerEnterHandler
+        }
+        onPointerLeave={
+          rootPointerLeaveHandler
+        }
+        onFocusCapture={
+          rootFocusCaptureHandler
+        }
+        onBlurCapture={
+          rootBlurCaptureHandler
+        }
         variants={variants}
         initial="initial"
         animate="animate"
@@ -488,19 +554,19 @@ export const Toast = React.forwardRef<
           </div>
 
           <div {...contentSlot}>
-            {title ? (
+            {hasNonEmptyRenderableNode(title) ? (
               <div {...titleSlot}>
                 {title}
               </div>
             ) : null}
 
-            {description ? (
+            {hasNonEmptyRenderableNode(description) ? (
               <div {...descriptionSlot}>
                 {description}
               </div>
             ) : null}
 
-            {action ? (
+            {hasRenderableNode(action) ? (
               <div {...actionSlot}>
                 {action}
               </div>
