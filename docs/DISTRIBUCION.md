@@ -4,7 +4,7 @@
 
 La serie `0.2.x` terminó en `0.2.8`.
 
-`0.3.0` es el baseline anterior. El ciclo A–G cerró y el candidato estable actual es `0.4.0`.
+`0.3.0` es el baseline anterior. El ciclo A–G cerró y `0.4.0` está validada para release.
 
 ## Package manager
 
@@ -143,4 +143,4 @@ A–G   cerradas
 
 F no cambia entry points ni contenido distribuible.
 
-`0.4.0` debe pasar una última `pnpm validate` con la metadata de versión ya actualizada antes de publicación.
+`0.4.0` ya pasó `pnpm validate` con la metadata de versión actualizada y terminó en `Validation complete.`.

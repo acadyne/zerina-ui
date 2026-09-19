@@ -178,10 +178,21 @@ Validation complete.
 
 La decisión de versión cambia únicamente metadata publicable.
 
-Después de actualizar `package.json#version` a `0.4.0`, ejecutar:
+La puerta integral fue ejecutada sobre `package.json#version = 0.4.0` y terminó en:
 
-```bash
-pnpm validate
+```text
+Vitest completo         578/578 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+internal-test build           PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+pack content                  PASS
+git whitespace                PASS
+Validation complete.
 ```
 
-Esta corrida no reabre G; valida el candidato exacto que se pretende publicar.
+Por tanto el candidato exacto `0.4.0` queda validado para release.

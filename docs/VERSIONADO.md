@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-Versión estable candidata:
+Versión validada para release:
 
 ```text
 0.4.0
@@ -40,14 +40,16 @@ Una versión representa un conjunto coherente de cambios que haya pasado la puer
 
 ## Publicación
 
-`0.4.0` sólo se considera lista para publicación cuando la metadata ya actualizada pasa:
+La metadata exacta `0.4.0` ya pasó:
 
 ```bash
 pnpm validate
 ```
 
-y termina en:
+con cierre:
 
 ```text
 Validation complete.
 ```
+
+Por tanto `0.4.0` está lista para publicación desde el punto de vista de validación del repositorio.
