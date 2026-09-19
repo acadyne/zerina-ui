@@ -2,18 +2,52 @@
 
 ## Estado actual
 
-Versión cerrada:
+Versión estable candidata:
+
+```text
+0.4.0
+```
+
+Baseline anterior:
 
 ```text
 0.3.0
 ```
 
-Es el hito estable pre-1.0 posterior al ciclo completo de estabilización `0.2.x`.
+## Por qué 0.4.0
 
-## Siguiente ciclo
+El ciclo A–G es un conjunto coherente de estabilización y convergencia arquitectónica con una ampliación pública compatible:
 
-No se asigna todavía una versión siguiente.
+```text
+Inline / Wrap
+→ mx / my
+```
 
-Primero se realizará un nuevo mapeo arquitectónico.
+No cambian:
 
-La siguiente versión se definirá sólo cuando exista un conjunto coherente de mejoras derivadas de ese mapa.
+- entry points;
+- `package.json#exports`;
+- peer range React;
+- nombres públicos deliberados de las familias refactorizadas.
+
+Por eso el siguiente corte es un **minor pre-1.0** y no un patch.
+
+## Regla
+
+No usar una versión por fase o subtask.
+
+Una versión representa un conjunto coherente de cambios que haya pasado la puerta integral sobre el tarball real.
+
+## Publicación
+
+`0.4.0` sólo se considera lista para publicación cuando la metadata ya actualizada pasa:
+
+```bash
+pnpm validate
+```
+
+y termina en:
+
+```text
+Validation complete.
+```

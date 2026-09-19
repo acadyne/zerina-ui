@@ -2,97 +2,57 @@
 
 ## Estado actual
 
-- Versión estable de trabajo: `0.3.0`.
+- Versión estable candidata: `0.4.0`.
 - Fase A: **CERRADA**.
 - Fase B: **CERRADA**.
 - Fase C: **CERRADA**.
 - Fase D: **CERRADA**.
 - Fase E: **CERRADA**.
-- Fase F — test architecture y sweep final: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- Hito G — validación integrada del ciclo: pendiente.
-- No se asigna una versión siguiente hasta cerrar G.
+- Fase F: **CERRADA**.
+- Hito G: **CERRADO**.
+- Ciclo A–G: **CERRADO**.
+- `0.3.0` permanece como baseline del ciclo.
+- `0.4.0` es la versión elegida para publicar este conjunto coherente de cambios.
 
-## Última puerta verde
-
-La validación que cerró E4 y Fase E terminó con:
+## Validación que cerró G
 
 ```text
-Vitest                   543/543 PASS
-Chromium                   65/65 PASS
-internal-test typecheck        PASS
-package typecheck              PASS
-build ESM/CJS/DTS              PASS
-React 18 consumer              PASS
-React 19 consumer              PASS
-ESM/CJS/CSS                    PASS
-git whitespace                 PASS
+Vitest completo           548/548 PASS
+Chromium                    65/65 PASS
+internal-test typecheck         PASS
+internal-test build             PASS
+package typecheck               PASS
+build ESM/CJS/DTS               PASS
+React 18 consumer               PASS
+React 19 consumer               PASS
+ESM/CJS/CSS                     PASS
+pack content                    PASS
+git whitespace                  PASS
 Validation complete.
 ```
 
-## Fase F — scope
+## Decisión de versión
 
-Objetivo:
-
-```text
-clasificar tests de source
-→ repetir análisis estructural
-→ revisar wrappers/residuos
-→ consolidar docs
-```
-
-Fuera de scope:
-
-- nuevos cambios de comportamiento público;
-- compatibilidad legacy sin consumidor;
-- nuevos refactors de producto que no sean residuos inequívocos.
-
-## F1 — arquitectura de tests
-
-Clasificación vigente:
+Se elige:
 
 ```text
-A — ownership boundary
-B — public/API contract
-C — implementation snapshot
+0.4.0
 ```
 
-Los seis archivos antes ambiguamente llamados `*source.test*` quedaron renombrados:
+Razón:
 
-```text
-family-deduplication-ownership.test.ts          A
-interaction-overlay-ownership.test.ts           A
-forms-block5-architecture-contract.test.ts      A/B
-forms-block6-architecture-contract.test.ts      A/B
-forms-block7-architecture-contract.test.ts      A/B
-forms-api-and-architecture-contract.test.ts     A/B
-```
+- el ciclo contiene correcciones y convergencia interna compatibles;
+- la topología pública de entry points no cambia;
+- `src/index.ts` permanece estable respecto a `0.3.0`;
+- existe una ampliación pública compatible: `mx/my` en `Inline` y `Wrap`;
+- por tanto el conjunto es mayor que un patch, sin evidencia de breaking change que justifique otro tipo de corte.
 
-Clase C residual en esos archivos:
-
-```text
-0
-```
-
-Se retiraron de Block 7 snapshots redundantes de forma sintáctica ya cubiertos por behavior tests:
-
-- formato literal de `data-ui`;
-- posición textual de `boxShadow` respecto de `rootSlot`;
-- presencia textual de `scale` / `translate`.
-
-Se mantienen source/architecture assertions sólo cuando protegen:
-
-- ownership;
-- ausencia de residuos;
-- CSS/token ownership;
-- API pública;
-- fronteras internas.
-
-## F2 — segundo corte estructural
+## Estado estructural final
 
 Baseline: `zerina-ui-0.3.0-final`.
 
 ```text
-métrica                         0.3.0    actual
+métrica                         0.3.0    0.4.0
 TS/TSX productivos                291       305
 alcanzables desde src/index.ts    291       305
 huérfanos                           0         0
@@ -113,112 +73,119 @@ DismissableLayer JSX files          6         5
 FocusScope JSX files                3         2
 ```
 
-Los tres owners actuales de `isControlled` son deliberados:
+Los módulos adicionales corresponden a owners explícitos; reachability permanece completa.
+
+## Owners transversales vigentes
 
 ```text
-useControllableValue
-useNavigationEntries
-AdaptiveScaffold
+events
+→ composeEventHandlerChain / composeEventHandlers
+
+press
+→ usePress / usePressSlotBridge
+
+controlled simple state
+→ useControllableValue
+
+triggers
+→ TriggerRuntime
+
+floating overlays
+→ FloatingOverlayRuntime
+
+modal overlays
+→ ModalOverlayRuntime
+
+target dialogs
+→ TargetDialogFrame
+
+text controls
+→ useTextControlRuntime
+
+choice controls
+→ useChoiceControlRuntime
+
+data-table shell
+→ useDataTableShell / DataTableShellFrame
+
+navigation history
+→ useNavigationEntries
+
+app motion
+→ MotionAppFrame
+
+slot precedence
+→ resolveSlotLayers / resolveContextualSlot
+
+status labels
+→ statusLabelRecipe
 ```
 
-`FloatingLayer` tiene un único consumidor JSX:
+## API y distribución
+
+Respecto a `0.3.0`:
 
 ```text
-FloatingOverlayRuntime
+src/index.ts                     sin cambios
+package.json#exports             sin cambios
+package.json#files               sin cambios
+react peer range                 >=18 <20
+react-dom peer range             >=18 <20
+framer-motion                    ^12.38.0
+lucide-react                     ^0.507.0
+packageManager                   pnpm@10.34.5
 ```
 
-## F3 — wrappers y residuos
-
-Residuo eliminado:
+Entry points:
 
 ```text
-navigationStack.motion.ts
-→ getNavigationStackMotionPreset(animation)
-→ función identidad sin política
+zerina-ui
+zerina-ui/styles.css
+zerina-ui/reset.css
 ```
 
-`NavigationStack` pasa `animation` directamente a `MotionSwitch.preset`.
+Cambio público compatible:
 
-Wrappers revisados y mantenidos porque conservan contrato propio:
+```text
+Inline / Wrap
+→ añaden mx / my
+```
 
+## Diferencias mantenidas deliberadamente
+
+No son duplicación pendiente:
+
+- BottomNavigation / NavigationRail;
+- DataTableSkeleton / SkeletonTable;
+- ActionDialog / ConfirmDialog;
+- NavigationMenu / Tree;
 - HelpText / FormErrorMessage;
 - MotionPresence / MotionSwitch;
-- BottomNavigation / NavigationRail;
-- ActionDialog / ConfirmDialog;
-- DataTableSkeleton / SkeletonTable.
+- AdaptiveScaffold controlled state;
+- NavigationStack history state;
+- unions iguales estructuralmente pero distintas semánticamente documentadas en `CONTRATOS.md`.
 
-No quedan:
+## Arquitectura de tests
 
 ```text
-phase markers Pn.n en src
-*source.test* ambiguos
-test/spec files dentro de src
-backup/generated residue dentro de src
+A — ownership boundary
+B — public/API contract
+C — implementation snapshot
 ```
 
-## F4 — documentación
-
-Documentos consolidados para estado vigente:
-
-- `BITACORA.md`;
-- `docs/MAPEO_ARQUITECTURA.md`;
-- `docs/CONTRATOS.md`;
-- `docs/ARQUITECTURA.md`;
-- `docs/VALIDACION.md`;
-- `docs/SUPERFICIE_PUBLICA.md`;
-- `docs/DISTRIBUCION.md`;
-- `docs/ROADMAP_POST_0_3.md`.
-
-## Tests nuevos de F
-
-`architecture-phase-f-sweep.test.ts` protege:
-
-- reachability total;
-- imports relativos TS;
-- owners deliberados de controlled state;
-- único consumer directo de FloatingLayer;
-- ausencia de phase markers;
-- ausencia de generated/test residue;
-- ausencia de filenames `*source.test*`;
-- eliminación del identity adapter de NavigationStack.
-
-## Criterio de cierre F
-
-Debe pasar:
+Estado final:
 
 ```text
-internal-test typecheck
-architecture-phase-f-sweep
-contratos A/B reclasificados
-public surface
-E4 type-equivalence regression
+ambiguous *source.test* files    0
+class C residual                 0
+```
+
+## Puerta del candidato 0.4.0
+
+El cambio de versión modifica metadata publicable. Antes de publicar `0.4.0` debe ejecutarse una última vez:
+
+```bash
 pnpm validate
 ```
 
-Si queda verde:
-
-1. F se marca **CERRADA**;
-2. se abre G;
-3. G no introduce refactors: sólo cierre integrado y decisión de versión.
-
-## Corrección del candidato F
-
-La primera validación integral de F detectó un contrato histórico de D2 que todavía exigía `getNavigationStackMotionPreset`, aunque F eliminó ese adapter identidad.
-
-La corrección vigente mantiene el contrato semántico:
-
-```text
-NavigationStack conserva MotionSwitch
-animation se pasa directamente como preset
-getNavigationStackMotionPreset no reaparece
-```
-
-El primer intento de corregir este test generó accidentalmente saltos `\n` literales en tres archivos de texto. Este candidato restaura desde el snapshot F anterior y reaplica la corrección con saltos reales.
-
-Archivos afectados por esa reparación:
-
-- `state-phase-d2-navigation-entries-ownership.test.ts`;
-- `BITACORA.md`;
-- `docs/VALIDACION.md`.
-
-No cambió código de producto.
+No se abre una nueva fase; esta corrida valida exclusivamente el candidato de release con `package.json#version = 0.4.0`.

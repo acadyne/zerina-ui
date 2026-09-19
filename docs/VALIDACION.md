@@ -138,59 +138,50 @@ forms-api-and-architecture-contract.test.ts     A/B
 - no quedan filenames `*source.test*`;
 - el adapter identidad de NavigationStack no reaparece.
 
-## Candidato Fase F
+## Fase F cerrada
 
-Ejecutar:
+Resultado reportado:
+
+```text
+tests dirigidos F        38/38 PASS
+Vitest completo         548/548 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+package typecheck             PASS
+build ESM/CJS/DTS             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Hito G cerrado
+
+Resultado reportado:
+
+```text
+Vitest completo         548/548 PASS
+Chromium                  65/65 PASS
+internal-test typecheck       PASS
+internal-test build           PASS
+package typecheck             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+pack content                  PASS
+git whitespace                PASS
+Validation complete.
+```
+
+## Candidato 0.4.0
+
+La decisión de versión cambia únicamente metadata publicable.
+
+Después de actualizar `package.json#version` a `0.4.0`, ejecutar:
 
 ```bash
-pnpm install --frozen-lockfile
-
-pnpm --filter zerina-ui-internal-test typecheck
-
-pnpm --filter zerina-ui-internal-test exec vitest run   tests/architecture-phase-f-sweep.test.ts   tests/family-deduplication-ownership.test.ts   tests/interaction-overlay-ownership.test.ts   tests/forms-block5-architecture-contract.test.ts   tests/forms-block6-architecture-contract.test.ts   tests/forms-block7-architecture-contract.test.ts   tests/forms-api-and-architecture-contract.test.ts   tests/semantics-phase-e4-type-equivalence-ownership.test.ts   tests/public-surface-contract.test.ts
-
 pnpm validate
 ```
 
-F sólo se cierra con `Validation complete.`.
-
-### Corrección del candidato F
-
-La primera corrida dirigida de F pasó `81/81`, pero `pnpm validate` detectó que el ownership test histórico de D2 seguía exigiendo el adapter identidad `getNavigationStackMotionPreset`.
-
-La corrección valida ahora:
-
-```text
-MotionSwitch permanece en NavigationStack
-preset={animation}
-getNavigationStackMotionPreset ausente
-```
-
-Un primer intento de fix escribió `\n` literales en D2 ownership, BITACORA y VALIDACION. El candidato actual restaura esos tres archivos desde el snapshot F anterior y reaplica la corrección con saltos reales.
-
-No hay cambios de producto.
-
-## Hito G
-
-G no abre nuevos refactors.
-
-Su puerta es exclusivamente:
-
-```bash
-pnpm validate
-```
-
-Además se revisa el resultado ya incluido en esa puerta:
-
-```text
-React 18 consumer
-React 19 consumer
-ESM
-CJS
-CSS
-public exports
-pack content
-browser
-```
-
-Sólo después de G se decide la siguiente versión estable.
+Esta corrida no reabre G; valida el candidato exacto que se pretende publicar.

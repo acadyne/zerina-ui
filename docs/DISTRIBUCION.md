@@ -4,7 +4,7 @@
 
 La serie `0.2.x` terminó en `0.2.8`.
 
-`0.3.0` es el baseline estable del ciclo actual. No se asigna una versión siguiente hasta cerrar el hito G.
+`0.3.0` es el baseline anterior. El ciclo A–G cerró y el candidato estable actual es `0.4.0`.
 
 ## Package manager
 
@@ -138,11 +138,9 @@ La serie Lucide `0.470–0.475` tuvo una regresión de empaquetado ESM/CJS; no d
 ## Estado del ciclo A–G
 
 ```text
-A–E   cerradas
-F     implementada, pendiente de validación
-G     pendiente
+A–G   cerradas
 ```
 
 F no cambia entry points ni contenido distribuible.
 
-G será el cierre integrado y volverá a comprobar el mismo tarball real en React 18/19, ESM/CJS/CSS y browser antes de decidir la siguiente versión.
+`0.4.0` debe pasar una última `pnpm validate` con la metadata de versión ya actualizada antes de publicación.

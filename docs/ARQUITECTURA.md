@@ -206,4 +206,4 @@ B — public/API contract
 
 Los implementation snapshots de clase C se migran a behavior o a boundaries semánticos.
 
-Al cierre del sweep F no quedan archivos `*source.test*` ambiguos.
+Al cierre de F no quedan archivos `*source.test*` ambiguos. G no modifica esta arquitectura; sólo la valida de forma integrada.

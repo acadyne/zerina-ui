@@ -20,7 +20,7 @@ Cuando una decisión cambia, se sustituye aquí la descripción anterior. Cuando
 
 No crear documentos por cada fase histórica si la información ya no afecta al presente.
 
-## Ciclo posterior a 0.3.0
+## Ciclo 0.3.0 → 0.4.0
 
-- [`MAPEO_ARQUITECTURA.md`](./MAPEO_ARQUITECTURA.md): evidencia de bifurcaciones, duplicaciones y decisiones pendientes.
-- [`ROADMAP_POST_0_3.md`](./ROADMAP_POST_0_3.md): fases, dependencias y criterios de cierre del siguiente ciclo.
+- [`MAPEO_ARQUITECTURA.md`](./MAPEO_ARQUITECTURA.md): mapa final de owners, convergencias y diferencias deliberadas.
+- [`ROADMAP_POST_0_3.md`](./ROADMAP_POST_0_3.md): fases A–G y su cierre integrado.

@@ -1,30 +1,44 @@
 # Estabilización vigente
 
-## Hito cerrado
+## Ciclo cerrado
 
-`0.3.0` está cerrado como hito estable pre-1.0.
+El ciclo arquitectónico posterior a `0.3.0` está cerrado:
 
-Validación final:
+```text
+A–G  CERRADO
+```
 
-- 393/393 Vitest;
-- 65/65 Chromium;
-- typechecks;
-- build ESM/CJS/DTS;
-- tarball;
-- consumidores React 18/19;
-- ESM/CJS/CSS;
-- whitespace Git.
+Resultado integrado:
 
-## Siguiente ciclo
+```text
+548/548 Vitest
+65/65 Chromium
+React 18 consumer PASS
+React 19 consumer PASS
+ESM/CJS/CSS PASS
+package verification PASS
+git whitespace PASS
+Validation complete.
+```
 
-El siguiente ciclo no parte de bugs abiertos.
+## Candidato estable
 
-Objetivo:
+El conjunto se asignó a:
 
-- mapear bifurcaciones;
-- detectar múltiples owners;
-- identificar diferencias accidentales entre familias;
-- reducir costo de mantenimiento;
-- preparar decisiones posteriores sin abrir refactors por intuición.
+```text
+0.4.0
+```
 
-La prioridad será arquitectura y contratos, no cantidad de archivos modificados.
+La razón semver es una ampliación pública compatible (`mx/my` en Inline/Wrap) acompañada de correcciones y convergencia interna sin cambio de entry points.
+
+## Estado de deuda del mapa
+
+No quedan P0/P1 sin decisión.
+
+Las diferencias restantes están documentadas como semánticas deliberadas, no como deuda pendiente de deduplicación.
+
+## Siguiente trabajo
+
+No se abre otro ciclo arquitectónico automáticamente.
+
+Cualquier trabajo posterior debe comenzar desde una necesidad nueva y volver a leer `BITACORA.md` antes de definir scope.

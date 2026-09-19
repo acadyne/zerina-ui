@@ -131,3 +131,19 @@ Se valida por:
 - `package:verify` sobre el tarball real.
 
 Fase F no añadió ni retiró entry points públicos.
+
+## Comparación integrada con 0.3.0
+
+La topología pública permanece estable respecto al baseline:
+
+```text
+src/index.ts             idéntico
+package exports          idénticos
+entry points             idénticos
+peer range React         idéntico
+runtime dependencies     idénticas
+```
+
+El ciclo sí contiene cambios deliberados dentro de contratos existentes, por ejemplo `mx/my` en Inline/Wrap y correcciones semánticas de interacción/overlays.
+
+La estabilidad de entry points no implica que el conjunto completo de cambios deba publicarse con el mismo número de versión; esa decisión se toma después de G.
