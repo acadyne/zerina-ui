@@ -69,13 +69,9 @@ Tokens, resolución de tema, estilo runtime/SSR y contratos asociados.
 
 `src/index.ts` expone una superficie amplia: primitivas, patrones, componentes, tema y parte del core transversal.
 
-Durante esta auditoría se estimaron aproximadamente:
+La superficie raíz se protege mediante `public-surface-contract.test.ts` y la verificación del tarball real.
 
-- 181 exports runtime;
-- 412 exports de tipo;
-- 158 interfaces.
-
-La cifra sirve como indicador de tamaño, no como contrato de estabilidad definitivo. Antes del hito estable debe clasificarse qué símbolos son API intencional y cuáles son exposición accidental.
+Los conteos aproximados de exports usados durante la auditoría inicial no forman parte del contrato: el contrato vigente son los entry points declarados, los símbolos públicos intencionales y el paquete efectivamente distribuido.
 
 ## Reglas arquitectónicas vigentes
 
@@ -132,3 +128,82 @@ Las familias públicas pueden conservar componentes distintos cuando expresan se
 - portal.
 
 `Drawer` y `BottomSheet` conservan sus recipes, slots públicos y contenido familiar, pero no duplican el runtime modal.
+
+## Owners transversales consolidados
+
+El ciclo posterior a `0.3.0` terminó concentrando las decisiones transversales en owners explícitos.
+
+```text
+events
+→ composeEventHandlerChain / composeEventHandlers
+
+press
+→ usePress
+→ usePressSlotBridge
+
+controlled simple state
+→ useControllableValue
+
+triggers
+→ TriggerRuntime
+
+floating overlays
+→ FloatingOverlayRuntime
+
+modal overlays
+→ ModalOverlayRuntime
+
+dialogs por target
+→ TargetDialogFrame
+
+text controls
+→ useTextControlRuntime
+
+choice controls
+→ useChoiceControlRuntime
+
+data tables
+→ useDataTableShell + DataTableShellFrame
+
+navigation history
+→ useNavigationEntries
+
+app motion
+→ MotionAppFrame
+
+slot precedence
+→ resolveSlotLayers / resolveContextualSlot
+
+status labels
+→ statusLabelRecipe
+```
+
+## Reachability y residuos
+
+Segundo corte estructural:
+
+```text
+TS/TSX productivos                 305
+alcanzables desde src/index.ts     305
+huérfanos                            0
+imports relativos TS rotos           0
+```
+
+El único adapter identidad detectado durante F fue eliminado:
+
+`patterns/navigation-stack/navigationStack.motion.ts`.
+
+Los wrappers pequeños que permanecen lo hacen por diferencia de contrato público, no por compatibilidad histórica.
+
+## Arquitectura de tests
+
+Los tests estructurales admitidos pertenecen a dos clases:
+
+```text
+A — ownership boundary
+B — public/API contract
+```
+
+Los implementation snapshots de clase C se migran a behavior o a boundaries semánticos.
+
+Al cierre del sweep F no quedan archivos `*source.test*` ambiguos.

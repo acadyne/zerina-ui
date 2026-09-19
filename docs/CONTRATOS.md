@@ -552,7 +552,7 @@ Dialog historically forwarded only `className` and `style` from its `dismissable
 
 The migration preserves that boundary when adapting those slots into `ModalOverlayRuntime`; it does not silently expose new DOM/event forwarding.
 
-## 18. DataTable shell
+## 19. DataTable shell
 
 State owner:
 
@@ -600,7 +600,7 @@ Variant-specific ownership remains outside:
 
 The shared shell does not know `onDataChange`, cell editors, add/delete policies or editable column types.
 
-## 19. Navigation history owner
+## 20. Navigation history owner
 
 Internal owner:
 
@@ -661,7 +661,7 @@ Domain-specific ownership remains local:
 
 `useNavigationEntries` is internal and is not exported from the navigation-stack public barrel.
 
-## 20. Motion app frame
+## 21. Motion app frame
 
 Internal owner:
 
@@ -709,7 +709,7 @@ The following public props keep the same meaning in both wrappers:
 
 `MotionAppFrame` is internal and is not exported by `core/motion` or the package root.
 
-## 21. Precedencia transversal de slots
+## 22. Precedencia transversal de slots
 
 Owners:
 
@@ -830,7 +830,7 @@ prop pública
 
 igual que los demás controles con pipeline semántico.
 
-## 22. Layout prop matrix
+## 23. Layout prop matrix
 
 La familia se divide en dos contratos deliberados.
 
@@ -912,7 +912,7 @@ layout props/helpers
 
 `style` permanece como override final.
 
-## 23. Status label recipe
+## 24. Status label recipe
 
 Internal owner:
 
@@ -983,7 +983,7 @@ The shared recipe does not own Tag remove/press semantics.
 
 No other recipe family was merged in E3. Action controls and choice controls have different scheme domains and interactive-state semantics, so structural similarity is not sufficient to share this owner.
 
-## 24. Type equivalence ownership
+## 25. Type equivalence ownership
 
 Structural equality alone is not an ownership rule.
 
@@ -1084,3 +1084,50 @@ Examples kept separate:
 - ActionSheet tone vs Progress variant;
 - Pressable host vs TriggerRuntime host;
 - NavigationRail layout placement vs overlay placement.
+
+## 26. Arquitectura de tests y sweep estructural
+
+Los tests que inspeccionan source sólo son válidos cuando protegen un contrato semántico.
+
+### Clase A — ownership
+
+Comprueba que una mecánica tiene un único owner y que consumidores no vuelven a poseerla.
+
+### Clase B — API/superficie
+
+Comprueba exports, tipos, props, entry points y ausencia de contratos retirados.
+
+### Clase C — snapshot de implementación
+
+No es contrato estable.
+
+No se conserva una aserción cuyo único significado sea:
+
+- posición textual;
+- formato exacto de JSX;
+- helper inline;
+- shape incidental ya cubierta por behavior.
+
+### Reachability
+
+Todo módulo TS/TSX productivo debe ser alcanzable desde `src/index.ts`.
+
+No se admiten:
+
+- módulos huérfanos;
+- imports relativos TS rotos;
+- archivos test/spec bajo `src`;
+- backups o snapshots generados bajo `src`;
+- phase markers históricos en código productivo.
+
+### Owners deliberados residuales
+
+`isControlled` puede existir directamente sólo en:
+
+- `useControllableValue`;
+- `useNavigationEntries`;
+- `AdaptiveScaffold`.
+
+`FloatingLayer` sólo puede ser consumido directamente por `FloatingOverlayRuntime`.
+
+Estas restricciones se verifican en `architecture-phase-f-sweep.test.ts`.

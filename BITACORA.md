@@ -2,308 +2,223 @@
 
 ## Estado actual
 
-- Versión cerrada: `0.3.0`.
+- Versión estable de trabajo: `0.3.0`.
 - Fase A: **CERRADA**.
 - Fase B: **CERRADA**.
 - Fase C: **CERRADA**.
 - Fase D: **CERRADA**.
-- Fase activa: **E — semántica de slots, layout y tipos**.
-- E1 Slot precedence: **CERRADA**.
-- E2 Layout prop matrix: **CERRADA**.
-- E3 Recipe convergence: **CERRADA**.
-- E4 Tipos estructuralmente equivalentes: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
-- No se asignó todavía una versión siguiente.
+- Fase E: **CERRADA**.
+- Fase F — test architecture y sweep final: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- Hito G — validación integrada del ciclo: pendiente.
+- No se asigna una versión siguiente hasta cerrar G.
 
-## Validación que cerró E3
+## Última puerta verde
+
+La validación que cerró E4 y Fase E terminó con:
 
 ```text
-tests dirigidos E3       41/41 PASS
-Vitest completo         534/534 PASS
-Chromium                  65/65 PASS
-internal-test typecheck       PASS
-package typecheck             PASS
-build ESM/CJS/DTS             PASS
-React 18 consumer             PASS
-React 19 consumer             PASS
-ESM/CJS/CSS                   PASS
-git whitespace                PASS
+Vitest                   543/543 PASS
+Chromium                   65/65 PASS
+internal-test typecheck        PASS
+package typecheck              PASS
+build ESM/CJS/DTS              PASS
+React 18 consumer              PASS
+React 19 consumer              PASS
+ESM/CJS/CSS                    PASS
+git whitespace                 PASS
 Validation complete.
 ```
 
-## E1 — resultado vigente
+## Fase F — scope
 
-Owners:
-
-- `resolveSlotLayers`;
-- `resolveLayeredSlot`;
-- `resolveContextualSlot`;
-- `resolveSlot`.
-
-Precedencia declarativa:
+Objetivo:
 
 ```text
-base → context(s) → local → direct className/style
+clasificar tests de source
+→ repetir análisis estructural
+→ revisar wrappers/residuos
+→ consolidar docs
 ```
 
-Pipeline semántico:
+Fuera de scope:
+
+- nuevos cambios de comportamiento público;
+- compatibilidad legacy sin consumidor;
+- nuevos refactors de producto que no sean residuos inequívocos.
+
+## F1 — arquitectura de tests
+
+Clasificación vigente:
 
 ```text
-public/child → local slot → inherited slot → internal
+A — ownership boundary
+B — public/API contract
+C — implementation snapshot
 ```
 
-## E2 — resultado vigente
-
-Dos familias de layout deliberadas:
+Los seis archivos antes ambiguamente llamados `*source.test*` quedaron renombrados:
 
 ```text
-Full layout frame
-→ Flex / Grid / Stack
-→ SizeProps + SpaceProps + SurfaceProps
-
-Flow layout frame
-→ Inline / Wrap
-→ SpaceProps + w + minH
+family-deduplication-ownership.test.ts          A
+interaction-overlay-ownership.test.ts           A
+forms-block5-architecture-contract.test.ts      A/B
+forms-block6-architecture-contract.test.ts      A/B
+forms-block7-architecture-contract.test.ts      A/B
+forms-api-and-architecture-contract.test.ts     A/B
 ```
 
-Inline/Wrap soportan `mx/my`.
-
-No se añadieron surface props ni todo SizeProps a flow primitives.
-
-## E3 — resultado vigente
-
-Owner interno:
-
-`src/components/display/status-label-recipe.ts`
-
-Comparte Badge / Tag:
+Clase C residual en esos archivos:
 
 ```text
-solid / subtle / outline
-primary / secondary / success / warning / danger / neutral
-tokens cromáticos
-root inline frame
-content truncation
+0
 ```
 
-Permanece local:
+Se retiraron de Block 7 snapshots redundantes de forma sintáctica ya cubiertos por behavior tests:
+
+- formato literal de `data-ui`;
+- posición textual de `boxShadow` respecto de `rootSlot`;
+- presencia textual de `scale` / `translate`.
+
+Se mantienen source/architecture assertions sólo cuando protegen:
+
+- ownership;
+- ausencia de residuos;
+- CSS/token ownership;
+- API pública;
+- fronteras internas.
+
+## F2 — segundo corte estructural
+
+Baseline: `zerina-ui-0.3.0-final`.
 
 ```text
-Badge density
-Tag density
-Tag icons
-Tag remove/usePress
+métrica                         0.3.0    actual
+TS/TSX productivos                291       305
+alcanzables desde src/index.ts    291       305
+huérfanos                           0         0
+imports relativos TS rotos          0         0
+
+resolveSlot files                  68        65
+resolveLayeredSlot files            8         7
+resolveContextualSlot files         0         7
+resolveSlotLayers files             0         2
+
+composeEventHandlers files         21        12
+composeEventHandlerChain files      0         4
+
+direct usePress calls              11         8
+manual isControlled                 9         3
+FloatingLayer JSX consumers         4         1
+DismissableLayer JSX files          6         5
+FocusScope JSX files                3         2
 ```
 
-No se fusionaron los componentes.
-
-## E4 — criterio de centralización
-
-La igualdad estructural no es suficiente.
-
-Se centraliza sólo cuando dos o más tipos expresan el mismo concepto y ya participan del mismo runtime/familia semántica.
-
-Los nombres públicos existentes se conservan mediante aliases o interfaces que extienden el owner interno.
-
-## E4 — forms
-
-Nuevo owner interno:
-
-`src/primitives/forms/shared-control-types.ts`
-
-Posee:
+Los tres owners actuales de `isControlled` son deliberados:
 
 ```text
-ControlSize
-→ sm | md | lg
-
-ControlColorScheme
-→ primary | secondary | danger
+useControllableValue
+useNavigationEntries
+AdaptiveScaffold
 ```
 
-Aliases:
+`FloatingLayer` tiene un único consumidor JSX:
 
 ```text
-ActionControlSize → ControlSize
-ChoiceControlSize → ControlSize
-TextControlSize   → ControlSize
-
-ActionControlColorScheme → ControlColorScheme
-ChoiceControlColorScheme → ControlColorScheme
+FloatingOverlayRuntime
 ```
 
-No se centralizan los tamaños `sm/md/lg` de CommandPalette, TopAppBar, FloatingActionButton o Progress: comparten literales pero no el mismo contrato de control.
+## F3 — wrappers y residuos
 
-## E4 — navigation destination family
-
-Nuevo owner interno:
-
-`src/primitives/navigation/shared/navigation-shared.types.ts`
-
-Posee:
+Residuo eliminado:
 
 ```text
-NavigationSurfacePosition
-NavigationSurfaceVariant
-NavigationDestinationLabelBehavior
-NavigationDestinationIndicator
-NavigationDestinationDensity
-NavigationDestinationBadgeAnchor
-NavigationDestinationBadgePlacement
-NavigationDestinationItemShape
-NavigationDestinationBadgeOffset
+navigationStack.motion.ts
+→ getNavigationStackMotionPreset(animation)
+→ función identidad sin política
 ```
 
-BottomNavigation y NavigationRail mantienen sus nombres públicos como aliases.
+`NavigationStack` pasa `animation` directamente a `MotionSwitch.preset`.
 
-La selección usa el owner ya existente:
+Wrappers revisados y mantenidos porque conservan contrato propio:
 
-`src/primitives/navigation/shared/navigationSelection.ts`
+- HelpText / FormErrorMessage;
+- MotionPresence / MotionSwitch;
+- BottomNavigation / NavigationRail;
+- ActionDialog / ConfirmDialog;
+- DataTableSkeleton / SkeletonTable.
+
+No quedan:
 
 ```text
-BottomNavigationSelectionReason
-NavigationRailSelectionReason
-→ NavigationSelectionReason
-
-BottomNavigationSelectionContext
-NavigationRailSelectionContext
-→ NavigationSelectionContext
+phase markers Pn.n en src
+*source.test* ambiguos
+test/spec files dentro de src
+backup/generated residue dentro de src
 ```
 
-`NavigationDestinationItem` consume los mismos types compartidos y deja de declarar sus propias copies.
+## F4 — documentación
 
-## E4 — aliases semánticos entre subsistemas
+Documentos consolidados para estado vigente:
 
-```text
-PopoverPlacement
-→ FloatingPlacement
+- `BITACORA.md`;
+- `docs/MAPEO_ARQUITECTURA.md`;
+- `docs/CONTRATOS.md`;
+- `docs/ARQUITECTURA.md`;
+- `docs/VALIDACION.md`;
+- `docs/SUPERFICIE_PUBLICA.md`;
+- `docs/DISTRIBUCION.md`;
+- `docs/ROADMAP_POST_0_3.md`.
 
-DrawerPlacement
-→ UIOverlayPlacement
+## Tests nuevos de F
 
-NavigationStackTransitionDirection
-→ UIMotionTransitionDirection
+`architecture-phase-f-sweep.test.ts` protege:
 
-ListDensity
-→ UIDensity
+- reachability total;
+- imports relativos TS;
+- owners deliberados de controlled state;
+- único consumer directo de FloatingLayer;
+- ausencia de phase markers;
+- ausencia de generated/test residue;
+- ausencia de filenames `*source.test*`;
+- eliminación del identity adapter de NavigationStack.
 
-AlertVariant / ToastVariant
-→ FeedbackVariant
-
-BadgeSlot
-→ StatusLabelRecipeSlot
-```
-
-Nuevo owner de feedback:
-
-`src/components/feedback/feedback.types.ts`
-
-```text
-FeedbackVariant
-→ info | success | warning | danger | neutral
-```
-
-Todos los nombres públicos actuales permanecen intactos.
-
-## E4 — coincidencias deliberadamente NO centralizadas
-
-Quedan separadas aunque hoy sean estructuralmente iguales:
-
-```text
-CommandTriggerSize / TopAppBarSize / FloatingActionButtonSize / ProgressSize
-→ no son el mismo contrato de control
-
-ActionSheetTone / ProgressVariant
-→ tone de acción vs estado visual de progreso
-
-AdaptiveScaffoldSideNavigationPlacement /
-ChoiceControlLabelPlacement /
-InputAdornmentPosition
-→ distintos dominios de start/end
-
-single-slot "root" types
-→ namespace de slots por componente, no un concepto compartido
-
-PressableElement / SupportedTriggerHost
-→ contratos de host distintos y frontera core/primitives
-
-NavigationRailPlacement / UIOverlayPlacement
-→ side de layout vs edge de overlay
-```
-
-E4 no crea aliases genéricos sólo para reducir conteo de unions.
-
-## E4 — verificación estática
-
-```text
-broken relative imports                         0
-remaining duplicate simple-union groups         6
-all 6 remaining groups explicitly intentional
-new internal owners root-public                 0
-```
-
-## E4 — tests
-
-Nuevos:
-
-- `semantics-phase-e4-type-equivalence-ownership.test.ts`;
-- `semantics-phase-e4-type-equivalence.test.ts`.
-
-Cubren:
-
-- ownership de control sizes/schemes;
-- ownership de navigation destination types;
-- aliases públicos BottomNavigation / NavigationRail;
-- shared selection reason/context;
-- Popover/Floating placement;
-- Drawer/overlay placement;
-- navigation/motion direction;
-- List/viewport density;
-- Alert/Toast feedback variant;
-- Badge/status-label slots;
-- owners internos fuera de barrels públicos;
-- no-merges deliberados.
-
-## Criterio de cierre E4 / Fase E
+## Criterio de cierre F
 
 Debe pasar:
 
 ```text
 internal-test typecheck
-tests E4 dirigidos
+architecture-phase-f-sweep
+contratos A/B reclasificados
 public surface
-forms public/source regression
-navigation family regression
-E3 recipe regression
-overlay floating regression
+E4 type-equivalence regression
 pnpm validate
 ```
 
 Si queda verde:
 
-1. E4 se marca **CERRADA**;
-2. Fase E completa se marca **CERRADA**;
-3. se abre Fase F — clasificación de source tests + residuos/reachability.
+1. F se marca **CERRADA**;
+2. se abre G;
+3. G no introduce refactors: sólo cierre integrado y decisión de versión.
 
-## Corrección del candidato E4
+## Corrección del candidato F
 
-La primera validación dirigida de E4 pasó `62/62`, pero `pnpm validate` detectó un contrato fuente histórico de Block 7 desactualizado:
+La primera validación integral de F detectó un contrato histórico de D2 que todavía exigía `getNavigationStackMotionPreset`, aunque F eliminó ese adapter identidad.
 
-```text
-forms-block7-source.test.ts
-→ exigía ActionControlSize como union inline
-→ exigía ActionControlColorScheme como union inline
-```
-
-Eso contradice la centralización deliberada de E4:
+La corrección vigente mantiene el contrato semántico:
 
 ```text
-ActionControlSize → ControlSize
-ActionControlColorScheme → ControlColorScheme
+NavigationStack conserva MotionSwitch
+animation se pasa directamente como preset
+getNavigationStackMotionPreset no reaparece
 ```
 
-Corrección:
+El primer intento de corregir este test generó accidentalmente saltos `\n` literales en tres archivos de texto. Este candidato restaura desde el snapshot F anterior y reaplica la corrección con saltos reales.
 
-- Block 7 ahora verifica los aliases nominales en `action-control-types.ts`;
-- y verifica que `shared-control-types.ts` conserve exactamente los literales públicos anteriores.
+Archivos afectados por esa reparación:
 
-No cambió código de producto ni superficie pública.
+- `state-phase-d2-navigation-entries-ownership.test.ts`;
+- `BITACORA.md`;
+- `docs/VALIDACION.md`.
+
+No cambió código de producto.

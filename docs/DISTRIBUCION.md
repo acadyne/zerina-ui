@@ -4,7 +4,7 @@
 
 La serie `0.2.x` terminó en `0.2.8`.
 
-El candidato actual es `0.3.0`, hito estable pre-1.0.
+`0.3.0` es el baseline estable del ciclo actual. No se asigna una versión siguiente hasta cerrar el hito G.
 
 ## Package manager
 
@@ -134,3 +134,15 @@ lucide-react   ^0.507.0  → React 18/19 + ESM/CJS compatible
 La compatibilidad se considera válida sólo si el tarball funciona en los consumidores limpios. `peerDependencies`, typecheck aislado o `skipLibCheck` no sustituyen esa prueba.
 
 La serie Lucide `0.470–0.475` tuvo una regresión de empaquetado ESM/CJS; no debe usarse como baseline de distribución de Zerina UI.
+
+## Estado del ciclo A–G
+
+```text
+A–E   cerradas
+F     implementada, pendiente de validación
+G     pendiente
+```
+
+F no cambia entry points ni contenido distribuible.
+
+G será el cierre integrado y volverá a comprobar el mismo tarball real en React 18/19, ESM/CJS/CSS y browser antes de decidir la siguiente versión.

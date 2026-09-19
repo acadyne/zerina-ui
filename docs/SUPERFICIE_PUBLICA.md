@@ -92,3 +92,42 @@ Un export puede retirarse durante `0.2.x` cuando:
 4. su exposición obliga a estabilizar una abstracción que debería seguir siendo interna.
 
 No se crean aliases legacy para exports accidentales retirados.
+
+## Owners internos confirmados
+
+El sweep F confirma que los siguientes owners no forman parte del entry point raíz:
+
+- `useTextControlRuntime`;
+- `useChoiceControlRuntime`;
+- `usePressSlotBridge`;
+- `useControllableValue`;
+- `TriggerRuntime`;
+- `FloatingOverlayRuntime`;
+- `ModalOverlayRuntime`;
+- `TargetDialogFrame`;
+- `DataTableShellFrame`;
+- `useDataTableShell`;
+- `useNavigationEntries`;
+- `MotionAppFrame`;
+- `statusLabelRecipe`;
+- `shared-control-types`;
+- `navigation-shared.types`;
+- `feedback.types`.
+
+Pueden existir exports en barrels internos para composición dentro de la librería. Eso no crea un subpath público mientras `package.json#exports` y `src/index.ts` no los expongan.
+
+El sweep no detectó nuevos exports raíz accidentales.
+
+## Verificación vigente
+
+La superficie no se valida por conteos aproximados de símbolos.
+
+Se valida por:
+
+- `src/index.ts`;
+- `package.json#exports`;
+- `public-surface-contract.test.ts`;
+- declarations generadas;
+- `package:verify` sobre el tarball real.
+
+Fase F no añadió ni retiró entry points públicos.

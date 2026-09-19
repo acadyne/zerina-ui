@@ -1,3 +1,4 @@
+// Fase F: clases A/B — architecture boundary + public API contract.
 import {
   readFileSync,
 } from "node:fs";
@@ -29,7 +30,7 @@ function readSource(
 
 
 describe(
-  "Block 7 action-control source contract",
+  "Block 7 action-control architecture contract",
   () => {
     const button =
       readSource(
@@ -95,64 +96,6 @@ describe(
       readSource(
         "patterns/scaffold/FloatingActionButton.tsx",
       );
-
-
-    it(
-      "uses generic identities and contains no legacy action attributes or selectors",
-      () => {
-        expect(
-          button,
-        ).toContain(
-          '"data-ui":\n              "button"',
-        );
-
-        expect(
-          iconButton,
-        ).toContain(
-          '"data-ui":\n              "icon-button"',
-        );
-
-        expect(
-          pressable,
-        ).toContain(
-          '"data-ui":\n          "pressable"',
-        );
-
-        expect(
-          controlAction,
-        ).toContain(
-          'data-ui="control-action"',
-        );
-
-        const combined =
-          [
-            button,
-            iconButton,
-            pressable,
-            controlAction,
-            recipe,
-            state,
-            controlsCss,
-            listCss,
-          ].join(
-            "\n",
-          );
-
-        for (
-          const legacy of [
-            "data-ui-button",
-            "data-ui-icon-button",
-            "data-ui-pressable",
-          ]
-        ) {
-          expect(
-            combined,
-          ).not.toContain(
-            legacy,
-          );
-        }
-      },
-    );
 
 
     it(
@@ -284,36 +227,6 @@ describe(
           interactiveStyle,
         );
 
-        expect(
-          pressable,
-        ).toMatch(
-          /\bscale\s*:/,
-        );
-
-        expect(
-          pressable,
-        ).toMatch(
-          /\btranslate\s*:/,
-        );
-      },
-    );
-
-
-    it(
-      "does not write boxShadow after Pressable resolves its root slot",
-      () => {
-        const afterResolve =
-          pressable.slice(
-            pressable.indexOf(
-              "const rootSlot",
-            ),
-          );
-
-        expect(
-          afterResolve,
-        ).not.toMatch(
-          /\bboxShadow\s*[:=]/,
-        );
       },
     );
 

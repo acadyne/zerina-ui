@@ -592,7 +592,7 @@ Después migrar Dialog.
 
 ### Estado C3
 
-**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+**CERRADA**
 
 Resolución:
 
@@ -629,7 +629,7 @@ Tests C3:
 
 - `overlay-phase-c3-modal-runtime-ownership.test.ts`;
 - `overlay-phase-c3-modal-runtime-behavior.test.tsx`;
-- `interaction-overlay-source.test.ts` ampliado a Dialog.
+- `interaction-overlay-ownership.test.ts` ampliado a Dialog.
 
 ## P1.7 — DataTable / EditableDataTable todavía duplican shell
 
@@ -1962,7 +1962,7 @@ Tests:
 
 ## Estado E4 — tipos estructuralmente equivalentes
 
-**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+**CERRADA**
 
 Principio:
 
@@ -1994,3 +1994,128 @@ Public names are preserved.
 Inventario residual de unions simples duplicadas: 6 grupos.
 
 Todos permanecen separados deliberadamente por diferencia semántica.
+
+# Fase F — segundo corte estructural
+
+**IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**
+
+## F1 — test architecture
+
+Los seis tests cuyo nombre `source` no expresaba su contrato fueron reclasificados:
+
+```text
+family-deduplication-ownership.test.ts          A
+interaction-overlay-ownership.test.ts           A
+forms-block5-architecture-contract.test.ts      A/B
+forms-block6-architecture-contract.test.ts      A/B
+forms-block7-architecture-contract.test.ts      A/B
+forms-api-and-architecture-contract.test.ts     A/B
+```
+
+```text
+A = ownership boundary
+B = public/API contract
+C = implementation snapshot
+```
+
+Clase C residual:
+
+```text
+0
+```
+
+Snapshots retirados de Block 7:
+
+- formato textual exacto de `data-ui`;
+- ubicación textual de `boxShadow`;
+- presencia textual de `scale` / `translate`.
+
+Esos comportamientos ya pertenecen a `forms-block7-behavior.test.tsx`.
+
+## F2 — comparación contra baseline 0.3.0
+
+```text
+métrica                         0.3.0    segundo corte
+TS/TSX productivos                291       305
+alcanzables                        291       305
+huérfanos                            0         0
+
+resolveSlot files                  68        65
+resolveLayeredSlot files            8         7
+resolveContextualSlot files         0         7
+resolveSlotLayers files             0         2
+
+composeEventHandlers files         21        12
+composeEventHandlerChain files      0         4
+
+direct usePress calls              11         8
+manual isControlled                 9         3
+FloatingLayer JSX consumers         4         1
+DismissableLayer JSX files          6         5
+FocusScope JSX files                3         2
+```
+
+Interpretación:
+
+- el aumento de módulos corresponde a owners explícitos añadidos durante A–E;
+- reachability sigue completa;
+- la concentración transversal bajó en los mecanismos objetivo;
+- los tres `isControlled` residuales tienen decisión explícita;
+- `FloatingLayer` ya tiene un único consumidor estructural.
+
+## F3 — wrappers y residuos
+
+Residuo eliminado:
+
+`navigationStack.motion.ts`
+
+Era un adapter identidad:
+
+```text
+animation → animation
+```
+
+y no poseía política.
+
+Wrappers mantenidos por diferencia semántica:
+
+- HelpText / FormErrorMessage;
+- MotionPresence / MotionSwitch;
+- BottomNavigation / NavigationRail;
+- ActionDialog / ConfirmDialog;
+- DataTableSkeleton / SkeletonTable.
+
+Barrido productivo:
+
+```text
+imports relativos TS rotos        0
+phase markers Pn.n en src          0
+test/spec files bajo src           0
+backup/generated residue           0
+ambiguous *source.test* files      0
+```
+
+## F4 — documentación
+
+Consolidados:
+
+- BITACORA;
+- MAPEO_ARQUITECTURA;
+- CONTRATOS;
+- ARQUITECTURA;
+- VALIDACION;
+- SUPERFICIE_PUBLICA;
+- DISTRIBUCION;
+- ROADMAP_POST_0_3.
+
+Nuevo guard:
+
+`architecture-phase-f-sweep.test.ts`.
+
+## Decisión del segundo corte
+
+No quedan hallazgos P0/P1 del mapa sin decisión.
+
+Las diferencias que permanecen están clasificadas como contratos semánticos deliberados, no como duplicación pendiente.
+
+F sólo se cierra después de `pnpm validate`.

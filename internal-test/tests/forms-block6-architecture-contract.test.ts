@@ -1,4 +1,5 @@
 // @vitest-environment node
+// Fase F: clases A/B — architecture boundary + public API contract.
 
 import {
   readFileSync,

@@ -1,4 +1,5 @@
 // @vitest-environment node
+// Fase F: clase A — ownership boundary.
 
 import {
   readFileSync,

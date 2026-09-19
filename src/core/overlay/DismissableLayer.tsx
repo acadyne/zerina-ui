@@ -444,7 +444,7 @@ export const DismissableLayer =
 
 
       /*
-       * Conserva la semántica de P2.2: mientras la instancia siga interactiva,
+       * Mientras la instancia siga interactiva,
        * una marca que no produjo cierre no contamina una transición posterior.
        */
       useIsomorphicLayoutEffect(

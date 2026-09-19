@@ -8,7 +8,6 @@ import {
 import { Box } from "../../primitives/layout";
 import { NavigationStackContext } from "./NavigationStackContext";
 import { NavigationStackScreen } from "./NavigationStackScreen";
-import { getNavigationStackMotionPreset } from "./navigationStack.motion";
 import type {
   NavigationStackComponent,
   NavigationStackContextValue,
@@ -215,7 +214,7 @@ const NavigationStackRoot =
         {current ? (
           <MotionSwitch
             motionKey={current.key}
-            preset={getNavigationStackMotionPreset(animation)}
+            preset={animation}
             direction={transitionDirection}
             mode="wait"
             initial={false}

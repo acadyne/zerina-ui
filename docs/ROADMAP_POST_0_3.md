@@ -507,7 +507,7 @@ Extraer el frame/helper común sin cambiar API pública.
 - E1 Slot precedence: **CERRADA**.
 - E2 Layout prop matrix: **CERRADA**.
 - E3 Recipe convergence: **CERRADA**.
-- E4 Tipos estructuralmente equivalentes: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- E4 Tipos estructuralmente equivalentes: **CERRADA**.
 
 ## Objetivo
 
@@ -598,6 +598,14 @@ Centralizar sólo cuando expresen el mismo concepto.
 ---
 
 # Fase F — test architecture y sweep final
+
+## Estado actual de Fase F
+
+- F1 source-test classification: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+- F2 análisis estructural: **IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**.
+- F3 wrappers/residuos: **IMPLEMENTADO — PENDIENTE DE VALIDACIÓN**.
+- F4 documentación: **IMPLEMENTADA — PENDIENTE DE VALIDACIÓN**.
+
 
 ## Objetivo
 

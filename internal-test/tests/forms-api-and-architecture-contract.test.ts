@@ -1,4 +1,5 @@
 // @vitest-environment node
+// Fase F: clases A/B — public surface + removed-architecture boundary.
 
 import {
   existsSync,
@@ -883,4 +884,3 @@ describe(
     );
   },
 );
-

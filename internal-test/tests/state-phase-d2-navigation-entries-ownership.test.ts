@@ -163,6 +163,12 @@ describe(
         expect(
           source,
         ).toContain(
+          "preset={animation}",
+        );
+
+        expect(
+          source,
+        ).not.toContain(
           "getNavigationStackMotionPreset",
         );
       },
