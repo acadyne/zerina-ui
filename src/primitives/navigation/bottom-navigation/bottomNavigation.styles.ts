@@ -1,10 +1,11 @@
 import React from "react";
 import {
+  cssSize,
   defineSlotRecipe,
   type SlotStyleMap,
 } from "../../../helpers/css";
+import { getSafeAreaOffset } from "../../../helpers/safeArea";
 import {
-  cssSize,
   getOffsetTransform,
 } from "./bottomNavigation.utils";
 import type {
@@ -292,7 +293,7 @@ export const bottomNavigationRecipe =
         ...getRootPositionStyle(position),
 
         paddingBottom: safeArea
-          ? "env(safe-area-inset-bottom, 0px)"
+          ? getSafeAreaOffset("bottom")
           : undefined,
 
         ...getRootSurfaceStyles({

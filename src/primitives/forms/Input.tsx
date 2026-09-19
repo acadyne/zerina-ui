@@ -23,10 +23,10 @@ import {
 } from "./use-text-control-runtime";
 
 
-type InputSize =
+export type InputSize =
   TextControlSize;
 
-type InputVariant =
+export type InputVariant =
   TextControlVariant;
 
 

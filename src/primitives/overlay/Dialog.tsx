@@ -12,6 +12,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { maxSafeAreaOffset } from "../../helpers/safeArea";
 import {
   Button,
   type ButtonProps,
@@ -21,7 +22,7 @@ import {
   ModalOverlayRuntime,
 } from "./shared/ModalOverlayRuntime";
 
-type DialogSize =
+export type DialogSize =
   | "sm"
   | "md"
   | "lg"
@@ -78,16 +79,16 @@ const dialogRecipe = defineSlotRecipe<
       justifyContent: "center",
 
       paddingTop:
-        "max(16px, env(safe-area-inset-top))",
+        maxSafeAreaOffset(16, "top"),
 
       paddingRight:
-        "max(16px, env(safe-area-inset-right))",
+        maxSafeAreaOffset(16, "right"),
 
       paddingBottom:
-        "max(16px, env(safe-area-inset-bottom))",
+        maxSafeAreaOffset(16, "bottom"),
 
       paddingLeft:
-        "max(16px, env(safe-area-inset-left))",
+        maxSafeAreaOffset(16, "left"),
 
       pointerEvents: "none",
     },

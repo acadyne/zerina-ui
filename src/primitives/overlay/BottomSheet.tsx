@@ -17,6 +17,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { getSafeAreaOffset } from "../../helpers/safeArea";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
@@ -148,7 +149,7 @@ const bottomSheetRecipe =
         overflow: "hidden",
 
         paddingBottom:
-          "env(safe-area-inset-bottom)",
+          getSafeAreaOffset("bottom"),
       },
 
       /*

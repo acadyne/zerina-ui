@@ -16,16 +16,24 @@ export function cssVar(name: string, fallback?: string): string {
     : `var(${normalized})`;
 }
 
-export function px(value?: number | string): string | number | undefined {
-  if (value === undefined || value === null) {
+export function cssSize(
+  value: number | string
+): string;
+
+export function cssSize(
+  value: undefined
+): undefined;
+
+export function cssSize(
+  value: number | string | undefined
+): string | undefined {
+  if (value === undefined) {
     return undefined;
   }
 
-  return typeof value === "number" ? `${value}px` : value;
-}
-
-export function cssSize(value: number | string): string {
-  return typeof value === "number" ? `${value}px` : value;
+  return typeof value === "number"
+    ? `${value}px`
+    : value;
 }
 
 export function mergeStyles(

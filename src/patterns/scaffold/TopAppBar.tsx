@@ -11,6 +11,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { getSafeAreaOffset } from "../../helpers/safeArea";
 
 import {
   Box,
@@ -390,7 +391,7 @@ export const TopAppBar =
 
             paddingTop:
               safeAreaTop
-                ? "var(--ui-safe-top-offset)"
+                ? getSafeAreaOffset("top")
                 : undefined,
 
 

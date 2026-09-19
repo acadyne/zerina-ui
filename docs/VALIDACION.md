@@ -63,6 +63,11 @@ TypeScript  5.9.3
 
 `skipLibCheck:false` se mantiene en los consumidores temporales.
 
+Además, el consumer empaquetado importa explícitamente tipos semánticos públicos
+desde `zerina-ui` (navegación, theme, viewport, forms, overlay, layout y media).
+Esto evita que una declaración interna utilizada por una prop pública quede
+inaccesible desde el entry point raíz.
+
 ## Arquitectura de tests
 
 Los tests estructurales se clasifican por el contrato que protegen.

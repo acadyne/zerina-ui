@@ -10,7 +10,7 @@ import {
 } from "../../helpers/css";
 import { SkeletonCircle } from "../feedback/SkeletonCircle";
 
-type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | number;
+export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | number;
 
 export type AvatarSlot =
   | "root"

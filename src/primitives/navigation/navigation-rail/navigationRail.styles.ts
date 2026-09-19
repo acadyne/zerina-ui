@@ -1,11 +1,12 @@
 // src/primitives/navigation/navigation-rail/navigationRail.styles.ts
 import React from "react";
 import {
+  cssSize,
   defineSlotRecipe,
   type SlotStyleMap,
 } from "../../../helpers/css";
+import { getSafeAreaOffset } from "../../../helpers/safeArea";
 import {
-  cssSize,
   getOffsetTransform,
 } from "./navigationRail.utils";
 import type {
@@ -391,23 +392,23 @@ export const navigationRailRecipe =
             : undefined,
 
         paddingTop: safeArea
-          ? "env(safe-area-inset-top, 0px)"
+          ? getSafeAreaOffset("top")
           : undefined,
 
         paddingBottom: safeArea
-          ? "env(safe-area-inset-bottom, 0px)"
+          ? getSafeAreaOffset("bottom")
           : undefined,
 
         paddingLeft:
           safeArea &&
             placement === "left"
-            ? "env(safe-area-inset-left, 0px)"
+            ? getSafeAreaOffset("left")
             : undefined,
 
         paddingRight:
           safeArea &&
             placement === "right"
-            ? "env(safe-area-inset-right, 0px)"
+            ? getSafeAreaOffset("right")
             : undefined,
 
         ...getRootSurfaceStyles({

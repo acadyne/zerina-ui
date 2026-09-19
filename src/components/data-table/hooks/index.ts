@@ -6,4 +6,3 @@ export * from "./useDataTableSelection";
 export * from "./useDataTableSorting";
 export * from "./useDataTablePagination";
 export * from "./useDataTableExport";
-export * from "./useDataTableResponsiveMode";

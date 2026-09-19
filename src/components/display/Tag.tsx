@@ -21,6 +21,12 @@ import {
 } from "./status-label-recipe";
 
 
+export type TagVariant =
+  StatusLabelVariant;
+
+export type TagColorScheme =
+  StatusLabelColorScheme;
+
 export type TagSlot =
   | "root"
   | "leftIcon"
@@ -43,10 +49,10 @@ export interface TagProps
     React.ReactNode;
 
   variant?:
-    StatusLabelVariant;
+    TagVariant;
 
   colorScheme?:
-    StatusLabelColorScheme;
+    TagColorScheme;
 
   rounded?:
     React.CSSProperties["borderRadius"];

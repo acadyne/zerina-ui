@@ -42,10 +42,10 @@ export interface Option {
 }
 
 
-type SelectSize =
+export type SelectSize =
   TextControlSize;
 
-type SelectVariant =
+export type SelectVariant =
   TextControlVariant;
 
 

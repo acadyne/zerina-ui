@@ -2,7 +2,6 @@
 import { cssSize } from "../../../helpers/css";
 import type { NavigationRailBadgeOffset } from "./navigationRail.types";
 
-export { cssSize };
 
 export function getOffsetTransform(
   offset?: NavigationRailBadgeOffset

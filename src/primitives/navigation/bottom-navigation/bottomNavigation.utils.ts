@@ -2,7 +2,6 @@
 import { cssSize } from "../../../helpers/css";
 import type { BottomNavigationBadgeOffset } from "./bottomNavigation.types";
 
-export { cssSize };
 
 export function getOffsetTransform(
   offset?: BottomNavigationBadgeOffset

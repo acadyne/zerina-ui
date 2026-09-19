@@ -1,7 +1,7 @@
 // src/primitives/layout/Container.tsx
 import React, { forwardRef } from "react";
 
-type ContainerSize = "sm" | "md" | "lg" | "xl" | "full" | number | string;
+export type ContainerSize = "sm" | "md" | "lg" | "xl" | "full" | number | string;
 
 export interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

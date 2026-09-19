@@ -287,10 +287,96 @@ function writeConsumer({
 } from "zerina-ui";
 
 import type {
+  AdaptiveScaffoldProps,
+  AvatarSize,
+  BadgeColorScheme,
+  BadgeVariant,
   ButtonProps,
+  ContainerSize,
+  CreateThemeDefinitionInput,
+  DialogSize,
+  FloatingPlacement,
+  InputSize,
+  InputVariant,
+  NavigationContentMeta,
+  NavigationLinkMeta,
+  NavigationNode,
+  NavigationNodeId,
+  PopoverPlacement,
+  RatioValue,
+  SafeAreaEdges,
+  SelectSize,
+  SelectVariant,
+  SetViewportModeAction,
+  TagColorScheme,
+  TagVariant,
+  TextareaSize,
+  TextareaVariant,
+  UIThemeContextValue,
   UIViewportKind,
 } from "zerina-ui";
 
+
+type ConsumerNavigationMeta =
+  NavigationLinkMeta & {
+    analyticsId: string;
+  };
+
+const navigationId:
+  NavigationNodeId =
+  "dashboard";
+
+const navigationItems:
+  NavigationNode<ConsumerNavigationMeta>[] = [
+    {
+      id: navigationId,
+      label: "Dashboard",
+      meta: {
+        href: "/dashboard",
+        analyticsId: "dashboard",
+      },
+    },
+  ];
+
+const adaptiveItems:
+  AdaptiveScaffoldProps<ConsumerNavigationMeta>["items"] =
+  navigationItems;
+
+const navigationContent:
+  NavigationContentMeta = {};
+
+const themeDefinition:
+  CreateThemeDefinitionInput = {
+    name: "consumer-theme",
+    source: "custom",
+  };
+
+const setViewportMode:
+  SetViewportModeAction =
+  (previousMode) =>
+    previousMode;
+
+const setTheme:
+  UIThemeContextValue["setTheme"] =
+  () => undefined;
+
+const inputSize: InputSize = "md";
+const inputVariant: InputVariant = "outline";
+const selectSize: SelectSize = "md";
+const selectVariant: SelectVariant = "outline";
+const textareaSize: TextareaSize = "md";
+const textareaVariant: TextareaVariant = "outline";
+const dialogSize: DialogSize = "md";
+const popoverPlacement: PopoverPlacement = "bottom-start";
+const floatingPlacement: FloatingPlacement = "bottom-start";
+const safeAreaEdges: SafeAreaEdges = { top: true };
+const containerSize: ContainerSize = "lg";
+const avatarSize: AvatarSize = "md";
+const ratioValue: RatioValue = "16/9";
+const badgeVariant: BadgeVariant = "subtle";
+const badgeColorScheme: BadgeColorScheme = "primary";
+const tagVariant: TagVariant = "outline";
+const tagColorScheme: TagColorScheme = "neutral";
 
 const buttonProps: ButtonProps = {
   children: "Consumer",
@@ -303,6 +389,28 @@ void MotionPresence;
 void UIMotionProvider;
 void UIViewportProvider;
 void usePress;
+void adaptiveItems;
+void navigationContent;
+void themeDefinition;
+void setViewportMode;
+void setTheme;
+void inputSize;
+void inputVariant;
+void selectSize;
+void selectVariant;
+void textareaSize;
+void textareaVariant;
+void dialogSize;
+void popoverPlacement;
+void floatingPlacement;
+void safeAreaEdges;
+void containerSize;
+void avatarSize;
+void ratioValue;
+void badgeVariant;
+void badgeColorScheme;
+void tagVariant;
+void tagColorScheme;
 void viewportKind;
 
 

@@ -54,7 +54,8 @@ Se consideran API de consumidor:
 - `UIViewportProvider`;
 - `useUIViewport`;
 - `DEFAULT_UI_VIEWPORT_BREAKPOINTS`;
-- tipos de viewport/density/input y contexto.
+- tipos de viewport/density/input y contexto;
+- `SetViewportModeAction` como contrato del setter público de modo.
 
 No se consideran API raíz:
 
@@ -68,6 +69,45 @@ La resolución y el acceso opcional son mecanismos de implementación interna.
 `usePress`, `useFocusVisible`, tipos de press y sus contratos permanecen públicos. Hay consumidores reales en el harness y forman parte de la capa de interacción reusable.
 
 TriggerRuntime no forma parte del entry point raíz.
+
+## Navegación pública
+
+Los tipos que aparecen en contratos de navegación adaptativa son importables desde
+`zerina-ui`:
+
+- `NavigationNode`;
+- `NavigationNodeId`;
+- `NavigationLinkMeta`;
+- `NavigationContentMeta`.
+
+Los helpers internos de recorrido/proyección no se exponen automáticamente desde
+la raíz sólo por compartir el mismo módulo fuente.
+
+## Theme público
+
+Además de `ThemeDefinition`, `ThemeName` y los tokens públicos, forman parte de
+la superficie de consumidor:
+
+- `CreateThemeDefinitionInput`, porque es el contrato de `createThemeDefinition`;
+- `UIThemeContextValue`, porque es el valor retornado por `useUITheme`.
+
+## Tipos semánticos de props
+
+Cuando una prop pública usa un dominio semántico con nombre, el consumidor debe
+poder importarlo sin recurrir a `ComponentProps["prop"]`.
+
+La superficie incluye, entre otros:
+
+- forms: `InputSize`, `InputVariant`, `SelectSize`, `SelectVariant`,
+  `TextareaSize`, `TextareaVariant`;
+- overlay: `DialogSize`, `PopoverPlacement`, `FloatingPlacement`;
+- layout: `ContainerSize`, `SafeAreaEdges`;
+- media: `AvatarSize`, `RatioValue`;
+- status labels: `BadgeVariant`, `BadgeColorScheme`, `TagVariant`,
+  `TagColorScheme`.
+
+Los aliases específicos de `Badge` y `Tag` preservan `statusLabelRecipe` como
+owner interno.
 
 ## Higiene de repositorio
 
@@ -128,7 +168,9 @@ Se valida por:
 - `package.json#exports`;
 - `public-surface-contract.test.ts`;
 - declarations generadas;
-- `package:verify` sobre el tarball real.
+- `package:verify` sobre el tarball real;
+- un consumer TypeScript `strict` que importa los tipos semánticos públicos desde
+  `zerina-ui`.
 
 Fase F no añadió ni retiró entry points públicos.
 

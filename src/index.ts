@@ -66,6 +66,7 @@ export type {
   UIViewportKind,
   UIViewportMode,
   UIViewportProviderProps,
+  SetViewportModeAction,
 } from "./core/viewport";
 
 export * from "./core/interaction";
@@ -76,4 +77,7 @@ export { Portal } from "./core/overlay";
 export type { PortalProps } from "./core/overlay";
 
 export { OverlayProvider } from "./core/overlay";
-export type { OverlayProviderProps } from "./core/overlay";
+export type {
+  FloatingPlacement,
+  OverlayProviderProps,
+} from "./core/overlay";

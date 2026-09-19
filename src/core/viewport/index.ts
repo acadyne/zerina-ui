@@ -3,3 +3,4 @@
 export * from "./viewport.types";
 export * from "./viewport.utils";
 export * from "./UIViewportProvider";
+export * from "./useAdaptiveViewport";

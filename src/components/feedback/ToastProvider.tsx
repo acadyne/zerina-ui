@@ -2,6 +2,7 @@
 import React from "react";
 import { MotionPresenceGroup } from "../../core/motion";
 import { getLayerZIndex } from "../../core/overlay";
+import { maxSafeAreaOffset } from "../../helpers/safeArea";
 import {
   Toast,
   type ToastPauseReason,
@@ -77,11 +78,12 @@ function getPlacementStyles(
     flexDirection: "column",
     gap: "0.75rem",
     pointerEvents: "none",
-    padding:
-      "max(12px, env(safe-area-inset-top)) " +
-      "max(12px, env(safe-area-inset-right)) " +
-      "max(12px, env(safe-area-inset-bottom)) " +
-      "max(12px, env(safe-area-inset-left))",
+    padding: [
+      maxSafeAreaOffset(12, "top"),
+      maxSafeAreaOffset(12, "right"),
+      maxSafeAreaOffset(12, "bottom"),
+      maxSafeAreaOffset(12, "left"),
+    ].join(" "),
   };
 
   if (placement.startsWith("top")) {

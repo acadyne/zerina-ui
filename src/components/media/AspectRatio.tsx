@@ -1,7 +1,7 @@
 // src/components/media/AspectRatio.tsx
 import React, { forwardRef, useMemo } from "react";
 
-type RatioValue = number | `${number}/${number}` | `${number}:${number}`;
+export type RatioValue = number | `${number}/${number}` | `${number}:${number}`;
 
 export interface AspectRatioProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

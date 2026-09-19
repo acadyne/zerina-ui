@@ -20,6 +20,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { maxSafeAreaOffset } from "../../helpers/safeArea";
 import { IconButton } from "../forms";
 import { Box, Flex } from "../layout";
 import { Typography } from "../typography";
@@ -125,7 +126,7 @@ const drawerRecipe = defineSlotRecipe<
      */
     header: {
       padding:
-        "max(1rem, env(safe-area-inset-top)) 1rem 0.85rem",
+        `${maxSafeAreaOffset("1rem", "top")} 1rem 0.85rem`,
 
       borderBottom:
         "1px solid var(--ui-border)",
@@ -173,7 +174,7 @@ const drawerRecipe = defineSlotRecipe<
 
     footer: {
       padding:
-        "0.85rem 1rem max(1rem, env(safe-area-inset-bottom))",
+        `0.85rem 1rem ${maxSafeAreaOffset("1rem", "bottom")}`,
 
       borderTop:
         "1px solid var(--ui-border)",

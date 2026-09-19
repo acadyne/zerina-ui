@@ -1,14 +1,13 @@
 // src/primitives/layout/Screen.tsx
 import React from "react";
+import {
+    addSafeAreaOffset,
+    resolveSafeAreaEdges,
+    type SafeAreaEdges,
+} from "../../helpers/safeArea";
 import { Box, type BoxProps } from "./Box";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 
-type SafeAreaEdges = {
-    top?: boolean;
-    right?: boolean;
-    bottom?: boolean;
-    left?: boolean;
-};
 
 export type ScreenInset = number | string;
 
@@ -82,65 +81,6 @@ type ScreenComponent = React.ForwardRefExoticComponent<
     >;
 };
 
-function toCssSize(value: ScreenInset | undefined): string | number | undefined {
-    if (value === undefined) return undefined;
-    if (typeof value === "number") return `${value}px`;
-    return value;
-}
-
-function resolveSafeAreaEdges(
-    safeArea: ScreenProps["safeArea"]
-): SafeAreaEdges {
-    if (!safeArea) {
-        return {
-            top: false,
-            right: false,
-            bottom: false,
-            left: false,
-        };
-    }
-
-    if (safeArea === true) {
-        return {
-            top: true,
-            right: true,
-            bottom: true,
-            left: true,
-        };
-    }
-
-    return {
-        top: safeArea.top ?? false,
-        right: safeArea.right ?? false,
-        bottom: safeArea.bottom ?? false,
-        left: safeArea.left ?? false,
-    };
-}
-
-function getSafeAreaPadding(edges: SafeAreaEdges): React.CSSProperties {
-    return {
-        paddingTop:
-            edges.top
-                ? "var(--ui-safe-top-offset)"
-                : undefined,
-
-        paddingRight:
-            edges.right
-                ? "var(--ui-safe-right-offset)"
-                : undefined,
-
-        paddingBottom:
-            edges.bottom
-                ? "var(--ui-safe-bottom-offset)"
-                : undefined,
-
-        paddingLeft:
-            edges.left
-                ? "var(--ui-safe-left-offset)"
-                : undefined,
-    };
-}
-
 const ScreenRoot = React.forwardRef<HTMLDivElement, ScreenProps>(
     (
         {
@@ -173,9 +113,26 @@ const ScreenRoot = React.forwardRef<HTMLDivElement, ScreenProps>(
                     boxSizing: "border-box",
                     background: "var(--ui-bg)",
                     color: "var(--ui-text)",
-                    paddingTop: toCssSize(topInset),
-                    paddingBottom: toCssSize(bottomInset),
-                    ...getSafeAreaPadding(safeAreaEdges),
+                    paddingTop: addSafeAreaOffset(
+                        topInset,
+                        "top",
+                        safeAreaEdges.top
+                    ),
+                    paddingRight: addSafeAreaOffset(
+                        undefined,
+                        "right",
+                        safeAreaEdges.right
+                    ),
+                    paddingBottom: addSafeAreaOffset(
+                        bottomInset,
+                        "bottom",
+                        safeAreaEdges.bottom
+                    ),
+                    paddingLeft: addSafeAreaOffset(
+                        undefined,
+                        "left",
+                        safeAreaEdges.left
+                    ),
                     ...style,
                 }}
             >

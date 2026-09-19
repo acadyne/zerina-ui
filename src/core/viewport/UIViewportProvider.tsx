@@ -16,7 +16,7 @@ import {
 } from "./viewport.types";
 
 import {
-  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
+  resolveUIViewportBreakpoints,
   resolveUIViewportKind,
 } from "./viewport.utils";
 
@@ -82,7 +82,7 @@ function writeViewportDocumentAttributes(
   }
 }
 
-type SetViewportModeAction =
+export type SetViewportModeAction =
   | UIViewportMode
   | ((prevMode: UIViewportMode) => UIViewportMode);
 
@@ -308,10 +308,10 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
     });
 
   const resolvedBreakpoints = React.useMemo<UIViewportBreakpoints>(
-    () => ({
-      ...DEFAULT_UI_VIEWPORT_BREAKPOINTS,
-      ...breakpoints,
-    }),
+    () =>
+      resolveUIViewportBreakpoints(
+        breakpoints
+      ),
     [breakpoints]
   );
 

@@ -53,7 +53,7 @@ interface UIThemeProviderConfiguration {
   themes: readonly ThemeDefinition[];
 }
 
-interface UIThemeContextValue {
+export interface UIThemeContextValue {
   /**
    * Original registered definition of the active theme.
    */

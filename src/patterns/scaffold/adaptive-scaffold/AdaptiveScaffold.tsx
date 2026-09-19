@@ -1,14 +1,13 @@
 // src/patterns/scaffold/adaptive-scaffold/AdaptiveScaffold.tsx
 import React from "react";
 import {
+  cssSize,
   resolveMergedSlot,
   resolveSlot,
 } from "../../../helpers/css";
 import {
-  DEFAULT_UI_VIEWPORT_BREAKPOINTS,
-  useOptionalUIViewport,
+  useAdaptiveViewport,
 } from "../../../core/viewport";
-import { useElementSize } from "../../../core/dom";
 import {
   setRef,
 } from "../../../core/interaction/events";
@@ -30,8 +29,6 @@ import type {
   NavigationNode,
 } from "../../navigation";
 import {
-  cssSize,
-  resolveAdaptiveScaffoldMode,
   resolveAdaptiveValue,
 } from "./adaptiveScaffold.utils";
 
@@ -111,14 +108,17 @@ function AdaptiveScaffoldImpl<
   }: AdaptiveScaffoldProps<TMeta>,
   ref: React.ForwardedRef<HTMLDivElement>
 ) {
-  const viewportInfo =
-    useOptionalUIViewport();
+  const adaptiveViewport =
+    useAdaptiveViewport<HTMLDivElement>({
+      source:
+        viewport === "contained"
+          ? "container"
+          : "window",
+      mode,
+    });
 
-  const [
-    rootRef,
-    rootSize,
-  ] =
-    useElementSize<HTMLDivElement>();
+  const rootRef =
+    adaptiveViewport.ref;
 
   const setRootRefs =
     React.useCallback(
@@ -185,22 +185,8 @@ function AdaptiveScaffoldImpl<
     [currentActiveId, items]
   );
 
-  const responsiveWidth =
-    viewport === "contained"
-      ? rootSize.width
-      : viewportInfo?.width ?? rootSize.width;
-
-  const resolvedMode = resolveAdaptiveScaffoldMode({
-    mode,
-    width: responsiveWidth,
-    fallbackKind:
-      viewport === "contained"
-        ? "mobile"
-        : viewportInfo?.kind ??
-          "mobile",
-    breakpoints:
-      viewportInfo?.breakpoints ?? DEFAULT_UI_VIEWPORT_BREAKPOINTS,
-  });
+  const resolvedMode =
+    adaptiveViewport.kind;
 
   React.useEffect(() => {
     if (

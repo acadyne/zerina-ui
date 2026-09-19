@@ -15,6 +15,12 @@ import {
 } from "./status-label-recipe";
 
 
+export type BadgeVariant =
+  StatusLabelVariant;
+
+export type BadgeColorScheme =
+  StatusLabelColorScheme;
+
 export type BadgeSlot =
   StatusLabelRecipeSlot;
 
@@ -33,10 +39,10 @@ export interface BadgeProps
     React.ReactNode;
 
   variant?:
-    StatusLabelVariant;
+    BadgeVariant;
 
   colorScheme?:
-    StatusLabelColorScheme;
+    BadgeColorScheme;
 
   rounded?:
     React.CSSProperties["borderRadius"];

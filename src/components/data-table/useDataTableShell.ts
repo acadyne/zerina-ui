@@ -2,6 +2,11 @@ import {
   useMemo,
 } from "react";
 
+import {
+  useAdaptiveViewport,
+  type UIAdaptiveViewportMode,
+} from "../../core/viewport";
+
 import type {
   DataTableColumn,
   DataTableMobileMode,
@@ -18,10 +23,24 @@ import type {
 
 import {
   useDataTableExport,
-  useDataTableResponsiveMode,
   useDataTableSelection,
   useDataTableState,
 } from "./hooks";
+
+
+function resolveDataTableResponsiveMode(
+  mobileMode: DataTableMobileMode
+): UIAdaptiveViewportMode {
+  if (mobileMode === "always") {
+    return "mobile";
+  }
+
+  if (mobileMode === "never") {
+    return "desktop";
+  }
+
+  return mobileMode;
+}
 
 
 export interface UseDataTableShellOptions<
@@ -126,11 +145,38 @@ export function useDataTableShell<
     });
 
 
-  const isMobile =
-    useDataTableResponsiveMode({
-      mobileMode,
-      mobileBreakpoint,
+  const responsiveBreakpoints =
+    useMemo(
+      () =>
+        mobileBreakpoint === undefined
+          ? undefined
+          : {
+              tablet:
+                mobileBreakpoint,
+            },
+      [
+        mobileBreakpoint,
+      ],
+    );
+
+
+  const responsive =
+    useAdaptiveViewport({
+      source:
+        "window",
+
+      mode:
+        resolveDataTableResponsiveMode(
+          mobileMode,
+        ),
+
+      breakpoints:
+        responsiveBreakpoints,
     });
+
+
+  const isMobile =
+    responsive.isMobile;
 
 
   const getId =

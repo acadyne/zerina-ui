@@ -8,6 +8,10 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 import {
+  getSafeAreaPadding,
+  type SafeAreaEdges,
+} from "../../helpers/safeArea";
+import {
   Box,
   type BoxProps,
   ScrollArea,
@@ -22,13 +26,6 @@ export type ScreenContentPadding =
   | "spacious"
   | number
   | string;
-
-export interface ScreenContentSafeAreaEdges {
-  top?: boolean;
-  right?: boolean;
-  bottom?: boolean;
-  left?: boolean;
-}
 
 export type ScreenContentSlot = "root" | "scrollArea" | "content";
 
@@ -96,7 +93,7 @@ export interface ScreenContentProps
   /**
    * Suma safe-area al padding correspondiente.
    */
-  safeArea?: boolean | ScreenContentSafeAreaEdges;
+  safeArea?: boolean | SafeAreaEdges;
 
   className?: string;
   style?: React.CSSProperties;
@@ -124,46 +121,6 @@ function resolvePadding({
   return padded ? "1rem" : undefined;
 }
 
-function resolveSafeAreaEdges(
-  safeArea: ScreenContentProps["safeArea"]
-): ScreenContentSafeAreaEdges {
-  if (!safeArea) {
-    return {
-      top: false,
-      right: false,
-      bottom: false,
-      left: false,
-    };
-  }
-
-  if (safeArea === true) {
-    return {
-      top: true,
-      right: true,
-      bottom: true,
-      left: true,
-    };
-  }
-
-  return {
-    top: Boolean(safeArea.top),
-    right: Boolean(safeArea.right),
-    bottom: Boolean(safeArea.bottom),
-    left: Boolean(safeArea.left),
-  };
-}
-
-function addInset(
-  value: string | undefined,
-  inset: string,
-  enabled: boolean
-): string | undefined {
-  if (!enabled) return value;
-  if (!value) return `env(${inset}, 0px)`;
-
-  return `calc(${value} + env(${inset}, 0px))`;
-}
-
 function getPaddingStyles({
   padded,
   padding,
@@ -173,31 +130,16 @@ function getPaddingStyles({
   padding?: ScreenContentPadding;
   safeArea?: ScreenContentProps["safeArea"];
 }): React.CSSProperties {
-  const resolvedPadding = resolvePadding({ padded, padding });
-  const edges = resolveSafeAreaEdges(safeArea);
+  const resolvedPadding =
+    resolvePadding({
+      padded,
+      padding,
+    });
 
-  return {
-    paddingTop: addInset(
-      resolvedPadding,
-      "safe-area-inset-top",
-      edges.top ?? false
-    ),
-    paddingRight: addInset(
-      resolvedPadding,
-      "safe-area-inset-right",
-      edges.right ?? false
-    ),
-    paddingBottom: addInset(
-      resolvedPadding,
-      "safe-area-inset-bottom",
-      edges.bottom ?? false
-    ),
-    paddingLeft: addInset(
-      resolvedPadding,
-      "safe-area-inset-left",
-      edges.left ?? false
-    ),
-  };
+  return getSafeAreaPadding(
+    safeArea,
+    resolvedPadding
+  );
 }
 
 export const ScreenContent = React.forwardRef<

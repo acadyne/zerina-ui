@@ -10,6 +10,30 @@ export const DEFAULT_UI_VIEWPORT_BREAKPOINTS: UIViewportBreakpoints = {
   desktop: 1024,
 };
 
+
+export function resolveUIViewportBreakpoints(
+  breakpoints?: Partial<UIViewportBreakpoints>,
+  base: UIViewportBreakpoints =
+    DEFAULT_UI_VIEWPORT_BREAKPOINTS
+): UIViewportBreakpoints {
+  const tablet = Math.max(
+    0,
+    breakpoints?.tablet ??
+      base.tablet
+  );
+
+  const desktop = Math.max(
+    tablet,
+    breakpoints?.desktop ??
+      base.desktop
+  );
+
+  return {
+    tablet,
+    desktop,
+  };
+}
+
 export function resolveUIViewportKind({
   mode,
   width,

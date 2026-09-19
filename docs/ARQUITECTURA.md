@@ -176,6 +176,17 @@ slot precedence
 
 status labels
 → statusLabelRecipe
+
+responsive component resolution
+→ useAdaptiveViewport
+→ resolveUIViewportBreakpoints / resolveUIViewportKind
+
+safe-area
+→ helpers/safeArea.ts
+→ variables normalizadas --ui-safe-*-offset
+
+scroll mechanics
+→ ScrollArea
 ```
 
 ## Reachability y residuos
@@ -194,6 +205,8 @@ El único adapter identidad detectado durante F fue eliminado:
 `patterns/navigation-stack/navigationStack.motion.ts`.
 
 Los wrappers pequeños que permanecen lo hacen por diferencia de contrato público, no por compatibilidad histórica.
+
+En la consolidación 2A se eliminó `PageScroll`: no tenía semántica propia y reimplementaba el motor de `ScrollArea`. También se retiraron los aliases de safe-area duplicados; `SafeAreaEdges` es el contrato único.
 
 ## Arquitectura de tests
 

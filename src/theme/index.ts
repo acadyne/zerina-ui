@@ -6,6 +6,7 @@ export {
 } from "./react/theme";
 
 export type {
+  UIThemeContextValue,
   UIThemeProviderProps,
 } from "./react/theme";
 
@@ -35,6 +36,10 @@ export type {
 
 export {
   createThemeDefinition,
+} from "./definitions/theme-definition";
+
+export type {
+  CreateThemeDefinitionInput,
 } from "./definitions/theme-definition";
 
 

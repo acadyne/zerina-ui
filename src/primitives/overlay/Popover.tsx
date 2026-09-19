@@ -26,7 +26,7 @@ import {
   TriggerRuntime,
 } from "../../core/interaction/trigger";
 
-type PopoverPlacement =
+export type PopoverPlacement =
   FloatingPlacement;
 
 export type PopoverSlot =

@@ -5,6 +5,7 @@ import {
   type SlotPropsMap,
   type SlotStyleMap,
 } from "../../helpers/css";
+import { maxSafeAreaOffset } from "../../helpers/safeArea";
 import { Pressable } from "../../primitives/forms";
 import { Box } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
@@ -162,15 +163,15 @@ function getPlacementStyles(
       }
       : placement === "bottom-start"
         ? {
-          left: "max(1rem, env(safe-area-inset-left, 0px))",
+          left: maxSafeAreaOffset("1rem", "left"),
         }
         : {
-          right: "max(1rem, env(safe-area-inset-right, 0px))",
+          right: maxSafeAreaOffset("1rem", "right"),
         };
 
   return {
     position: "absolute",
-    bottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
+    bottom: maxSafeAreaOffset("1rem", "bottom"),
     zIndex: getScaffoldLocalZIndex("floating"),
     ...horizontal,
   };

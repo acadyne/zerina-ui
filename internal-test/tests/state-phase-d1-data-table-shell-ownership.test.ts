@@ -52,7 +52,7 @@ describe(
         for (
           const owner of [
             "useDataTableState",
-            "useDataTableResponsiveMode",
+            "useAdaptiveViewport",
             "createDataTableRowIdResolver",
             "useDataTableSelection",
             "useDataTableExport",
@@ -144,7 +144,7 @@ describe(
         for (
           const duplicateOwner of [
             "useDataTableState",
-            "useDataTableResponsiveMode",
+            "useAdaptiveViewport",
             "useDataTableSelection",
             "useDataTableExport",
             "<DataTableRoot",

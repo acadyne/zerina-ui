@@ -1,17 +1,16 @@
 // src/primitives/layout/SafeArea.tsx
 import React from "react";
+import {
+  getSafeAreaPadding,
+  type SafeAreaEdges,
+} from "../../helpers/safeArea";
 import { Box, type BoxProps } from "./Box";
 
-type SafeEdges = {
-  top?: boolean;
-  right?: boolean;
-  bottom?: boolean;
-  left?: boolean;
-};
+export type { SafeAreaEdges } from "../../helpers/safeArea";
 
 export type SafeAreaProps<E extends React.ElementType = "div"> = BoxProps<E> & {
   children?: React.ReactNode;
-  edges?: SafeEdges;
+  edges?: SafeAreaEdges;
   minScreenHeight?: boolean;
 };
 
@@ -20,7 +19,12 @@ export function SafeArea<E extends React.ElementType = "div">(
 ) {
   const {
     children,
-    edges = { top: true, right: true, bottom: true, left: true },
+    edges = {
+      top: true,
+      right: true,
+      bottom: true,
+      left: true,
+    },
     minScreenHeight = false,
     style,
     ...rest
@@ -30,27 +34,15 @@ export function SafeArea<E extends React.ElementType = "div">(
     <Box
       {...(rest as BoxProps<E>)}
       style={{
-        paddingTop:
-          edges.top
-            ? "var(--ui-safe-top-offset)"
+        ...getSafeAreaPadding(edges),
+        minHeight:
+          minScreenHeight
+            ? "100dvh"
             : undefined,
-
-        paddingRight:
-          edges.right
-            ? "var(--ui-safe-right-offset)"
+        height:
+          minScreenHeight
+            ? "100dvh"
             : undefined,
-
-        paddingBottom:
-          edges.bottom
-            ? "var(--ui-safe-bottom-offset)"
-            : undefined,
-
-        paddingLeft:
-          edges.left
-            ? "var(--ui-safe-left-offset)"
-            : undefined,
-        minHeight: minScreenHeight ? "100dvh" : undefined,
-        height: minScreenHeight ? "100dvh" : undefined,
         boxSizing: "border-box",
         ...style,
       }}

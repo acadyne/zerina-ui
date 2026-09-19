@@ -23,10 +23,10 @@ import {
 } from "./use-text-control-runtime";
 
 
-type TextareaSize =
+export type TextareaSize =
   TextControlSize;
 
-type TextareaVariant =
+export type TextareaVariant =
   TextControlVariant;
 
 
