@@ -1356,11 +1356,11 @@ describe(
 
         expect(
           target.style.getPropertyValue(
-            "--ui-action-color",
+            "--ui-interactive-color",
           ),
         ).not.toBe(
           target.style.getPropertyValue(
-            "--ui-action-background",
+            "--ui-interactive-background",
           ),
         );
 
@@ -1598,16 +1598,24 @@ describe(
               scheme,
             );
 
+            expect(
+              button.hasAttribute(
+                "data-ui-interactive",
+              ),
+            ).toBe(
+              true,
+            );
+
             for (
               const variable of [
-                "--ui-action-background",
-                "--ui-action-hover-background",
-                "--ui-action-pressed-background",
-                "--ui-action-color",
-                "--ui-action-border",
-                "--ui-action-shadow",
-                "--ui-action-hover-shadow",
-                "--ui-action-pressed-shadow",
+                "--ui-interactive-background",
+                "--ui-interactive-hover-background",
+                "--ui-interactive-focus-background",
+                "--ui-interactive-pressed-background",
+                "--ui-interactive-color",
+                "--ui-interactive-border-color",
+                "--ui-interactive-shadow",
+                "--ui-interactive-focus-ring-color",
               ]
             ) {
               expect(
@@ -1669,8 +1677,16 @@ describe(
           );
 
           expect(
+            icon.hasAttribute(
+              "data-ui-interactive",
+            ),
+          ).toBe(
+            true,
+          );
+
+          expect(
             icon.style.getPropertyValue(
-              "--ui-action-hover-background",
+              "--ui-interactive-hover-background",
             ),
           ).not.toBe(
             "",
@@ -1678,7 +1694,7 @@ describe(
 
           expect(
             icon.style.getPropertyValue(
-              "--ui-action-pressed-background",
+              "--ui-interactive-pressed-background",
             ),
           ).not.toBe(
             "",

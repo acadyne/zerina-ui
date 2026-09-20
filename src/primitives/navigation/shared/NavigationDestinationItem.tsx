@@ -20,6 +20,10 @@ import {
 } from "../../forms";
 
 import {
+  interactiveStateRecipe,
+} from "../../../theme/recipes";
+
+import {
   Box,
 } from "../../layout";
 
@@ -284,6 +288,12 @@ export function NavigationDestinationItem<
         [dataAttributes.item]:
           "",
 
+        "data-ui-interactive":
+          "",
+
+        "data-ui-interactive-target":
+          "",
+
         [dataAttributes.badgeAnchor]:
           hasBadge
             ? badgeAnchor
@@ -296,6 +306,14 @@ export function NavigationDestinationItem<
       } as SlotElementProps,
 
       baseStyle: {
+        ...interactiveStateRecipe({
+          tone:
+            "neutral",
+
+          emphasis:
+            "text",
+        }),
+
         ...recipeStyles.item,
 
         "--ui-navigation-active-label-weight":

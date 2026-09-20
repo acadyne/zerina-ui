@@ -131,11 +131,21 @@ export function DataTableShellFrame<
     csv,
     skeletonColumnCount,
     skeletonRowCount,
+    rootRef,
+    responsiveKind,
   } = runtime;
 
 
   return (
     <DataTableRoot
+      ref={
+        rootRef
+      }
+
+      data-ui-data-table-viewport={
+        responsiveKind
+      }
+
       loading={
         loading
       }
@@ -167,12 +177,8 @@ export function DataTableShellFrame<
           csv.canExport
         }
 
-        exportHref={
-          csv.href
-        }
-
-        exportFilename={
-          csv.download
+        onExportCSV={
+          csv.downloadCsv
         }
 
         renderActions={

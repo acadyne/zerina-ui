@@ -477,6 +477,89 @@ test.beforeEach(
 
 
 test(
+  "Block 7: shared interactive recipe projects rest, hover and pressed surfaces",
+  async ({
+    page,
+  }) => {
+    const target =
+      page.getByTestId(
+        "block7-generic-button",
+      );
+
+
+    const rest =
+      (
+        await computed(
+          target,
+          "background-color",
+        )
+      ).trim();
+
+
+    await target.hover();
+
+    await expect(
+      target,
+    ).toHaveAttribute(
+      "data-hovered",
+      "",
+    );
+
+    const hovered =
+      (
+        await computed(
+          target,
+          "background-color",
+        )
+      ).trim();
+
+
+    const center =
+      await mouseCenter(
+        target,
+      );
+
+    await page.mouse.move(
+      center.x,
+      center.y,
+    );
+
+    await page.mouse.down();
+
+    await expect(
+      target,
+    ).toHaveAttribute(
+      "data-pressed",
+      "",
+    );
+
+    const pressed =
+      (
+        await computed(
+          target,
+          "background-color",
+        )
+      ).trim();
+
+    await page.mouse.up();
+
+
+    expect(
+      hovered,
+    ).not.toBe(
+      rest,
+    );
+
+    expect(
+      pressed,
+    ).not.toBe(
+      hovered,
+    );
+  },
+);
+
+
+test(
   "Block 7: hover is exclusive to mouse input",
   async ({
     page,

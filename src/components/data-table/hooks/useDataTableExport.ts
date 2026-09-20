@@ -1,8 +1,7 @@
 // src/components/data-table/hooks/useDataTableExport.ts
 import {
-  useEffect,
+  useCallback,
   useMemo,
-  useState,
 } from "react";
 import type {
   DataTableColumn,
@@ -104,78 +103,105 @@ export function useDataTableExport<
     [exportData]
   );
 
-  const download = useMemo(
-    () =>
-      normalizeCsvFilename(
-        filename
-      ),
-    [filename]
-  );
-
-  const [
-    hrefResource,
-    setHrefResource,
-  ] = useState<{
-    csv: string;
-    href: string;
-  } | null>(null);
-
-  useEffect(() => {
-    if (
-      !csv ||
-      typeof Blob === "undefined" ||
-      typeof URL === "undefined" ||
-      typeof URL.createObjectURL !==
-        "function"
-    ) {
-      setHrefResource(null);
-      return;
-    }
-
-    const blob = new Blob(
-      [csv],
-      {
-        type:
-          "text/csv;charset=utf-8",
-      }
+  const download =
+    useMemo(
+      () =>
+        normalizeCsvFilename(
+          filename
+        ),
+      [filename]
     );
 
-    const nextHref =
-      URL.createObjectURL(
-        blob
-      );
-
-    setHrefResource({
-      csv,
-      href: nextHref,
-    });
-
-    return () => {
-      URL.revokeObjectURL(
-        nextHref
-      );
-    };
-  }, [csv]);
+  const canExport =
+    exportData.columns.length > 0 &&
+    exportData.rows.length > 0;
 
   /*
-   * Un ObjectURL solo representa el CSV que lo creó. Esta comparación
-   * impide exponer durante un render el recurso perteneciente al commit
-   * anterior mientras el efecto publica y posee el siguiente.
+   * El recurso Blob pertenece a la acción de exportar, no al ciclo de render.
+   *
+   * Antes se recreaba un ObjectURL en un effect cada vez que cambiaban rows
+   * (por ejemplo, cada tecla durante edición o búsqueda). Mientras el effect
+   * publicaba el siguiente href, el botón CSV desaparecía y hacía reflow de
+   * los controles vecinos. Crear el recurso sólo al activar la exportación
+   * mantiene estable la toolbar y evita churn de ObjectURLs.
    */
-  const href =
-    hrefResource?.csv === csv
-      ? hrefResource.href
-      : undefined;
+  const downloadCsv =
+    useCallback(
+      () => {
+        if (
+          !canExport ||
+          !csv ||
+          typeof document ===
+            "undefined" ||
+          typeof Blob ===
+            "undefined" ||
+          typeof URL ===
+            "undefined" ||
+          typeof URL.createObjectURL !==
+            "function"
+        ) {
+          return;
+        }
+
+        const blob =
+          new Blob(
+            [csv],
+            {
+              type:
+                "text/csv;charset=utf-8",
+            }
+          );
+
+        const href =
+          URL.createObjectURL(
+            blob
+          );
+
+        const anchor =
+          document.createElement(
+            "a"
+          );
+
+        anchor.href =
+          href;
+
+        anchor.download =
+          download;
+
+        anchor.style.display =
+          "none";
+
+        document.body.append(
+          anchor
+        );
+
+        anchor.click();
+        anchor.remove();
+
+        /*
+         * La revocación se difiere un tick para no invalidar el recurso antes
+         * de que el navegador procese la navegación de descarga.
+         */
+        globalThis.setTimeout(
+          () => {
+            URL.revokeObjectURL(
+              href
+            );
+          },
+          0
+        );
+      },
+      [
+        canExport,
+        csv,
+        download,
+      ]
+    );
 
   return {
     exportData,
-
-    canExport:
-      exportData.columns.length > 0 &&
-      exportData.rows.length > 0 &&
-      href !== undefined,
-
-    href,
+    canExport,
+    downloadCsv,
     download,
   };
 }

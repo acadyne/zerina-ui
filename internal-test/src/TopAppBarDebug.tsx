@@ -282,7 +282,7 @@ export function TopAppBarDebug() {
 
         <DebugSection
           title="centerTitle y anchos asimétricos"
-          description="El título debe permanecer visualmente centrado aunque leading y actions tengan anchos distintos."
+          description="El título permanece centrado dentro del espacio disponible sin invadir leading ni actions."
         >
           <Box
             style={{
@@ -363,7 +363,7 @@ export function TopAppBarDebug() {
 
         <DebugSection
           title="Viewport estrecho"
-          description="El centro usa porcentaje del propio TopAppBar, no unidades vw del navegador."
+          description="El centro permanece en flujo, se recorta con ellipsis y no se solapa con leading/actions."
         >
           <Box
             style={{

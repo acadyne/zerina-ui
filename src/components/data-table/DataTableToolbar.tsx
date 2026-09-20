@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import {
   Button,
-  Input,
+  SearchInput,
   Select,
 } from "../../primitives/forms";
 import {
@@ -48,8 +48,7 @@ interface DataTableToolbarProps {
   enableExportCSV?: boolean;
   canExport?: boolean;
 
-  exportHref?: string;
-  exportFilename?: string;
+  onExportCSV?: () => void;
 
   renderActions?: () =>
     React.ReactNode;
@@ -79,8 +78,7 @@ export function DataTableToolbar({
 
   enableExportCSV = false,
   canExport = false,
-  exportHref,
-  exportFilename,
+  onExportCSV,
 
   renderActions,
 
@@ -122,10 +120,12 @@ export function DataTableToolbar({
         justifyContent:
           "space-between",
 
-        gap: 12,
+        gap:
+          "var(--ui-density-inline-gap)",
         flexWrap: "wrap",
 
-        marginBottom: 12,
+        marginBottom:
+          "var(--ui-density-block-gap)",
       },
     });
 
@@ -142,10 +142,12 @@ export function DataTableToolbar({
         justifyContent:
           "flex-start",
 
-        gap: 8,
+        gap:
+          "var(--ui-density-inline-gap)",
         flexWrap: "wrap",
 
         minWidth: 0,
+        flex: "0 1 auto",
       },
     });
 
@@ -162,10 +164,12 @@ export function DataTableToolbar({
         justifyContent:
           "flex-end",
 
-        gap: 10,
+        gap:
+          "var(--ui-density-inline-gap)",
         flexWrap: "wrap",
 
         minWidth: 0,
+        flex: "1 1 320px",
       },
     });
 
@@ -177,7 +181,9 @@ export function DataTableToolbar({
       slotProps,
 
       baseStyle: {
-        minWidth: 220,
+        width: "min(100%, 320px)",
+        minWidth: "min(100%, 220px)",
+        flex: "1 1 220px",
       },
     });
 
@@ -214,37 +220,9 @@ export function DataTableToolbar({
 
       baseProps: {
         title:
-          "Exporta lo filtrado y ordenado",
-      },
-
-      baseStyle: {
-        minHeight: 34,
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        gap: 8,
-
-        padding:
-          "6px 10px",
-
-        border: 0,
-        borderRadius: "var(--ui-radius-md)",
-        
-        color:
-          "inherit",
-
-        background:
-          "transparent",
-
-        font: "inherit",
-        fontWeight: 700,
-
-        lineHeight: 1,
-        textDecoration: "none",
-
-        cursor: "pointer",
+          canExport
+            ? "Exporta lo filtrado y ordenado"
+            : "No hay registros para exportar",
       },
     });
 
@@ -306,20 +284,13 @@ export function DataTableToolbar({
 
       <div {...controlsSlot}>
         {enableSearch ? (
-          <Input
-            type="text"
+          <SearchInput
             aria-label="Buscar registros"
             placeholder="Buscar…"
             value={search}
-            onChange={(
-              event
-            ) =>
-              onSearchChange(
-                event.currentTarget
-                  .value
-              )
+            onValueChange={
+              onSearchChange
             }
-            fullWidth={false}
             className={
               searchSlot.className
             }
@@ -362,14 +333,23 @@ export function DataTableToolbar({
           }
         />
 
-        {enableExportCSV &&
-          canExport &&
-          exportHref &&
-          exportFilename ? (
-          <a
-            href={exportHref}
-            download={
-              exportFilename
+        {enableExportCSV ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            colorScheme="primary"
+            leftIcon={
+              <Download
+                size={16}
+                aria-hidden="true"
+              />
+            }
+            disabled={
+              !canExport
+            }
+            onPress={
+              onExportCSV
             }
             className={
               exportButtonSlot.className
@@ -382,13 +362,8 @@ export function DataTableToolbar({
             }
             data-ui-data-table-export=""
           >
-            <Download
-              size={16}
-              aria-hidden="true"
-            />
-
-            <span>CSV</span>
-          </a>
+            CSV
+          </Button>
         ) : null}
       </div>
     </div>

@@ -161,9 +161,9 @@ export function useDataTableShell<
 
 
   const responsive =
-    useAdaptiveViewport({
+    useAdaptiveViewport<HTMLDivElement>({
       source:
-        "window",
+        "container",
 
       mode:
         resolveDataTableResponsiveMode(
@@ -249,6 +249,10 @@ export function useDataTableShell<
   return {
     table,
     isMobile,
+    responsiveKind:
+      responsive.kind,
+    rootRef:
+      responsive.ref,
     getId,
     selection,
     csv,

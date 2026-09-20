@@ -305,6 +305,12 @@ export const Button =
             "data-ui":
               "button",
 
+            "data-ui-interactive":
+              "",
+
+            "data-ui-interactive-target":
+              "",
+
             "data-variant":
               variant,
 

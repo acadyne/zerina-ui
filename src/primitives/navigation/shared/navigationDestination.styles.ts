@@ -229,12 +229,6 @@ export const NAVIGATION_DESTINATION_ITEM_BASE_STYLES:
       textAlign: "center",
       overflow: "visible",
 
-      transition:
-        "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-        "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
     },
 
     content: {

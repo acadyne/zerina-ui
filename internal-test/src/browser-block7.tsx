@@ -210,6 +210,9 @@ const tokens = {
   "--ui-radius-full":
     "9999px",
 
+  "--ui-elevation-0":
+    "none",
+
   "--ui-elevation-1":
     "0 2px 5px rgba(0, 0, 0, 0.24)",
 
@@ -221,6 +224,9 @@ const tokens = {
 
   "--ui-elevation-4":
     "0 8px 18px rgba(0, 0, 0, 0.34)",
+
+  "--ui-elevation-5":
+    "0 12px 28px rgba(0, 0, 0, 0.38)",
 
   "--ui-duration-instant":
     "0ms",

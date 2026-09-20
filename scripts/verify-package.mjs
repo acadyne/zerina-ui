@@ -282,11 +282,14 @@ function writeConsumer({
   AdaptiveScaffold,
   Button,
   ConfirmDialog,
+  interactiveStateRecipe,
   MotionPresence,
   NavigationPresenter,
   RoutedAdaptiveScaffold,
   UIMotionProvider,
+  surfaceRecipe,
   TargetFormDialog,
+  toneRecipe,
   UI_ELEVATIONS,
   UI_SHAPES,
   UI_SURFACE_ROLES,
@@ -388,6 +391,38 @@ const semanticTypography:
   UITypographyRole =
   UI_TYPOGRAPHY_ROLES[1];
 
+const semanticSurfaceStyle =
+  surfaceRecipe({
+    role:
+      "containerLow",
+    elevation:
+      1,
+    shape:
+      "lg",
+  });
+
+const semanticToneStyle =
+  toneRecipe({
+    tone:
+      "success",
+    emphasis:
+      "container",
+  });
+
+const semanticInteractiveStyle =
+  interactiveStateRecipe({
+    tone:
+      "primary",
+    emphasis:
+      "solid",
+    elevation:
+      2,
+    hoverElevation:
+      3,
+    pressedElevation:
+      1,
+  });
+
 const themeElevation:
   ThemeElevationTokens = {
     level3:
@@ -414,6 +449,9 @@ void [
   semanticElevation,
   semanticShape,
   semanticTypography,
+  semanticSurfaceStyle,
+  semanticToneStyle,
+  semanticInteractiveStyle,
   themeElevation,
   themeSpacing,
   themeDensity,

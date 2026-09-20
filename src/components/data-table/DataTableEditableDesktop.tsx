@@ -150,7 +150,8 @@ function renderCellEditor<
               .value,
           )
         }
-        fullWidth={false}
+        size="sm"
+        fullWidth
         options={[
           {
             label:
@@ -195,7 +196,8 @@ function renderCellEditor<
               .value,
           )
         }
-        fullWidth={false}
+        size="sm"
+        fullWidth
         options={
           column.options
         }
@@ -214,7 +216,8 @@ function renderCellEditor<
       placeholder={
         column.placeholder
       }
-      fullWidth={false}
+      size="sm"
+      fullWidth
       onChange={(
         event,
       ) =>
@@ -228,11 +231,8 @@ function renderCellEditor<
         )
       }
       style={{
-        minWidth:
-          column.type ===
-          "text"
-            ? 260
-            : 160,
+        width: "100%",
+        minWidth: 0,
       }}
     />
   );

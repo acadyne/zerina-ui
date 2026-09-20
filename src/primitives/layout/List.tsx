@@ -22,6 +22,11 @@ import type {
   UIDensity,
 } from "../../core/viewport";
 
+import {
+  interactiveStateRecipe,
+  type InteractiveStateRecipeStyle,
+} from "../../theme/recipes";
+
 export type ListDensity =
   UIDensity;
 
@@ -178,7 +183,8 @@ function getItemPadding(density: ListDensity): React.CSSProperties {
 }
 
 type ListItemStyle =
-  React.CSSProperties & {
+  React.CSSProperties &
+  InteractiveStateRecipeStyle & {
     "--ui-list-item-background"?:
       React.CSSProperties["background"];
   };
@@ -481,6 +487,19 @@ const ListItem =
 
       const surfaceStyle:
         ListItemStyle = {
+        ...interactiveStateRecipe({
+          tone:
+            "primary",
+
+          emphasis:
+            "surface",
+        }),
+
+        "--ui-interactive-background":
+          String(
+            customBackground,
+          ),
+
         width: "100%",
         minWidth: 0,
         minHeight: 0,
@@ -496,11 +515,6 @@ const ListItem =
 
         borderRadius:
           "var(--ui-radius-md)",
-
-        color:
-          "var(--ui-text)",
-
-
 
         ...getItemPadding(
           density
@@ -717,6 +731,8 @@ const ListItem =
               }
               data-ui-list-item=""
               data-interactive=""
+              data-ui-interactive=""
+              data-ui-interactive-target=""
               data-selected={
                 selected ||
                 undefined

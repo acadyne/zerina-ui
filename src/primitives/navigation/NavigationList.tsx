@@ -26,6 +26,11 @@ import {
 } from "../overlay";
 import { Typography } from "../typography";
 import {
+  interactiveStateRecipe,
+  surfaceRecipe,
+  type InteractiveStateRecipeStyle,
+} from "../../theme/recipes";
+import {
   getNavigationNodeAriaLabel,
   isNavigationNodeActive,
   isNavigationNodeSelectable,
@@ -183,6 +188,20 @@ type NavigationListRecipeState = {
   paddingLeft: string;
 };
 
+const navigationToggleInteractiveStyle: InteractiveStateRecipeStyle = {
+  ...interactiveStateRecipe({
+    tone:
+      "neutral",
+
+    emphasis:
+      "text",
+  }),
+
+  "--ui-interactive-color":
+    "var(--ui-text-muted)",
+};
+
+
 /**
  * La recipe concentra la política visual de NavigationList.
  *
@@ -227,6 +246,14 @@ const navigationListRecipe =
       },
 
       itemButton: {
+        ...interactiveStateRecipe({
+          tone:
+            "neutral",
+
+          emphasis:
+            "text",
+        }),
+
         width: "100%",
         minWidth: 0,
 
@@ -305,6 +332,8 @@ const navigationListRecipe =
       },
 
       toggleButton: {
+        ...navigationToggleInteractiveStyle,
+
         width: 38,
         minWidth: 38,
 
@@ -314,18 +343,13 @@ const navigationListRecipe =
 
         flexShrink: 0,
 
-        border: 0,
+        borderWidth: 1,
+        borderStyle: "solid",
 
         padding: 0,
 
         borderRadius:
           "var(--ui-radius-md)",
-
-        background:
-          "transparent",
-
-        color:
-          "var(--ui-text-muted)",
       },
 
       group: {
@@ -340,21 +364,16 @@ const navigationListRecipe =
       },
 
       flyoutContent: {
+        ...surfaceRecipe({
+          role: "container",
+          elevation: 4,
+          shape: "xl",
+          border: "subtle",
+        }),
+
         minWidth: 230,
 
         padding: "0.45rem",
-
-        borderRadius:
-          "var(--ui-radius-xl)",
-
-        border:
-          "1px solid var(--ui-border)",
-
-        background:
-          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-container) 80%, transparent), var(--ui-surface))",
-
-        boxShadow:
-          "var(--ui-elevation-4)",
       },
 
       flyoutList: {
@@ -420,14 +439,11 @@ const navigationListRecipe =
             ? "0.4rem"
             : paddingLeft,
 
-          border:
-            "1px solid transparent",
+          borderWidth:
+            1,
 
-          background:
-            "transparent",
-
-          color:
-            "var(--ui-text-muted)",
+          borderStyle:
+            "solid",
         },
       };
     },
@@ -745,6 +761,9 @@ const NavigationListItem =
         baseProps: {
           "data-ui-navigation-list-item-button":
             "",
+
+          "data-ui-interactive":
+            "",
         },
 
         baseStyle:
@@ -761,6 +780,12 @@ const NavigationListItem =
 
         baseProps: {
           "data-ui-navigation-list-toggle-button":
+            "",
+
+          "data-ui-interactive":
+            "",
+
+          "data-ui-interactive-target":
             "",
         },
 
@@ -925,6 +950,9 @@ const NavigationListItem =
 
             baseProps: {
               "data-ui-navigation-list-item-content":
+                "",
+
+              "data-ui-interactive-target":
                 "",
             },
 

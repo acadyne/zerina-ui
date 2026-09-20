@@ -187,11 +187,11 @@ export interface TopAppBarProps
 
 
   /**
-   * Centra visualmente title/subtitle.
+   * Centra title/subtitle dentro del espacio disponible
+   * entre leading y actions.
    *
-   * Útil especialmente en layouts móviles
-   * donde leading y actions pueden tener
-   * tamaños diferentes.
+   * La zona central permanece en el flujo del layout para
+   * evitar solapamientos cuando las acciones cambian de ancho.
    */
   centerTitle?: boolean;
 
@@ -462,13 +462,8 @@ export const TopAppBar =
 
             flex:
               centerTitle
-                ? "0 0 auto"
+                ? "0 1 auto"
                 : "1 1 0",
-
-            maxWidth:
-              centerTitle
-                ? "34%"
-                : undefined,
 
             position:
               "relative",
@@ -497,6 +492,14 @@ export const TopAppBar =
 
           baseStyle: {
             minWidth: 0,
+
+            flex:
+              centerTitle
+                ? "1 1 auto"
+                : undefined,
+
+            overflow:
+              "hidden",
 
             textAlign:
               centerTitle
@@ -574,7 +577,9 @@ export const TopAppBar =
             minWidth: 0,
 
             flex:
-              "0 0 auto",
+              centerTitle
+                ? "0 1 auto"
+                : "0 0 auto",
 
             position:
               "relative",
@@ -614,7 +619,7 @@ export const TopAppBar =
                 size={
                   sizeStyles.titleSize
                 }
-                weight={800}
+                weight="var(--ui-font-weight-bold)"
                 leading={1.2}
                 {...titleSlot}
               >
@@ -697,51 +702,9 @@ export const TopAppBar =
 
 
             {
-              centerTitle ? (
-                /*
-                 * La capa exterior ignora eventos para no bloquear leading
-                 * ni actions; la interior los restaura para center interactivo.
-                 */
-                <Box
-                  style={{
-                    position:
-                      "absolute",
-
-                    left:
-                      "50%",
-
-                    top:
-                      "50%",
-
-                    transform:
-                      "translate(-50%, -50%)",
-
-                    width:
-                      "min(52%, 420px)",
-
-                    minWidth: 0,
-
-                    pointerEvents:
-                      "none",
-
-                    zIndex:
-                      1,
-                  }}
-                >
-
-                  <Box
-                    style={{
-                      minWidth: 0,
-
-                      pointerEvents:
-                        "auto",
-                    }}
-                  >
-                    {titleContent}
-                  </Box>
-
-                </Box>
-              ) : null
+              centerTitle
+                ? titleContent
+                : null
             }
 
 

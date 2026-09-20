@@ -2,42 +2,58 @@
 
 ## Objetivo actual
 
-Evolucionar Zerina UI hacia un sistema visual rico, dinámico y mobile-first sin
-crear componentes paralelos ni perder los owners funcionales ya consolidados.
+Preparar Zerina UI para `0.5.0` como un sistema visual rico, coherente y
+mobile-first cuya personalidad se propaga desde pocos owners semánticos.
 
-La riqueza visual debe propagarse desde pocos contratos semánticos compartidos.
+Proceso activo:
+
+```text
+Fase 7D — Interactive Families
+```
+
+La referencia de calidad es una interfaz sistémica comparable en coherencia a
+Material/Flutter, sin copiar su API, sus componentes ni abrir familias
+paralelas.
+
+Regla visual:
+
+> No agregar belleza por acumulación; hacer que la belleza se propague desde
+> pocos owners semánticos.
 
 ## Invariantes vigentes
 
 - no legacy ni aliases deprecated;
 - un solo owner por mecánica;
+- `usePress` conserva el ownership de la mecánica interactiva;
+- recipes semánticas poseen la proyección visual compartida;
 - no componentes `Material*` / `Flutter*`;
 - no nuevo mega-provider;
 - no segunda fuente de motion;
 - no segunda fuente de density;
-- no mapas globales de tone/elevation/surface por componente;
+- no segundo resolver responsive;
+- no mapas locales de tone/surface/elevation/state-layers por componente;
+- la demo no es owner del sistema visual;
 - la demo no oculta defectos de la librería;
+- si un defecto pertenece a la librería se corrige primero allí;
 - breaking changes son aceptables en pre-1.0;
-- cada subfase se cierra únicamente con validación canónica;
-- si la demo revela un bug de librería, se corrige primero en la librería.
+- cada fase se cierra únicamente con validación canónica.
 
 ## Estado
 
-- Fase 1 — superficie pública + package gate: **CERRADA Y VALIDADA**.
-- Fase 2A — fundamentos unificados: **CERRADA Y VALIDADA**.
-- Fase 2B — Navigation Destinations: **CERRADA Y VALIDADA**.
-- Fase 2C — ownership de Scaffold: **CERRADA Y VALIDADA**.
-- Fase 3 — Navigation Presenter: **CERRADA Y VALIDADA**.
-- Fase 4 — dialog contextual typing: **CERRADA Y VALIDADA**.
-- Fase 5 — RoutedAdaptiveScaffold metadata generic: **CERRADA Y VALIDADA**.
-- Fase 6 — integración de demo: **CERRADA Y VALIDADA**.
+- Fases 1–6: **CERRADAS Y VALIDADAS**.
 - Fase 7A — Semantic Visual Foundation: **CERRADA Y VALIDADA**.
-- Fase 7B — Dynamic Environment Projection: **IMPLEMENTADA, PENDIENTE DE VALIDACIÓN CANÓNICA**.
-- Fase 7C — Surface + Tone Recipes: no iniciada.
-- Fase 7D — Interactive Families: no iniciada.
+- Fase 7B — Dynamic Environment Projection: **CERRADA Y VALIDADA**.
+- Fase 7C — Surface + Tone Recipes + Visual Cohesion:
+  **CERRADA Y VALIDADA**.
+- Fase 7D — Interactive Families:
+  **IMPLEMENTADA, PENDIENTE DE VALIDACIÓN CANÓNICA**.
 - Fase 7E — Typography + Control Density: no iniciada.
 - Fase 7F — Visual Lab Demo: no iniciada.
 - Fase 8 — release hardening / `0.5.0`: posterior.
+
+El usuario confirmó que los gates de librería y demo del último estado 7C
+pasaron. Ese gate incluye las estabilizaciones de DataTable, app bars
+responsive, recipes de surface/tone y la demo visual coherente.
 
 ## Topología canónica
 
@@ -47,353 +63,312 @@ prod/
 └── zerina-ui-demo/
 ```
 
-La demo consume exclusivamente:
+La demo consume:
 
 ```json
 "zerina-ui": "file:../zerina-ui"
 ```
 
-No existe vendor paralelo ni workspace anidado.
+`pnpm dev` de la demo sincroniza la librería y fuerza la reoptimización de Vite
+para evitar prebundles locales obsoletos.
 
-## Fase 7A — cierre validado
-
-La base semántica vigente conserva:
-
-```text
-UITone
-UISurfaceRole
-UIElevation
-UITypographyRole
-UIShape
-```
-
-`THEME_TOKEN_MANIFEST` sigue siendo el único registro de tokens de theme.
-
-Vigente:
+## Owners visuales vigentes
 
 ```text
-surface.canvas
-surface.surface
-surface.containerLow
-surface.container
-surface.containerHigh
-
-elevation.level0 ... level5
-
-density.compact
-density.comfortable
-density.spacious
+Theme semantic contract
+├── toneRecipe
+├── surfaceRecipe
+└── interactiveStateRecipe
+        ↓
+existing component families
 ```
 
-Retirado sin aliases:
+Owners funcionales preservados:
 
 ```text
-surface.bg
-surface.surface2
-surface.surface3
-shadow.*
---ui-bg
---ui-surface-2
---ui-surface-3
---ui-shadow-*
-```
-
-Validación canónica reportada por el usuario:
-
-```text
-zerina-ui
-  internal-test typecheck          PASS
-  Vitest                           98 / 98 files
-  tests                            636 / 636
-  internal-test build              PASS
-  Chromium                         65 / 65
-  package typecheck                PASS
-  package build/pack               PASS
-  clean consumer React 18          PASS
-  clean consumer React 19          PASS
-  ESM/CJS/CSS runtime smoke        PASS
-  git whitespace check             PASS
-  pnpm validate                    PASS
-
-zerina-ui-demo
-  Demo contract verification       PASS
-  zerina-ui ESM/CJS/DTS            PASS
-  demo TypeScript                  PASS
-  demo Vite production build       PASS
-  pnpm validate                    PASS
-```
-
-La primera ejecución manual de la demo encontró un prebundle antiguo de Vite
-que rechazaba tokens nuevos. El source y los builds eran correctos. Se confirmó
-la causa al ejecutar:
-
-```bash
-pnpm sync:ui
-pnpm exec vite --force
-```
-
-Después de reoptimizar, la demo levantó correctamente y la revisión manual no
-reportó defectos de 7A.
-
-## Fase 7B — Motion: owner y proyección
-
-Owner vigente:
-
-```text
-UIMotionProvider
-```
-
-Fuente numérica canónica:
-
-```text
-src/core/motion/motion.tokens.ts
-```
-
-Ahora `motion.tokens.ts` contiene una sola definición para:
-
-```text
-durations
-easings
-distances
-scales
-```
-
-y genera una única proyección de valores canónicos mediante:
-
-```text
-getMotionCSSProjection()
-```
-
-`UIMotionProvider` escribe en `document.documentElement`:
-
-```text
-data-ui-motion
-data-ui-motion-effective
-data-ui-reduced-motion
-
---ui-motion-token-duration-*
---ui-motion-token-ease-*
---ui-motion-token-distance-*
---ui-motion-token-scale-*
-```
-
-La escritura conserva ownership del estado previo y restaura únicamente
-propiedades que todavía contienen el último valor escrito por el provider.
-
-`motion.css` usa `data-ui-motion-effective` como interruptor CSS y traduce esos
-valores canónicos a los aliases funcionales existentes:
-
-```text
---ui-duration-*
---ui-ease-*
---ui-motion-distance-*
---ui-motion-scale-*
-```
-
-No mantiene una segunda tabla numérica de durations/easings.
-
-Consecuencia:
-
-```text
-effectiveLevel subtle/expressive
-  -> aliases apuntan a la paleta canónica
-
-effectiveLevel reduced
-  -> CSS prácticamente instantáneo + geometría estática
-
-effectiveLevel none
-  -> duración CSS 0 + geometría estática
-```
-
-La excepción JS existente para motion de intent `layout` en nivel `reduced`
-permanece donde sí existe semántica de intent; CSS genérico no inventa un
-segundo clasificador.
-
-Framer Motion y CSS derivan del mismo owner numérico, y el atributo efectivo
-tiene efecto real sobre CSS.
-
-## Fase 7B — Density: selección y proyección
-
-Ownership vigente:
-
-```text
-Theme
-  = define compact / comfortable / spacious metrics
-
+UIThemeProvider
 UIViewportProvider
-  = selecciona density efectiva
-  = publica data-ui-density
-
-viewport.css
-  = proyecta la selección a aliases CSS activos
-  = NO decide viewport/input/density
+UIMotionProvider
+usePress
+slot recipes
 ```
 
-Aliases activos:
+### `toneRecipe`
+
+Owner de:
 
 ```text
---ui-density-control-height
---ui-density-item-min-height
---ui-density-inline-gap
---ui-density-block-gap
---ui-density-content-padding
---ui-density-icon-size
+UITone + emphasis
+→ foreground / background / border
 ```
 
-Cada alias apunta al grupo de tokens del theme seleccionado por
-`data-ui-density`.
+### `surfaceRecipe`
 
-No existe un segundo resolver responsive en CSS.
-
-## Política automática de density revisada
-
-La política anterior podía compactar touch por ser touch o por viewport
-estrecho. Eso hacía que la selección automática redujera targets precisamente
-en el entorno que necesita semántica cómoda.
-
-Política vigente:
+Owner de:
 
 ```text
-densityMode explícito
-  -> prevalece siempre
-
-sin dimensiones útiles
-  -> comfortable
-
-touch / hybrid / unknown
-  -> comfortable
-
-fine pointer + short/narrow
-  -> compact
-
-fine pointer + wide+tall
-  -> spacious
-
-resto
-  -> comfortable
+UISurfaceRole + UIElevation + UIShape + border
+→ surface style
 ```
 
-`spacious` usa ahora la señal `isTall` calculada con el `tallBreakpoint`
-configurado; ya no reintroduce internamente un umbral fijo de 800px.
+### `interactiveStateRecipe` — 7D
 
-## Demo — invalidación de dependencia local
-
-El bug manual de Vite quedó convertido en contrato del workflow.
-
-`zerina-ui-demo/package.json`:
+Nuevo owner visual de:
 
 ```text
-pnpm dev
-  -> pnpm sync:ui
-  -> vite --force
+rest
+hover
+focus-visible
+pressed
+selected
+disabled
 ```
 
-`scripts/verify-demo.mjs` verifica esta regla para evitar que un prebundle
-obsoleto de `file:../zerina-ui` sobreviva a una reconstrucción de la librería.
-
-## Regresiones añadidas para 7B
+Contrato:
 
 ```text
-dynamic-environment-projection-phase-7b.test.tsx
-dynamic-environment-projection-ownership-phase-7b.test.ts
-dynamic-environment-projection-public-contract-phase-7b.test.ts
-dynamic-environment-projection.chromium.spec.ts
-browser-environment.tsx
+usePress
+  = detecta y publica estado interactivo
+
+interactiveStateRecipe
+  = calcula variables visuales semánticas
+
+interactive-state.css
+  = proyecta data-* canónicos a CSS efectivo
 ```
 
-Cubren:
+`interactiveStateRecipe` no registra eventos, no contiene hooks y no crea
+providers.
 
-- publicación de la política motion canónica desde `UIMotionProvider`;
-- `data-ui-motion-effective` como selector real de aliases CSS;
-- cambio `subtle -> none` sin reescribir números;
-- política auto touch/hybrid;
-- política compact para geometría restringida con input fino;
-- uso real de `isTall`;
-- precedencia de density explícita;
-- ausencia de tabla numérica duplicada en `motion.css`;
-- `UIMotionProvider` como único owner de proyección temporal;
-- `UIViewportProvider` como único selector de density;
-- ausencia de resolver responsive paralelo en `viewport.css`;
-- preservación de los owners públicos existentes sin publicar helpers internos;
-- CSS computado real en Chromium para `subtle -> none` y
-  `comfortable -> spacious`.
+State-layer strengths viven en un solo lugar:
+
+```text
+hover    8%
+focus   10%
+pressed 14%
+```
+
+Las elevaciones de estado se resuelven mediante `surfaceRecipe`; no existe un
+segundo mapa de elevación.
+
+Focus y disabled reutilizan los tokens de interacción existentes:
+
+```text
+--ui-interaction-focus-ring-*
+--ui-interaction-disabled-opacity
+```
+
+## Familias migradas en 7D
+
+La proyección compartida cubre las familias que usan el vocabulario canónico de
+press state:
+
+```text
+Button
+IconButton
+ControlAction
+MenuItem
+List interactiva
+FloatingActionButton
+Card interactiva
+Tag remove
+Toast close
+CommandTrigger
+NavigationList
+BottomNavigation / NavigationRail destinations
+```
+
+`Button` e `IconButton` consumen el owner mediante `action-control-recipe`.
+
+`Pressable` y `TriggerRuntime` permanecen como mecánica sin personalidad
+visual. No se les agregó un styling owner.
+
+Controles de texto/choice, DataTable selection, Tree selection y la opción
+activa de CommandPalette conservan sus semánticas especializadas cuando no
+representan el vocabulario `usePress` compartido.
+
+## Cleanup de ownership
+
+Retirado del source de producto:
+
+```text
+--ui-action-*
+SCHEME_MAP
+hover/pressed CSS local en familias migradas
+```
+
+Invariante reforzada:
+
+```text
+data-hovered / data-pressed en CSS
+→ sólo interactive-state.css
+```
+
+Los CSS de familia pueden conservar geometría, layout o estados funcionales
+especializados, pero no recrear state layers genéricos.
+
+También se corrigieron dos bordes detectados durante la implementación:
+
+- `Card` estático conserva la elevación de `surfaceRecipe` cuando no existe
+  override `shadow`; la Card interactiva deja el shadow a
+  `interactiveStateRecipe`;
+- `MenuItem` y Card interactiva ya no bloquean el focus ring compartido con
+  `outline: none` inline/local.
+
+## Contrato público
+
+`interactiveStateRecipe` y sus tipos se exportan desde `zerina-ui`.
+
+El clean-consumer de `scripts/verify-package.mjs` ahora importa y usa:
+
+```text
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+```
+
+para comprobar que las recipes semánticas forman parte del package real y no
+sólo del source interno.
+
+## Regresiones de 7D
+
+Nuevas:
+
+```text
+interactive-state-recipe-phase-7d.test.ts
+interactive-state-recipe-ownership-phase-7d.test.ts
+```
+
+Reforzadas:
+
+```text
+forms-block7-architecture-contract.test.ts
+forms-block7-behavior.test.tsx
+public-surface-contract.test.ts
+forms-block7.chromium.spec.ts
+scripts/verify-package.mjs
+```
+
+La regresión Chromium añadida comprueba sobre un Button real:
+
+```text
+rest
+→ hover cambia surface
+→ pressed cambia surface nuevamente
+```
+
+El test de ownership recorre CSS de producto y falla si reaparecen
+`data-hovered` o `data-pressed` fuera del owner compartido.
+
+## Demo
+
+7D no añade un nuevo sistema visual a la demo.
+
+Permanece vigente el estado validado de 7C:
+
+- `Zerina Workspace` como experiencia principal;
+- una sola entrada `Apariencia`;
+- theme + viewport desde sus providers existentes;
+- shell responsive sin superposición;
+- iconografía Lucide coherente;
+- DataTable responsive/estable;
+- Visual System como observador, no segundo mutador de theme.
+
+La demo consume los cambios interactivos indirectamente desde la librería.
 
 ## Validación disponible en este runtime
 
-Realizado aquí antes del empaquetado final:
+Estas comprobaciones son auxiliares y no sustituyen el gate canónico:
 
 ```text
-library TS/TSX parse/transpile       475 / PASS
-demo TS/TSX parse/transpile          27 / PASS
-motion source projection             PASS
-  none token                        0ms
-  instant token                     1ms
-  fast/normal/slow/slower           120/180/260/360ms
-motion.css numeric duplication      0
-density resolver cases              PASS
-demo verifier                       PASS
-relative source imports broken      0
+TS/TSX parse librería + demo        517 / PASS
+syntax errors                         0
+interactive recipe strict typecheck PASS
+verify-package Node syntax          PASS
+demo contract verification          PASS
+STATE_LAYER_STRENGTH owners           1
+legacy --ui-action-* in src           0
+legacy SCHEME_MAP in src              0
+CSS local data-hovered/pressed         0
 ```
 
-No se ejecutó el gate canónico de pnpm en este runtime. Estas comprobaciones no
-sustituyen `pnpm validate`.
 
-## Último gate reportado por el usuario
+## Último intento canónico de 7D
 
-La primera ejecución canónica de 7B avanzó correctamente hasta Chromium:
+El último gate real de la librería superó typecheck y llegó a Vitest:
 
 ```text
-internal-test typecheck               PASS
-Vitest files                          101 / 101 PASS
-Vitest tests                          646 / 646 PASS
-internal-test build                   PASS
-Chromium                              65 / 66 PASS
+internal-test typecheck             PASS
+Vitest files                        106 / 107
+Vitest tests                        667 / 668
+internal-test build                 no ejecutado
+Chromium                            no ejecutado
+package gate                        no ejecutado
+demo gate                           no ejecutado
 ```
 
-Único fallo:
+El único fallo fue una regresión de **test de ownership**, no de producto:
 
 ```text
-Block 5: InputGroup distinguishes pointer and keyboard focus
+interactive-state-recipe-ownership-phase-7d.test.ts
+→ "keeps List background ownership static-only..."
 ```
 
-El fallo ocurrió al leer `data-focused` de `InputGroup` inmediatamente después
-de `input.click()`.
+Causa confirmada:
 
-Realidad del contrato existente:
+el test buscaba un `background` dentro de un selector exacto
+`[data-ui-list-item] { ... }` mediante:
 
 ```text
-Input
-  -> actualiza focus local
-  -> useInputGroupDescendantState
-  -> propaga al InputGroup mediante useEffect
+[\s\S]*?
 ```
 
-Por tanto existe una ventana asíncrona legítima antes de que el estado agregado
-del grupo llegue al DOM. La rama keyboard del mismo E2E ya esperaba esa
-propagación con el assertion retryable de Playwright.
+Ese patrón atraviesa cierres `}`. Por ello comenzaba en una regla de motion que
+contiene `[data-ui-list-item] { transition-duration: ... }` y terminaba
+encontrando el `background` de una regla estática posterior:
+
+```text
+[data-ui-list-item]:not([data-interactive]) { background: ... }
+```
+
+La implementación de producto ya expresa correctamente el ownership:
+
+```text
+List estática
+  → list.css puede poseer background
+
+List interactiva
+  → interactiveStateRecipe posee background de estados
+```
 
 Corrección aplicada:
 
 ```text
-forms-block5.chromium.spec.ts
-  lectura instantánea de data-focused
-    ->
-  expect(group).toHaveAttribute("data-focused", "true")
+ownership test
+  → limita la búsqueda al mismo bloque CSS con [^}]*
+  → ya no cruza reglas independientes
 ```
 
-No se modificó `InputGroup`, `useFocusVisible`, motion, density ni código de
-producto.
-
-El package gate posterior y el gate de la demo no se ejecutaron porque Chromium
-detuvo `pnpm validate`.
-
-7B continúa:
+No se modificó:
 
 ```text
-IMPLEMENTADA, PENDIENTE DE VALIDACIÓN CANÓNICA
+list.css
+interactiveStateRecipe
+usePress
+API pública
 ```
 
-## Gate requerido para cerrar 7B
+Las dos correcciones de Chromium del intento anterior (List hover y FAB
+focus-visible) siguen pendientes de revalidación porque este gate se detuvo en
+Vitest antes de volver a ejecutar Chromium.
+
+Estado:
+
+```text
+7D  IMPLEMENTADA, PENDIENTE DE RERUN CANÓNICO
+```
+
+## Gate requerido para cerrar 7D
 
 Primero librería:
 
@@ -409,41 +384,35 @@ Después demo:
 cd /Users/fabian/desarrollo/repositorios/prod/zerina-ui-demo
 pnpm install
 pnpm validate
-```
-
-Después levantar la demo con el flujo normal, que ahora fuerza Vite:
-
-```bash
 pnpm dev
 ```
 
 Revisión manual mínima:
 
 ```text
-- consola sin errores;
-- theme switching estable;
-- prefers-reduced-motion / level none reduce CSS motion;
-- density efectiva cambia sin segundo resolver responsive;
-- touch/hybrid no se compacta automáticamente.
+- Button/IconButton: hover, focus-visible, pressed y disabled coherentes;
+- FAB/Card interactiva: elevación cambia sin saltos;
+- Menu/List/navigation: estados comparten el mismo lenguaje;
+- theme switching conserva personalidad sin branches por componente;
+- mobile/tablet/desktop siguen sin overlap/overflow;
+- DataTable conserva edición/selección estable;
+- consola sin errores.
 ```
 
-Fase 7B sólo se cierra cuando ambos gates pasan y la integración manual no
-revela un defecto perteneciente a esta fase.
+7D sólo se cierra con ambos gates en PASS y revisión runtime satisfactoria.
 
-## Siguiente subfase tras PASS
+## Siguiente paso tras PASS
 
-Fase 7C — Surface + Tone Recipes.
+Fase 7E — Typography + Control Density.
 
-Owners previstos:
+Objetivo previsto:
 
 ```text
-toneRecipe
-surfaceRecipe
+Theme typography/density
+        ↓
+roles y métricas activas
+        ↓
+controles existentes
 ```
 
-Objetivo:
-
-- traducir `UITone` y `UISurfaceRole` a composición visual compartida;
-- retirar mapas locales repetidos de color/surface;
-- no crear componentes visuales paralelos;
-- no iniciar 7C antes de cerrar 7B.
+7E no debe crear otro sistema de typography ni otro resolver de density.

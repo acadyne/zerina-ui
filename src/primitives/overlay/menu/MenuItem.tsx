@@ -24,6 +24,10 @@ import {
 } from "../../../helpers/css";
 
 import {
+  interactiveStateRecipe,
+} from "../../../theme/recipes";
+
+import {
   useMenuContext,
 } from "./menu.context";
 
@@ -474,6 +478,12 @@ export const MenuItem =
             "data-ui-menu-item":
               "",
 
+            "data-ui-interactive":
+              "",
+
+            "data-ui-interactive-target":
+              "",
+
             "data-hovered":
               press.state.hovered ||
               undefined,
@@ -497,8 +507,17 @@ export const MenuItem =
               undefined,
           },
 
-          baseStyle:
-            menuRecipe({}).item,
+          baseStyle: {
+            ...interactiveStateRecipe({
+              tone:
+                "neutral",
+
+              emphasis:
+                "text",
+            }),
+
+            ...menuRecipe({}).item,
+          },
         });
 
 

@@ -15,6 +15,10 @@ import {
 } from "../../helpers/css";
 
 import {
+  interactiveStateRecipe,
+} from "../../theme/recipes";
+
+import {
   statusLabelRecipe,
   type StatusLabelColorScheme,
   type StatusLabelVariant,
@@ -356,6 +360,12 @@ export const Tag =
             "data-ui-tag-remove":
               "",
 
+            "data-ui-interactive":
+              "",
+
+            "data-ui-interactive-target":
+              "",
+
             "data-disabled":
               !onRemove ||
               undefined,
@@ -389,6 +399,14 @@ export const Tag =
           },
 
           baseStyle: {
+            ...interactiveStateRecipe({
+              tone:
+                "neutral",
+
+              emphasis:
+                "text",
+            }),
+
             marginLeft:
               "0.1rem",
 
@@ -410,11 +428,8 @@ export const Tag =
             borderRadius:
               "var(--ui-radius-full)",
 
-            border:
-              "none",
-
-            color:
-              "inherit",
+            borderWidth:
+              0,
 
             padding:
               0,
@@ -424,10 +439,6 @@ export const Tag =
 
             flexShrink:
               0,
-
-            transition:
-              "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-              "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
           },
         });
 

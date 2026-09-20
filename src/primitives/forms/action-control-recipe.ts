@@ -1,37 +1,16 @@
 import type React from "react";
 
+import {
+  interactiveStateRecipe,
+  type InteractiveStateRecipeStyle,
+} from "../../theme/recipes";
+
 import type {
   ActionControlColorScheme,
   ActionControlSize,
   ActionControlVariant,
 } from "./action-control-types";
 
-type ActionControlVariableStyles =
-  React.CSSProperties & {
-    "--ui-action-background"?:
-      string;
-
-    "--ui-action-hover-background"?:
-      string;
-
-    "--ui-action-pressed-background"?:
-      string;
-
-    "--ui-action-color"?:
-      string;
-
-    "--ui-action-border"?:
-      string;
-
-    "--ui-action-shadow"?:
-      string;
-
-    "--ui-action-hover-shadow"?:
-      string;
-
-    "--ui-action-pressed-shadow"?:
-      string;
-  };
 
 export interface ActionControlSizeMetrics {
   minHeight: string;
@@ -41,9 +20,11 @@ export interface ActionControlSizeMetrics {
   radius: string;
 }
 
+
 export interface ButtonActionRecipe {
   root:
-    ActionControlVariableStyles;
+    InteractiveStateRecipeStyle &
+    React.CSSProperties;
 
   spinner:
     React.CSSProperties;
@@ -61,13 +42,16 @@ export interface ButtonActionRecipe {
     ActionControlSizeMetrics;
 }
 
+
 export interface IconButtonActionRecipe {
   root:
-    ActionControlVariableStyles;
+    InteractiveStateRecipeStyle &
+    React.CSSProperties;
 
   icon:
     React.CSSProperties;
 }
+
 
 const ACTION_CONTROL_SIZE_METRICS:
   Record<
@@ -126,158 +110,77 @@ const ACTION_CONTROL_SIZE_METRICS:
     },
   };
 
-const SCHEME_MAP = {
-  primary: {
-    solidBackground:
-      "var(--ui-primary)",
 
-    solidHoverBackground:
-      "var(--ui-primary-hover)",
-
-    solidColor:
-      "var(--ui-primary-contrast)",
-
-    subtleColor:
-      "var(--ui-primary)",
-
-    subtleBorder:
-      "color-mix(in srgb, var(--ui-primary) 42%, var(--ui-border))",
-
-    subtleBackground:
-      "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
-  },
-
-  secondary: {
-    solidBackground:
-      "var(--ui-secondary)",
-
-    solidHoverBackground:
-      "var(--ui-secondary-hover)",
-
-    solidColor:
-      "var(--ui-secondary-contrast)",
-
-    subtleColor:
-      "var(--ui-secondary)",
-
-    subtleBorder:
-      "color-mix(in srgb, var(--ui-secondary) 42%, var(--ui-border))",
-
-    subtleBackground:
-      "color-mix(in srgb, var(--ui-secondary) 10%, transparent)",
-  },
-
-  danger: {
-    solidBackground:
-      "var(--ui-danger)",
-
-    solidHoverBackground:
-      "var(--ui-danger-hover)",
-
-    solidColor:
-      "var(--ui-danger-contrast)",
-
-    subtleColor:
-      "var(--ui-danger)",
-
-    subtleBorder:
-      "color-mix(in srgb, var(--ui-danger) 42%, var(--ui-border))",
-
-    subtleBackground:
-      "color-mix(in srgb, var(--ui-danger) 10%, transparent)",
-  },
-} as const;
-
-function getButtonVariables(
-  variant: ActionControlVariant,
+function getButtonInteraction(
+  variant:
+    ActionControlVariant,
   colorScheme:
-    ActionControlColorScheme
-): ActionControlVariableStyles {
-  const scheme =
-    SCHEME_MAP[colorScheme];
+    ActionControlColorScheme,
+): InteractiveStateRecipeStyle {
+  if (
+    variant ===
+    "outline"
+  ) {
+    return interactiveStateRecipe({
+      tone:
+        colorScheme,
 
-  if (variant === "outline") {
-    return {
-      "--ui-action-background":
-        "transparent",
+      emphasis:
+        "outline",
 
-      "--ui-action-hover-background":
-        scheme.subtleBackground,
+      elevation:
+        0,
 
-      "--ui-action-pressed-background":
-        scheme.subtleBackground,
+      hoverElevation:
+        1,
 
-      "--ui-action-color":
-        scheme.subtleColor,
-
-      "--ui-action-border":
-        `1px solid ${scheme.subtleBorder}`,
-
-      "--ui-action-shadow":
-        "none",
-
-      "--ui-action-hover-shadow":
-        "var(--ui-elevation-1)",
-
-      "--ui-action-pressed-shadow":
-        "var(--ui-elevation-1)",
-    };
+      pressedElevation:
+        0,
+    });
   }
 
-  if (variant === "ghost") {
-    return {
-      "--ui-action-background":
-        "transparent",
 
-      "--ui-action-hover-background":
-        scheme.subtleBackground,
+  if (
+    variant ===
+    "ghost"
+  ) {
+    return interactiveStateRecipe({
+      tone:
+        colorScheme,
 
-      "--ui-action-pressed-background":
-        scheme.subtleBackground,
+      emphasis:
+        "text",
 
-      "--ui-action-color":
-        scheme.subtleColor,
+      elevation:
+        0,
 
-      "--ui-action-border":
-        "1px solid transparent",
+      hoverElevation:
+        1,
 
-      "--ui-action-shadow":
-        "none",
-
-      "--ui-action-hover-shadow":
-        "var(--ui-elevation-1)",
-
-      "--ui-action-pressed-shadow":
-        "var(--ui-elevation-1)",
-    };
+      pressedElevation:
+        0,
+    });
   }
 
-  return {
-    "--ui-action-background":
-      scheme.solidBackground,
 
-    "--ui-action-hover-background":
-      scheme.solidHoverBackground,
+  return interactiveStateRecipe({
+    tone:
+      colorScheme,
 
-    "--ui-action-pressed-background":
-      scheme.solidHoverBackground,
+    emphasis:
+      "solid",
 
-    "--ui-action-color":
-      scheme.solidColor,
+    elevation:
+      2,
 
-    "--ui-action-border":
-      "1px solid transparent",
+    hoverElevation:
+      3,
 
-    "--ui-action-shadow":
-      "var(--ui-elevation-2)",
-
-    "--ui-action-hover-shadow":
-      "var(--ui-elevation-3)",
-
-    "--ui-action-pressed-shadow":
-      "var(--ui-elevation-3)",
-  };
+    pressedElevation:
+      1,
+  });
 }
+
 
 export function getButtonActionRecipe({
   size,
@@ -298,11 +201,12 @@ export function getButtonActionRecipe({
       size
     ];
 
+
   return {
     root: {
-      ...getButtonVariables(
+      ...getButtonInteraction(
         variant,
-        colorScheme
+        colorScheme,
       ),
 
       appearance:
@@ -324,13 +228,13 @@ export function getButtonActionRecipe({
         1.1,
 
       fontWeight:
-        700,
+        "var(--ui-font-weight-medium)",
 
       fontSize:
         metrics.fontSize,
 
       letterSpacing:
-        "0.2px",
+        "0.01em",
 
       touchAction:
         "manipulation",
@@ -346,6 +250,12 @@ export function getButtonActionRecipe({
 
       verticalAlign:
         "middle",
+
+      borderWidth:
+        1,
+
+      borderStyle:
+        "solid",
 
       borderRadius:
         metrics.radius,
@@ -423,6 +333,7 @@ export function getButtonActionRecipe({
   };
 }
 
+
 export function getIconButtonActionRecipe({
   size,
   variant,
@@ -440,89 +351,53 @@ export function getIconButtonActionRecipe({
       size
     ];
 
-  const variables:
-    ActionControlVariableStyles =
-      variant === "solid"
-        ? {
-            "--ui-action-background":
-              "var(--ui-primary)",
+  const interaction =
+    variant === "solid"
+      ? interactiveStateRecipe({
+          tone:
+            "primary",
 
-            "--ui-action-hover-background":
-              "var(--ui-primary-hover)",
+          emphasis:
+            "solid",
 
-            "--ui-action-pressed-background":
-              "var(--ui-primary-hover)",
+          elevation:
+            0,
 
-            "--ui-action-color":
-              "var(--ui-primary-contrast)",
+          hoverElevation:
+            1,
 
-            "--ui-action-border":
-              "1px solid transparent",
+          pressedElevation:
+            0,
+        })
+      : variant === "unstyled"
+        ? interactiveStateRecipe({
+            tone:
+              "neutral",
 
-            "--ui-action-shadow":
-              "none",
+            emphasis:
+              "plain",
+          })
+        : interactiveStateRecipe({
+            tone:
+              "neutral",
 
-            "--ui-action-hover-shadow":
-              "var(--ui-elevation-1)",
+            emphasis:
+              "text",
 
-            "--ui-action-pressed-shadow":
-              "var(--ui-elevation-1)",
-          }
-        : variant === "unstyled"
-          ? {
-              "--ui-action-background":
-                "transparent",
+            elevation:
+              0,
 
-              "--ui-action-hover-background":
-                "transparent",
+            hoverElevation:
+              1,
 
-              "--ui-action-pressed-background":
-                "transparent",
+            pressedElevation:
+              0,
+          });
 
-              "--ui-action-color":
-                "inherit",
-
-              "--ui-action-border":
-                "1px solid transparent",
-
-              "--ui-action-shadow":
-                "none",
-
-              "--ui-action-hover-shadow":
-                "none",
-
-              "--ui-action-pressed-shadow":
-                "none",
-            }
-          : {
-              "--ui-action-background":
-                "transparent",
-
-              "--ui-action-hover-background":
-                "var(--ui-surface-hover)",
-
-              "--ui-action-pressed-background":
-                "var(--ui-surface-hover)",
-
-              "--ui-action-color":
-                "var(--ui-text)",
-
-              "--ui-action-border":
-                "1px solid var(--ui-border)",
-
-              "--ui-action-shadow":
-                "none",
-
-              "--ui-action-hover-shadow":
-                "var(--ui-elevation-1)",
-
-              "--ui-action-pressed-shadow":
-                "var(--ui-elevation-1)",
-            };
 
   return {
     root: {
-      ...variables,
+      ...interaction,
 
       appearance:
         "none",
@@ -556,6 +431,12 @@ export function getIconButtonActionRecipe({
 
       flexShrink:
         0,
+
+      borderWidth:
+        1,
+
+      borderStyle:
+        "solid",
 
       borderRadius:
         "var(--ui-radius-full)",

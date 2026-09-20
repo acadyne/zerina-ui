@@ -77,6 +77,9 @@ describe(
             "UI_ELEVATIONS",
             "UI_TYPOGRAPHY_ROLES",
             "UI_SHAPES",
+            "toneRecipe",
+            "surfaceRecipe",
+            "interactiveStateRecipe",
           ]
         ) {
           expect(

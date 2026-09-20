@@ -1,4 +1,8 @@
 import {
+  useState,
+} from "react";
+
+import {
   describe,
   expect,
   it,
@@ -17,6 +21,7 @@ import type {
 
 import {
   renderDOM,
+  setNativeInputValue,
 } from "./react-dom-test-utils";
 
 
@@ -72,6 +77,51 @@ const editableColumns:
         "string",
     },
   ];
+
+
+function EditableExportHarness() {
+  const [
+    editableRows,
+    setEditableRows,
+  ] = useState<Row[]>(
+    rows,
+  );
+
+
+  return (
+    <EditableDataTable
+      data={
+        editableRows
+      }
+
+      columns={
+        editableColumns
+      }
+
+      getRowId={(
+        row,
+      ) =>
+        row.id
+      }
+
+      createEmptyRow={() => ({
+        id:
+          2,
+
+        name:
+          "",
+      })}
+
+      onDataChange={
+        setEditableRows
+      }
+
+      enableExportCSV
+
+      mobileMode="never"
+    />
+  );
+}
 
 
 describe(
@@ -262,6 +312,70 @@ describe(
             ),
           ).toBeNull();
         }
+      },
+    );
+
+
+
+    it(
+      "keeps page-size and CSV controls mounted while editable rows change",
+      () => {
+        const container =
+          renderDOM(
+            <EditableExportHarness />,
+          );
+
+
+        const rowsPerPage =
+          container.querySelector(
+            'select[aria-label="Filas por página"]',
+          );
+
+        const exportButton =
+          container.querySelector(
+            "[data-ui-data-table-export]",
+          );
+
+        const editor =
+          container.querySelector<HTMLInputElement>(
+            'input[aria-label="Name, fila 1"]',
+          );
+
+
+        expect(
+          rowsPerPage,
+        ).not.toBeNull();
+
+        expect(
+          exportButton,
+        ).not.toBeNull();
+
+        expect(
+          editor,
+        ).not.toBeNull();
+
+
+        setNativeInputValue(
+          editor!,
+          "Ada Lovelace",
+        );
+
+
+        expect(
+          container.querySelector(
+            'select[aria-label="Filas por página"]',
+          ),
+        ).toBe(
+          rowsPerPage,
+        );
+
+        expect(
+          container.querySelector(
+            "[data-ui-data-table-export]",
+          ),
+        ).toBe(
+          exportButton,
+        );
       },
     );
   },

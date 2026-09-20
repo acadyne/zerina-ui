@@ -1,3 +1,8 @@
+[data-ui-data-table-desktop],
+[data-ui-data-table-editable-desktop] {
+  isolation: isolate;
+}
+
 [data-ui-data-table-desktop]
   [data-ui-data-table-row],
 [data-ui-data-table-editable-desktop]
@@ -5,42 +10,55 @@
   transition:
     background
     var(--ui-duration-fast)
+    var(--ui-ease-standard),
+    box-shadow
+    var(--ui-duration-fast)
     var(--ui-ease-standard);
 }
 
 [data-ui-data-table-desktop]
+  [data-ui-data-table-row]:nth-child(odd),
+[data-ui-data-table-editable-desktop]
   [data-ui-data-table-row]:nth-child(odd) {
-  background: var(--ui-surface-canvas);
-}
-
-[data-ui-data-table-desktop]
-  [data-ui-data-table-row]:nth-child(even) {
   background: var(--ui-surface);
 }
 
 [data-ui-data-table-desktop]
+  [data-ui-data-table-row]:nth-child(even),
+[data-ui-data-table-editable-desktop]
+  [data-ui-data-table-row]:nth-child(even) {
+  background: var(--ui-surface-container-low);
+}
+
+[data-ui-data-table-desktop]
+  [data-ui-data-table-row][data-selected],
+[data-ui-data-table-editable-desktop]
   [data-ui-data-table-row][data-selected] {
   background: var(--ui-surface-container);
+  box-shadow:
+    inset 3px 0 0
+    var(--ui-primary);
 }
 
 [data-ui-data-table-editable-desktop]
-  [data-ui-data-table-row]:nth-child(odd) {
-  background: var(--ui-surface-canvas);
+  [data-ui-data-table-row]:focus-within {
+  background: var(--ui-surface-container-low);
+  box-shadow:
+    inset 3px 0 0
+    var(--ui-primary);
 }
 
-[data-ui-data-table-editable-desktop]
-  [data-ui-data-table-row]:nth-child(even) {
-  background:
-    color-mix(
-      in srgb,
-      var(--ui-text) 2%,
-      var(--ui-surface-canvas)
-    );
+[data-ui-data-table-header-cell] {
+  letter-spacing: 0.01em;
 }
 
-[data-ui-data-table-editable-desktop]
-  [data-ui-data-table-row][data-selected] {
-  background: var(--ui-surface);
+[data-ui-data-table-header-cell]
+  button {
+  border-radius: var(--ui-radius-sm);
+  transition:
+    color
+    var(--ui-duration-fast)
+    var(--ui-ease-standard);
 }
 
 [data-ui-data-table-mobile-card] {
@@ -51,6 +69,8 @@
 [data-ui-data-table-mobile-card][data-selected] {
   border-color:
     var(--ui-primary);
+  box-shadow:
+    var(--ui-elevation-2);
 }
 
 @media (hover: hover) {
@@ -58,6 +78,11 @@
     [data-ui-data-table-row]:hover,
   [data-ui-data-table-editable-desktop]
     [data-ui-data-table-row]:hover {
-    background: var(--ui-surface-hover);
+    background: var(--ui-surface-container-low);
+  }
+
+  [data-ui-data-table-header-cell]
+    button:hover {
+    color: var(--ui-primary);
   }
 }

@@ -1,0 +1,174 @@
+/* src/theme/recipes/interactive-state.css */
+
+/*
+ * Shared visual projection for controls that already expose the canonical
+ * usePress state vocabulary.
+ *
+ * Mechanics stay in usePress. Components only opt in and provide the semantic
+ * variables from interactiveStateRecipe.
+ */
+
+:where(
+  [data-ui-interactive][data-ui-interactive-target],
+  [data-ui-interactive] > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-background);
+
+  color:
+    var(--ui-interactive-color);
+
+  border-color:
+    var(--ui-interactive-border-color);
+
+  box-shadow:
+    var(--ui-interactive-shadow);
+
+  transition:
+    background
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    border-color
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    color
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    opacity
+      var(--ui-duration-normal)
+      var(--ui-ease-standard),
+    box-shadow
+      var(--ui-duration-normal)
+      var(--ui-ease-standard);
+}
+
+
+:where(
+  [data-ui-interactive][data-hovered]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-hovered]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-hover-background);
+
+  box-shadow:
+    var(--ui-interactive-hover-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-focus-visible]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-focus-visible]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-focus-background);
+
+  box-shadow:
+    var(--ui-interactive-focus-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-pressed]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-pressed]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-pressed-background);
+
+  box-shadow:
+    var(--ui-interactive-pressed-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-selected]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-selected]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-selected-background);
+
+  color:
+    var(--ui-interactive-selected-color);
+
+  border-color:
+    var(--ui-interactive-selected-border-color);
+
+  box-shadow:
+    var(--ui-interactive-selected-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-selected][data-hovered]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-selected][data-hovered]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-selected-hover-background);
+
+  box-shadow:
+    var(--ui-interactive-hover-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-selected][data-focus-visible]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-selected][data-focus-visible]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-selected-focus-background);
+
+  box-shadow:
+    var(--ui-interactive-selected-shadow);
+}
+
+
+:where(
+  [data-ui-interactive][data-selected][data-pressed]:not([data-disabled])[data-ui-interactive-target],
+  [data-ui-interactive][data-selected][data-pressed]:not([data-disabled]) > [data-ui-interactive-target]
+) {
+  background:
+    var(--ui-interactive-selected-pressed-background);
+
+  box-shadow:
+    var(--ui-interactive-pressed-shadow);
+}
+
+
+:where(
+  [data-ui-interactive]
+) {
+  outline:
+    none;
+
+  cursor:
+    pointer;
+}
+
+
+:where(
+  [data-ui-interactive][data-focus-visible]:not([data-disabled])
+) {
+  outline:
+    var(--ui-interaction-focus-ring-width)
+    solid
+    var(
+      --ui-interactive-focus-ring-color,
+      var(--ui-interaction-focus-ring-color)
+    );
+
+  outline-offset:
+    var(--ui-interaction-focus-ring-offset);
+}
+
+
+:where(
+  [data-ui-interactive][data-disabled]
+) {
+  cursor:
+    not-allowed;
+
+  opacity:
+    var(
+      --ui-interactive-disabled-opacity,
+      var(--ui-interaction-disabled-opacity)
+    );
+}

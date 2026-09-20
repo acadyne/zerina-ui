@@ -105,7 +105,7 @@ function HeadingRender(
     pr,
 
     color,
-    weight = 800,
+    weight = "var(--ui-font-weight-bold)",
     leading = 1.2,
     tracking,
 
@@ -123,6 +123,8 @@ function HeadingRender(
       className,
 
       style: {
+        fontFamily:
+          "var(--ui-font-family-display)",
         fontWeight: weight,
         fontSize: fontSizeMap[size],
         textAlign: align,

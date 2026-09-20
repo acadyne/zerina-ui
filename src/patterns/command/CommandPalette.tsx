@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "../../primitives/overlay";
 import { Typography } from "../../primitives/typography";
+import { interactiveStateRecipe } from "../../theme/recipes";
 
 export interface CommandPaletteItem {
   id: string;
@@ -867,6 +868,8 @@ export function CommandTrigger({
       data-ui-command-trigger=""
       data-ui-command-trigger-size={size}
       data-ui-command-trigger-tone={tone}
+      data-ui-interactive=""
+      data-ui-interactive-target=""
       data-hovered={
         press.state.hovered || undefined
       }
@@ -883,6 +886,17 @@ export function CommandTrigger({
         disabled || undefined
       }
       style={{
+        ...interactiveStateRecipe({
+          tone: "neutral",
+          emphasis:
+            tone === "default"
+              ? "surface"
+              : "container",
+          elevation: 0,
+          hoverElevation: 1,
+          pressedElevation: 0,
+        }),
+
         width: fullWidth
           ? "100%"
           : undefined,

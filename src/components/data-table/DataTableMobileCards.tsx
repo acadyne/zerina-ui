@@ -183,7 +183,8 @@ export function DataTableMobileCards<
       styles,
       slotProps,
       baseStyle: {
-        padding: "0.85rem",
+        padding:
+          "var(--ui-density-content-padding)",
         minWidth: 0,
         borderRadius: "var(--ui-radius-xl)",
         border: "1px solid var(--ui-border)",
@@ -215,7 +216,8 @@ export function DataTableMobileCards<
       minWidth: 0,
       display: "flex",
       flexDirection: "column",
-      gap: "0.75rem",
+      gap:
+        "var(--ui-density-block-gap)",
     },
   });
 
@@ -242,7 +244,8 @@ export function DataTableMobileCards<
             "data-selected": selected || undefined,
           },
           baseStyle: {
-            padding: "0.85rem",
+            padding:
+              "var(--ui-density-content-padding)",
             minWidth: 0,
             borderRadius: "var(--ui-radius-xl)",
             background: "var(--ui-surface)",
@@ -258,8 +261,10 @@ export function DataTableMobileCards<
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "0.75rem",
-            marginBottom: "0.7rem",
+            gap:
+              "var(--ui-density-inline-gap)",
+            marginBottom:
+              "var(--ui-density-block-gap)",
           },
         });
 
@@ -282,7 +287,8 @@ export function DataTableMobileCards<
           baseStyle: {
             display: "flex",
             flexDirection: "column",
-            gap: "0.65rem",
+            gap:
+              "var(--ui-density-block-gap)",
           },
         });
 

@@ -162,13 +162,16 @@ export function DataTableDesktopBase<
           "1px solid var(--ui-border)",
 
         borderRadius:
-          "var(--ui-radius-lg)",
+          "var(--ui-radius-xl)",
 
         overflow:
           "hidden",
 
         background:
-          "var(--ui-surface-canvas)",
+          "var(--ui-surface)",
+
+        boxShadow:
+          "var(--ui-elevation-1)",
       },
     });
 
@@ -270,13 +273,19 @@ export function DataTableDesktopBase<
                         0,
 
                       background:
-                        "var(--ui-surface)",
+                        "var(--ui-surface-container-low)",
+
+                      color:
+                        "var(--ui-text-muted)",
 
                       zIndex:
                         2,
 
                       borderBottom:
                         "1px solid var(--ui-border)",
+
+                      boxSizing:
+                        "border-box",
                     },
                   })}
                 >
@@ -353,6 +362,58 @@ export function DataTableDesktopBase<
                       aria-sort={
                         ariaSort
                       }
+                      {...resolveSlot<DataTableSlot>({
+                        slot:
+                          "headerCell",
+
+                        styles,
+                        slotProps,
+
+                        baseProps: {
+                          "data-ui-data-table-header-cell":
+                            "",
+
+                          "data-sortable":
+                            sortable ||
+                            undefined,
+                        },
+
+                        baseStyle: {
+                          padding:
+                            cellPadding,
+
+                          width:
+                            column.width,
+
+                          position:
+                            "sticky",
+
+                          top:
+                            0,
+
+                          zIndex:
+                            1,
+
+                          background:
+                            "var(--ui-surface-container-low)",
+
+                          color:
+                            "var(--ui-text-muted)",
+
+                          borderBottom:
+                            "1px solid var(--ui-border)",
+
+                          textAlign:
+                            column.align ??
+                            "left",
+
+                          verticalAlign:
+                            "middle",
+
+                          boxSizing:
+                            "border-box",
+                        },
+                      })}
                     >
                       {sortable ? (
                         <button
@@ -551,8 +612,14 @@ export function DataTableDesktopBase<
                                 padding:
                                   cellPadding,
 
+                                width:
+                                  column.width,
+
                                 borderBottom:
                                   "1px solid var(--ui-border)",
+
+                                boxSizing:
+                                  "border-box",
 
                                 textAlign:
                                   column.align ??

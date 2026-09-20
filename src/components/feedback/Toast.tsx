@@ -22,6 +22,7 @@ import {
   hasRenderableNode,
 } from "../../core/react/nodePresence";
 import { useOptionalUIMotion } from "../../core/motion";
+import { interactiveStateRecipe } from "../../theme/recipes";
 import type {
   FeedbackVariant,
 } from "./feedback.types";
@@ -468,6 +469,9 @@ export const Toast = React.forwardRef<
 
         "data-ui-toast-close": "",
 
+        "data-ui-interactive": "",
+        "data-ui-interactive-target": "",
+
         "aria-label": "Cerrar notificación",
 
         "data-hovered":
@@ -488,6 +492,11 @@ export const Toast = React.forwardRef<
       },
 
       baseStyle: {
+        ...interactiveStateRecipe({
+          tone: "neutral",
+          emphasis: "text",
+        }),
+
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -498,14 +507,10 @@ export const Toast = React.forwardRef<
         borderRadius:
           "var(--ui-radius-full)",
 
-        border:
-          "1px solid transparent",
+        borderWidth: 1,
+        borderStyle: "solid",
 
         flexShrink: 0,
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
       },
     });
 

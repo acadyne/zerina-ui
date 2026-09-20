@@ -64,9 +64,21 @@ describe(
           const semantic of [
             "StatusLabelVariant",
             "StatusLabelColorScheme",
-            "STATUS_LABEL_SCHEMES",
             "getStatusLabelVariantStyle",
             "statusLabelRecipe",
+            "toneRecipe",
+          ]
+        ) {
+          expect(
+            recipe,
+          ).toContain(
+            semantic,
+          );
+        }
+
+        for (
+          const retiredLocalOwner of [
+            "STATUS_LABEL_SCHEMES",
             "solidBg",
             "subtleBg",
             "outlineBorder",
@@ -74,8 +86,8 @@ describe(
         ) {
           expect(
             recipe,
-          ).toContain(
-            semantic,
+          ).not.toContain(
+            retiredLocalOwner,
           );
         }
       },

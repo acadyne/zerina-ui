@@ -16,6 +16,9 @@ export interface DataTableRootProps
   className?: string;
   style?: React.CSSProperties;
 
+  "data-ui-data-table-viewport"?:
+    "mobile" | "tablet" | "desktop";
+
   styles?: DataTableStyles;
   slotProps?: DataTableSlotProps;
 }

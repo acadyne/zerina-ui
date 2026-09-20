@@ -82,6 +82,16 @@ describe(
         "styles/controls.css",
       );
 
+    const interactiveRecipe =
+      readSource(
+        "theme/recipes/interactive-state-recipe.ts",
+      );
+
+    const interactiveCss =
+      readSource(
+        "theme/recipes/interactive-state.css",
+      );
+
     const listSource =
       readSource(
         "primitives/layout/List.tsx",
@@ -238,61 +248,94 @@ describe(
 
 
     it(
-      "defines the complete static action variable vocabulary",
+      "derives action visuals from the shared interactive state vocabulary",
       () => {
+        expect(
+          recipe,
+        ).toContain(
+          "interactiveStateRecipe",
+        );
+
+        expect(
+          recipe,
+        ).not.toContain(
+          "SCHEME_MAP",
+        );
+
         for (
           const variable of [
-            "--ui-action-background",
-            "--ui-action-hover-background",
-            "--ui-action-pressed-background",
-            "--ui-action-color",
-            "--ui-action-border",
-            "--ui-action-shadow",
-            "--ui-action-hover-shadow",
-            "--ui-action-pressed-shadow",
+            "--ui-interactive-background",
+            "--ui-interactive-hover-background",
+            "--ui-interactive-focus-background",
+            "--ui-interactive-pressed-background",
+            "--ui-interactive-selected-background",
+            "--ui-interactive-focus-ring-color",
+            "--ui-interactive-disabled-opacity",
           ]
         ) {
           expect(
-            recipe,
+            interactiveRecipe,
           ).toContain(
             variable,
           );
 
           expect(
-            controlsCss,
+            interactiveCss,
           ).toContain(
             variable,
           );
         }
+
+        expect(
+          recipe,
+        ).not.toContain(
+          "--ui-action-",
+        );
+
+        expect(
+          controlsCss,
+        ).not.toContain(
+          "--ui-action-",
+        );
       },
     );
 
 
     it(
-      "routes hover, pressed, disabled, focus-visible and loading visuals through CSS",
+      "routes shared hover, pressed, selected, disabled and focus-visible visuals through one CSS owner",
       () => {
+        for (
+          const attribute of [
+            "data-hovered",
+            "data-pressed",
+            "data-selected",
+            "data-focus-visible",
+            "data-disabled",
+          ]
+        ) {
+          expect(
+            interactiveCss,
+          ).toContain(
+            attribute,
+          );
+        }
+
         expect(
-          controlsCss,
-        ).toMatch(
-          /\[data-ui="button"\]\[data-hovered\][\s\S]*--ui-action-hover-background/,
+          button,
+        ).toContain(
+          '"data-ui-interactive"',
         );
 
         expect(
-          controlsCss,
-        ).toMatch(
-          /\[data-ui="button"\]\[data-pressed\][\s\S]*--ui-action-pressed-background/,
+          iconButton,
+        ).toContain(
+          '"data-ui-interactive"',
         );
 
         expect(
-          controlsCss,
-        ).toMatch(
-          /\[data-ui="pressable"\]\[data-focus-visible\]/,
-        );
-
-        expect(
-          controlsCss,
-        ).toMatch(
-          /\[data-ui="control-action"\]\[data-disabled\]/,
+          controlAction,
+        ).toContain(
+          'data-ui-interactive=""',
         );
 
         expect(
@@ -353,7 +396,7 @@ describe(
 
 
     it(
-      "makes List consume generic states without Pressable-specific selectors",
+      "makes List consume the shared interactive projection without local hover or press maps",
       () => {
         expect(
           listSource,
@@ -361,19 +404,29 @@ describe(
           "<Pressable",
         );
 
-        for (
-          const attribute of [
-            "data-hovered",
-            "data-focus-visible",
-            "data-pressed",
-          ]
-        ) {
-          expect(
-            listCss,
-          ).toContain(
-            attribute,
-          );
-        }
+        expect(
+          listSource,
+        ).toContain(
+          "interactiveStateRecipe",
+        );
+
+        expect(
+          listSource,
+        ).toContain(
+          'data-ui-interactive=""',
+        );
+
+        expect(
+          listCss,
+        ).not.toContain(
+          "data-hovered",
+        );
+
+        expect(
+          listCss,
+        ).not.toContain(
+          "data-pressed",
+        );
 
         expect(
           listCss,
@@ -391,6 +444,12 @@ describe(
           floatingActionButton,
         ).toContain(
           "<Pressable",
+        );
+
+        expect(
+          floatingActionButton,
+        ).toContain(
+          "interactiveStateRecipe",
         );
 
         expect(

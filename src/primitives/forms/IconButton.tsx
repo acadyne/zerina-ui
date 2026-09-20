@@ -223,6 +223,12 @@ export const IconButton =
             "data-ui":
               "icon-button",
 
+            "data-ui-interactive":
+              "",
+
+            "data-ui-interactive-target":
+              "",
+
             "data-variant":
               variant,
 

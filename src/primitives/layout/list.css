@@ -1,20 +1,13 @@
 /* src/primitives/layout/list.css */
 
-[data-ui-list-item] {
+[data-ui-list-item]:not([data-interactive]) {
   background:
     var(
       --ui-list-item-background,
       transparent
     );
-
-  transition:
-    background
-      var(--ui-duration-normal)
-      var(--ui-ease-standard),
-    opacity
-      var(--ui-duration-normal)
-      var(--ui-ease-standard);
 }
+
 
 [data-ui-list][data-ui-list-motion="none"]
   [data-ui-list-item] {
@@ -22,31 +15,26 @@
     var(--ui-duration-instant);
 }
 
+
 [data-ui-list][data-ui-list-motion="reduced"]
   [data-ui-list-item] {
   transition-duration:
     var(--ui-duration-fast);
 }
 
-[data-ui-list-item][data-hovered]:not([data-disabled]),
-[data-ui-list-item][data-focus-visible]:not([data-disabled]) {
+
+/*
+ * Static selected items still need a semantic selected surface. Interactive
+ * items delegate the same state to interactiveStateRecipe.
+ */
+[data-ui-list-item]:not([data-interactive])[data-selected] {
   background:
-    var(--ui-surface-hover);
+    var(--ui-primary-container);
+
+  color:
+    var(--ui-on-primary-container);
 }
 
-[data-ui-list-item][data-selected] {
-  background:
-    color-mix(
-      in srgb,
-      var(--ui-primary) 12%,
-      var(--ui-surface)
-    );
-}
-
-[data-ui-list-item][data-pressed]:not([data-disabled]) {
-  background:
-    var(--ui-surface-container-high);
-}
 
 [data-ui-list-items][data-divided]
   > [data-ui-list-item-wrapper]
@@ -55,14 +43,14 @@
     1px solid var(--ui-border);
 }
 
+
 [data-ui-list-item][data-interactive]:not([data-disabled]) {
-  cursor: pointer;
+  cursor:
+    pointer;
 }
 
-[data-ui-list-item][data-disabled] {
-  opacity: var(--ui-interaction-disabled-opacity);
-}
 
-[data-ui-list-item][data-interactive][data-disabled] {
-  cursor: not-allowed;
+[data-ui-list-item]:not([data-interactive])[data-disabled] {
+  opacity:
+    var(--ui-interaction-disabled-opacity);
 }

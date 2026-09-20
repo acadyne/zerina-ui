@@ -202,6 +202,8 @@ function TypographyRender(
       className,
 
       style: {
+        fontFamily:
+          "var(--ui-font-family-body)",
         fontSize: sizeMap[size],
         fontWeight: weight,
         color,

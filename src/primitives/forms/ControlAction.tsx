@@ -13,6 +13,10 @@ import {
 } from "./input-group-context";
 
 import {
+  interactiveStateRecipe,
+} from "../../theme/recipes";
+
+import {
   getActionControlStateAttributes,
 } from "./action-control-state";
 
@@ -143,11 +147,23 @@ export const ControlAction =
             className
           }
 
-          style={
-            style
-          }
+          style={{
+            ...interactiveStateRecipe({
+              tone:
+                "neutral",
+
+              emphasis:
+                "text",
+            }),
+
+            ...style,
+          }}
 
           data-ui="control-action"
+
+          data-ui-interactive=""
+
+          data-ui-interactive-target=""
 
           data-size={
             size

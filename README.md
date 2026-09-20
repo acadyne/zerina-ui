@@ -213,6 +213,14 @@ compactación automática se reserva para geometría restringida con input fino,
 y `spacious` requiere un viewport efectivamente wide+tall. Los modos explícitos
 siempre prevalecen.
 
+`AdaptiveScaffold` expone el modo resuelto a `title`, `subtitle`, `leading`,
+`actions` y `children`. Las aplicaciones deben adaptar la composición desde ese
+contexto en vez de crear otro resolver responsive.
+
+`TopAppBar` mantiene su zona central dentro del flujo del layout. `centerTitle`
+centra dentro del espacio disponible entre `leading` y `actions`; no utiliza una
+capa absoluta que pueda invadir acciones cuando el viewport se estrecha.
+
 ## Accesibilidad
 
 Los contratos compartidos cubren, entre otros:
@@ -324,3 +332,54 @@ density     compact / comfortable / spacious
 
 La serie pre-1.0 no conserva aliases de tokens retirados. Los themes nuevos
 deben usar el contrato semántico vigente.
+
+## Recipes visuales compartidas
+
+La riqueza visual no se define por componente. Tres recipes semánticas traducen
+el vocabulario del theme a estilos consumibles:
+
+```ts
+import {
+  interactiveStateRecipe,
+  surfaceRecipe,
+  toneRecipe,
+} from "zerina-ui";
+
+const panel = surfaceRecipe({
+  role: "containerLow",
+  elevation: 1,
+  shape: "xl",
+  border: "subtle",
+});
+
+const status = toneRecipe({
+  tone: "success",
+  emphasis: "container",
+});
+
+const primaryAction = interactiveStateRecipe({
+  tone: "primary",
+  emphasis: "solid",
+  elevation: 2,
+  hoverElevation: 3,
+  pressedElevation: 1,
+});
+```
+
+`surfaceRecipe` es el owner compartido de `surface role + elevation + shape +
+border`. `toneRecipe` es el owner compartido de la relación
+`tone + emphasis -> foreground/background/border`.
+
+`interactiveStateRecipe` es el owner visual de `rest / hover / focus-visible /
+pressed / selected / disabled`. No captura eventos ni mantiene estado:
+`usePress` continúa siendo el único owner de la mecánica interactiva. Los
+controles publican el vocabulario de estado existente y el CSS compartido lo
+proyecta desde las variables semánticas del recipe.
+
+Los componentes pueden exponer overrides cuando su contrato lo requiera, pero
+no deben mantener mapas paralelos de colores, superficies, elevación o state
+layers.
+
+`Typography`, `Heading` y el reset global consumen las familias tipográficas del
+theme. Cambiar la personalidad tipográfica de un theme debe propagarse sin
+ramas por nombre de theme dentro de los componentes.

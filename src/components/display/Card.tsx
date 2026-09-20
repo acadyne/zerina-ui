@@ -14,6 +14,11 @@ import {
   useOptionalUIMotion,
 } from "../../core/motion";
 import {
+  interactiveStateRecipe,
+  surfaceRecipe,
+} from "../../theme/recipes";
+
+import {
   resolveContextualSlot,
   resolveSlot,
   toMotionSlotProps,
@@ -246,8 +251,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       className = "",
       style,
       p,
-      rounded = "var(--ui-radius-lg)",
-      shadow = "var(--ui-elevation-1)",
+      rounded,
+      shadow,
       bordered = true,
       loading = false,
       loadingFallback,
@@ -336,6 +341,35 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ? motionState.getPressMotion(motionState.effectiveLevel)
       : undefined;
 
+    const surface =
+      surfaceRecipe({
+        role: "surface",
+        elevation: 1,
+        shape: "lg",
+        border: bordered
+          ? "subtle"
+          : "none",
+      });
+
+    const interaction =
+      interactiveStateRecipe({
+        tone:
+          "neutral",
+
+        emphasis:
+          "surface",
+
+        elevation:
+          1,
+
+        hoverElevation:
+          3,
+
+        pressedElevation:
+          2,
+      });
+
+
     const rootSlot = resolveSlot<CardSlot>({
       slot: "root",
       styles,
@@ -345,6 +379,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       baseProps: {
         "data-ui-card": "",
         "data-ui-card-interactive": isInteractive || undefined,
+        "data-ui-interactive": isInteractive || undefined,
+        "data-ui-interactive-target": isInteractive || undefined,
         "data-ui-card-loading": loading || undefined,
         "data-ui-card-loading-animated":
           loading && animateLoading
@@ -358,14 +394,48 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           press.state.focusVisible || undefined,
       },
       baseStyle: {
-        ...({
-          "--ui-card-shadow": shadow,
-          "--ui-card-border-color": bordered
-            ? "var(--ui-border)"
-            : "transparent",
-        } as React.CSSProperties),
+        ...(
+          isInteractive
+            ? interaction
+            : surface
+        ),
+
+        ...(
+          isInteractive
+            ? {
+                "--ui-interactive-border-color":
+                  bordered
+                    ? interaction[
+                        "--ui-interactive-border-color"
+                      ]
+                    : "transparent",
+              }
+            : {}
+        ),
+
         padding: p,
-        borderRadius: rounded,
+
+        borderWidth:
+          isInteractive
+            ? 1
+            : undefined,
+
+        borderStyle:
+          isInteractive
+            ? "solid"
+            : undefined,
+
+        borderRadius:
+          rounded ??
+          surface.borderRadius,
+
+        boxShadow:
+          shadow ??
+          (
+            isInteractive
+              ? undefined
+              : surface.boxShadow
+          ),
       },
     });
 

@@ -15,6 +15,9 @@ import type {
   FeedbackVariant,
 } from "./feedback.types";
 import {
+  toneRecipe,
+} from "../../theme/recipes";
+import {
   resolveSlot,
   type SlotPropsMap,
   type SlotStyleMap,
@@ -52,49 +55,24 @@ export interface AlertProps
   slotProps?: AlertSlotProps;
 }
 
-const alertVariantMap: Record<
+const alertIconMap: Record<
   AlertVariant,
-  {
-    icon: React.ReactNode;
-    color: string;
-    background: string;
-    border: string;
-  }
+  React.ReactNode
 > = {
-  info: {
-    icon: <Info size={18} />,
-    color: "var(--ui-primary)",
-    background: "color-mix(in srgb, var(--ui-primary) 10%, transparent)",
-    border: "color-mix(in srgb, var(--ui-primary) 32%, var(--ui-border))",
-  },
-  success: {
-    icon: <CheckCircle2 size={18} />,
-    color: "var(--ui-success)",
-    background:
-      "color-mix(in srgb, var(--ui-success) 12%, transparent)",
-    border:
-      "color-mix(in srgb, var(--ui-success) 32%, var(--ui-border))",
-  },
-  warning: {
-    icon: <TriangleAlert size={18} />,
-    color: "var(--ui-warning)",
-    background:
-      "color-mix(in srgb, var(--ui-warning) 13%, transparent)",
-    border:
-      "color-mix(in srgb, var(--ui-warning) 34%, var(--ui-border))",
-  },
-  danger: {
-    icon: <XCircle size={18} />,
-    color: "var(--ui-danger)",
-    background: "color-mix(in srgb, var(--ui-danger) 12%, transparent)",
-    border: "color-mix(in srgb, var(--ui-danger) 34%, var(--ui-border))",
-  },
-  neutral: {
-    icon: <AlertCircle size={18} />,
-    color: "var(--ui-text-muted)",
-    background: "var(--ui-surface-container)",
-    border: "var(--ui-border)",
-  },
+  info:
+    <Info size={18} />,
+
+  success:
+    <CheckCircle2 size={18} />,
+
+  warning:
+    <TriangleAlert size={18} />,
+
+  danger:
+    <XCircle size={18} />,
+
+  neutral:
+    <AlertCircle size={18} />,
 };
 
 export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
@@ -116,7 +94,18 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     },
     ref
   ) => {
-    const config = alertVariantMap[variant];
+    const tone =
+      toneRecipe({
+        tone:
+          variant,
+        emphasis:
+          "container",
+      });
+
+    const defaultIcon =
+      alertIconMap[
+        variant
+      ];
 
     const rootSlot = resolveSlot<AlertSlot>({
       slot: "root",
@@ -134,11 +123,16 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         minWidth: 0,
         padding: compact ? "0.75rem" : "0.9rem 1rem",
         borderRadius: "var(--ui-radius-lg)",
-        background: config.background,
-        border: bordered
-          ? `1px solid ${config.border}`
-          : "1px solid transparent",
-        color: "var(--ui-text)",
+        background:
+          tone.background,
+
+        border:
+          bordered
+            ? `1px solid ${tone.borderColor}`
+            : "1px solid transparent",
+
+        color:
+          tone.color,
       },
     });
 
@@ -165,7 +159,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        color: config.color,
+        color: tone.color,
         flexShrink: 0,
         marginTop: 2,
       },
@@ -191,9 +185,9 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       baseStyle: {
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",
-        fontWeight: 800,
+        fontWeight: "var(--ui-font-weight-bold)",
         lineHeight: 1.45,
-        color: "var(--ui-text)",
+        color: "inherit",
       },
     });
 
@@ -205,7 +199,8 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         margin: 0,
         fontSize: "var(--ui-font-size-sm)",
         lineHeight: 1.45,
-        color: "var(--ui-text-muted)",
+        color: "inherit",
+        opacity: 0.84,
       },
     });
 
@@ -218,14 +213,17 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         fontSize: "var(--ui-font-size-sm)",
         lineHeight: 1.45,
         color:
+          "inherit",
+
+        opacity:
           hasNonEmptyRenderableNode(
             title
           ) ||
           hasNonEmptyRenderableNode(
             description
           )
-            ? "var(--ui-text-muted)"
-            : "var(--ui-text)",
+            ? 0.84
+            : 1,
       },
     });
 
@@ -241,7 +239,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     return (
       <div {...rootSlot} ref={ref} {...rest}>
         <div {...innerSlot}>
-          <div {...iconSlot}>{icon ?? config.icon}</div>
+          <div {...iconSlot}>{icon ?? defaultIcon}</div>
 
           <div {...contentSlot}>
             {hasNonEmptyRenderableNode(title) ? <div {...titleSlot}>{title}</div> : null}

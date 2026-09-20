@@ -72,9 +72,6 @@ export const menuRecipe =
 
         userSelect:
           "none",
-
-        outline:
-          "none",
       },
 
 

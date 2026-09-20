@@ -57,10 +57,10 @@ describe(
           }).root,
         ).toMatchObject({
           background:
-            "color-mix(in srgb, var(--ui-success) 16%, transparent)",
+            "var(--ui-success-container)",
 
           color:
-            "var(--ui-success)",
+            "var(--ui-on-success-container)",
 
           border:
             "1px solid transparent",
@@ -83,7 +83,7 @@ describe(
             "var(--ui-danger)",
 
           border:
-            "1px solid color-mix(in srgb, var(--ui-danger) 40%, var(--ui-border))",
+            "1px solid color-mix(in srgb, var(--ui-danger) 38%, var(--ui-border))",
         });
       },
     );

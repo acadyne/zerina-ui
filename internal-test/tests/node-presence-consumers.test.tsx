@@ -254,7 +254,17 @@ describe(
             "alert-children",
           ).style.color,
         ).toBe(
-          "var(--ui-text-muted)",
+          "inherit",
+        );
+
+
+        expect(
+          getByTestId<HTMLElement>(
+            container,
+            "alert-children",
+          ).style.opacity,
+        ).toBe(
+          "0.84",
         );
       },
     );

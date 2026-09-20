@@ -11,6 +11,9 @@ import { Box } from "../../primitives/layout";
 import { Typography } from "../../primitives/typography";
 import type { UIPressEvent } from "../../core/interaction";
 import {
+  interactiveStateRecipe,
+} from "../../theme/recipes";
+import {
   hasNonEmptyRenderableNode,
   hasRenderableNode,
 } from "../../core/react/nodePresence";
@@ -118,33 +121,73 @@ const FLOATING_ACTION_BUTTON_SIZE_MAP: Record<
 };
 
 function getVariantStyles(
-  variant: FloatingActionButtonVariant
+  variant:
+    FloatingActionButtonVariant,
 ): React.CSSProperties {
-  if (variant === "surface") {
-    return {
-      background: "var(--ui-surface)",
-      color: "var(--ui-text)",
-      borderColor: "var(--ui-border)",
-      boxShadow: "var(--ui-elevation-4)",
-    };
+  if (
+    variant ===
+    "surface"
+  ) {
+    return interactiveStateRecipe({
+      tone:
+        "primary",
+
+      emphasis:
+        "surface",
+
+      elevation:
+        4,
+
+      hoverElevation:
+        5,
+
+      pressedElevation:
+        3,
+    });
   }
 
-  if (variant === "subtle") {
-    return {
-      background: "color-mix(in srgb, var(--ui-primary) 14%, var(--ui-surface))",
-      color: "var(--ui-primary)",
-      borderColor: "color-mix(in srgb, var(--ui-primary) 24%, transparent)",
-      boxShadow: "var(--ui-elevation-3)",
-    };
+
+  if (
+    variant ===
+    "subtle"
+  ) {
+    return interactiveStateRecipe({
+      tone:
+        "primary",
+
+      emphasis:
+        "container",
+
+      elevation:
+        3,
+
+      hoverElevation:
+        4,
+
+      pressedElevation:
+        2,
+    });
   }
 
-  return {
-    background: "var(--ui-primary)",
-    color: "var(--ui-primary-contrast)",
-    borderColor: "color-mix(in srgb, var(--ui-primary) 74%, black)",
-    boxShadow: "var(--ui-elevation-4)",
-  };
+
+  return interactiveStateRecipe({
+    tone:
+      "primary",
+
+    emphasis:
+      "solid",
+
+    elevation:
+      4,
+
+    hoverElevation:
+      5,
+
+    pressedElevation:
+      3,
+  });
 }
+
 
 function getPlacementStyles(
   placement: FloatingActionButtonPlacement
@@ -221,6 +264,8 @@ export const FloatingActionButton = React.forwardRef<
       style,
       baseProps: {
         "data-ui-floating-action-button": "",
+        "data-ui-interactive": "",
+        "data-ui-interactive-target": "",
         "data-ui-floating-action-button-extended": extended || undefined,
         "data-ui-floating-action-button-size": size,
         "data-ui-floating-action-button-variant": variant,
@@ -230,8 +275,9 @@ export const FloatingActionButton = React.forwardRef<
         width: extended ? "auto" : sizeStyles.size,
         minWidth: extended ? sizeStyles.minWidth : sizeStyles.size,
         height: sizeStyles.height,
-        borderRadius: "9999px",
-        border: "1px solid",
+        borderRadius: "var(--ui-radius-full)",
+        borderWidth: 1,
+        borderStyle: "solid",
         boxSizing: "border-box",
         display: "inline-flex",
         alignItems: "center",
