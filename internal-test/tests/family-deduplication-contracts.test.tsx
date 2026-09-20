@@ -278,6 +278,95 @@ describe(
         ).toBeNull();
       },
     );
+
+    it(
+      "preserves root/item override precedence through the shared destination adapter",
+      () => {
+        const bottom =
+          renderDOM(
+            <BottomNavigation
+              defaultValue="home"
+              indicator="background"
+              badgeAnchor="icon"
+            >
+              <BottomNavigation.Item
+                value="home"
+                label="Home"
+                indicator="dot"
+                badgeAnchor="item"
+                badge={
+                  <span>
+                    3
+                  </span>
+                }
+              />
+            </BottomNavigation>,
+          );
+
+        const bottomItem =
+          bottom.querySelector<HTMLButtonElement>(
+            "[data-ui-bottom-navigation-item]",
+          );
+
+        expect(
+          bottomItem?.getAttribute(
+            "data-ui-bottom-navigation-item-indicator",
+          ),
+        ).toBe(
+          "dot",
+        );
+
+        expect(
+          bottomItem?.getAttribute(
+            "data-ui-bottom-navigation-item-badge-anchor",
+          ),
+        ).toBe(
+          "item",
+        );
+
+        const rail =
+          renderDOM(
+            <NavigationRail
+              defaultValue="home"
+              indicator="background"
+              badgeAnchor="icon"
+            >
+              <NavigationRail.Item
+                value="home"
+                label="Home"
+                indicator="pill"
+                badgeAnchor="content"
+                badge={
+                  <span>
+                    7
+                  </span>
+                }
+              />
+            </NavigationRail>,
+          );
+
+        const railItem =
+          rail.querySelector<HTMLButtonElement>(
+            "[data-ui-navigation-rail-item]",
+          );
+
+        expect(
+          railItem?.getAttribute(
+            "data-ui-navigation-rail-item-indicator",
+          ),
+        ).toBe(
+          "pill",
+        );
+
+        expect(
+          railItem?.getAttribute(
+            "data-ui-navigation-rail-item-badge-anchor",
+          ),
+        ).toBe(
+          "content",
+        );
+      },
+    );
   },
 );
 

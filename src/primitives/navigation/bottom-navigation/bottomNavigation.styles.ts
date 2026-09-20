@@ -1,28 +1,44 @@
 import React from "react";
+
 import {
   cssSize,
   defineSlotRecipe,
   type SlotStyleMap,
 } from "../../../helpers/css";
-import { getSafeAreaOffset } from "../../../helpers/safeArea";
+
 import {
-  getOffsetTransform,
-} from "./bottomNavigation.utils";
+  getSafeAreaOffset,
+} from "../../../helpers/safeArea";
+
+import {
+  getScaffoldLayer,
+} from "../../../patterns/scaffold/scaffoldLayers";
+
+import {
+  NAVIGATION_DESTINATION_ITEM_BASE_STYLES,
+  createNavigationDestinationDensityVariants,
+  getNavigationFloatingSurfaceStyles,
+  getNavigationSurfaceStyles,
+  resolveNavigationDestinationItemStyles,
+  type NavigationDestinationBadgeMetrics,
+} from "../shared/navigationDestination.styles";
+
 import type {
-  BottomNavigationBadgeOffset,
-  BottomNavigationBadgePlacement,
-  BottomNavigationDensity,
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
+} from "../shared/navigation-shared.types";
+
+import type {
   BottomNavigationIconPosition,
-  BottomNavigationIndicator,
-  BottomNavigationItemShape,
-  BottomNavigationPosition,
   BottomNavigationSlot,
-  BottomNavigationVariant,
 } from "./bottomNavigation.types";
-import { getScaffoldLayer } from "../../../patterns/scaffold/scaffoldLayers";
 
 export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
-  BottomNavigationDensity,
+  NavigationDestinationDensity,
   {
     defaultHeight: number;
     listPaddingTop: string;
@@ -66,32 +82,8 @@ export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
   },
 };
 
-export const BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE:
-  React.CSSProperties = {
-    position: "absolute",
-
-    width: 1,
-    height: 1,
-
-    padding: 0,
-
-    marginTop: -1,
-    marginRight: -1,
-    marginBottom: -1,
-    marginLeft: -1,
-
-    overflow: "hidden",
-
-    clip: "rect(0, 0, 0, 0)",
-    clipPath: "inset(50%)",
-
-    whiteSpace: "nowrap",
-
-    border: 0,
-  };
-
 export function getRootPositionStyle(
-  position: BottomNavigationPosition
+  position: NavigationSurfacePosition
 ): React.CSSProperties {
   if (position === "fixed") {
     return {
@@ -118,90 +110,14 @@ export function getRootPositionStyle(
   };
 }
 
-export function getRootSurfaceStyles({
-  variant,
-  translucent,
-}: {
-  variant: BottomNavigationVariant;
-  translucent: boolean;
-}): React.CSSProperties {
-  if (
-    variant === "plain" ||
-    variant === "floating"
-  ) {
-    return {
-      background: "transparent",
-      borderTop: "1px solid transparent",
-      backdropFilter: undefined,
-      WebkitBackdropFilter: undefined,
-    };
-  }
-
-  return {
-    background: translucent
-      ? "color-mix(in srgb, var(--ui-surface) 92%, transparent)"
-      : "var(--ui-surface)",
-
-    borderTop:
-      "1px solid var(--ui-border)",
-
-    backdropFilter: translucent
-      ? "blur(14px)"
-      : undefined,
-
-    WebkitBackdropFilter: translucent
-      ? "blur(14px)"
-      : undefined,
-  };
-}
-
-export function getListSurfaceStyles({
-  variant,
-  translucent,
-}: {
-  variant: BottomNavigationVariant;
-  translucent: boolean;
-}): React.CSSProperties {
-  if (variant !== "floating") {
-    return {};
-  }
-
-  return {
-    marginTop: "0.45rem",
-    marginRight: "0.65rem",
-    marginBottom: "0.45rem",
-    marginLeft: "0.65rem",
-
-    borderRadius:
-      "var(--ui-radius-full)",
-
-    border:
-      "1px solid var(--ui-border)",
-
-    background: translucent
-      ? "color-mix(in srgb, var(--ui-surface) 88%, transparent)"
-      : "var(--ui-surface)",
-
-    boxShadow:
-      "var(--ui-shadow-lg)",
-
-    backdropFilter: translucent
-      ? "blur(16px)"
-      : undefined,
-
-    WebkitBackdropFilter: translucent
-      ? "blur(16px)"
-      : undefined,
-  };
-}
 
 type BottomNavigationRecipeVariants = {
-  density: BottomNavigationDensity;
+  density: NavigationDestinationDensity;
 };
 
 type BottomNavigationRecipeState = {
-  position: BottomNavigationPosition;
-  variant: BottomNavigationVariant;
+  position: NavigationSurfacePosition;
+  variant: NavigationSurfaceVariant;
   translucent: boolean;
   safeArea: boolean;
   height: number | string;
@@ -296,46 +212,68 @@ export const bottomNavigationRecipe =
           ? getSafeAreaOffset("bottom")
           : undefined,
 
-        ...getRootSurfaceStyles({
+        ...getNavigationSurfaceStyles({
           variant,
           translucent,
+          border:
+            "top",
         }),
       },
 
       list: {
         height: cssSize(height),
 
-        ...getListSurfaceStyles({
+        ...getNavigationFloatingSurfaceStyles({
           variant,
           translucent,
+          marginBlock:
+            "0.45rem",
+          marginInline:
+            "0.65rem",
         }),
       },
     }),
   });
 
 type BottomNavigationItemRecipeVariants = {
-  density: BottomNavigationDensity;
+  density:
+    NavigationDestinationDensity;
 };
 
 type BottomNavigationItemRecipeState = {
   indicator:
-  BottomNavigationIndicator;
+    NavigationDestinationIndicator;
 
   shape:
-  BottomNavigationItemShape;
+    NavigationDestinationItemShape;
 
   iconPosition:
-  BottomNavigationIconPosition;
+    BottomNavigationIconPosition;
 
-  itemMinWidth?: number | string;
+  itemMinWidth?:
+    number | string;
 
-  hasBadge: boolean;
+  hasBadge:
+    boolean;
 
   badgeAnchor:
-  | "icon"
-  | "content"
-  | "item";
+    NavigationDestinationBadgeAnchor;
 };
+
+export const BOTTOM_NAVIGATION_BADGE_METRICS:
+  NavigationDestinationBadgeMetrics = {
+    topCenterTop:
+      "-0.9rem",
+
+    inlineEndRight:
+      "-0.95rem",
+
+    topEndTop:
+      "-0.82rem",
+
+    topEndRight:
+      "-0.95rem",
+  };
 
 export const bottomNavigationItemRecipe =
   defineSlotRecipe<
@@ -344,89 +282,35 @@ export const bottomNavigationItemRecipe =
     BottomNavigationItemRecipeState
   >({
     base: {
+      ...NAVIGATION_DESTINATION_ITEM_BASE_STYLES,
+
       item: {
-        flex: "1 1 0",
-        position: "relative",
-
-        borderWidth: 1,
-        borderStyle: "solid",
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        textAlign: "center",
-        overflow: "visible",
-
-        transition:
-          "background var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "border-color var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "color var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "opacity var(--ui-duration-normal) var(--ui-ease-standard), " +
-          "box-shadow var(--ui-duration-normal) var(--ui-ease-standard)",
-      },
-
-      content: {
-        minWidth: 0,
-        minHeight: 0,
-
-        position: "relative",
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        overflow: "visible",
-
-        borderRadius: "inherit",
-        boxSizing: "border-box",
-      },
-
-      iconWrap: {
-        position: "relative",
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        minWidth: 0,
-        lineHeight: 1,
-        flexShrink: 0,
-        overflow: "visible",
-      },
-
-      icon: {
-        lineHeight: 1,
-
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
+        ...NAVIGATION_DESTINATION_ITEM_BASE_STYLES.item,
+        flex:
+          "1 1 0",
       },
 
       label: {
-        maxWidth: "100%",
-        minWidth: 0,
-
-        marginTop: 0,
-        marginRight: 0,
-        marginBottom: 0,
-        marginLeft: 0,
-
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-
-        color: "inherit",
-        lineHeight: 1.1,
+        ...NAVIGATION_DESTINATION_ITEM_BASE_STYLES.label,
+        lineHeight:
+          1.1,
       },
 
       dot: {
-        position: "absolute",
-        left: "50%",
-        bottom: "0.18rem",
+        position:
+          "absolute",
 
-        width: 18,
-        height: 4,
+        left:
+          "50%",
+
+        bottom:
+          "0.18rem",
+
+        width:
+          18,
+
+        height:
+          4,
 
         borderRadius:
           "var(--ui-radius-full)",
@@ -437,88 +321,16 @@ export const bottomNavigationItemRecipe =
         background:
           "var(--ui-primary)",
 
-        pointerEvents: "none",
+        pointerEvents:
+          "none",
       },
     },
 
     variants: {
-      density: {
-        compact: {
-          item: {
-            paddingTop:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .itemPaddingTop,
-
-            paddingRight:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .itemPaddingRight,
-
-            paddingBottom:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .itemPaddingBottom,
-
-            paddingLeft:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .itemPaddingLeft,
-          },
-
-          content: {
-            gap:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .gap,
-          },
-
-          icon: {
-            fontSize:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .compact
-                .iconSize,
-          },
-        },
-
-        comfortable: {
-          item: {
-            paddingTop:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .itemPaddingTop,
-
-            paddingRight:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .itemPaddingRight,
-
-            paddingBottom:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .itemPaddingBottom,
-
-            paddingLeft:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .itemPaddingLeft,
-          },
-
-          content: {
-            gap:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .gap,
-          },
-
-          icon: {
-            fontSize:
-              BOTTOM_NAVIGATION_DENSITY_MAP
-                .comfortable
-                .iconSize,
-          },
-        },
-      },
+      density:
+        createNavigationDestinationDensityVariants(
+          BOTTOM_NAVIGATION_DENSITY_MAP,
+        ),
     },
 
     resolve: ({
@@ -528,118 +340,18 @@ export const bottomNavigationItemRecipe =
       itemMinWidth,
       hasBadge,
       badgeAnchor,
-    }): SlotStyleMap<BottomNavigationSlot> => ({
-      item: {
-        minWidth:
-          itemMinWidth !== undefined
-            ? cssSize(itemMinWidth)
-            : 0,
-
-        borderRadius:
-          getItemBorderRadius({
-            indicator,
-            shape,
-          }),
-
-      },
-
-      content: {
-        flexDirection:
+    }): SlotStyleMap<BottomNavigationSlot> =>
+      resolveNavigationDestinationItemStyles({
+        indicator,
+        shape,
+        itemMinWidth,
+        itemMinWidthFallback:
+          0,
+        hasBadge,
+        badgeAnchor,
+        contentFlexDirection:
           iconPosition === "start"
             ? "row"
             : "column",
-      },
-
-      iconWrap: {
-        width:
-          hasBadge &&
-            badgeAnchor === "icon"
-            ? "1.65rem"
-            : undefined,
-
-        height:
-          hasBadge &&
-            badgeAnchor === "icon"
-            ? "1.35rem"
-            : undefined,
-      },
-    }),
+      }),
   });
-
-export function getItemBorderRadius({
-  indicator,
-  shape,
-}: {
-  indicator: BottomNavigationIndicator;
-  shape: BottomNavigationItemShape;
-}): string | number {
-  if (shape === "none") {
-    return 0;
-  }
-
-  if (
-    shape === "pill" ||
-    shape === "circle" ||
-    indicator === "pill"
-  ) {
-    return "var(--ui-radius-full)";
-  }
-
-  return "var(--ui-radius-lg)";
-}
-
-export function getBadgePlacementStyles({
-  placement,
-  offset,
-}: {
-  placement:
-  BottomNavigationBadgePlacement;
-
-  offset?:
-  BottomNavigationBadgeOffset;
-}): React.CSSProperties {
-  const offsetTransform =
-    getOffsetTransform(offset);
-
-  if (placement === "top-center") {
-    return {
-      position: "absolute",
-      top: "-0.9rem",
-      left: "50%",
-      zIndex: 5,
-      minWidth: 0,
-      pointerEvents: "none",
-
-      transform: offsetTransform
-        ? `translateX(-50%) ${offsetTransform}`
-        : "translateX(-50%)",
-    };
-  }
-
-  if (placement === "inline-end") {
-    return {
-      position: "absolute",
-      top: "50%",
-      right: "-0.95rem",
-      zIndex: 5,
-      minWidth: 0,
-      pointerEvents: "none",
-
-      transform: offsetTransform
-        ? `translateY(-50%) ${offsetTransform}`
-        : "translateY(-50%)",
-    };
-  }
-
-  return {
-    position: "absolute",
-    top: "-0.82rem",
-    right: "-0.95rem",
-    zIndex: 5,
-    minWidth: 0,
-    pointerEvents: "none",
-    transform: offsetTransform,
-  };
-}
-
-export { cssSize };

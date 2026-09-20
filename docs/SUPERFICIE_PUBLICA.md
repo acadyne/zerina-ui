@@ -151,12 +151,36 @@ El sweep F confirma que los siguientes owners no forman parte del entry point ra
 - `MotionAppFrame`;
 - `statusLabelRecipe`;
 - `shared-control-types`;
-- `navigation-shared.types`;
 - `feedback.types`.
 
 Pueden existir exports en barrels internos para composición dentro de la librería. Eso no crea un subpath público mientras `package.json#exports` y `src/index.ts` no los expongan.
 
 El sweep no detectó nuevos exports raíz accidentales.
+
+## Vocabulario público de navegación
+
+La familia de destinos expone un único conjunto de tipos para conceptos compartidos:
+
+- `NavigationSurfacePosition`;
+- `NavigationSurfaceVariant`;
+- `NavigationDestinationLabelBehavior`;
+- `NavigationDestinationIndicator`;
+- `NavigationDestinationDensity`;
+- `NavigationDestinationBadgeAnchor`;
+- `NavigationDestinationBadgePlacement`;
+- `NavigationDestinationBadgeOffset`;
+- `NavigationDestinationItemShape`;
+- `NavigationSelectionContext`;
+- `NavigationSelectionReason`.
+
+`BottomNavigation` y `NavigationRail` no exportan aliases paralelos para esos dominios.
+
+Siguen siendo familiares y públicos únicamente los tipos que expresan diferencias reales, por ejemplo:
+
+- `BottomNavigationIconPosition`;
+- `NavigationRailPlacement`;
+- `NavigationRailAlignment`;
+- slots/styles/props propios de cada componente.
 
 ## Verificación vigente
 

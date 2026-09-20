@@ -52,6 +52,11 @@ describe(
             "../../src/primitives/navigation/shared/NavigationDestinationItem.tsx",
           );
 
+        const factory =
+          readRelative(
+            "../../src/primitives/navigation/shared/createNavigationDestinationItem.tsx",
+          );
+
         for (
           const wrapper of [
             bottom,
@@ -61,7 +66,7 @@ describe(
           expect(
             wrapper,
           ).toContain(
-            "<NavigationDestinationItem",
+            "createNavigationDestinationItem",
           );
 
           expect(
@@ -75,7 +80,19 @@ describe(
           ).not.toContain(
             "<Pressable",
           );
+
+          expect(
+            wrapper,
+          ).not.toContain(
+            "<NavigationDestinationItem",
+          );
         }
+
+        expect(
+          factory,
+        ).toContain(
+          "<NavigationDestinationItem",
+        );
 
         expect(
           shared,

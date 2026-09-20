@@ -101,16 +101,35 @@ Fuente de verdad: `THEME_TOKEN_MANIFEST`.
 
 ## 8. Navegación de destinos
 
-BottomNavigation y NavigationRail comparten:
+`BottomNavigation` y `NavigationRail` son presentaciones distintas de un mismo contrato de destino.
 
-- controlled/uncontrolled;
-- `change` / `reselect`;
-- previousValue;
-- cancelación antes del commit;
-- item active semantics;
-- badge anchoring y label visibility.
+Owners compartidos:
 
-Recipes/layouts permanecen por familia.
+- `useNavigationSelection`: controlled/uncontrolled, `change` / `reselect`, previousValue;
+- `NavigationDestinationRootProps` / `NavigationDestinationPublicItemProps`: props comunes;
+- `NavigationDestinationContextValue`: contexto común;
+- `resolveNavigationDestinationItem`: precedencia root/item;
+- `createNavigationDestinationItem`: adapter único;
+- `NavigationDestinationItem`: render, cancelación y commit;
+- `navigationDestination.styles.ts`: shape, badge, density y base visual compartida.
+
+Vocabulario público único:
+
+- `NavigationSurfacePosition`;
+- `NavigationSurfaceVariant`;
+- `NavigationDestinationLabelBehavior`;
+- `NavigationDestinationIndicator`;
+- `NavigationDestinationDensity`;
+- `NavigationDestinationBadgeAnchor`;
+- `NavigationDestinationBadgePlacement`;
+- `NavigationDestinationBadgeOffset`;
+- `NavigationDestinationItemShape`;
+- `NavigationSelectionContext`;
+- `NavigationSelectionReason`.
+
+No existen aliases `BottomNavigation*` / `NavigationRail*` cuando representan exactamente el mismo dominio.
+
+Las familias conservan sólo diferencias reales de layout/presentación.
 
 ## 9. DataTable desktop
 

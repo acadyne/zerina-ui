@@ -88,12 +88,25 @@ Las familias públicas pueden conservar componentes distintos cuando expresan se
 
 ### Navegación de destinos
 
-`src/primitives/navigation/shared/` contiene:
+`src/primitives/navigation/shared/` contiene los owners únicos de la familia:
 
 - `navigationSelection.ts`: estado controlled/uncontrolled y `change/reselect`;
-- `NavigationDestinationItem.tsx`: render e interacción comunes de items.
+- `navigationDestination.types.ts`: contrato base de props root/item;
+- `navigationDestinationContext.tsx`: contrato y factory de contexto;
+- `navigationDestinationState.ts`: resolución de overrides de item;
+- `navigationDestination.styles.ts`: base recipe, densidad, shape, badge placement y data-attributes;
+- `createNavigationDestinationItem.tsx`: adapter único de item;
+- `NavigationDestinationItem.tsx`: render e interacción final comunes.
 
-`BottomNavigation` y `NavigationRail` conservan recipes, contextos y opciones propias.
+`BottomNavigation` y `NavigationRail` conservan únicamente las diferencias reales de presentación:
+
+- horizontal vs vertical;
+- alto vs ancho;
+- `iconPosition` en bottom;
+- `placement`, `alignment`, `header/footer` e `itemMinHeight` en rail;
+- recipe de root y geometría específica del indicator.
+
+Los conceptos compartidos usan un solo vocabulario público `NavigationDestination*` / `NavigationSurface*`; no existen aliases por familia para el mismo dominio.
 
 ### DataTable desktop
 

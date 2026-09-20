@@ -1,60 +1,31 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigationContext.tsx
-import React from "react";
-import type { UIPressEvent } from "../../../core/interaction";
+import {
+  createNavigationDestinationContext,
+  type NavigationDestinationContextValue,
+} from "../shared/navigationDestinationContext";
+
 import type {
-  BottomNavigationBadgeAnchor,
-  BottomNavigationBadgeOffset,
-  BottomNavigationBadgePlacement,
-  BottomNavigationDensity,
   BottomNavigationIconPosition,
-  BottomNavigationIndicator,
-  BottomNavigationItemShape,
-  BottomNavigationLabelBehavior,
-  BottomNavigationSlotProps,
-  BottomNavigationStyles,
+  BottomNavigationSlot,
 } from "./bottomNavigation.types";
 
-export interface BottomNavigationContextValue {
-  value: string | null;
-
-  setValue: (
-    value: string,
-    event: UIPressEvent<HTMLButtonElement>
-  ) => void;
-
-  labelBehavior: BottomNavigationLabelBehavior;
-  indicator: BottomNavigationIndicator;
-  density: BottomNavigationDensity;
-
-  badgeAnchor: BottomNavigationBadgeAnchor;
-  badgePlacement: BottomNavigationBadgePlacement;
-  badgeOffset?: BottomNavigationBadgeOffset;
-
-  itemShape: BottomNavigationItemShape;
-  itemMinWidth?: number | string;
-
-  iconPosition: BottomNavigationIconPosition;
-  activeLabelWeight: number;
-
-  styles?: BottomNavigationStyles;
-  slotProps?: BottomNavigationSlotProps;
+export interface BottomNavigationContextValue
+  extends NavigationDestinationContextValue<
+    BottomNavigationSlot
+  > {
+  iconPosition:
+    BottomNavigationIconPosition;
 }
 
-export const BottomNavigationContext =
-  React.createContext<
-    BottomNavigationContextValue | null
-  >(null);
-
-export function useBottomNavigationContext(): BottomNavigationContextValue {
-  const context = React.useContext(
-    BottomNavigationContext
+const bottomNavigationContext =
+  createNavigationDestinationContext<
+    BottomNavigationContextValue
+  >(
+    "BottomNavigation.Item must be used inside <BottomNavigation />",
   );
 
-  if (!context) {
-    throw new Error(
-      "BottomNavigation.Item must be used inside <BottomNavigation />"
-    );
-  }
+export const BottomNavigationContext =
+  bottomNavigationContext.Context;
 
-  return context;
-}
+export const useBottomNavigationContext =
+  bottomNavigationContext.useNavigationDestinationContext;

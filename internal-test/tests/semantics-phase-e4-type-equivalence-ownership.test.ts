@@ -114,9 +114,14 @@ describe(
     it(
       "centralizes shared BottomNavigation and NavigationRail destination domains",
       () => {
-        const owner =
+        const semanticOwner =
           readSource(
             "primitives/navigation/shared/navigation-shared.types.ts",
+          );
+
+        const propsOwner =
+          readSource(
+            "primitives/navigation/shared/navigationDestination.types.ts",
           );
 
         const bottom =
@@ -149,7 +154,13 @@ describe(
           ]
         ) {
           expect(
-            owner,
+            semanticOwner,
+          ).toContain(
+            semantic,
+          );
+
+          expect(
+            propsOwner,
           ).toContain(
             semantic,
           );
@@ -157,28 +168,71 @@ describe(
 
 
         expect(
-          bottom,
+          propsOwner,
         ).toContain(
-          "NavigationSurfacePosition",
+          "NavigationSelectionContext",
         );
 
-        expect(
-          rail,
-        ).toContain(
-          "NavigationSurfacePosition",
-        );
+        for (
+          const family of [
+            bottom,
+            rail,
+          ]
+        ) {
+          expect(
+            family,
+          ).toContain(
+            "NavigationDestinationRootProps",
+          );
 
-        expect(
-          bottom,
-        ).toContain(
-          "NavigationSelectionReason",
-        );
+          expect(
+            family,
+          ).toContain(
+            "NavigationDestinationPublicItemProps",
+          );
 
-        expect(
-          rail,
-        ).toContain(
-          "NavigationSelectionReason",
-        );
+          expect(
+            family,
+          ).not.toContain(
+            "NavigationSurfacePosition",
+          );
+
+          expect(
+            family,
+          ).not.toContain(
+            "NavigationSelectionContext",
+          );
+        }
+
+
+        for (
+          const duplicateAlias of [
+            "BottomNavigationPosition",
+            "BottomNavigationVariant",
+            "BottomNavigationLabelBehavior",
+            "BottomNavigationIndicator",
+            "BottomNavigationDensity",
+            "BottomNavigationBadgeAnchor",
+            "BottomNavigationBadgePlacement",
+            "BottomNavigationItemShape",
+            "BottomNavigationBadgeOffset",
+            "NavigationRailPosition",
+            "NavigationRailVariant",
+            "NavigationRailLabelBehavior",
+            "NavigationRailIndicator",
+            "NavigationRailDensity",
+            "NavigationRailBadgeAnchor",
+            "NavigationRailBadgePlacement",
+            "NavigationRailItemShape",
+            "NavigationRailBadgeOffset",
+          ]
+        ) {
+          expect(
+            bottom + rail,
+          ).not.toContain(
+            `export type ${duplicateAlias}`,
+          );
+        }
 
 
         expect(
@@ -309,8 +363,6 @@ describe(
             "ControlSize",
             "ControlColorScheme",
             "FeedbackVariant",
-            "NavigationSurfacePosition",
-            "NavigationSurfaceVariant",
           ]
         ) {
           expect(
@@ -331,6 +383,18 @@ describe(
           feedbackIndex,
         ).not.toContain(
           "feedback.types",
+        );
+
+        expect(
+          navigationIndex,
+        ).toContain(
+          "NavigationDestinationIndicator",
+        );
+
+        expect(
+          navigationIndex,
+        ).toContain(
+          "NavigationSurfacePosition",
         );
 
         expect(

@@ -1,56 +1,17 @@
 // src/primitives/navigation/bottom-navigation/bottomNavigation.types.ts
-import React from "react";
-import type { UIPressEvent } from "../../../core/interaction";
 import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
+
 import type {
-  NavigationDestinationBadgeAnchor,
-  NavigationDestinationBadgeOffset,
-  NavigationDestinationBadgePlacement,
-  NavigationDestinationDensity,
-  NavigationDestinationIndicator,
-  NavigationDestinationItemShape,
-  NavigationDestinationLabelBehavior,
-  NavigationSurfacePosition,
-  NavigationSurfaceVariant,
-} from "../shared/navigation-shared.types";
-import type {
-  NavigationSelectionContext,
-  NavigationSelectionReason,
-} from "../shared/navigationSelection";
-
-export type BottomNavigationPosition =
-  NavigationSurfacePosition;
-
-export type BottomNavigationVariant =
-  NavigationSurfaceVariant;
-
-export type BottomNavigationLabelBehavior =
-  NavigationDestinationLabelBehavior;
-
-export type BottomNavigationIndicator =
-  NavigationDestinationIndicator;
-
-export type BottomNavigationDensity =
-  NavigationDestinationDensity;
-
-export type BottomNavigationBadgeAnchor =
-  NavigationDestinationBadgeAnchor;
-
-export type BottomNavigationBadgePlacement =
-  NavigationDestinationBadgePlacement;
-
-export type BottomNavigationItemShape =
-  NavigationDestinationItemShape;
+  NavigationDestinationPublicItemProps,
+  NavigationDestinationRootProps,
+} from "../shared/navigationDestination.types";
 
 export type BottomNavigationIconPosition =
   | "top"
   | "start";
-
-export interface BottomNavigationBadgeOffset
-  extends NavigationDestinationBadgeOffset {}
 
 export type BottomNavigationSlot =
   | "root"
@@ -76,102 +37,20 @@ export type BottomNavigationSlotProps =
   SlotPropsMap<BottomNavigationSlot>;
 
 export interface BottomNavigationProps
-  extends Omit<
-    React.HTMLAttributes<HTMLElement>,
-    "onChange" | "defaultValue"
+  extends NavigationDestinationRootProps<
+    BottomNavigationSlot
   > {
-  children?: React.ReactNode;
+  height?:
+    number | string;
 
-  value?: string | null;
-  defaultValue?: string | null;
-
-
-  /**
- * Se ejecuta cada vez que el usuario selecciona un destino.
- *
- * `context.reason` distingue entre:
- *
- * - "change": se seleccionó un valor diferente
- * - "reselect": se volvió a seleccionar el valor activo
- */
-onValueChange?: (
-  value: string,
-  event: UIPressEvent<HTMLButtonElement>,
-  context: BottomNavigationSelectionContext
-) => void;
-
-  height?: number | string;
-  position?: BottomNavigationPosition;
-  safeArea?: boolean;
-  translucent?: boolean;
-
-  variant?: BottomNavigationVariant;
-  labelBehavior?: BottomNavigationLabelBehavior;
-  indicator?: BottomNavigationIndicator;
-  density?: BottomNavigationDensity;
-
-  badgeAnchor?: BottomNavigationBadgeAnchor;
-  badgePlacement?: BottomNavigationBadgePlacement;
-  badgeOffset?: BottomNavigationBadgeOffset;
-
-  itemShape?: BottomNavigationItemShape;
-  itemMinWidth?: number | string;
-
-  iconPosition?: BottomNavigationIconPosition;
-  activeLabelWeight?: number;
-
-  className?: string;
-  style?: React.CSSProperties;
-
-  styles?: BottomNavigationStyles;
-  slotProps?: BottomNavigationSlotProps;
+  iconPosition?:
+    BottomNavigationIconPosition;
 }
 
 export interface BottomNavigationItemProps
-  extends Omit<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    | "children"
-    | "onClick"
-    | "onSelect"
-    | "value"
-    | "type"
-    | "aria-current"
+  extends NavigationDestinationPublicItemProps<
+    BottomNavigationSlot
   > {
-  value: string;
-
-  children?: React.ReactNode;
-  label?: React.ReactNode;
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
-
-  disabled?: boolean;
-
-  onPress?: (
-    event: UIPressEvent<HTMLButtonElement>
-  ) => void;
-
-  labelBehavior?: BottomNavigationLabelBehavior;
-  indicator?: BottomNavigationIndicator;
-
-  badgeAnchor?: BottomNavigationBadgeAnchor;
-  badgePlacement?: BottomNavigationBadgePlacement;
-  badgeOffset?: BottomNavigationBadgeOffset;
-
-  itemShape?: BottomNavigationItemShape;
-  itemMinWidth?: number | string;
-
-  iconPosition?: BottomNavigationIconPosition;
-  activeLabelWeight?: number;
-
-  styles?: BottomNavigationStyles;
-  slotProps?: BottomNavigationSlotProps;
-
-  className?: string;
-  style?: React.CSSProperties;
+  iconPosition?:
+    BottomNavigationIconPosition;
 }
-
-export type BottomNavigationSelectionReason =
-  NavigationSelectionReason;
-
-export interface BottomNavigationSelectionContext
-  extends NavigationSelectionContext {}

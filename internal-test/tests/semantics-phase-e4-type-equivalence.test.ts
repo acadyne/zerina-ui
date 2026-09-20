@@ -11,32 +11,21 @@ import type {
   ActionControlSize,
   AlertVariant,
   BadgeSlot,
-  BottomNavigationBadgeAnchor,
-  BottomNavigationBadgeOffset,
-  BottomNavigationBadgePlacement,
-  BottomNavigationDensity,
-  BottomNavigationIndicator,
-  BottomNavigationItemShape,
-  BottomNavigationLabelBehavior,
-  BottomNavigationPosition,
-  BottomNavigationSelectionContext,
-  BottomNavigationSelectionReason,
-  BottomNavigationVariant,
   ChoiceControlColorScheme,
   ChoiceControlSize,
   DrawerPlacement,
   ListDensity,
-  NavigationRailBadgeAnchor,
-  NavigationRailBadgeOffset,
-  NavigationRailBadgePlacement,
-  NavigationRailDensity,
-  NavigationRailIndicator,
-  NavigationRailItemShape,
-  NavigationRailLabelBehavior,
-  NavigationRailPosition,
-  NavigationRailSelectionContext,
-  NavigationRailSelectionReason,
-  NavigationRailVariant,
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationBadgeOffset,
+  NavigationDestinationBadgePlacement,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationDestinationLabelBehavior,
+  NavigationSelectionContext,
+  NavigationSelectionReason,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
   NavigationStackTransitionDirection,
   PopoverContentProps,
   ToastVariant,
@@ -89,72 +78,47 @@ describe(
 
 
     it(
-      "keeps BottomNavigation and NavigationRail shared destination domains equal",
+      "uses one public vocabulary for shared navigation destination domains",
       () => {
-        expectTypeOf<
-          BottomNavigationPosition
-        >().toEqualTypeOf<
-          NavigationRailPosition
-        >();
+        type DestinationContract = {
+          position:
+            NavigationSurfacePosition;
+
+          variant:
+            NavigationSurfaceVariant;
+
+          labelBehavior:
+            NavigationDestinationLabelBehavior;
+
+          indicator:
+            NavigationDestinationIndicator;
+
+          density:
+            NavigationDestinationDensity;
+
+          badgeAnchor:
+            NavigationDestinationBadgeAnchor;
+
+          badgePlacement:
+            NavigationDestinationBadgePlacement;
+
+          itemShape:
+            NavigationDestinationItemShape;
+
+          badgeOffset:
+            NavigationDestinationBadgeOffset;
+
+          selectionReason:
+            NavigationSelectionReason;
+
+          selectionContext:
+            NavigationSelectionContext;
+        };
 
         expectTypeOf<
-          BottomNavigationVariant
-        >().toEqualTypeOf<
-          NavigationRailVariant
-        >();
-
-        expectTypeOf<
-          BottomNavigationLabelBehavior
-        >().toEqualTypeOf<
-          NavigationRailLabelBehavior
-        >();
-
-        expectTypeOf<
-          BottomNavigationIndicator
-        >().toEqualTypeOf<
-          NavigationRailIndicator
-        >();
-
-        expectTypeOf<
-          BottomNavigationDensity
-        >().toEqualTypeOf<
-          NavigationRailDensity
-        >();
-
-        expectTypeOf<
-          BottomNavigationBadgeAnchor
-        >().toEqualTypeOf<
-          NavigationRailBadgeAnchor
-        >();
-
-        expectTypeOf<
-          BottomNavigationBadgePlacement
-        >().toEqualTypeOf<
-          NavigationRailBadgePlacement
-        >();
-
-        expectTypeOf<
-          BottomNavigationItemShape
-        >().toEqualTypeOf<
-          NavigationRailItemShape
-        >();
-
-        expectTypeOf<
-          BottomNavigationBadgeOffset
-        >().toEqualTypeOf<
-          NavigationRailBadgeOffset
-        >();
-
-        expectTypeOf<
-          BottomNavigationSelectionReason
-        >().toEqualTypeOf<
-          NavigationRailSelectionReason
-        >();
-
-        expectTypeOf<
-          BottomNavigationSelectionContext
-        >().toEqualTypeOf<
-          NavigationRailSelectionContext
+          DestinationContract
+        >().toMatchTypeOf<
+          DestinationContract
         >();
       },
     );

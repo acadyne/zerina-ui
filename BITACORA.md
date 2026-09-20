@@ -16,6 +16,7 @@ Por tanto:
 - no conservar dos procesos para la misma mecánica;
 - actualizar todos los consumidores al owner único;
 - no dejar implementaciones parciales ni adapters temporales;
+- no ocultar errores de tipos con casts;
 - cada extracción debe quedar acompañada de regresión.
 
 La evolución apunta semánticamente a `0.5.0`; la metadata se cambiará al cierre.
@@ -23,154 +24,166 @@ La evolución apunta semánticamente a `0.5.0`; la metadata se cambiará al cier
 ## Estado actual
 
 - Fase 1 — superficie pública + package gate: **CERRADA Y VALIDADA**.
-- Fase 2A — fundamentos unificados: **IMPLEMENTADA R3, PENDIENTE DE `pnpm validate`**.
-- Fase 2B — Navigation Destinations: no iniciada.
+- Fase 2A — fundamentos unificados: **CERRADA Y VALIDADA**.
+- Fase 2B — Navigation Destinations: **IMPLEMENTADA R3, PENDIENTE DE `pnpm validate`**.
 - Fase 2C — ownership de Scaffold: no iniciada.
 - Fase 3 — Navigation Presenter/política responsive: no iniciada.
 
-## Fase 2A — owners consolidados
+## Fase 2B — owners consolidados
 
-### Safe-area
+### Vocabulario
 
-Owner único:
-
-```text
-src/helpers/safeArea.ts
-```
-
-Eliminados:
-
-- `SafeEdges`;
-- `ScreenContentSafeAreaEdges`;
-- resolvers locales;
-- conocimiento directo de variables safe-area en consumidores TS/TSX.
-
-Los consumidores importan el owner central; `src/styles/safe-area.css` continúa definiendo las variables funcionales `--ui-safe-*-offset`.
-
-### CSS sizing
-
-Owner único:
+Un solo vocabulario compartido:
 
 ```text
-src/helpers/css.ts#cssSize
+NavigationSurface*
+NavigationDestination*
+NavigationSelection*
 ```
 
-Firma única:
+BottomNavigation y NavigationRail sólo conservan tipos propios cuando expresan diferencias reales de orientación/layout.
+
+### Contratos
+
+Owner:
+
+```text
+src/primitives/navigation/shared/navigationDestination.types.ts
+```
+
+Familias:
+
+```text
+BottomNavigationProps
+BottomNavigationItemProps
+NavigationRailProps
+NavigationRailItemProps
+```
+
+heredan:
+
+```text
+NavigationDestinationRootProps
+NavigationDestinationPublicItemProps
+```
+
+### Context
+
+Owner:
+
+```text
+src/primitives/navigation/shared/navigationDestinationContext.tsx
+```
+
+### Estado/resolución de item
+
+Owner:
+
+```text
+src/primitives/navigation/shared/navigationDestinationState.ts
+```
+
+### Factory
+
+Owner:
+
+```text
+src/primitives/navigation/shared/createNavigationDestinationItem.tsx
+```
+
+Corregido en R2 para usar el tipo real de `forwardRef`:
 
 ```ts
-cssSize(
-  value: number | string | undefined
-): string | undefined
+React.PropsWithoutRef<TProps>
 ```
 
-Eliminados:
+sin casts.
 
-- overloads redundantes;
-- `px`;
-- `toCssSize`;
-- `adaptiveScaffold.utils#cssSize`;
-- aliases de sizing en navegación.
+### Styles
 
-### Scroll
-
-`PageScroll` eliminado completamente.
-
-`ScrollArea` queda como motor. El ownership de shell/content se resolverá en Fase 2C.
-
-### Responsive
-
-Owner único:
+Owner:
 
 ```text
-src/core/viewport/useAdaptiveViewport.ts
+src/primitives/navigation/shared/navigationDestination.styles.ts
 ```
 
-Consumido por:
+Utilities familiares duplicadas eliminadas.
 
-- AdaptiveScaffold;
-- DataTable shell.
+## Gates de Fase 2B
 
-Eliminados:
+### Intento R1
 
-- `useDataTableResponsiveMode`;
-- `resolveAdaptiveScaffoldMode`.
-
-Breakpoints normalizados por `resolveUIViewportBreakpoints`.
-
-## Validaciones del usuario durante Fase 2A
-
-### Intento 1
-
-`pnpm validate` falló en typecheck con TS2769 por los overloads de `cssSize`.
-
-Corrección R2:
-
-- eliminar overloads;
-- una sola firma union-safe;
-- regresión de typecheck/runtime.
-
-### Intento 2 / siguiente avance real del gate
-
-El typecheck ya avanzó hasta Vitest.
-
-Vitest reportó:
+Falló en typecheck:
 
 ```text
-1 failed | 81 passed
-588 passed | 1 failed
+TS2322 PropsWithoutRef<TProps> -> TProps
+```
+
+Corregido en R2 en el factory compartido.
+
+### Intento R2
+
+Typecheck: PASS.
+
+Vitest:
+
+```text
+1 failed | 82 passed
+593 passed | 1 failed
 ```
 
 Fallo:
 
 ```text
-css-distribution.test.ts
-"uses only --ui-safe-* variables in safe-area consumers"
+semantics-phase-e4-type-equivalence-ownership.test.ts
 ```
 
-Causa:
+La prueba todavía esperaba que BottomNavigation y NavigationRail mencionaran directamente tipos compartidos.
 
-La prueba pertenecía a la arquitectura anterior y exigía que `Screen`, `SafeArea` y `TopAppBar` conocieran directamente `--ui-safe-*`.
-
-Eso contradice la nueva invariante de owner único.
+Eso contradice el ownership nuevo.
 
 ### Corrección R3
 
-La regresión de distribución ahora exige:
+La regresión ahora valida la cadena:
 
-1. `src/helpers/safeArea.ts` es el único owner TypeScript de las variables normalizadas;
-2. los consumidores importan `helpers/safeArea`;
-3. los consumidores no contienen variables safe-area directas;
-4. no existen variables legacy `--safe-*`;
-5. `src/styles/safe-area.css` continúa definiendo `--ui-safe-*-offset`.
+```text
+navigation-shared.types
+        ↓
+navigationDestination.types
+        ↓
+family props inheritance
+```
 
-Esto no relaja el contrato: lo actualiza para verificar la centralización buscada.
+y exige que los archivos familiares no conozcan directamente `NavigationSurfacePosition` ni `NavigationSelectionContext`.
 
-## Validado en el runtime actual después de R3
+No se modificó código productivo para satisfacer esta prueba.
 
-- las aserciones nuevas de ownership safe-area: PASS;
-- las cuatro variables `--ui-safe-*-offset` siguen definidas en `safe-area.css`: PASS;
-- consumidores seleccionados no contienen variables safe-area directas: PASS;
-- owner central no contiene variables legacy: PASS;
-- no se ha reintroducido ningún owner retirado.
+## Validado en este runtime después de R3
+
+- semantic owner contiene todos los dominios compartidos: PASS;
+- shared props owner consume esos dominios: PASS;
+- BottomNavigation hereda contratos compartidos: PASS;
+- NavigationRail hereda contratos compartidos: PASS;
+- referencias directas a `NavigationSurfacePosition` en archivos familiares: 0;
+- referencias directas a `NavigationSelectionContext` en archivos familiares: 0.
 
 ## No validado
 
-- Falta un nuevo `pnpm validate` del usuario después de R3.
-- Fase 2A NO se considera cerrada hasta ese PASS integral.
-- Fase 2B no debe comenzar antes del PASS.
+- Falta ejecutar `pnpm validate` sobre R3.
+- Fase 2B no se considera cerrada hasta ese PASS.
+- Fase 2C no comienza antes del PASS.
 
 ## Siguiente paso
 
-Aplicar R3 y ejecutar primero:
+Usar el proyecto completo R3:
 
 ```bash
-pnpm --filter zerina-ui-internal-test test -- css-distribution.test.ts
-```
-
-Si pasa, ejecutar:
-
-```bash
+pnpm install
 pnpm validate
 ```
 
-Sólo después cerrar Fase 2A.
+Si pasa integralmente:
+
+1. cerrar Fase 2B;
+2. entrar a Fase 2C;
+3. fijar ownership de Scaffold/ScreenContent/scroll antes de tocar la API.

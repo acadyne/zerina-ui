@@ -21,6 +21,17 @@ import type {
   NavigationLinkMeta,
   NavigationNode,
   NavigationNodeId,
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationBadgeOffset,
+  NavigationDestinationBadgePlacement,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationDestinationLabelBehavior,
+  NavigationSelectionContext,
+  NavigationSelectionReason,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
   PopoverPlacement,
   RatioValue,
   SafeAreaEdges,
@@ -73,6 +84,42 @@ describe(
         const adaptiveItems:
           AdaptiveScaffoldProps<DemoNavigationMeta>["items"] =
           items;
+
+        const destinationContract: {
+          position: NavigationSurfacePosition;
+          variant: NavigationSurfaceVariant;
+          labelBehavior: NavigationDestinationLabelBehavior;
+          indicator: NavigationDestinationIndicator;
+          density: NavigationDestinationDensity;
+          badgeAnchor: NavigationDestinationBadgeAnchor;
+          badgePlacement: NavigationDestinationBadgePlacement;
+          itemShape: NavigationDestinationItemShape;
+          badgeOffset: NavigationDestinationBadgeOffset;
+          selectionReason: NavigationSelectionReason;
+          selectionContext: NavigationSelectionContext;
+        } = {
+          position: "static",
+          variant: "surface",
+          labelBehavior: "always",
+          indicator: "background",
+          density: "comfortable",
+          badgeAnchor: "icon",
+          badgePlacement: "top-end",
+          itemShape: "rounded",
+          badgeOffset: {},
+          selectionReason: "change",
+          selectionContext: {
+            value: "dashboard",
+            previousValue: null,
+            reason: "change",
+          },
+        };
+
+        expect(
+          destinationContract.selectionContext.value,
+        ).toBe(
+          "dashboard",
+        );
 
         const content:
           NavigationContentMeta = {};

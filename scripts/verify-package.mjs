@@ -302,6 +302,17 @@ import type {
   NavigationLinkMeta,
   NavigationNode,
   NavigationNodeId,
+  NavigationDestinationBadgeAnchor,
+  NavigationDestinationBadgeOffset,
+  NavigationDestinationBadgePlacement,
+  NavigationDestinationDensity,
+  NavigationDestinationIndicator,
+  NavigationDestinationItemShape,
+  NavigationDestinationLabelBehavior,
+  NavigationSelectionContext,
+  NavigationSelectionReason,
+  NavigationSurfacePosition,
+  NavigationSurfaceVariant,
   PopoverPlacement,
   RatioValue,
   SafeAreaEdges,
@@ -341,6 +352,53 @@ const navigationItems:
 const adaptiveItems:
   AdaptiveScaffoldProps<ConsumerNavigationMeta>["items"] =
   navigationItems;
+
+const navigationSurfacePosition:
+  NavigationSurfacePosition =
+  "static";
+
+const navigationSurfaceVariant:
+  NavigationSurfaceVariant =
+  "surface";
+
+const navigationLabelBehavior:
+  NavigationDestinationLabelBehavior =
+  "always";
+
+const navigationIndicator:
+  NavigationDestinationIndicator =
+  "background";
+
+const navigationDensity:
+  NavigationDestinationDensity =
+  "comfortable";
+
+const navigationBadgeAnchor:
+  NavigationDestinationBadgeAnchor =
+  "icon";
+
+const navigationBadgePlacement:
+  NavigationDestinationBadgePlacement =
+  "top-end";
+
+const navigationItemShape:
+  NavigationDestinationItemShape =
+  "rounded";
+
+const navigationBadgeOffset:
+  NavigationDestinationBadgeOffset =
+  {};
+
+const navigationSelectionReason:
+  NavigationSelectionReason =
+  "change";
+
+const navigationSelectionContext:
+  NavigationSelectionContext = {
+    value: "dashboard",
+    previousValue: null,
+    reason: navigationSelectionReason,
+  };
 
 const navigationContent:
   NavigationContentMeta = {};

@@ -1,16 +1,18 @@
-import React from "react";
-
 import {
-  NavigationDestinationItem,
-} from "../shared/NavigationDestinationItem";
+  createNavigationDestinationItem,
+} from "../shared/createNavigationDestinationItem";
 
 import {
   useNavigationRailContext,
+  type NavigationRailContextValue,
 } from "./NavigationRailContext";
 
 import {
-  NAVIGATION_RAIL_VISUALLY_HIDDEN_STYLE,
-  getBadgePlacementStyles,
+  getNavigationDestinationBadgePlacementStyles,
+} from "../shared/navigationDestination.styles";
+
+import {
+  NAVIGATION_RAIL_BADGE_METRICS,
   navigationRailItemRecipe,
 } from "./navigationRail.styles";
 
@@ -19,208 +21,69 @@ import type {
   NavigationRailSlot,
 } from "./navigationRail.types";
 
-
-const NAVIGATION_RAIL_ITEM_DATA_ATTRIBUTES = {
-  item:
-    "data-ui-navigation-rail-item",
-  indicator:
-    "data-ui-navigation-rail-item-indicator",
-  badgeAnchor:
-    "data-ui-navigation-rail-item-badge-anchor",
-  badgePlacement:
-    "data-ui-navigation-rail-item-badge-placement",
-  content:
-    "data-ui-navigation-rail-item-content",
-  iconWrap:
-    "data-ui-navigation-rail-item-icon-wrap",
-  icon:
-    "data-ui-navigation-rail-item-icon",
-  label:
-    "data-ui-navigation-rail-item-label",
-  badge:
-    "data-ui-navigation-rail-item-badge",
-  dot:
-    "data-ui-navigation-rail-item-dot",
-} as const;
-
-
 export const NavigationRailItem =
-  React.forwardRef<
-    HTMLButtonElement,
-    NavigationRailItemProps
-  >(
-    (
-      {
-        value,
-        children,
-        label,
-        icon,
-        badge,
-        disabled = false,
-        onPress,
+  createNavigationDestinationItem<
+    NavigationRailItemProps,
+    NavigationRailSlot,
+    NavigationRailContextValue
+  >({
+    displayName:
+      "NavigationRail.Item",
 
-        labelBehavior,
-        indicator,
+    dataAttributeFamily:
+      "navigation-rail",
 
-        badgeAnchor,
-        badgePlacement,
-        badgeOffset,
+    useContext:
+      useNavigationRailContext,
 
-        itemShape,
-        itemMinWidth,
-        itemMinHeight,
+    familyPropKeys: [
+      "itemMinHeight",
+    ],
 
-        activeLabelWeight,
+    resolveFamilyItem: ({
+      props,
+      context,
+      resolved,
+      hasBadge,
+    }) => {
+      const itemMinHeight =
+        props.itemMinHeight ??
+        context.itemMinHeight;
 
-        styles,
-        slotProps,
+      return {
+        recipeStyles:
+          navigationRailItemRecipe({
+            density:
+              context.density,
 
-        className = "",
-        style,
+            indicator:
+              resolved.indicator,
 
-        ...rest
-      },
-      ref,
-    ) => {
-      const ctx =
-        useNavigationRailContext();
+            shape:
+              resolved.itemShape,
 
-      const active =
-        ctx.value === value;
+            itemMinWidth:
+              resolved.itemMinWidth,
 
-      const resolvedLabelBehavior =
-        labelBehavior ??
-        ctx.labelBehavior;
+            itemMinHeight,
 
-      const resolvedIndicator =
-        indicator ??
-        ctx.indicator;
+            hasBadge,
 
-      const resolvedBadgeAnchor =
-        badgeAnchor ??
-        ctx.badgeAnchor;
+            badgeAnchor:
+              resolved.badgeAnchor,
+          }),
 
-      const resolvedBadgePlacement =
-        badgePlacement ??
-        ctx.badgePlacement;
+        badgeStyle:
+          getNavigationDestinationBadgePlacementStyles({
+            placement:
+              resolved.badgePlacement,
 
-      const resolvedBadgeOffset =
-        badgeOffset ??
-        ctx.badgeOffset;
+            offset:
+              resolved.badgeOffset,
 
-      const resolvedItemShape =
-        itemShape ??
-        ctx.itemShape;
-
-      const resolvedItemMinWidth =
-        itemMinWidth ??
-        ctx.itemMinWidth;
-
-      const resolvedItemMinHeight =
-        itemMinHeight ??
-        ctx.itemMinHeight;
-
-      const resolvedActiveLabelWeight =
-        activeLabelWeight ??
-        ctx.activeLabelWeight;
-
-      const recipeStyles =
-        navigationRailItemRecipe({
-          density:
-            ctx.density,
-
-          indicator:
-            resolvedIndicator,
-
-          shape:
-            resolvedItemShape,
-
-          itemMinWidth:
-            resolvedItemMinWidth,
-
-          itemMinHeight:
-            resolvedItemMinHeight,
-
-          hasBadge:
-            badge !== null &&
-            badge !== undefined,
-
-          badgeAnchor:
-            resolvedBadgeAnchor,
-        });
-
-      return (
-        <NavigationDestinationItem<NavigationRailSlot>
-          value={value}
-          active={active}
-          itemLabel={
-            children ??
-            label
-          }
-          icon={icon}
-          badge={badge}
-          disabled={disabled}
-          onPress={onPress}
-          setValue={
-            ctx.setValue
-          }
-          labelBehavior={
-            resolvedLabelBehavior
-          }
-          indicator={
-            resolvedIndicator
-          }
-          badgeAnchor={
-            resolvedBadgeAnchor
-          }
-          badgePlacement={
-            resolvedBadgePlacement
-          }
-          activeLabelWeight={
-            resolvedActiveLabelWeight
-          }
-          recipeStyles={
-            recipeStyles
-          }
-          badgeStyle={
-            getBadgePlacementStyles({
-              placement:
-                resolvedBadgePlacement,
-
-              offset:
-                resolvedBadgeOffset,
-            })
-          }
-          visuallyHiddenStyle={
-            NAVIGATION_RAIL_VISUALLY_HIDDEN_STYLE
-          }
-          contextStyles={
-            ctx.styles
-          }
-          contextSlotProps={
-            ctx.slotProps
-          }
-          styles={styles}
-          slotProps={
-            slotProps
-          }
-          className={
-            className
-          }
-          style={style}
-          dataAttributes={
-            NAVIGATION_RAIL_ITEM_DATA_ATTRIBUTES
-          }
-          buttonProps={
-            rest
-          }
-          forwardedRef={
-            ref
-          }
-        />
-      );
+            metrics:
+              NAVIGATION_RAIL_BADGE_METRICS,
+          }),
+      };
     },
-  );
-
-NavigationRailItem.displayName =
-  "NavigationRail.Item";
+  });

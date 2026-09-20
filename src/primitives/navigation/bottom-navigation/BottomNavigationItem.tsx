@@ -1,17 +1,19 @@
-import React from "react";
-
 import {
-  NavigationDestinationItem,
-} from "../shared/NavigationDestinationItem";
+  createNavigationDestinationItem,
+} from "../shared/createNavigationDestinationItem";
 
 import {
   useBottomNavigationContext,
+  type BottomNavigationContextValue,
 } from "./BottomNavigationContext";
 
 import {
-  BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE,
+  getNavigationDestinationBadgePlacementStyles,
+} from "../shared/navigationDestination.styles";
+
+import {
+  BOTTOM_NAVIGATION_BADGE_METRICS,
   bottomNavigationItemRecipe,
-  getBadgePlacementStyles,
 } from "./bottomNavigation.styles";
 
 import type {
@@ -19,208 +21,69 @@ import type {
   BottomNavigationSlot,
 } from "./bottomNavigation.types";
 
-
-const BOTTOM_NAVIGATION_ITEM_DATA_ATTRIBUTES = {
-  item:
-    "data-ui-bottom-navigation-item",
-  indicator:
-    "data-ui-bottom-navigation-item-indicator",
-  badgeAnchor:
-    "data-ui-bottom-navigation-item-badge-anchor",
-  badgePlacement:
-    "data-ui-bottom-navigation-item-badge-placement",
-  content:
-    "data-ui-bottom-navigation-item-content",
-  iconWrap:
-    "data-ui-bottom-navigation-item-icon-wrap",
-  icon:
-    "data-ui-bottom-navigation-item-icon",
-  label:
-    "data-ui-bottom-navigation-item-label",
-  badge:
-    "data-ui-bottom-navigation-item-badge",
-  dot:
-    "data-ui-bottom-navigation-item-dot",
-} as const;
-
-
 export const BottomNavigationItem =
-  React.forwardRef<
-    HTMLButtonElement,
-    BottomNavigationItemProps
-  >(
-    (
-      {
-        value,
-        children,
-        label,
-        icon,
-        badge,
-        disabled = false,
-        onPress,
+  createNavigationDestinationItem<
+    BottomNavigationItemProps,
+    BottomNavigationSlot,
+    BottomNavigationContextValue
+  >({
+    displayName:
+      "BottomNavigation.Item",
 
-        labelBehavior,
-        indicator,
+    dataAttributeFamily:
+      "bottom-navigation",
 
-        badgeAnchor,
-        badgePlacement,
-        badgeOffset,
+    useContext:
+      useBottomNavigationContext,
 
-        itemShape,
-        itemMinWidth,
+    familyPropKeys: [
+      "iconPosition",
+    ],
 
-        iconPosition,
-        activeLabelWeight,
+    resolveFamilyItem: ({
+      props,
+      context,
+      resolved,
+      hasBadge,
+    }) => {
+      const iconPosition =
+        props.iconPosition ??
+        context.iconPosition;
 
-        styles,
-        slotProps,
+      return {
+        recipeStyles:
+          bottomNavigationItemRecipe({
+            density:
+              context.density,
 
-        className = "",
-        style,
+            indicator:
+              resolved.indicator,
 
-        ...rest
-      },
-      ref,
-    ) => {
-      const ctx =
-        useBottomNavigationContext();
+            shape:
+              resolved.itemShape,
 
-      const active =
-        ctx.value === value;
+            iconPosition,
 
-      const resolvedLabelBehavior =
-        labelBehavior ??
-        ctx.labelBehavior;
+            itemMinWidth:
+              resolved.itemMinWidth,
 
-      const resolvedIndicator =
-        indicator ??
-        ctx.indicator;
+            hasBadge,
 
-      const resolvedBadgeAnchor =
-        badgeAnchor ??
-        ctx.badgeAnchor;
+            badgeAnchor:
+              resolved.badgeAnchor,
+          }),
 
-      const resolvedBadgePlacement =
-        badgePlacement ??
-        ctx.badgePlacement;
+        badgeStyle:
+          getNavigationDestinationBadgePlacementStyles({
+            placement:
+              resolved.badgePlacement,
 
-      const resolvedBadgeOffset =
-        badgeOffset ??
-        ctx.badgeOffset;
+            offset:
+              resolved.badgeOffset,
 
-      const resolvedItemShape =
-        itemShape ??
-        ctx.itemShape;
-
-      const resolvedItemMinWidth =
-        itemMinWidth ??
-        ctx.itemMinWidth;
-
-      const resolvedIconPosition =
-        iconPosition ??
-        ctx.iconPosition;
-
-      const resolvedActiveLabelWeight =
-        activeLabelWeight ??
-        ctx.activeLabelWeight;
-
-      const recipeStyles =
-        bottomNavigationItemRecipe({
-          density:
-            ctx.density,
-
-          indicator:
-            resolvedIndicator,
-
-          shape:
-            resolvedItemShape,
-
-          iconPosition:
-            resolvedIconPosition,
-
-          itemMinWidth:
-            resolvedItemMinWidth,
-
-          hasBadge:
-            badge !== null &&
-            badge !== undefined,
-
-          badgeAnchor:
-            resolvedBadgeAnchor,
-        });
-
-      return (
-        <NavigationDestinationItem<BottomNavigationSlot>
-          value={value}
-          active={active}
-          itemLabel={
-            children ??
-            label
-          }
-          icon={icon}
-          badge={badge}
-          disabled={disabled}
-          onPress={onPress}
-          setValue={
-            ctx.setValue
-          }
-          labelBehavior={
-            resolvedLabelBehavior
-          }
-          indicator={
-            resolvedIndicator
-          }
-          badgeAnchor={
-            resolvedBadgeAnchor
-          }
-          badgePlacement={
-            resolvedBadgePlacement
-          }
-          activeLabelWeight={
-            resolvedActiveLabelWeight
-          }
-          recipeStyles={
-            recipeStyles
-          }
-          badgeStyle={
-            getBadgePlacementStyles({
-              placement:
-                resolvedBadgePlacement,
-
-              offset:
-                resolvedBadgeOffset,
-            })
-          }
-          visuallyHiddenStyle={
-            BOTTOM_NAVIGATION_VISUALLY_HIDDEN_STYLE
-          }
-          contextStyles={
-            ctx.styles
-          }
-          contextSlotProps={
-            ctx.slotProps
-          }
-          styles={styles}
-          slotProps={
-            slotProps
-          }
-          className={
-            className
-          }
-          style={style}
-          dataAttributes={
-            BOTTOM_NAVIGATION_ITEM_DATA_ATTRIBUTES
-          }
-          buttonProps={
-            rest
-          }
-          forwardedRef={
-            ref
-          }
-        />
-      );
+            metrics:
+              BOTTOM_NAVIGATION_BADGE_METRICS,
+          }),
+      };
     },
-  );
-
-BottomNavigationItem.displayName =
-  "BottomNavigation.Item";
+  });

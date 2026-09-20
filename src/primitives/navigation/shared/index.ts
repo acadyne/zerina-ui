@@ -1,9 +1,3 @@
-// src/primitives/navigation/index.ts
-
-export * from "./bottom-navigation";
-export * from "./navigation-rail";
-export * from "./NavigationList";
-
 export type {
   NavigationDestinationBadgeAnchor,
   NavigationDestinationBadgeOffset,
@@ -14,6 +8,9 @@ export type {
   NavigationDestinationLabelBehavior,
   NavigationSurfacePosition,
   NavigationSurfaceVariant,
+} from "./navigation-shared.types";
+
+export type {
   NavigationSelectionContext,
   NavigationSelectionReason,
-} from "./shared";
+} from "./navigationSelection";
