@@ -1,4 +1,5 @@
 // src/primitives/overlay/Tooltip.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import {
   motion,
@@ -87,8 +88,9 @@ const tooltipRecipe =
         boxShadow:
           "var(--ui-elevation-3)",
 
-        fontSize: "0.78rem",
-        lineHeight: 1.35,
+        ...typographyRecipe({
+          role: "caption",
+        }),
 
         pointerEvents: "none",
 

@@ -9,4 +9,5 @@ export { Heading } from "./Heading";
 export type {
   HeadingProps,
   HeadingSize,
+  HeadingTypographyRole,
 } from "./Heading";

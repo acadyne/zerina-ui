@@ -355,7 +355,6 @@ export const TabScaffold =
       variant="floating"
       indicator="pill"
       labelBehavior="active"
-      density="comfortable"
       {...bottomNavigationProps}
       position="static"
       safeArea={false}

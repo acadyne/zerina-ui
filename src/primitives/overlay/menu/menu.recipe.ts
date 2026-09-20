@@ -4,6 +4,10 @@ import {
   defineSlotRecipe,
 } from "../../../helpers/css";
 
+import {
+  typographyRecipe,
+} from "../../../theme/recipes";
+
 import type {
   MenuSlot,
 } from "./menu.types";
@@ -32,7 +36,8 @@ export const menuRecipe =
         maxWidth:
           "min(320px, calc(100vw - 16px))",
 
-        padding: "0.4rem",
+        padding:
+          "var(--ui-density-inline-gap, var(--ui-space-sm))",
 
         borderRadius:
           "var(--ui-radius-lg)",
@@ -55,6 +60,11 @@ export const menuRecipe =
 
 
       item: {
+        ...typographyRecipe({
+          role:
+            "label",
+        }),
+
         display:
           "flex",
 
@@ -62,10 +72,13 @@ export const menuRecipe =
           "center",
 
         minHeight:
-          36,
+          "var(--ui-density-item-min-height, 2.75rem)",
 
-        padding:
-          "0.6rem 0.75rem",
+        paddingBlock:
+          "var(--ui-density-inline-gap, var(--ui-space-sm))",
+
+        paddingInline:
+          "var(--ui-density-content-padding, var(--ui-space-lg))",
 
         borderRadius:
           "var(--ui-radius-md)",
@@ -88,14 +101,16 @@ export const menuRecipe =
 
 
       label: {
-        padding:
-          "0.45rem 0.75rem 0.35rem 0.75rem",
+        ...typographyRecipe({
+          role:
+            "caption",
+        }),
 
-        fontSize:
-          "var(--ui-font-size-sm)",
+        paddingBlock:
+          "var(--ui-space-sm)",
 
-        fontWeight:
-          700,
+        paddingInline:
+          "var(--ui-density-content-padding, var(--ui-space-lg))",
 
         color:
           "var(--ui-text-muted)",

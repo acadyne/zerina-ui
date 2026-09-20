@@ -28,6 +28,7 @@ import { Typography } from "../typography";
 import {
   interactiveStateRecipe,
   surfaceRecipe,
+  typographyRecipe,
   type InteractiveStateRecipeStyle,
 } from "../../theme/recipes";
 import {
@@ -228,7 +229,8 @@ const navigationListRecipe =
         display: "flex",
         flexDirection: "column",
 
-        gap: "0.25rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.25rem)",
       },
 
       item: {
@@ -242,7 +244,8 @@ const navigationListRecipe =
         display: "flex",
         alignItems: "stretch",
 
-        gap: "0.25rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.25rem)",
       },
 
       itemButton: {
@@ -276,7 +279,8 @@ const navigationListRecipe =
         display: "flex",
         alignItems: "center",
 
-        paddingBlock: "0.48rem",
+        paddingBlock:
+          "var(--ui-density-inline-gap, 0.48rem)",
 
         borderRadius:
           "var(--ui-radius-md)",
@@ -285,8 +289,10 @@ const navigationListRecipe =
       },
 
       icon: {
-        width: 24,
-        height: 24,
+        width:
+          "var(--ui-density-icon-size, 1.5rem)",
+        height:
+          "var(--ui-density-icon-size, 1.5rem)",
 
         display: "inline-flex",
         alignItems: "center",
@@ -300,13 +306,16 @@ const navigationListRecipe =
       },
 
       label: {
+        ...typographyRecipe({
+          role: "label",
+        }),
+
         flex: 1,
         minWidth: 0,
 
         margin: 0,
 
         color: "inherit",
-        fontSize: "var(--ui-font-size-sm)",
 
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -327,15 +336,20 @@ const navigationListRecipe =
         color:
           "var(--ui-text-muted)",
 
-        fontSize: "1rem",
+        fontSize:
+          "var(--ui-density-icon-size, 1.25rem)",
         lineHeight: 1,
       },
 
       toggleButton: {
         ...navigationToggleInteractiveStyle,
 
-        width: 38,
-        minWidth: 38,
+        width:
+          "var(--ui-density-control-height, 2.75rem)",
+        minWidth:
+          "var(--ui-density-control-height, 2.75rem)",
+        minHeight:
+          "var(--ui-density-control-height, 2.75rem)",
 
         display: "inline-flex",
         alignItems: "center",
@@ -355,12 +369,14 @@ const navigationListRecipe =
       group: {
         minWidth: 0,
 
-        marginTop: "0.25rem",
+        marginTop:
+          "var(--ui-density-inline-gap, 0.25rem)",
 
         display: "flex",
         flexDirection: "column",
 
-        gap: "0.25rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.25rem)",
       },
 
       flyoutContent: {
@@ -373,7 +389,8 @@ const navigationListRecipe =
 
         minWidth: 230,
 
-        padding: "0.45rem",
+        padding:
+          "var(--ui-density-inline-gap, 0.45rem)",
       },
 
       flyoutList: {
@@ -382,7 +399,8 @@ const navigationListRecipe =
         display: "flex",
         flexDirection: "column",
 
-        gap: "0.25rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.25rem)",
       },
     },
 
@@ -395,21 +413,24 @@ const navigationListRecipe =
       collapsed: {
         false: {
           itemContent: {
-            minHeight: 38,
+            minHeight:
+              "var(--ui-density-item-min-height, 2.375rem)",
 
             justifyContent:
               "flex-start",
 
-            gap: "0.65rem",
+            gap:
+              "var(--ui-density-inline-gap, 0.65rem)",
 
             paddingRight:
-              "0.65rem",
+              "var(--ui-density-content-padding, 0.65rem)",
           },
         },
 
         true: {
           itemContent: {
-            minHeight: 42,
+            minHeight:
+              "var(--ui-density-item-min-height, 2.625rem)",
 
             justifyContent:
               "center",
@@ -417,10 +438,10 @@ const navigationListRecipe =
             gap: 0,
 
             paddingLeft:
-              "0.4rem",
+              "var(--ui-density-inline-gap, 0.4rem)",
 
             paddingRight:
-              "0.4rem",
+              "var(--ui-density-inline-gap, 0.4rem)",
           },
         },
       },
@@ -436,7 +457,7 @@ const navigationListRecipe =
       return {
         itemContent: {
           paddingLeft: isCollapsed
-            ? "0.4rem"
+            ? "var(--ui-density-inline-gap, 0.4rem)"
             : paddingLeft,
 
           borderWidth:

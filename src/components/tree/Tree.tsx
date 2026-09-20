@@ -1,5 +1,6 @@
 // src/components/tree/Tree.tsx
 
+import { typographyRecipe } from "../../theme/recipes";
 import {
   forwardRef,
   useCallback,
@@ -454,9 +455,11 @@ function TreeInner<TNode>(
       "data-ui-tree-root-empty": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "label",
+      }),
       padding: "0.75rem",
       color: "var(--ui-text-soft)",
-      fontSize: "var(--ui-font-size-sm)",
       fontStyle: "italic",
     },
   });

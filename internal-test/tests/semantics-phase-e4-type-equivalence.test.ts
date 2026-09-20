@@ -162,6 +162,12 @@ describe(
         >();
 
         expectTypeOf<
+          NavigationDestinationDensity
+        >().toEqualTypeOf<
+          UIDensity
+        >();
+
+        expectTypeOf<
           AlertVariant
         >().toEqualTypeOf<
           ToastVariant

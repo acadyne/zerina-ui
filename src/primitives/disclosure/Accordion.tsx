@@ -1,4 +1,5 @@
 // src/primitives/disclosure/Accordion.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 
 import {
@@ -103,29 +104,29 @@ const ACCORDION_BASE_STYLES = {
   },
 
   triggerLabel: {
+    ...typographyRecipe({
+      role: "body",
+    }),
+
     margin: 0,
 
     color:
       "var(--ui-text)",
 
-    fontSize:
-      "var(--ui-font-size-md)",
-
     fontWeight: 750,
   },
 
   content: {
+    ...typographyRecipe({
+      role: "label",
+    }),
+
     minWidth: 0,
 
     paddingBottom: "1rem",
 
     color:
       "var(--ui-text-muted)",
-
-    fontSize:
-      "var(--ui-font-size-sm)",
-
-    lineHeight: 1.5,
   },
 } satisfies Record<
   AccordionSlot,

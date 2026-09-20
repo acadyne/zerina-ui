@@ -471,8 +471,14 @@ label
 caption
 ```
 
-Cada role posee family, size, weight, line-height y letter-spacing. La
-migración de todos los consumidores a estos roles corresponde a Fase 7E.
+Cada role posee family, size, weight, line-height y letter-spacing.
+
+Fase 7E consolida `typographyRecipe` como único traductor de esos roles. Los
+consumidores TSX ya no seleccionan variables `--ui-type-*` individualmente:
+declaran intención mediante la recipe o mediante `Typography` / `Heading`.
+`Typography.typographyRole` se mantiene separado del atributo ARIA `role`.
+Los props históricos `size` son overrides explícitos y no constituyen una
+segunda ontología semántica.
 
 ### Density y spacing
 
@@ -513,6 +519,13 @@ resto           -> comfortable
 
 Los modos explícitos `compact`, `comfortable` y `spacious` siguen teniendo
 precedencia total.
+
+Fase 7E extiende esa proyección a las familias de controles. Button,
+Input/Select/Textarea, choice controls, List y Menu consumen los aliases activos.
+BottomNavigation y NavigationRail derivan del mismo `UIDensity` seleccionado
+por `UIViewportProvider`; DataTable usa la density activa salvo cuando el
+consumidor proporciona un override explícito `dense`. No existe otro resolver
+de pointer, viewport o breakpoints dentro de estas familias.
 
 ### Motion dinámico
 

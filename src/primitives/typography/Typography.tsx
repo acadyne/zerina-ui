@@ -1,6 +1,14 @@
 // src/primitives/typography/Typography.tsx
 import React from "react";
 
+import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
+import type {
+  UITypographyRole,
+} from "../../theme/contracts/visual-semantics";
+
 export type TypographySize =
   | "xs"
   | "sm"
@@ -15,6 +23,7 @@ type TypographyOwnProps<
   children?: React.ReactNode;
   className?: string;
 
+  typographyRole?: UITypographyRole;
   size?: TypographySize;
   weight?: React.CSSProperties["fontWeight"];
   color?: React.CSSProperties["color"];
@@ -167,11 +176,12 @@ function TypographyRender(
     children,
     className = "",
 
-    size = "md",
+    typographyRole = "body",
+    size,
     weight,
     color,
     align,
-    leading = 1.5,
+    leading,
     tracking,
 
     m,
@@ -194,6 +204,12 @@ function TypographyRender(
   const Component: React.ElementType =
     as ?? "p";
 
+  const roleStyle =
+    typographyRecipe({
+      role:
+        typographyRole,
+    });
+
   return React.createElement(
     Component,
     {
@@ -201,15 +217,32 @@ function TypographyRender(
       ref,
       className,
 
+      "data-ui-typography-role":
+        typographyRole,
+
       style: {
         fontFamily:
-          "var(--ui-font-family-body)",
-        fontSize: sizeMap[size],
-        fontWeight: weight,
+          roleStyle.fontFamily,
+
+        fontSize:
+          size === undefined
+            ? roleStyle.fontSize
+            : sizeMap[size],
+
+        fontWeight:
+          weight ??
+          roleStyle.fontWeight,
+
         color,
         textAlign: align,
-        lineHeight: leading,
-        letterSpacing: tracking,
+
+        lineHeight:
+          leading ??
+          roleStyle.lineHeight,
+
+        letterSpacing:
+          tracking ??
+          roleStyle.letterSpacing,
         minWidth: 0,
 
         ...getSpacingStyles({

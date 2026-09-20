@@ -4,6 +4,10 @@ import {
   defineSlotRecipe,
 } from "../../helpers/css";
 
+import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
 import type {
   ChoiceControlColorScheme,
   ChoiceControlLabelPlacement,
@@ -38,12 +42,6 @@ type ChoiceControlVariables =
       string;
 
     "--ui-choice-control-size"?:
-      string;
-
-    "--ui-choice-font-size"?:
-      string;
-
-    "--ui-choice-gap"?:
       string;
 
     "--ui-checkbox-mark-width"?:
@@ -81,12 +79,6 @@ const sizeVariables:
       "--ui-choice-control-size":
         "0.875rem",
 
-      "--ui-choice-font-size":
-        "var(--ui-font-size-sm)",
-
-      "--ui-choice-gap":
-        "0.45rem",
-
       "--ui-checkbox-mark-width":
         "0.25rem",
 
@@ -116,12 +108,6 @@ const sizeVariables:
       "--ui-choice-control-size":
         "1rem",
 
-      "--ui-choice-font-size":
-        "var(--ui-font-size-md)",
-
-      "--ui-choice-gap":
-        "0.55rem",
-
       "--ui-checkbox-mark-width":
         "0.375rem",
 
@@ -150,12 +136,6 @@ const sizeVariables:
     lg: {
       "--ui-choice-control-size":
         "1.25rem",
-
-      "--ui-choice-font-size":
-        "var(--ui-font-size-lg)",
-
-      "--ui-choice-gap":
-        "0.65rem",
 
       "--ui-checkbox-mark-width":
         "0.5rem",
@@ -229,7 +209,10 @@ export const choiceControlRecipe =
           "center",
 
         gap:
-          "var(--ui-choice-gap)",
+          "var(--ui-density-inline-gap, var(--ui-space-sm))",
+
+        minHeight:
+          "var(--ui-density-control-height, var(--ui-control-h-md))",
 
         userSelect:
           "none",
@@ -253,14 +236,13 @@ export const choiceControlRecipe =
       },
 
       label: {
+        ...typographyRecipe({
+          role:
+            "label",
+        }),
+
         color:
           "var(--ui-text)",
-
-        fontSize:
-          "var(--ui-choice-font-size)",
-
-        lineHeight:
-          1.15,
       },
     },
 

@@ -1,5 +1,9 @@
 // src/components/data-table/DataTablePagination.tsx
 import React from "react";
+
+import {
+  typographyRecipe,
+} from "../../theme/recipes";
 import { Button } from "../../primitives/forms";
 import { resolveSlot } from "../../helpers/css";
 import type {
@@ -70,7 +74,10 @@ export const DataTablePagination = React.forwardRef<
       baseStyle: {
         margin: 0,
         opacity: 0.85,
-        fontSize: "var(--ui-font-size-sm)",
+        ...typographyRecipe({
+        role:
+          "caption",
+      }),
         color: "var(--ui-text-muted)",
       },
     });

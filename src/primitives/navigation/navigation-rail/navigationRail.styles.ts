@@ -42,7 +42,7 @@ import type {
 export const NAVIGATION_RAIL_DENSITY_MAP: Record<
   NavigationDestinationDensity,
   {
-    defaultWidth: number;
+    defaultWidth: number | string;
     rootPaddingTop: string;
     rootPaddingRight: string;
     rootPaddingBottom: string;
@@ -51,44 +51,136 @@ export const NAVIGATION_RAIL_DENSITY_MAP: Record<
     itemPaddingRight: string;
     itemPaddingBottom: string;
     itemPaddingLeft: string;
-    itemMinWidth: number;
-    itemMinHeight: number;
+    itemMinWidth: number | string;
+    itemMinHeight: number | string;
     iconSize: string;
     gap: string;
   }
 > = {
   compact: {
-    defaultWidth: 72,
-    rootPaddingTop: "0.45rem",
-    rootPaddingRight: "0.35rem",
-    rootPaddingBottom: "0.45rem",
-    rootPaddingLeft: "0.35rem",
-    itemPaddingTop: "0.35rem",
-    itemPaddingRight: "0.3rem",
-    itemPaddingBottom: "0.35rem",
-    itemPaddingLeft: "0.3rem",
-    itemMinWidth: 52,
-    itemMinHeight: 52,
-    iconSize: "1.1rem",
-    gap: "0.18rem",
+    defaultWidth:
+      "calc(var(--ui-density-compact-item-min-height) + var(--ui-density-compact-content-padding) + var(--ui-density-compact-content-padding))",
+
+    rootPaddingTop:
+      "var(--ui-density-compact-inline-gap)",
+
+    rootPaddingRight:
+      "var(--ui-density-compact-inline-gap)",
+
+    rootPaddingBottom:
+      "var(--ui-density-compact-inline-gap)",
+
+    rootPaddingLeft:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemPaddingRight:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemPaddingBottom:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemPaddingLeft:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemMinWidth:
+      "var(--ui-density-compact-item-min-height)",
+
+    itemMinHeight:
+      "var(--ui-density-compact-item-min-height)",
+
+    iconSize:
+      "var(--ui-density-compact-icon-size)",
+
+    gap:
+      "var(--ui-density-compact-inline-gap)",
   },
 
   comfortable: {
-    defaultWidth: 88,
-    rootPaddingTop: "0.6rem",
-    rootPaddingRight: "0.45rem",
-    rootPaddingBottom: "0.6rem",
-    rootPaddingLeft: "0.45rem",
-    itemPaddingTop: "0.45rem",
-    itemPaddingRight: "0.35rem",
-    itemPaddingBottom: "0.45rem",
-    itemPaddingLeft: "0.35rem",
-    itemMinWidth: 60,
-    itemMinHeight: 60,
-    iconSize: "1.2rem",
-    gap: "0.22rem",
+    defaultWidth:
+      "calc(var(--ui-density-comfortable-item-min-height) + var(--ui-density-comfortable-content-padding) + var(--ui-density-comfortable-content-padding))",
+
+    rootPaddingTop:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    rootPaddingRight:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    rootPaddingBottom:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    rootPaddingLeft:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemPaddingRight:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemPaddingBottom:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemPaddingLeft:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemMinWidth:
+      "var(--ui-density-comfortable-item-min-height)",
+
+    itemMinHeight:
+      "var(--ui-density-comfortable-item-min-height)",
+
+    iconSize:
+      "var(--ui-density-comfortable-icon-size)",
+
+    gap:
+      "var(--ui-density-comfortable-inline-gap)",
+  },
+
+  spacious: {
+    defaultWidth:
+      "calc(var(--ui-density-spacious-item-min-height) + var(--ui-density-spacious-content-padding) + var(--ui-density-spacious-content-padding))",
+
+    rootPaddingTop:
+      "var(--ui-density-spacious-inline-gap)",
+
+    rootPaddingRight:
+      "var(--ui-density-spacious-inline-gap)",
+
+    rootPaddingBottom:
+      "var(--ui-density-spacious-inline-gap)",
+
+    rootPaddingLeft:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemPaddingRight:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemPaddingBottom:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemPaddingLeft:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemMinWidth:
+      "var(--ui-density-spacious-item-min-height)",
+
+    itemMinHeight:
+      "var(--ui-density-spacious-item-min-height)",
+
+    iconSize:
+      "var(--ui-density-spacious-icon-size)",
+
+    gap:
+      "var(--ui-density-spacious-inline-gap)",
   },
 };
+
 
 export function getRootPositionStyle({
   position,
@@ -270,6 +362,30 @@ export const navigationRailRecipe =
             paddingLeft:
               NAVIGATION_RAIL_DENSITY_MAP
                 .comfortable
+                .rootPaddingLeft,
+          },
+        },
+
+        spacious: {
+          container: {
+            paddingTop:
+              NAVIGATION_RAIL_DENSITY_MAP
+                .spacious
+                .rootPaddingTop,
+
+            paddingRight:
+              NAVIGATION_RAIL_DENSITY_MAP
+                .spacious
+                .rootPaddingRight,
+
+            paddingBottom:
+              NAVIGATION_RAIL_DENSITY_MAP
+                .spacious
+                .rootPaddingBottom,
+
+            paddingLeft:
+              NAVIGATION_RAIL_DENSITY_MAP
+                .spacious
                 .rootPaddingLeft,
           },
         },

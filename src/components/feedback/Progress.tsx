@@ -1,4 +1,5 @@
 // src/components/feedback/Progress.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import {
   hasNonEmptyRenderableNode,
@@ -169,12 +170,13 @@ export const Progress = React.forwardRef<
       },
 
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
         minWidth: 0,
-        fontSize: "var(--ui-font-size-sm)",
         fontWeight: 700,
         color: "var(--ui-text)",
-        lineHeight: 1.4,
       },
     });
 
@@ -261,11 +263,12 @@ export const Progress = React.forwardRef<
       slotProps,
 
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
         flexShrink: 0,
-        fontSize: "var(--ui-font-size-sm)",
         color: "var(--ui-text-muted)",
-        lineHeight: 1.4,
       },
     });
 

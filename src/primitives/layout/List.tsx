@@ -24,6 +24,7 @@ import type {
 
 import {
   interactiveStateRecipe,
+  typographyRecipe,
   type InteractiveStateRecipeStyle,
 } from "../../theme/recipes";
 
@@ -33,7 +34,7 @@ export type ListDensity =
 export type ListVariant = "plain" | "surface" | "outlined";
 
 export interface ListContextValue {
-  density: ListDensity;
+  density?: ListDensity;
 
   spacing:
     React.CSSProperties["gap"];
@@ -43,8 +44,9 @@ export interface ListContextValue {
 
 const ListContext =
   React.createContext<ListContextValue>({
-    density: "comfortable",
-    spacing: "0.5rem",
+    spacing:
+      "var(--ui-density-block-gap, var(--ui-space-sm))",
+
     divided: false,
   });
 
@@ -161,24 +163,51 @@ function getListVariantStyle(variant: ListVariant): React.CSSProperties {
   return {};
 }
 
-function getItemPadding(density: ListDensity): React.CSSProperties {
-  if (density === "compact") {
-    return {
-      padding: "0.55rem 0.65rem",
-      minHeight: "2.25rem",
-    };
-  }
+type ListDensityMetric =
+  | "item-min-height"
+  | "inline-gap"
+  | "block-gap"
+  | "content-padding";
 
-  if (density === "spacious") {
-    return {
-      padding: "0.95rem 1rem",
-      minHeight: "3.5rem",
-    };
-  }
 
+function getListDensityVariable(
+  density:
+    ListDensity | undefined,
+
+  metric:
+    ListDensityMetric,
+): string {
+  const variable =
+    density === undefined
+      ? `--ui-density-${metric}`
+      : `--ui-density-${density}-${metric}`;
+
+  return `var(${variable})`;
+}
+
+
+function getItemPadding(
+  density?:
+    ListDensity,
+): React.CSSProperties {
   return {
-    padding: "0.75rem 0.85rem",
-    minHeight: "2.75rem",
+    paddingBlock:
+      getListDensityVariable(
+        density,
+        "block-gap",
+      ),
+
+    paddingInline:
+      getListDensityVariable(
+        density,
+        "content-padding",
+      ),
+
+    minHeight:
+      getListDensityVariable(
+        density,
+        "item-min-height",
+      ),
   };
 }
 
@@ -198,12 +227,9 @@ const ListRoot =
     (
       {
         children,
-        density = "comfortable",
+        density,
         variant = "plain",
-        spacing =
-          variant === "plain"
-            ? "0.5rem"
-            : 0,
+        spacing,
         divided = false,
         style,
         ...rest
@@ -213,16 +239,29 @@ const ListRoot =
       const motionState =
         useOptionalUIMotion();
 
+      const resolvedSpacing =
+        spacing ??
+        (
+          variant ===
+          "plain"
+            ? getListDensityVariable(
+                density,
+                "block-gap",
+              )
+            : 0
+        );
+
       const contextValue =
         React.useMemo<ListContextValue>(
           () => ({
             density,
-            spacing,
+            spacing:
+              resolvedSpacing,
             divided,
           }),
           [
             density,
-            spacing,
+            resolvedSpacing,
             divided,
           ]
         );
@@ -252,7 +291,8 @@ const ListRoot =
               display: "flex",
               flexDirection: "column",
 
-              gap: spacing,
+              gap:
+                resolvedSpacing,
 
               ...getListVariantStyle(
                 variant
@@ -353,10 +393,10 @@ const ListSection =
               as="header"
               style={{
                 marginBottom:
-                  "0.45rem",
+                  "var(--ui-density-block-gap, 0.45rem)",
 
                 paddingInline:
-                  "0.25rem",
+                  "var(--ui-density-content-padding, 0.25rem)",
 
                 minWidth: 0,
               }}
@@ -365,17 +405,13 @@ const ListSection =
                 <Box
                   id={labelId}
                   style={{
-                    fontSize:
-                      "var(--ui-font-size-xs)",
-
-                    fontWeight:
-                      "var(--ui-font-weight-bold)",
+                    ...typographyRecipe({
+                      role:
+                        "caption",
+                    }),
 
                     color:
                       "var(--ui-text-muted)",
-
-                    letterSpacing:
-                      "0.06em",
 
                     textTransform:
                       "uppercase",
@@ -394,13 +430,13 @@ const ListSection =
                     marginTop:
                       "0.2rem",
 
-                    fontSize:
-                      "var(--ui-font-size-xs)",
+                    ...typographyRecipe({
+                      role:
+                        "caption",
+                    }),
 
                     color:
                       "var(--ui-text-muted)",
-
-                    lineHeight: 1.4,
                   }}
                 >
                   {description}
@@ -424,7 +460,8 @@ const ListSection =
               flexDirection:
                 "column",
 
-              gap: spacing,
+              gap:
+                spacing,
             }}
           >
             {children}
@@ -511,7 +548,8 @@ const ListItem =
         justifyContent:
           "space-between",
 
-        gap: "0.75rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.75rem)",
 
         borderRadius:
           "var(--ui-radius-md)",
@@ -584,11 +622,10 @@ const ListItem =
                       whiteSpace:
                         "nowrap",
 
-                      fontSize:
-                        "var(--ui-font-size-sm)",
-
-                      fontWeight:
-                        "var(--ui-font-weight-medium)",
+                      ...typographyRecipe({
+                        role:
+                          "label",
+                      }),
 
                       color:
                         "inherit",
@@ -614,14 +651,13 @@ const ListItem =
                       whiteSpace:
                         "nowrap",
 
-                      fontSize:
-                        "var(--ui-font-size-xs)",
+                      ...typographyRecipe({
+                        role:
+                          "caption",
+                      }),
 
                       color:
                         "var(--ui-text-muted)",
-
-                      lineHeight:
-                        1.35,
                     }}
                   >
                     {description}
@@ -649,8 +685,10 @@ const ListItem =
                 whiteSpace:
                   "nowrap",
 
-                fontSize:
-                  "var(--ui-font-size-sm)",
+                ...typographyRecipe({
+                  role:
+                    "label",
+                }),
 
                 color:
                   "var(--ui-text-muted)",
@@ -696,7 +734,7 @@ const ListItem =
                   "var(--ui-text-muted)",
 
                 fontSize:
-                  "1.15rem",
+                  "var(--ui-density-icon-size, 1.15rem)",
 
                 lineHeight: 1,
               }}

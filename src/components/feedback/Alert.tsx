@@ -16,6 +16,7 @@ import type {
 } from "./feedback.types";
 import {
   toneRecipe,
+  typographyRecipe,
 } from "../../theme/recipes";
 import {
   resolveSlot,
@@ -183,10 +184,11 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       styles,
       slotProps,
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
         fontWeight: "var(--ui-font-weight-bold)",
-        lineHeight: 1.45,
         color: "inherit",
       },
     });
@@ -196,9 +198,10 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       styles,
       slotProps,
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
-        lineHeight: 1.45,
         color: "inherit",
         opacity: 0.84,
       },
@@ -209,9 +212,10 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       styles,
       slotProps,
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
-        lineHeight: 1.45,
         color:
           "inherit",
 

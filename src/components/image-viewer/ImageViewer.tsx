@@ -1,5 +1,6 @@
 //  /src/components/image-viewer/ImageViewer.tsx
 
+import { typographyRecipe } from "../../theme/recipes";
 import {
   forwardRef,
   useCallback,
@@ -618,8 +619,9 @@ export const ImageViewer = forwardRef<
           boxShadow:
             "var(--ui-elevation-1)",
 
-          fontSize:
-            "var(--ui-font-size-xs)",
+          ...typographyRecipe({
+            role: "caption",
+          }),
           fontVariantNumeric:
             "tabular-nums",
 

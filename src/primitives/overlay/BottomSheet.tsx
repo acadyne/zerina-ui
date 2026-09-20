@@ -1,4 +1,5 @@
 // src/primitives/overlay/BottomSheet.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 
 import {
@@ -192,14 +193,14 @@ const bottomSheetRecipe =
       },
 
       title: {
-        margin: 0,
+        ...typographyRecipe({
+          role: "title",
+        }),
 
+        margin: 0,
         color:
           "var(--ui-text)",
-
-        fontSize: "1.05rem",
         fontWeight: 800,
-        lineHeight: 1.2,
       },
 
       /*
@@ -207,14 +208,15 @@ const bottomSheetRecipe =
        * defaults visuales y deben seguir la precedencia del slot.
        */
       description: {
+        ...typographyRecipe({
+          role: "label",
+        }),
+
         margin:
           "0.35rem 0 0",
 
         color:
           "var(--ui-text-muted)",
-
-        fontSize:
-          "var(--ui-font-size-sm)",
       },
 
       body: {

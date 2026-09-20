@@ -1,3 +1,4 @@
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 
 import {
@@ -227,11 +228,9 @@ export function TargetDialogFrame<
                 color:
                   "var(--ui-text)",
 
-                fontSize:
-                  "var(--ui-font-size-sm)",
-
-                lineHeight:
-                  1.4,
+                ...typographyRecipe({
+                  role: "label",
+                }),
               }}
             >
               {error}

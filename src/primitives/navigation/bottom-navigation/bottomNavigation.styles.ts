@@ -40,7 +40,7 @@ import type {
 export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
   NavigationDestinationDensity,
   {
-    defaultHeight: number;
+    defaultHeight: number | string;
     listPaddingTop: string;
     listPaddingRight: string;
     listPaddingBottom: string;
@@ -54,33 +54,111 @@ export const BOTTOM_NAVIGATION_DENSITY_MAP: Record<
   }
 > = {
   compact: {
-    defaultHeight: 58,
-    listPaddingTop: "0.3rem",
-    listPaddingRight: "0.35rem",
-    listPaddingBottom: "0.3rem",
-    listPaddingLeft: "0.35rem",
-    itemPaddingTop: "0.2rem",
-    itemPaddingRight: "0.2rem",
-    itemPaddingBottom: "0.2rem",
-    itemPaddingLeft: "0.2rem",
-    iconSize: "1.05rem",
-    gap: "0.12rem",
+    defaultHeight:
+      "calc(var(--ui-density-compact-item-min-height) + var(--ui-density-compact-block-gap) + var(--ui-density-compact-block-gap))",
+
+    listPaddingTop:
+      "var(--ui-density-compact-inline-gap)",
+
+    listPaddingRight:
+      "var(--ui-density-compact-inline-gap)",
+
+    listPaddingBottom:
+      "var(--ui-density-compact-inline-gap)",
+
+    listPaddingLeft:
+      "var(--ui-density-compact-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-space-xs)",
+
+    itemPaddingRight:
+      "var(--ui-space-xs)",
+
+    itemPaddingBottom:
+      "var(--ui-space-xs)",
+
+    itemPaddingLeft:
+      "var(--ui-space-xs)",
+
+    iconSize:
+      "var(--ui-density-compact-icon-size)",
+
+    gap:
+      "var(--ui-density-compact-inline-gap)",
   },
 
   comfortable: {
-    defaultHeight: 68,
-    listPaddingTop: "0.4rem",
-    listPaddingRight: "0.45rem",
-    listPaddingBottom: "0.4rem",
-    listPaddingLeft: "0.45rem",
-    itemPaddingTop: "0.25rem",
-    itemPaddingRight: "0.25rem",
-    itemPaddingBottom: "0.25rem",
-    itemPaddingLeft: "0.25rem",
-    iconSize: "1.15rem",
-    gap: "0.2rem",
+    defaultHeight:
+      "calc(var(--ui-density-comfortable-item-min-height) + var(--ui-density-comfortable-block-gap) + var(--ui-density-comfortable-block-gap))",
+
+    listPaddingTop:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    listPaddingRight:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    listPaddingBottom:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    listPaddingLeft:
+      "var(--ui-density-comfortable-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-space-xs)",
+
+    itemPaddingRight:
+      "var(--ui-space-xs)",
+
+    itemPaddingBottom:
+      "var(--ui-space-xs)",
+
+    itemPaddingLeft:
+      "var(--ui-space-xs)",
+
+    iconSize:
+      "var(--ui-density-comfortable-icon-size)",
+
+    gap:
+      "var(--ui-density-comfortable-inline-gap)",
+  },
+
+  spacious: {
+    defaultHeight:
+      "calc(var(--ui-density-spacious-item-min-height) + var(--ui-density-spacious-block-gap) + var(--ui-density-spacious-block-gap))",
+
+    listPaddingTop:
+      "var(--ui-density-spacious-inline-gap)",
+
+    listPaddingRight:
+      "var(--ui-density-spacious-inline-gap)",
+
+    listPaddingBottom:
+      "var(--ui-density-spacious-inline-gap)",
+
+    listPaddingLeft:
+      "var(--ui-density-spacious-inline-gap)",
+
+    itemPaddingTop:
+      "var(--ui-space-sm)",
+
+    itemPaddingRight:
+      "var(--ui-space-sm)",
+
+    itemPaddingBottom:
+      "var(--ui-space-sm)",
+
+    itemPaddingLeft:
+      "var(--ui-space-sm)",
+
+    iconSize:
+      "var(--ui-density-spacious-icon-size)",
+
+    gap:
+      "var(--ui-density-spacious-inline-gap)",
   },
 };
+
 
 export function getRootPositionStyle(
   position: NavigationSurfacePosition
@@ -192,6 +270,30 @@ export const bottomNavigationRecipe =
             paddingLeft:
               BOTTOM_NAVIGATION_DENSITY_MAP
                 .comfortable
+                .listPaddingLeft,
+          },
+        },
+
+        spacious: {
+          list: {
+            paddingTop:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .spacious
+                .listPaddingTop,
+
+            paddingRight:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .spacious
+                .listPaddingRight,
+
+            paddingBottom:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .spacious
+                .listPaddingBottom,
+
+            paddingLeft:
+              BOTTOM_NAVIGATION_DENSITY_MAP
+                .spacious
                 .listPaddingLeft,
           },
         },

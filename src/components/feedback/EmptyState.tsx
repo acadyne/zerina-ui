@@ -1,4 +1,5 @@
 // src/components/feedback/EmptyState.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import {
   hasNonEmptyRenderableNode,
@@ -193,15 +194,15 @@ export const EmptyState = React.forwardRef<
       slotProps,
 
       baseStyle: {
+        ...typographyRecipe({
+          role:
+            compact
+              ? "title"
+              : "headline",
+        }),
+
         margin: 0,
-
-        fontSize:
-          compact
-            ? "var(--ui-font-size-lg)"
-            : "var(--ui-font-size-xl)",
-
         fontWeight: 800,
-        lineHeight: 1.2,
 
         color:
           "var(--ui-text)",
@@ -216,6 +217,13 @@ export const EmptyState = React.forwardRef<
       slotProps,
 
       baseStyle: {
+        ...typographyRecipe({
+          role:
+            compact
+              ? "label"
+              : "body",
+        }),
+
         margin:
           align === "center"
             ? "0 auto"
@@ -225,13 +233,6 @@ export const EmptyState = React.forwardRef<
           align === "center"
             ? 520
             : undefined,
-
-        fontSize:
-          compact
-            ? "var(--ui-font-size-sm)"
-            : "var(--ui-font-size-md)",
-
-        lineHeight: 1.5,
 
         color:
           "var(--ui-text-muted)",

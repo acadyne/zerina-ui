@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  typographyRecipe,
+} from "../../../theme/recipes";
+
+import {
   cssSize,
   type SlotStyleMap,
 } from "../../../helpers/css";
@@ -269,6 +273,11 @@ export const NAVIGATION_DESTINATION_ITEM_BASE_STYLES:
     },
 
     label: {
+      ...typographyRecipe({
+        role:
+          "label",
+      }),
+
       maxWidth: "100%",
       minWidth: 0,
 
@@ -339,6 +348,32 @@ export function createNavigationDestinationDensityVariants(
       icon: {
         fontSize:
           densityMap.comfortable.iconSize,
+      },
+    },
+
+    spacious: {
+      item: {
+        paddingTop:
+          densityMap.spacious.itemPaddingTop,
+
+        paddingRight:
+          densityMap.spacious.itemPaddingRight,
+
+        paddingBottom:
+          densityMap.spacious.itemPaddingBottom,
+
+        paddingLeft:
+          densityMap.spacious.itemPaddingLeft,
+      },
+
+      content: {
+        gap:
+          densityMap.spacious.gap,
+      },
+
+      icon: {
+        fontSize:
+          densityMap.spacious.iconSize,
       },
     },
   };

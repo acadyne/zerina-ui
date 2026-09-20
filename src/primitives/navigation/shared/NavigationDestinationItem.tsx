@@ -427,9 +427,6 @@ export function NavigationDestinationItem<
 
       baseStyle: {
         ...recipeStyles.label,
-
-        fontSize:
-          "var(--ui-font-size-xs)",
       },
     });
 

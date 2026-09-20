@@ -99,6 +99,18 @@ describe(
         ).toContain(
           '? "0 1 auto"',
         );
+
+        expect(
+          leading,
+        ).toContain(
+          'overflow:\n              "hidden"',
+        );
+
+        expect(
+          actions,
+        ).toContain(
+          'overflow:\n              "hidden"',
+        );
       },
     );
   },

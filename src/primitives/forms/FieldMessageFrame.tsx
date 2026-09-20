@@ -13,6 +13,10 @@ import {
 } from "../../helpers/css";
 
 import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
+import {
   FieldContext,
 } from "./field-context";
 
@@ -111,18 +115,15 @@ export const FieldMessageFrame =
             marginTop:
               "0.35rem",
 
-            fontSize:
-              "var(--ui-font-size-sm)",
+            ...typographyRecipe({
+              role:
+                "caption",
+            }),
 
             color:
               isError
                 ? "var(--ui-danger)"
                 : "var(--ui-text-muted)",
-
-            lineHeight:
-              isError
-                ? 1.25
-                : 1.35,
 
             wordBreak:
               "break-word",

@@ -290,6 +290,7 @@ function writeConsumer({
   surfaceRecipe,
   TargetFormDialog,
   toneRecipe,
+  typographyRecipe,
   UI_ELEVATIONS,
   UI_SHAPES,
   UI_SURFACE_ROLES,
@@ -423,6 +424,12 @@ const semanticInteractiveStyle =
       1,
   });
 
+const semanticTypographyStyle =
+  typographyRecipe({
+    role:
+      "headline",
+  });
+
 const themeElevation:
   ThemeElevationTokens = {
     level3:
@@ -452,6 +459,7 @@ void [
   semanticSurfaceStyle,
   semanticToneStyle,
   semanticInteractiveStyle,
+  semanticTypographyStyle,
   themeElevation,
   themeSpacing,
   themeDensity,

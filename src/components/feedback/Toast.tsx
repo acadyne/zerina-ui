@@ -22,7 +22,10 @@ import {
   hasRenderableNode,
 } from "../../core/react/nodePresence";
 import { useOptionalUIMotion } from "../../core/motion";
-import { interactiveStateRecipe } from "../../theme/recipes";
+import {
+  interactiveStateRecipe,
+  typographyRecipe,
+} from "../../theme/recipes";
 import type {
   FeedbackVariant,
 } from "./feedback.types";
@@ -428,10 +431,11 @@ export const Toast = React.forwardRef<
       slotProps,
 
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
         fontWeight: 800,
-        lineHeight: 1.45,
         color: "var(--ui-text)",
       },
     });
@@ -442,10 +446,11 @@ export const Toast = React.forwardRef<
       slotProps,
 
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
         fontWeight: 400,
-        lineHeight: 1.45,
         color: "var(--ui-text-muted)",
       },
     });

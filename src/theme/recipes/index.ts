@@ -28,3 +28,13 @@ export type {
   InteractiveStateRecipeStyle,
   UIInteractiveEmphasis,
 } from "./interactive-state-recipe";
+
+
+export {
+  typographyRecipe,
+} from "./typography-recipe";
+
+export type {
+  TypographyRecipeOptions,
+  TypographyRecipeStyle,
+} from "./typography-recipe";

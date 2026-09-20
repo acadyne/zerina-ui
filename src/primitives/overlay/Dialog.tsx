@@ -1,4 +1,5 @@
 // src/primitives/overlay/Dialog.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import { resolveOverlayId } from "../../core/overlay/overlayId";
 import {
@@ -206,23 +207,23 @@ const dialogRecipe = defineSlotRecipe<
     },
 
     title: {
-      margin: 0,
+      ...typographyRecipe({
+        role: "title",
+      }),
 
-      fontSize: "1.125rem",
+      margin: 0,
       fontWeight: 800,
-      lineHeight: 1.2,
 
       color:
         "var(--ui-text)",
     },
 
     description: {
+      ...typographyRecipe({
+        role: "label",
+      }),
+
       margin: 0,
-
-      fontSize:
-        "var(--ui-font-size-sm)",
-
-      lineHeight: 1.45,
 
       color:
         "var(--ui-text-muted)",

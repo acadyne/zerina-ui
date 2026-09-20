@@ -1,3 +1,8 @@
+import type {
+  UIDensity,
+} from "../../../core/viewport";
+
+
 export type NavigationSurfacePosition =
   | "fixed"
   | "sticky"
@@ -24,8 +29,7 @@ export type NavigationDestinationIndicator =
 
 
 export type NavigationDestinationDensity =
-  | "compact"
-  | "comfortable";
+  UIDensity;
 
 
 export type NavigationDestinationBadgeAnchor =

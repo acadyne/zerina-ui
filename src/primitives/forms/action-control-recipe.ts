@@ -2,6 +2,7 @@ import type React from "react";
 
 import {
   interactiveStateRecipe,
+  typographyRecipe,
   type InteractiveStateRecipeStyle,
 } from "../../theme/recipes";
 
@@ -16,7 +17,6 @@ export interface ActionControlSizeMetrics {
   minHeight: string;
   paddingBlock: string;
   paddingInline: string;
-  fontSize: string;
   radius: string;
 }
 
@@ -53,6 +53,40 @@ export interface IconButtonActionRecipe {
 }
 
 
+const ACTIVE_DENSITY_CONTROL_HEIGHT =
+  "var(--ui-density-control-height, var(--ui-control-h-md))";
+
+
+/*
+ * Preserve each component size as an offset from the canonical md control
+ * height. This keeps the density projection self-contained: styles-only
+ * consumers that provide the control height tokens do not also need an
+ * unrelated spacing token for the size calculation to remain valid.
+ */
+function densityAwareControlHeight(
+  size:
+    ActionControlSize,
+): string {
+  if (
+    size ===
+    "sm"
+  ) {
+    return `max(var(--ui-control-h-sm), calc(${ACTIVE_DENSITY_CONTROL_HEIGHT} - var(--ui-control-h-md) + var(--ui-control-h-sm)))`;
+  }
+
+
+  if (
+    size ===
+    "lg"
+  ) {
+    return `max(var(--ui-control-h-lg), calc(${ACTIVE_DENSITY_CONTROL_HEIGHT} - var(--ui-control-h-md) + var(--ui-control-h-lg)))`;
+  }
+
+
+  return `max(var(--ui-control-h-md), ${ACTIVE_DENSITY_CONTROL_HEIGHT})`;
+}
+
+
 const ACTION_CONTROL_SIZE_METRICS:
   Record<
     ActionControlSize,
@@ -60,7 +94,9 @@ const ACTION_CONTROL_SIZE_METRICS:
   > = {
     sm: {
       minHeight:
-        "var(--ui-control-h-sm)",
+        densityAwareControlHeight(
+          "sm",
+        ),
 
       paddingBlock:
         "var(--ui-control-padding-y-sm)",
@@ -68,16 +104,15 @@ const ACTION_CONTROL_SIZE_METRICS:
       paddingInline:
         "var(--ui-control-padding-x-sm)",
 
-      fontSize:
-        "var(--ui-font-size-sm)",
-
       radius:
         "var(--ui-radius-sm)",
     },
 
     md: {
       minHeight:
-        "var(--ui-control-h-md)",
+        densityAwareControlHeight(
+          "md",
+        ),
 
       paddingBlock:
         "var(--ui-control-padding-y-md)",
@@ -85,25 +120,21 @@ const ACTION_CONTROL_SIZE_METRICS:
       paddingInline:
         "var(--ui-control-padding-x-md)",
 
-      fontSize:
-        "var(--ui-font-size-md)",
-
       radius:
         "var(--ui-radius-md)",
     },
 
     lg: {
       minHeight:
-        "var(--ui-control-h-lg)",
+        densityAwareControlHeight(
+          "lg",
+        ),
 
       paddingBlock:
         "var(--ui-control-padding-y-lg)",
 
       paddingInline:
         "var(--ui-control-padding-x-lg)",
-
-      fontSize:
-        "var(--ui-font-size-lg)",
 
       radius:
         "var(--ui-radius-lg)",
@@ -209,6 +240,11 @@ export function getButtonActionRecipe({
         colorScheme,
       ),
 
+      ...typographyRecipe({
+        role:
+          "label",
+      }),
+
       appearance:
         "none",
 
@@ -222,19 +258,7 @@ export function getButtonActionRecipe({
         "center",
 
       gap:
-        "0.55rem",
-
-      lineHeight:
-        1.1,
-
-      fontWeight:
-        "var(--ui-font-weight-medium)",
-
-      fontSize:
-        metrics.fontSize,
-
-      letterSpacing:
-        "0.01em",
+        "var(--ui-density-inline-gap, var(--ui-space-sm))",
 
       touchAction:
         "manipulation",

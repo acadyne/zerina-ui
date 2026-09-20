@@ -29,7 +29,10 @@ import {
   DialogTitle,
 } from "../../primitives/overlay";
 import { Typography } from "../../primitives/typography";
-import { interactiveStateRecipe } from "../../theme/recipes";
+import {
+  interactiveStateRecipe,
+  typographyRecipe,
+} from "../../theme/recipes";
 
 export interface CommandPaletteItem {
   id: string;
@@ -110,31 +113,29 @@ export interface CommandTriggerProps
 const COMMAND_TRIGGER_SIZE_MAP: Record<
   CommandTriggerSize,
   {
-    height: number;
     paddingInline: string;
-    fontSize: string;
+    typographyRole:
+      "label" |
+      "body";
     iconSize: number;
     shortcutPadding: string;
   }
 > = {
   sm: {
-    height: 34,
     paddingInline: "0.75rem",
-    fontSize: "var(--ui-font-size-sm)",
+    typographyRole: "label",
     iconSize: 15,
     shortcutPadding: "0.06rem 0.36rem",
   },
   md: {
-    height: 38,
     paddingInline: "0.85rem",
-    fontSize: "var(--ui-font-size-sm)",
+    typographyRole: "label",
     iconSize: 16,
     shortcutPadding: "0.1rem 0.42rem",
   },
   lg: {
-    height: 44,
     paddingInline: "1rem",
-    fontSize: "var(--ui-font-size-md)",
+    typographyRole: "body",
     iconSize: 18,
     shortcutPadding: "0.14rem 0.48rem",
   },
@@ -343,7 +344,9 @@ export function CommandPalette({
       "data-ui-command-palette-title": "",
     },
     baseStyle: {
-      fontSize: "0.95rem",
+      ...typographyRecipe({
+        role: "body",
+      }),
     },
   });
 
@@ -904,12 +907,14 @@ export function CommandTrigger({
           maxWidth !== undefined
             ? cssSize(maxWidth)
             : undefined,
-        height: sizeStyles.height,
+        minHeight:
+          "var(--ui-density-control-height, var(--ui-control-h-md))",
         minWidth: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "0.75rem",
+        gap:
+          "var(--ui-density-inline-gap, 0.75rem)",
         paddingInline:
           sizeStyles.paddingInline,
         borderRadius: "9999px",
@@ -947,9 +952,10 @@ export function CommandTrigger({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            fontSize:
-              sizeStyles.fontSize,
-            lineHeight: 1.3,
+            ...typographyRecipe({
+              role:
+                sizeStyles.typographyRole,
+            }),
           }}
         >
           {children ?? placeholder}
@@ -970,11 +976,11 @@ export function CommandTrigger({
               "var(--ui-radius-md)",
             border:
               "1px solid var(--ui-border)",
+            ...typographyRecipe({
+              role: "caption",
+            }),
             color:
               "var(--ui-text-muted)",
-            fontSize:
-              "var(--ui-font-size-xs)",
-            lineHeight: 1.35,
           }}
         >
           {shortcut}

@@ -1,6 +1,10 @@
 import React from "react";
 
 import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
+import {
   Checkbox,
 } from "../../primitives/forms";
 
@@ -49,7 +53,6 @@ export interface DataTableDesktopBaseProps<
 
   minTableWidth: number;
   cellPadding: string;
-  fontSize: string;
 
   emptyState?:
     React.ComponentProps<
@@ -126,7 +129,6 @@ export function DataTableDesktopBase<
 
   minTableWidth,
   cellPadding,
-  fontSize,
 
   emptyState,
 
@@ -212,7 +214,10 @@ export function DataTableDesktopBase<
         tableLayout:
           "fixed",
 
-        fontSize,
+        ...typographyRecipe({
+          role:
+            "label",
+        }),
       },
     });
 

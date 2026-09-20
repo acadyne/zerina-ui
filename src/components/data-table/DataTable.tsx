@@ -49,8 +49,7 @@ export function DataTable<
   searchKeys,
   getRowId,
 
-  dense =
-    true,
+  dense,
 
   loading =
     false,

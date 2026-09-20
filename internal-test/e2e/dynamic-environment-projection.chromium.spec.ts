@@ -135,6 +135,54 @@ async function readRootProjection(
 }
 
 
+async function readDensityTargetHeights(
+  page:
+    Page,
+) {
+  return page.evaluate(
+    () => {
+      const readHeight = (
+        testId:
+          string,
+      ) => {
+        const element =
+          document.querySelector(
+            `[data-testid="${testId}"]`,
+          );
+
+        if (!(element instanceof HTMLElement)) {
+          throw new Error(
+            `Missing ${testId}`,
+          );
+        }
+
+        return element
+          .getBoundingClientRect()
+          .height;
+      };
+
+
+      return {
+        button:
+          readHeight(
+            "density-button",
+          ),
+
+        input:
+          readHeight(
+            "density-input",
+          ),
+
+        listItem:
+          readHeight(
+            "density-list-item",
+          ),
+      };
+    },
+  );
+}
+
+
 test(
   "projects motion and density through the existing document owners",
   async ({
@@ -147,6 +195,11 @@ test(
 
     const initial =
       await readRootProjection(
+        page,
+      );
+
+    const initialHeights =
+      await readDensityTargetHeights(
         page,
       );
 
@@ -255,6 +308,31 @@ test(
       spacious.spaciousControlHeight,
     ).not.toBe(
       spacious.comfortableControlHeight,
+    );
+
+
+    const spaciousHeights =
+      await readDensityTargetHeights(
+        page,
+      );
+
+
+    expect(
+      spaciousHeights.button,
+    ).toBeGreaterThan(
+      initialHeights.button,
+    );
+
+    expect(
+      spaciousHeights.input,
+    ).toBeGreaterThan(
+      initialHeights.input,
+    );
+
+    expect(
+      spaciousHeights.listItem,
+    ).toBeGreaterThan(
+      initialHeights.listItem,
     );
   },
 );

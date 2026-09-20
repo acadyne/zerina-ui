@@ -1,6 +1,22 @@
 // src/primitives/typography/Heading.tsx
 import React from "react";
 
+import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
+import type {
+  UITypographyRole,
+} from "../../theme/contracts/visual-semantics";
+
+export type HeadingTypographyRole =
+  Extract<
+    UITypographyRole,
+    | "display"
+    | "headline"
+    | "title"
+  >;
+
 export type HeadingSize =
   | "sm"
   | "md"
@@ -14,6 +30,7 @@ type HeadingOwnProps<
   as?: E;
   children?: React.ReactNode;
 
+  typographyRole?: HeadingTypographyRole;
   size?: HeadingSize;
   align?: React.CSSProperties["textAlign"];
 
@@ -83,7 +100,8 @@ function HeadingRender(
     children,
     as,
 
-    size = "lg",
+    typographyRole = "headline",
+    size,
     align,
 
     className = "",
@@ -105,8 +123,8 @@ function HeadingRender(
     pr,
 
     color,
-    weight = "var(--ui-font-weight-bold)",
-    leading = 1.2,
+    weight,
+    leading,
     tracking,
 
     ...rest
@@ -115,6 +133,12 @@ function HeadingRender(
   const Component: React.ElementType =
     as ?? "h2";
 
+  const roleStyle =
+    typographyRecipe({
+      role:
+        typographyRole,
+    });
+
   return React.createElement(
     Component,
     {
@@ -122,15 +146,32 @@ function HeadingRender(
       ref,
       className,
 
+      "data-ui-typography-role":
+        typographyRole,
+
       style: {
         fontFamily:
-          "var(--ui-font-family-display)",
-        fontWeight: weight,
-        fontSize: fontSizeMap[size],
+          roleStyle.fontFamily,
+
+        fontWeight:
+          weight ??
+          roleStyle.fontWeight,
+
+        fontSize:
+          size === undefined
+            ? roleStyle.fontSize
+            : fontSizeMap[size],
+
         textAlign: align,
         color,
-        lineHeight: leading,
-        letterSpacing: tracking,
+
+        lineHeight:
+          leading ??
+          roleStyle.lineHeight,
+
+        letterSpacing:
+          tracking ??
+          roleStyle.letterSpacing,
         minWidth: 0,
 
         width: w,

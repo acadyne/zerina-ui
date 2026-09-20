@@ -1,5 +1,9 @@
 // src/primitives/navigation/bottom-navigation/BottomNavigation.tsx
 import React from "react";
+
+import {
+  useOptionalUIViewport,
+} from "../../../core/viewport";
 import {
   useNavigationSelection,
 } from "../shared/navigationSelection";
@@ -38,7 +42,7 @@ const BottomNavigationRoot = React.forwardRef<
       variant = "surface",
       labelBehavior = "always",
       indicator = "background",
-      density = "comfortable",
+      density,
 
       badgeAnchor = "icon",
       badgePlacement = "top-end",
@@ -60,9 +64,17 @@ const BottomNavigationRoot = React.forwardRef<
     },
     ref
   ) => {
+    const viewport =
+      useOptionalUIViewport();
+
+    const resolvedDensity =
+      density ??
+      viewport?.density ??
+      "comfortable";
+
     const densityStyles =
       BOTTOM_NAVIGATION_DENSITY_MAP[
-        density
+        resolvedDensity
       ];
 
     const resolvedHeight =
@@ -86,7 +98,8 @@ const BottomNavigationRoot = React.forwardRef<
 
           labelBehavior,
           indicator,
-          density,
+          density:
+            resolvedDensity,
 
           badgeAnchor,
           badgePlacement,
@@ -107,7 +120,7 @@ const BottomNavigationRoot = React.forwardRef<
 
           labelBehavior,
           indicator,
-          density,
+          resolvedDensity,
 
           badgeAnchor,
           badgePlacement,
@@ -126,7 +139,8 @@ const BottomNavigationRoot = React.forwardRef<
 
     const recipeStyles =
       bottomNavigationRecipe({
-        density,
+        density:
+          resolvedDensity,
         position,
         variant,
         translucent,
@@ -154,7 +168,7 @@ const BottomNavigationRoot = React.forwardRef<
             variant,
 
           "data-ui-bottom-navigation-density":
-            density,
+            resolvedDensity,
 
           "data-ui-bottom-navigation-indicator":
             indicator,

@@ -212,30 +212,40 @@ const TOP_APP_BAR_SIZE_MAP: Record<
   {
     minHeight: number;
     paddingInline: string;
-    titleSize: "sm" | "md" | "lg";
-    subtitleSize: "xs" | "sm";
+    titleRole:
+      "title" |
+      "headline";
+    subtitleRole:
+      "caption" |
+      "label";
   }
 > = {
 
   sm: {
     minHeight: 48,
     paddingInline: "0.65rem",
-    titleSize: "sm",
-    subtitleSize: "xs",
+    titleRole:
+      "title",
+    subtitleRole:
+      "caption",
   },
 
   md: {
     minHeight: 56,
     paddingInline: "0.85rem",
-    titleSize: "md",
-    subtitleSize: "xs",
+    titleRole:
+      "title",
+    subtitleRole:
+      "caption",
   },
 
   lg: {
     minHeight: 68,
     paddingInline: "1rem",
-    titleSize: "lg",
-    subtitleSize: "sm",
+    titleRole:
+      "headline",
+    subtitleRole:
+      "label",
   },
 };
 
@@ -448,6 +458,11 @@ export const TopAppBar =
 
 
 
+      /*
+       * Each edge zone owns its geometry boundary. Responsive composition
+       * decides which actions to render; the app bar prevents a wide child
+       * from escaping its negotiated flex area and overlapping another zone.
+       */
       const leadingSlot =
         resolveSlot<TopAppBarSlot>({
           slot: "leading",
@@ -464,6 +479,9 @@ export const TopAppBar =
               centerTitle
                 ? "0 1 auto"
                 : "1 1 0",
+
+            overflow:
+              "hidden",
 
             position:
               "relative",
@@ -581,6 +599,9 @@ export const TopAppBar =
                 ? "0 1 auto"
                 : "0 0 auto",
 
+            overflow:
+              "hidden",
+
             position:
               "relative",
 
@@ -616,11 +637,9 @@ export const TopAppBar =
             {hasTitle ? (
               <Typography
                 as="div"
-                size={
-                  sizeStyles.titleSize
+                typographyRole={
+                  sizeStyles.titleRole
                 }
-                weight="var(--ui-font-weight-bold)"
-                leading={1.2}
                 {...titleSlot}
               >
                 {title}
@@ -631,11 +650,10 @@ export const TopAppBar =
             {hasSubtitle ? (
               <Typography
                 as="div"
-                size={
-                  sizeStyles.subtitleSize
+                typographyRole={
+                  sizeStyles.subtitleRole
                 }
                 color="var(--ui-text-muted)"
-                leading={1.25}
                 {...subtitleSlot}
               >
                 {subtitle}

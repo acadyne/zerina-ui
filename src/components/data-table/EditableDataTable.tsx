@@ -59,8 +59,7 @@ export function EditableDataTable<
   initialRowsPerPage =
     10,
 
-  dense =
-    true,
+  dense,
 
   loading =
     false,

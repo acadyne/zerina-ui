@@ -1,5 +1,6 @@
 // src/components/tree/TreeItem.tsx
 
+import { typographyRecipe } from "../../theme/recipes";
 import {
   useCallback,
   type FocusEvent,
@@ -516,10 +517,12 @@ export function TreeItem<TNode>({
       "data-ui-tree-loading": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       padding: "0.375rem 0.5rem",
       paddingLeft: `calc(2rem + ${(depth + 1) * 0.875}rem)`,
       color: "var(--ui-text-soft)",
-      fontSize: "var(--ui-font-size-xs)",
     },
   });
 
@@ -531,10 +534,12 @@ export function TreeItem<TNode>({
       "data-ui-tree-empty": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       padding: "0.375rem 0.5rem",
       paddingLeft: `calc(2rem + ${(depth + 1) * 0.875}rem)`,
       color: "var(--ui-text-soft)",
-      fontSize: "var(--ui-font-size-xs)",
       fontStyle: "italic",
     },
   });
@@ -547,13 +552,15 @@ export function TreeItem<TNode>({
       "data-ui-tree-error": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       display: "flex",
       alignItems: "center",
       gap: "0.5rem",
       padding: "0.375rem 0.5rem",
       paddingLeft: `calc(2rem + ${(depth + 1) * 0.875}rem)`,
       color: "var(--ui-danger)",
-      fontSize: "var(--ui-font-size-xs)",
     },
   });
 

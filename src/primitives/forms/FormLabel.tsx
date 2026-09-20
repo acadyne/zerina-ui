@@ -9,6 +9,10 @@ import {
 } from "../../helpers/css";
 
 import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
+import {
   FieldContext,
 } from "./field-context";
 
@@ -101,17 +105,13 @@ export const FormLabel =
             marginBottom:
               "0.35rem",
 
-            fontSize:
-              "var(--ui-font-size-sm)",
-
-            fontWeight:
-              650,
+            ...typographyRecipe({
+              role:
+                "label",
+            }),
 
             color:
               "var(--ui-text)",
-
-            lineHeight:
-              1.2,
           },
         });
 

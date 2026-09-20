@@ -1,5 +1,9 @@
 // src/primitives/navigation/navigation-rail/NavigationRail.tsx
 import React from "react";
+
+import {
+  useOptionalUIViewport,
+} from "../../../core/viewport";
 import {
   useNavigationSelection,
 } from "../shared/navigationSelection";
@@ -43,7 +47,7 @@ const NavigationRailRoot = React.forwardRef<
       variant = "surface",
       labelBehavior = "always",
       indicator = "background",
-      density = "comfortable",
+      density,
       alignment = "start",
 
       badgeAnchor = "icon",
@@ -66,9 +70,17 @@ const NavigationRailRoot = React.forwardRef<
     },
     ref
   ) => {
+    const viewport =
+      useOptionalUIViewport();
+
+    const resolvedDensity =
+      density ??
+      viewport?.density ??
+      "comfortable";
+
     const densityStyles =
       NAVIGATION_RAIL_DENSITY_MAP[
-        density
+        resolvedDensity
       ];
 
     const resolvedWidth =
@@ -92,7 +104,8 @@ const NavigationRailRoot = React.forwardRef<
 
           labelBehavior,
           indicator,
-          density,
+          density:
+            resolvedDensity,
 
           badgeAnchor,
           badgePlacement,
@@ -113,7 +126,7 @@ const NavigationRailRoot = React.forwardRef<
 
           labelBehavior,
           indicator,
-          density,
+          resolvedDensity,
 
           badgeAnchor,
           badgePlacement,
@@ -132,7 +145,8 @@ const NavigationRailRoot = React.forwardRef<
 
     const recipeStyles =
       navigationRailRecipe({
-        density,
+        density:
+          resolvedDensity,
         width: resolvedWidth,
         position,
         placement,
@@ -168,7 +182,7 @@ const NavigationRailRoot = React.forwardRef<
             variant,
 
           "data-ui-navigation-rail-density":
-            density,
+            resolvedDensity,
 
           "data-ui-navigation-rail-indicator":
             indicator,

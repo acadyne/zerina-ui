@@ -1,5 +1,6 @@
 // src/components/navigation-menu/NavigationMenuItem.tsx
 
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import { resolveSlot } from "../../helpers/css";
 import type { FloatingPlacement } from "../../core/overlay";
@@ -490,9 +491,11 @@ export function NavigationMenuItem<TItem>({
       "data-ui-navigation-menu-loading": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       padding: "0.6rem",
       color: "var(--ui-text-soft)",
-      fontSize: "var(--ui-font-size-xs)",
     },
   });
 
@@ -504,9 +507,11 @@ export function NavigationMenuItem<TItem>({
       "data-ui-navigation-menu-empty": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       padding: "0.6rem",
       color: "var(--ui-text-soft)",
-      fontSize: "var(--ui-font-size-xs)",
       fontStyle: "italic",
     },
   });
@@ -519,13 +524,15 @@ export function NavigationMenuItem<TItem>({
       "data-ui-navigation-menu-error": "",
     },
     baseStyle: {
+      ...typographyRecipe({
+        role: "caption",
+      }),
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
       gap: "0.5rem",
       padding: "0.6rem",
       color: "var(--ui-danger)",
-      fontSize: "var(--ui-font-size-xs)",
     },
   });
 

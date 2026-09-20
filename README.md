@@ -335,7 +335,7 @@ deben usar el contrato semántico vigente.
 
 ## Recipes visuales compartidas
 
-La riqueza visual no se define por componente. Tres recipes semánticas traducen
+La riqueza visual no se define por componente. Cuatro recipes semánticas traducen
 el vocabulario del theme a estilos consumibles:
 
 ```ts
@@ -343,6 +343,7 @@ import {
   interactiveStateRecipe,
   surfaceRecipe,
   toneRecipe,
+  typographyRecipe,
 } from "zerina-ui";
 
 const panel = surfaceRecipe({
@@ -364,6 +365,10 @@ const primaryAction = interactiveStateRecipe({
   hoverElevation: 3,
   pressedElevation: 1,
 });
+
+const headline = typographyRecipe({
+  role: "headline",
+});
 ```
 
 `surfaceRecipe` es el owner compartido de `surface role + elevation + shape +
@@ -376,9 +381,21 @@ pressed / selected / disabled`. No captura eventos ni mantiene estado:
 controles publican el vocabulario de estado existente y el CSS compartido lo
 proyecta desde las variables semánticas del recipe.
 
+`typographyRecipe` es el único traductor de `display / headline / title / body /
+label / caption` hacia family, size, weight, line-height y letter-spacing.
+`Typography` usa `typographyRole` para elegir ese contrato sin ocupar el
+atributo ARIA `role`; `Heading` limita la misma propiedad a roles de heading.
+Los props históricos `size` permanecen como overrides explícitos pre-1.0.
+
 Los componentes pueden exponer overrides cuando su contrato lo requiera, pero
-no deben mantener mapas paralelos de colores, superficies, elevación o state
-layers.
+no deben mantener mapas paralelos de colores, superficies, elevación,
+tipografía o state layers.
+
+La density efectiva sigue perteneciendo a `UIViewportProvider`. Sus aliases CSS
+activos se propagan a alturas, gaps, padding e iconografía de Button,
+Input/Select/Textarea, choice controls, List, Menu, navegación y DataTable.
+Un prop local de density sólo es un override explícito sobre las métricas del
+Theme; no resuelve viewport por segunda vez.
 
 `Typography`, `Heading` y el reset global consumen las familias tipográficas del
 theme. Cambiar la personalidad tipográfica de un theme debe propagarse sin

@@ -3,14 +3,29 @@
 
 /* Text control metrics */
 
+/*
+ * sm/md/lg keep their distance from the canonical md control height while the
+ * active density may raise that baseline. The formula intentionally depends
+ * only on control-height tokens so styles-only consumers remain valid.
+ */
 :where(
   [data-ui-control][data-size="sm"]
 ) {
   --ui-control-min-height:
-    var(--ui-control-h-sm);
+    max(
+      var(--ui-control-h-sm),
+      calc(
+        var(
+          --ui-density-control-height,
+          var(--ui-control-h-md)
+        )
+        - var(--ui-control-h-md)
+        + var(--ui-control-h-sm)
+      )
+    );
 
   --ui-control-font-size:
-    var(--ui-font-size-sm);
+    var(--ui-type-body-font-size);
 
   --ui-control-radius:
     var(--ui-radius-sm);
@@ -27,10 +42,16 @@
   [data-ui-control][data-size="md"]
 ) {
   --ui-control-min-height:
-    var(--ui-control-h-md);
+    max(
+      var(--ui-control-h-md),
+      var(
+        --ui-density-control-height,
+        var(--ui-control-h-md)
+      )
+    );
 
   --ui-control-font-size:
-    var(--ui-font-size-md);
+    var(--ui-type-body-font-size);
 
   --ui-control-radius:
     var(--ui-radius-md);
@@ -47,10 +68,20 @@
   [data-ui-control][data-size="lg"]
 ) {
   --ui-control-min-height:
-    var(--ui-control-h-lg);
+    max(
+      var(--ui-control-h-lg),
+      calc(
+        var(
+          --ui-density-control-height,
+          var(--ui-control-h-md)
+        )
+        - var(--ui-control-h-md)
+        + var(--ui-control-h-lg)
+      )
+    );
 
   --ui-control-font-size:
-    var(--ui-font-size-lg);
+    var(--ui-type-body-font-size);
 
   --ui-control-radius:
     var(--ui-radius-lg);
@@ -92,11 +123,20 @@
   color:
     var(--ui-text);
 
+  font-family:
+    var(--ui-type-body-font-family);
+
   font-size:
     var(--ui-control-font-size);
 
+  font-weight:
+    var(--ui-type-body-font-weight);
+
   line-height:
-    1.2;
+    var(--ui-type-body-line-height);
+
+  letter-spacing:
+    var(--ui-type-body-letter-spacing);
 
   background:
     var(--ui-surface);
@@ -174,7 +214,7 @@
     );
 
   line-height:
-    1.5;
+    var(--ui-type-body-line-height);
 }
 
 
@@ -187,7 +227,7 @@
     );
 
   line-height:
-    1.5;
+    var(--ui-type-body-line-height);
 }
 
 
@@ -200,7 +240,7 @@
     );
 
   line-height:
-    1.5;
+    var(--ui-type-body-line-height);
 }
 
 

@@ -468,7 +468,6 @@ function NavigationPresenterImpl<
           variant="floating"
           indicator="pill"
           labelBehavior="active"
-          density="comfortable"
           {...bottomProps}
           position="static"
           safeArea={
@@ -541,7 +540,6 @@ function NavigationPresenterImpl<
         variant="surface"
         indicator="pill"
         labelBehavior="active"
-        density="comfortable"
         badgeAnchor="icon"
         badgePlacement="top-end"
         {...railProps}

@@ -1,4 +1,5 @@
 // src/components/feedback/LoadingState.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 import {
   hasNonEmptyRenderableNode,
@@ -185,9 +186,10 @@ export const LoadingState = React.forwardRef<
       styles,
       slotProps,
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         margin: 0,
-        fontSize: "var(--ui-font-size-sm)",
-        lineHeight: 1.45,
         color: "var(--ui-text-muted)",
         textAlign: "center",
       },

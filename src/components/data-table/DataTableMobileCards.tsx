@@ -1,5 +1,9 @@
 // src/components/data-table/DataTableMobileCards.tsx
 
+import {
+  typographyRecipe,
+} from "../../theme/recipes";
+
 import { Checkbox, Input, Select } from "../../primitives/forms";
 import { resolveSlot } from "../../helpers/css";
 import type {
@@ -105,7 +109,10 @@ function renderEditableControl<T extends Record<string, unknown>>(
         style={{
           margin: 0,
           wordBreak: "break-word",
-          fontSize: "var(--ui-font-size-sm)",
+          ...typographyRecipe({
+            role:
+              "body",
+          }),
           color: "var(--ui-text)",
         }}
       >
@@ -274,8 +281,10 @@ export function DataTableMobileCards<
           slotProps,
           baseStyle: {
             margin: 0,
-            fontSize: "var(--ui-font-size-sm)",
-            fontWeight: 800,
+            ...typographyRecipe({
+              role:
+                "title",
+            }),
             color: "var(--ui-text)",
           },
         });
@@ -299,7 +308,10 @@ export function DataTableMobileCards<
           baseStyle: {
             margin: "0.75rem 0 0",
             wordBreak: "break-all",
-            fontSize: "var(--ui-font-size-sm)",
+            ...typographyRecipe({
+              role:
+                "caption",
+            }),
             color: "var(--ui-text-soft)",
           },
         });
@@ -344,8 +356,10 @@ export function DataTableMobileCards<
                     slotProps,
                     baseStyle: {
                       margin: "0 0 0.25rem",
-                      fontSize: "var(--ui-font-size-sm)",
-                      fontWeight: 800,
+                      ...typographyRecipe({
+                        role:
+                          "caption",
+                      }),
                       color: "var(--ui-text-muted)",
                     },
                   });
@@ -360,7 +374,10 @@ export function DataTableMobileCards<
                     baseStyle: {
                       margin: 0,
                       wordBreak: "break-word",
-                      fontSize: "var(--ui-font-size-sm)",
+                      ...typographyRecipe({
+                        role:
+                          "body",
+                      }),
                       color: "var(--ui-text)",
                     },
                   });

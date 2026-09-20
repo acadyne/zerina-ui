@@ -2,39 +2,37 @@
 
 ## Objetivo actual
 
-Preparar Zerina UI para `0.5.0` como un sistema visual rico, coherente y
+Preparar Zerina UI para `0.5.0` como un sistema visual coherente, rico y
 mobile-first cuya personalidad se propaga desde pocos owners semánticos.
 
 Proceso activo:
 
 ```text
-Fase 7D — Interactive Families
+Fase 7E — Typography + Control Density
 ```
 
-La referencia de calidad es una interfaz sistémica comparable en coherencia a
-Material/Flutter, sin copiar su API, sus componentes ni abrir familias
-paralelas.
-
-Regla visual:
+Regla visual vigente:
 
 > No agregar belleza por acumulación; hacer que la belleza se propague desde
 > pocos owners semánticos.
 
 ## Invariantes vigentes
 
-- no legacy ni aliases deprecated;
 - un solo owner por mecánica;
+- no legacy ni aliases deprecated;
 - `usePress` conserva el ownership de la mecánica interactiva;
-- recipes semánticas poseen la proyección visual compartida;
+- `UIThemeProvider` conserva el ownership del theme;
+- `UIViewportProvider` conserva la selección de viewport/density;
+- `UIMotionProvider` conserva la política temporal;
+- recipes semánticas traducen intención visual compartida;
 - no componentes `Material*` / `Flutter*`;
 - no nuevo mega-provider;
 - no segunda fuente de motion;
 - no segunda fuente de density;
 - no segundo resolver responsive;
-- no mapas locales de tone/surface/elevation/state-layers por componente;
+- no mapas locales paralelos de tone/surface/elevation/typography/state;
 - la demo no es owner del sistema visual;
-- la demo no oculta defectos de la librería;
-- si un defecto pertenece a la librería se corrige primero allí;
+- si la demo revela un defecto de librería, se corrige primero en la librería;
 - breaking changes son aceptables en pre-1.0;
 - cada fase se cierra únicamente con validación canónica.
 
@@ -45,15 +43,45 @@ Regla visual:
 - Fase 7B — Dynamic Environment Projection: **CERRADA Y VALIDADA**.
 - Fase 7C — Surface + Tone Recipes + Visual Cohesion:
   **CERRADA Y VALIDADA**.
-- Fase 7D — Interactive Families:
+- Fase 7D — Interactive Families: **CERRADA Y VALIDADA**.
+- Fase 7E — Typography + Control Density:
   **IMPLEMENTADA, PENDIENTE DE VALIDACIÓN CANÓNICA**.
-- Fase 7E — Typography + Control Density: no iniciada.
 - Fase 7F — Visual Lab Demo: no iniciada.
 - Fase 8 — release hardening / `0.5.0`: posterior.
 
-El usuario confirmó que los gates de librería y demo del último estado 7C
-pasaron. Ese gate incluye las estabilizaciones de DataTable, app bars
-responsive, recipes de surface/tone y la demo visual coherente.
+El package continúa en `0.4.0`. El bump a `0.5.0` pertenece a Fase 8, después
+de cerrar 7F y el hardening.
+
+## Validación canónica cerrada de 7D
+
+Librería:
+
+```text
+internal-test typecheck             PASS
+Vitest files                        107 / 107
+Vitest tests                        668 / 668
+internal-test build                 PASS
+Chromium                            72 / 72
+package typecheck                   PASS
+package pack / clean consumers      PASS
+React 18 consumer                   PASS
+React 19 consumer                   PASS
+ESM / CJS / CSS entry smoke         PASS
+git whitespace check                PASS
+Validation complete                 PASS
+```
+
+Demo:
+
+```text
+Demo contract verification          PASS
+sibling zerina-ui ESM/CJS/DTS       PASS
+demo TypeScript                     PASS
+demo production build               PASS
+pnpm dev + Vite forced optimize     PASS
+```
+
+Por tanto 7D no conserva trabajo abierto.
 
 ## Topología canónica
 
@@ -69,8 +97,8 @@ La demo consume:
 "zerina-ui": "file:../zerina-ui"
 ```
 
-`pnpm dev` de la demo sincroniza la librería y fuerza la reoptimización de Vite
-para evitar prebundles locales obsoletos.
+`pnpm dev` de la demo sincroniza la librería y usa Vite con `--force` para no
+ejecutar prebundles locales obsoletos.
 
 ## Owners visuales vigentes
 
@@ -78,7 +106,8 @@ para evitar prebundles locales obsoletos.
 Theme semantic contract
 ├── toneRecipe
 ├── surfaceRecipe
-└── interactiveStateRecipe
+├── interactiveStateRecipe
+└── typographyRecipe
         ↓
 existing component families
 ```
@@ -93,282 +122,253 @@ usePress
 slot recipes
 ```
 
-### `toneRecipe`
+## Fase 7E — Typography
 
-Owner de:
+Nuevo owner:
 
 ```text
-UITone + emphasis
-→ foreground / background / border
+src/theme/recipes/typography-recipe.ts
 ```
 
-### `surfaceRecipe`
-
-Owner de:
+`typographyRecipe` es el único traductor TypeScript de:
 
 ```text
-UISurfaceRole + UIElevation + UIShape + border
-→ surface style
+display
+headline
+title
+body
+label
+caption
 ```
 
-### `interactiveStateRecipe` — 7D
-
-Nuevo owner visual de:
+hacia:
 
 ```text
-rest
-hover
-focus-visible
-pressed
-selected
-disabled
+fontFamily
+fontSize
+fontWeight
+lineHeight
+letterSpacing
 ```
 
-Contrato:
+Los consumidores TS/TSX no seleccionan directamente variables
+`--ui-type-{role}-*`; declaran intención mediante `typographyRecipe`,
+`Typography` o `Heading`.
+
+`Typography` y `Heading` exponen:
 
 ```text
-usePress
-  = detecta y publica estado interactivo
-
-interactiveStateRecipe
-  = calcula variables visuales semánticas
-
-interactive-state.css
-  = proyecta data-* canónicos a CSS efectivo
+typographyRole
 ```
 
-`interactiveStateRecipe` no registra eventos, no contiene hooks y no crea
-providers.
-
-State-layer strengths viven en un solo lugar:
+para no ocupar el atributo nativo/ARIA:
 
 ```text
-hover    8%
-focus   10%
-pressed 14%
+role
 ```
 
-Las elevaciones de estado se resuelven mediante `surfaceRecipe`; no existe un
-segundo mapa de elevación.
-
-Focus y disabled reutilizan los tokens de interacción existentes:
+Así una instancia puede tener, por ejemplo:
 
 ```text
---ui-interaction-focus-ring-*
---ui-interaction-disabled-opacity
+typographyRole="caption"
+role="status"
 ```
 
-## Familias migradas en 7D
+sin mezclar semántica tipográfica con accesibilidad.
 
-La proyección compartida cubre las familias que usan el vocabulario canónico de
-press state:
+Los props históricos `size` permanecen como overrides explícitos de tamaño
+pre-1.0. No forman una segunda ontología tipográfica.
+
+El reset global consume el role `body`, por lo que la personalidad tipográfica
+del theme alcanza también texto plano.
+
+## Fase 7E — Control Density
+
+El Theme sigue definiendo las métricas disponibles y `UIViewportProvider`
+continúa seleccionando la density efectiva.
+
+Aliases activos ya proyectados desde 7B:
 
 ```text
-Button
-IconButton
-ControlAction
-MenuItem
-List interactiva
-FloatingActionButton
-Card interactiva
-Tag remove
-Toast close
-CommandTrigger
+--ui-density-control-height
+--ui-density-item-min-height
+--ui-density-inline-gap
+--ui-density-block-gap
+--ui-density-content-padding
+--ui-density-icon-size
+```
+
+7E extiende su consumo a:
+
+```text
+Button / IconButton
+Input / Select / Textarea
+choice controls
+List
+Menu
 NavigationList
-BottomNavigation / NavigationRail destinations
+BottomNavigation
+NavigationRail
+CommandPalette
+DataTable
 ```
 
-`Button` e `IconButton` consumen el owner mediante `action-control-recipe`.
+No existe un nuevo resolver de viewport, pointer o breakpoints en estas
+familias.
 
-`Pressable` y `TriggerRuntime` permanecen como mecánica sin personalidad
-visual. No se les agregó un styling owner.
+Reglas:
 
-Controles de texto/choice, DataTable selection, Tree selection y la opción
-activa de CommandPalette conservan sus semánticas especializadas cuando no
-representan el vocabulario `usePress` compartido.
+- `compact / comfortable / spacious` siguen perteneciendo al vocabulario
+  `UIDensity`;
+- `NavigationDestinationDensity = UIDensity`;
+- BottomNavigation y NavigationRail usan la density del
+  `UIViewportProvider` cuando no hay override explícito;
+- DataTable sin `dense` usa la density activa; `dense={true|false}` permanece
+  como override explícito;
+- tamaños de componente (`sm/md/lg`) conservan su intención local, pero sus
+  métricas mínimas respetan la density del entorno;
+- jerarquía/indentación semántica no se convierte en un segundo sistema de
+  density.
 
-## Cleanup de ownership
-
-Retirado del source de producto:
-
-```text
---ui-action-*
-SCHEME_MAP
-hover/pressed CSS local en familias migradas
-```
-
-Invariante reforzada:
-
-```text
-data-hovered / data-pressed en CSS
-→ sólo interactive-state.css
-```
-
-Los CSS de familia pueden conservar geometría, layout o estados funcionales
-especializados, pero no recrear state layers genéricos.
-
-También se corrigieron dos bordes detectados durante la implementación:
-
-- `Card` estático conserva la elevación de `surfaceRecipe` cuando no existe
-  override `shadow`; la Card interactiva deja el shadow a
-  `interactiveStateRecipe`;
-- `MenuItem` y Card interactiva ya no bloquean el focus ring compartido con
-  `outline: none` inline/local.
-
-## Contrato público
-
-`interactiveStateRecipe` y sus tipos se exportan desde `zerina-ui`.
-
-El clean-consumer de `scripts/verify-package.mjs` ahora importa y usa:
-
-```text
-toneRecipe
-surfaceRecipe
-interactiveStateRecipe
-```
-
-para comprobar que las recipes semánticas forman parte del package real y no
-sólo del source interno.
-
-## Regresiones de 7D
+## Regresiones de 7E
 
 Nuevas:
 
 ```text
-interactive-state-recipe-phase-7d.test.ts
-interactive-state-recipe-ownership-phase-7d.test.ts
+typography-control-density-phase-7e.test.tsx
+typography-control-density-ownership-phase-7e.test.ts
 ```
 
 Reforzadas:
 
 ```text
-forms-block7-architecture-contract.test.ts
-forms-block7-behavior.test.tsx
+dynamic-environment-projection.chromium.spec.ts
+browser-environment.tsx
+semantics-phase-e4-type-equivalence.test.ts
 public-surface-contract.test.ts
-forms-block7.chromium.spec.ts
+public-surface-types.test.ts
 scripts/verify-package.mjs
 ```
 
-La regresión Chromium añadida comprueba sobre un Button real:
+La regresión Chromium existente de environment projection ahora comprueba
+también geometría DOM real:
 
 ```text
-rest
-→ hover cambia surface
-→ pressed cambia surface nuevamente
+comfortable
+  ↓
+Button / Input / List.Item
+
+spacious
+  ↓
+sus alturas computadas aumentan
 ```
 
-El test de ownership recorre CSS de producto y falla si reaparecen
-`data-hovered` o `data-pressed` fuera del owner compartido.
+Eso valida propagación efectiva y no sólo presencia de atributos/variables.
 
-## Demo
-
-7D no añade un nuevo sistema visual a la demo.
-
-Permanece vigente el estado validado de 7C:
-
-- `Zerina Workspace` como experiencia principal;
-- una sola entrada `Apariencia`;
-- theme + viewport desde sus providers existentes;
-- shell responsive sin superposición;
-- iconografía Lucide coherente;
-- DataTable responsive/estable;
-- Visual System como observador, no segundo mutador de theme.
-
-La demo consume los cambios interactivos indirectamente desde la librería.
-
-## Validación disponible en este runtime
-
-Estas comprobaciones son auxiliares y no sustituyen el gate canónico:
+El clean consumer del package importa y usa:
 
 ```text
-TS/TSX parse librería + demo        517 / PASS
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+typographyRecipe
+```
+
+## Validación auxiliar disponible en este runtime
+
+Estas comprobaciones no sustituyen `pnpm validate`:
+
+```text
+TS/TSX parse librería + demo        520 / PASS
 syntax errors                         0
-interactive recipe strict typecheck PASS
 verify-package Node syntax          PASS
+verify-demo Node syntax             PASS
 demo contract verification          PASS
-STATE_LAYER_STRENGTH owners           1
-legacy --ui-action-* in src           0
-legacy SCHEME_MAP in src              0
-CSS local data-hovered/pressed         0
+TYPOGRAPHY_ROLE_TOKENS owners          1
+TS/TSX direct semantic type picks      0
+hardcoded density="comfortable"        0
+semantic typography via ARIA role      0
 ```
 
+También se verificó estáticamente que BottomNavigation y NavigationRail
+consumen `useOptionalUIViewport()` / `viewport?.density` y no introducen
+`matchMedia`, `innerWidth` ni `clientWidth`.
 
-## Último intento canónico de 7D
 
-El último gate real de la librería superó typecheck y llegó a Vitest:
+## Último intento de validación canónica 7E
+
+El gate de la librería ya supera typecheck, toda la suite Vitest y el build
+interno.
+
+Estado observado:
 
 ```text
 internal-test typecheck             PASS
-Vitest files                        106 / 107
-Vitest tests                        667 / 668
-internal-test build                 no ejecutado
-Chromium                            no ejecutado
-package gate                        no ejecutado
+Vitest files                        109 / 109 PASS
+Vitest tests                        676 / 676 PASS
+internal-test build                 PASS
+Chromium                            69 / 72 PASS
+package typecheck                   no ejecutado en este intento
+package verify                      no ejecutado en este intento
 demo gate                           no ejecutado
 ```
 
-El único fallo fue una regresión de **test de ownership**, no de producto:
+Fallos Chromium observados:
 
 ```text
-interactive-state-recipe-ownership-phase-7d.test.ts
-→ "keeps List background ownership static-only..."
+1. Button / IconButton sm-md-lg:
+   diferencia de altura > 1 px.
+
+2. Text controls:
+   min-height esperado desde --ui-control-h-* resolvía a 0 px.
+
+3. TopAppBar a 320 px:
+   body.scrollWidth > body.clientWidth.
 ```
 
-Causa confirmada:
-
-el test buscaba un `background` dentro de un selector exacto
-`[data-ui-list-item] { ... }` mediante:
+Causas consolidadas por inspección del source:
 
 ```text
-[\s\S]*?
+- la proyección density-aware de sm/lg dependía de --ui-space-sm;
+- los fixtures styles-only de Block 4 / Block 7 publican los tokens de
+  control height pero no ese token de spacing;
+- al quedar inválido el calc(), se perdía la métrica de control;
+- TopAppBar permitía que el contenido intrínseco de leading/actions escapara
+  visualmente del área flex ya negociada cuando los controles crecían por
+  density.
 ```
 
-Ese patrón atraviesa cierres `}`. Por ello comenzaba en una regla de motion que
-contiene `[data-ui-list-item] { transition-duration: ... }` y terminaba
-encontrando el `background` de una regla estática posterior:
+Corrección consolidada en este estado:
 
 ```text
-[data-ui-list-item]:not([data-interactive]) { background: ... }
+- sm/lg conservan su offset respecto a --ui-control-h-md usando únicamente
+  --ui-control-h-sm/md/lg + --ui-density-control-height;
+- action-control-recipe.ts y controls.css comparten esa misma semántica;
+- no se añadió otro token, provider ni resolver responsive;
+- leading / actions de TopAppBar contienen horizontalmente a sus hijos dentro
+  del área flex negociada; center ya conservaba overflow contenido;
+- se reforzaron tests de ownership para impedir que la proyección de altura
+  vuelva a depender de spacing y para preservar los límites geométricos del
+  TopAppBar.
 ```
 
-La implementación de producto ya expresa correctamente el ownership:
+Este ajuste todavía requiere rerun del gate canónico.
+
+## No validado todavía
+
+El runtime actual no sustituye el gate canónico de pnpm.
+
+Pendiente sobre este mismo estado:
 
 ```text
-List estática
-  → list.css puede poseer background
-
-List interactiva
-  → interactiveStateRecipe posee background de estados
+library pnpm validate
+demo pnpm validate
+demo pnpm dev / revisión manual
 ```
 
-Corrección aplicada:
+No afirmar 7E cerrada hasta esos PASS.
 
-```text
-ownership test
-  → limita la búsqueda al mismo bloque CSS con [^}]*
-  → ya no cruza reglas independientes
-```
-
-No se modificó:
-
-```text
-list.css
-interactiveStateRecipe
-usePress
-API pública
-```
-
-Las dos correcciones de Chromium del intento anterior (List hover y FAB
-focus-visible) siguen pendientes de revalidación porque este gate se detuvo en
-Vitest antes de volver a ejecutar Chromium.
-
-Estado:
-
-```text
-7D  IMPLEMENTADA, PENDIENTE DE RERUN CANÓNICO
-```
-
-## Gate requerido para cerrar 7D
+## Gate requerido para cerrar 7E
 
 Primero librería:
 
@@ -390,29 +390,32 @@ pnpm dev
 Revisión manual mínima:
 
 ```text
-- Button/IconButton: hover, focus-visible, pressed y disabled coherentes;
-- FAB/Card interactiva: elevación cambia sin saltos;
-- Menu/List/navigation: estados comparten el mismo lenguaje;
-- theme switching conserva personalidad sin branches por componente;
-- mobile/tablet/desktop siguen sin overlap/overflow;
-- DataTable conserva edición/selección estable;
-- consola sin errores.
+- cambiar Vista entre Auto / Mobile / Tablet / Desktop;
+- comprobar que controles cambian de densidad sin romper layout;
+- comprobar Button, inputs, List/Menu y navegación;
+- comprobar DataTable editable y responsive;
+- cambiar themes y verificar personalidad tipográfica;
+- consola sin errores;
+- sin overlap ni overflow estructural.
 ```
-
-7D sólo se cierra con ambos gates en PASS y revisión runtime satisfactoria.
 
 ## Siguiente paso tras PASS
 
-Fase 7E — Typography + Control Density.
+Fase 7F — Visual Lab Demo.
 
-Objetivo previsto:
+Objetivo:
 
 ```text
-Theme typography/density
-        ↓
-roles y métricas activas
-        ↓
-controles existentes
+demo realista
+  ↓
+escenarios canónicos de themes / density / motion / estados
+  ↓
+validación perceptual + geométrica
+  ↓
+Fase 8 hardening
+  ↓
+0.5.0
 ```
 
-7E no debe crear otro sistema de typography ni otro resolver de density.
+7F debe observar y demostrar los owners existentes, no crear un segundo sistema
+visual.

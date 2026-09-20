@@ -1,4 +1,5 @@
 // src/primitives/overlay/Drawer.tsx
+import { typographyRecipe } from "../../theme/recipes";
 import React from "react";
 
 import {
@@ -139,13 +140,13 @@ const drawerRecipe = defineSlotRecipe<
     },
 
     title: {
+      ...typographyRecipe({
+        role: "title",
+      }),
+
       margin: 0,
-
       color: "var(--ui-text)",
-
-      fontSize: "1.05rem",
       fontWeight: 800,
-      lineHeight: 1.2,
     },
 
     /*
@@ -153,10 +154,12 @@ const drawerRecipe = defineSlotRecipe<
      * defaults visuales y deben seguir la precedencia del slot.
      */
     description: {
-      margin: "0.35rem 0 0",
+      ...typographyRecipe({
+        role: "label",
+      }),
 
+      margin: "0.35rem 0 0",
       color: "var(--ui-text-muted)",
-      fontSize: "var(--ui-font-size-sm)",
     },
 
     body: {

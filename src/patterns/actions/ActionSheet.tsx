@@ -167,8 +167,7 @@ export const ActionSheet = (({
         >
           <List
             variant="plain"
-            density="comfortable"
-            spacing="0.4rem"
+              spacing="0.4rem"
           >
             {children}
           </List>

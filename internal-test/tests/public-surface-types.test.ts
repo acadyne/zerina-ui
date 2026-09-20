@@ -17,6 +17,7 @@ import type {
   CreateThemeDefinitionInput,
   DialogSize,
   FloatingPlacement,
+  HeadingTypographyRole,
   InputSize,
   InputVariant,
   NavigationActiveBehavior,
@@ -257,6 +258,10 @@ describe(
           UITypographyRole =
           "headline";
 
+        const headingTypographyRole:
+          HeadingTypographyRole =
+          "display";
+
         const elevationTokens:
           ThemeElevationTokens = {
             level3:
@@ -456,6 +461,7 @@ describe(
           elevation,
           shape,
           typographyRole,
+          headingTypographyRole,
           elevationTokens.level3,
           spacingTokens.md,
           densityTokens
@@ -467,6 +473,7 @@ describe(
           3,
           "lg",
           "headline",
+          "display",
           "0 12px 32px rgba(0,0,0,0.2)",
           "0.75rem",
           "3rem",

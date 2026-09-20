@@ -5,6 +5,9 @@ import {
 } from "react-dom/client";
 
 import {
+  Button,
+  Input,
+  List,
   ZerinaProvider,
   useUIMotion,
   useUIViewport,
@@ -46,6 +49,24 @@ function EnvironmentControls({
       >
         {viewport.density}
       </output>
+
+      <Button
+        data-testid="density-button"
+      >
+        Density action
+      </Button>
+
+      <Input
+        aria-label="Density input"
+        data-testid="density-input"
+      />
+
+      <List>
+        <List.Item
+          data-testid="density-list-item"
+          title="Density item"
+        />
+      </List>
 
       <button
         type="button"

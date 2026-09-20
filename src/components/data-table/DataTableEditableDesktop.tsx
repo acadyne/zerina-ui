@@ -257,7 +257,7 @@ export function DataTableEditableDesktop<
   sortConfig = null,
   onSort,
 
-  dense = true,
+  dense,
   minTableWidth = 860,
 
   emptyState,
@@ -270,14 +270,11 @@ export function DataTableEditableDesktop<
   IDType
 >) {
   const cellPadding =
-    dense
-      ? "8px"
-      : "12px";
-
-  const fontSize =
-    dense
-      ? "0.88rem"
-      : "0.96rem";
+    dense === true
+      ? "var(--ui-density-compact-content-padding)"
+      : dense === false
+        ? "var(--ui-density-comfortable-content-padding)"
+        : "var(--ui-density-content-padding, var(--ui-density-comfortable-content-padding))";
 
   return (
     <DataTableDesktopBase<
@@ -317,9 +314,6 @@ export function DataTableEditableDesktop<
       }
       cellPadding={
         cellPadding
-      }
-      fontSize={
-        fontSize
       }
       emptyState={
         emptyState

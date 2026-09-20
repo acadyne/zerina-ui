@@ -258,7 +258,7 @@ const SettingsListRoot =
     (
       {
         children,
-        density = "comfortable",
+        density,
         variant = "outlined",
         ...rest
       },

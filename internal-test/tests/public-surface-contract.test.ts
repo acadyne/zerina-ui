@@ -80,6 +80,7 @@ describe(
             "toneRecipe",
             "surfaceRecipe",
             "interactiveStateRecipe",
+            "typographyRecipe",
           ]
         ) {
           expect(

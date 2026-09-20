@@ -1,5 +1,6 @@
 // src/components/navigation-menu/NavigationMenu.tsx
 
+import { typographyRecipe } from "../../theme/recipes";
 import {
   forwardRef,
   useCallback,
@@ -1015,10 +1016,11 @@ function NavigationMenuInner<TItem>(
           "",
       },
       baseStyle: {
+        ...typographyRecipe({
+          role: "label",
+        }),
         padding: "0.75rem",
         color: "var(--ui-text-soft)",
-        fontSize:
-          "var(--ui-font-size-sm)",
         fontStyle: "italic",
       },
     });
