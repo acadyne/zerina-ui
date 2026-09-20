@@ -32,9 +32,8 @@ type Measurements = {
   scrollClientHeight: number;
   scrollHeight: number;
   rootSlotPresent: boolean;
-  scrollSlotPresent: boolean;
-  screenPropsPresent: boolean;
-  scrollPropsPresent: boolean;
+  directRootPropsPresent: boolean;
+  contentScrollPresent: boolean;
 };
 
 
@@ -529,9 +528,8 @@ export function ScaffoldDebug() {
     scrollClientHeight: 0,
     scrollHeight: 0,
     rootSlotPresent: false,
-    scrollSlotPresent: false,
-    screenPropsPresent: false,
-    scrollPropsPresent: false,
+    directRootPropsPresent: false,
+    contentScrollPresent: false,
   });
 
   const updateMeasurements =
@@ -544,7 +542,7 @@ export function ScaffoldDebug() {
 
       const scrollElement =
         scaffold?.querySelector<HTMLElement>(
-          "[data-debug-scaffold-scroll]"
+          "[data-debug-screen-content-scroll]"
         ) ?? null;
 
       setMeasurements({
@@ -567,18 +565,14 @@ export function ScaffoldDebug() {
             "data-debug-root-slot"
           ) ?? false,
 
-        scrollSlotPresent:
-          scrollElement?.hasAttribute(
-            "data-debug-scroll-slot"
-          ) ?? false,
-
-        screenPropsPresent:
+        directRootPropsPresent:
           scaffold?.id ===
-          "debug-scaffold-screen-props",
+          "debug-scaffold-root",
 
-        scrollPropsPresent:
-          scrollElement?.id ===
-          "debug-scaffold-scroll-props",
+        contentScrollPresent:
+          scrollElement?.hasAttribute(
+            "data-debug-screen-content-scroll"
+          ) ?? false,
       });
     }, []);
 
@@ -655,7 +649,7 @@ export function ScaffoldDebug() {
             }}
           >
             Validación de viewport contenido y de ventana, composición
-            de props y slots, scroll administrado, contenido flotante,
+            de props y slots, ownership único de scroll, contenido flotante,
             regiones opcionales, valores ReactNode falsy y ref al
             elemento raíz.
           </Box>
@@ -667,9 +661,9 @@ export function ScaffoldDebug() {
           description={
             <>
               El Scaffold debe ocupar exactamente el alto del padre.
-              También se combinan <code>screenProps</code>,{" "}
-              <code>scrollProps</code>, <code>styles</code> y{" "}
-              <code>slotProps</code>.
+              Las props del Screen raíz se reciben directamente y se
+              componen con <code>styles</code> y <code>slotProps</code>.
+              El scroll pertenece a <code>ScreenContent</code>.
             </>
           }
         >
@@ -712,7 +706,7 @@ export function ScaffoldDebug() {
                 );
               }}
             >
-              scaffold scrollable:{" "}
+              content scrollable:{" "}
               {String(scrollable)}
             </Button>
 
@@ -799,24 +793,19 @@ export function ScaffoldDebug() {
               measurements.rootSlotPresent
             )}
             <br />
-            slotProps.scroll presente:{" "}
+            props directas del root presentes:{" "}
             {String(
-              measurements.scrollSlotPresent
+              measurements.directRootPropsPresent
             )}
             <br />
-            screenProps presente:{" "}
+            scroll de ScreenContent presente:{" "}
             {String(
-              measurements.screenPropsPresent
-            )}
-            <br />
-            scrollProps presente:{" "}
-            {String(
-              measurements.scrollPropsPresent
+              measurements.contentScrollPresent
             )}
             <br />
             Responsable del scroll:{" "}
             {scrollable
-              ? "Scaffold / Screen.Scroll"
+              ? "ScreenContent / ScrollArea"
               : "ninguno en este ejemplo"}
             <br />
             Última acción:{" "}
@@ -829,7 +818,12 @@ export function ScaffoldDebug() {
             <Scaffold
               ref={scaffoldRef}
               viewport="contained"
-              scrollable={scrollable}
+              id="debug-scaffold-root"
+              safeArea={{
+                top: true,
+                bottom: true,
+              }}
+              className="debug-scaffold-root"
               appBar={
                 showAppBar ? (
                   <DemoAppBar
@@ -882,36 +876,11 @@ export function ScaffoldDebug() {
                   />
                 ) : null
               }
-              screenProps={{
-                id:
-                  "debug-scaffold-screen-props",
-
-                safeArea: {
-                  top: true,
-                  bottom: true,
-                },
-
-                className:
-                  "debug-scaffold-screen-props",
-
-                style: {
-                  outline:
-                    "2px solid color-mix(in srgb, var(--ui-primary) 18%, transparent)",
-                  outlineOffset:
-                    "-2px",
-                },
-              }}
-              scrollProps={{
-                id:
-                  "debug-scaffold-scroll-props",
-
-                className:
-                  "debug-scaffold-scroll-props",
-
-                style: {
-                  scrollPaddingTop:
-                    "0.75rem",
-                },
+              style={{
+                outline:
+                  "2px solid color-mix(in srgb, var(--ui-primary) 18%, transparent)",
+                outlineOffset:
+                  "-2px",
               }}
               styles={{
                 root: {
@@ -922,11 +891,6 @@ export function ScaffoldDebug() {
                 body: {
                   background:
                     "color-mix(in srgb, var(--ui-surface) 35%, transparent)",
-                },
-
-                scroll: {
-                  paddingTop:
-                    "0.25rem",
                 },
 
                 floating: {
@@ -944,14 +908,6 @@ export function ScaffoldDebug() {
                     "",
                 },
 
-                scroll: {
-                  "data-debug-scaffold-scroll":
-                    "",
-
-                  "data-debug-scroll-slot":
-                    "",
-                },
-
                 floating: {
                   "data-debug-floating-slot":
                     "",
@@ -965,7 +921,13 @@ export function ScaffoldDebug() {
             >
               <ScreenContent
                 padded={padded}
-                scrollable={false}
+                scrollable={scrollable}
+                slotProps={{
+                  scrollArea: {
+                    "data-debug-screen-content-scroll":
+                      "",
+                  },
+                }}
               >
                 <DemoContent
                   tab={tab}
@@ -1007,16 +969,15 @@ export function ScaffoldDebug() {
           title="Scroll administrado por ScreenContent"
           description={
             <>
-              En este ejemplo <code>Scaffold.scrollable=false</code> y{" "}
-              <code>ScreenContent.scrollable=true</code>. Solo debe
-              existir una superficie responsable del scroll.
+              En este ejemplo el Scaffold sólo estructura regiones y{" "}
+              <code>ScreenContent.scrollable=true</code> posee el scroll.
+              No existe un segundo owner en el shell.
             </>
           }
         >
           <PhoneSandbox height={520}>
             <Scaffold
               viewport="contained"
-              scrollable={false}
               appBar={
                 <TopAppBar
                   title="Scroll interno"
@@ -1081,7 +1042,6 @@ export function ScaffoldDebug() {
           >
             <Scaffold
               viewport="window"
-              scrollable
               appBar={
                 <TopAppBar
                   title="Viewport window"
@@ -1124,7 +1084,7 @@ export function ScaffoldDebug() {
             >
               <ScreenContent
                 padded
-                scrollable={false}
+                scrollable
               >
                 <DemoContent
                   tab="activity"
@@ -1276,29 +1236,29 @@ export function ScaffoldDebug() {
             </li>
 
             <li>
-              Los atributos de <code>screenProps</code>,{" "}
-              <code>scrollProps</code> y <code>slotProps</code> están
-              presentes simultáneamente.
+              Las props del root de <code>Screen</code> se reciben
+              directamente en <code>Scaffold</code>; no existe
+              <code>screenProps</code>.
             </li>
 
             <li>
-              Los estilos de <code>screenProps.style</code> y{" "}
-              <code>styles.root</code> se componen sin desaparecer.
+              <code>style</code> y <code>styles.root</code> se
+              componen sobre el mismo nodo raíz.
             </li>
 
             <li>
-              Los estilos de <code>scrollProps.style</code> y{" "}
-              <code>styles.scroll</code> se conservan.
+              <code>Scaffold</code> no crea una superficie de scroll;
+              el contenido usa <code>ScreenContent</code>/<code>ScrollArea</code>.
             </li>
 
             <li>
-              Cuando Scaffold administra el scroll, ScreenContent usa{" "}
-              <code>scrollable=false</code>.
+              Cuando el contenido necesita scroll, existe un único
+              owner semántico: <code>ScreenContent</code>.
             </li>
 
             <li>
-              Cuando ScreenContent administra el scroll, Scaffold usa{" "}
-              <code>scrollable=false</code>.
+              <code>ScrollArea</code> conserva la mecánica de scroll;
+              <code>ScreenContent</code> sólo la compone para contenido.
             </li>
 
             <li>

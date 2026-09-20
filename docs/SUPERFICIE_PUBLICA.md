@@ -213,3 +213,35 @@ runtime dependencies     idénticas
 El ciclo sí contiene cambios deliberados dentro de contratos existentes, por ejemplo `mx/my` en Inline/Wrap y correcciones semánticas de interacción/overlays.
 
 La estabilidad de entry points no implica que el conjunto completo de cambios deba publicarse con el mismo número de versión; esa decisión se toma después de G.
+
+## Cambio de superficie — shell consolidado
+
+La siguiente evolución elimina caminos redundantes de composición:
+
+Retirado:
+
+```text
+Screen.Scroll
+ScreenScroll
+ScreenScrollProps
+
+Scaffold.scrollable
+Scaffold.scrollProps
+Scaffold.screenProps
+ScaffoldSlot "scroll"
+
+AdaptiveScaffold.scaffoldProps
+AdaptiveScaffold.navigationWidth
+```
+
+Contrato único:
+
+```text
+Scaffold.safeArea / topInset / bottomInset / root props
+ScreenContent.scrollable
+ScrollArea
+AdaptiveScaffold.sidebarWidth
+AdaptiveScaffold.navigationRailProps.width
+```
+
+No se mantienen aliases ni wrappers de compatibilidad.

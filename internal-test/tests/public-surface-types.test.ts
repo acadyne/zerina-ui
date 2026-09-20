@@ -8,6 +8,7 @@ import {
 
 import type {
   AdaptiveScaffoldProps,
+  AdaptiveScaffoldTabletNavigationPlacement,
   AvatarSize,
   BadgeColorScheme,
   BadgeVariant,
@@ -35,9 +36,11 @@ import type {
   PopoverPlacement,
   RatioValue,
   SafeAreaEdges,
+  ScaffoldProps,
   SelectSize,
   SelectVariant,
   SetViewportModeAction,
+  TabScaffoldProps,
   TagColorScheme,
   TagVariant,
   TextareaSize,
@@ -84,6 +87,10 @@ describe(
         const adaptiveItems:
           AdaptiveScaffoldProps<DemoNavigationMeta>["items"] =
           items;
+
+        const tabletNavigationPlacement:
+          AdaptiveScaffoldTabletNavigationPlacement =
+          "bottom";
 
         const destinationContract: {
           position: NavigationSurfacePosition;
@@ -184,6 +191,30 @@ describe(
               true,
           };
 
+        const scaffoldProps:
+          ScaffoldProps = {
+            viewport:
+              "contained",
+
+            safeArea:
+              screenSafeArea,
+          };
+
+        const tabScaffoldProps:
+          TabScaffoldProps = {
+            tabs:
+              [],
+
+            screens:
+              [],
+
+            viewport:
+              "contained",
+
+            safeArea:
+              true,
+          };
+
         const containerSize:
           ContainerSize =
           "lg";
@@ -216,6 +247,12 @@ describe(
           adaptiveItems[0]?.id,
         ).toBe(
           "dashboard",
+        );
+
+        expect(
+          tabletNavigationPlacement,
+        ).toBe(
+          "bottom",
         );
 
         expect(
@@ -253,6 +290,8 @@ describe(
           popoverPlacement,
           floatingPlacement,
           screenSafeArea.top,
+          scaffoldProps.viewport,
+          tabScaffoldProps.viewport,
           containerSize,
           avatarSize,
           ratio,
@@ -271,6 +310,8 @@ describe(
           "bottom-start",
           "bottom-start",
           true,
+          "contained",
+          "contained",
           "lg",
           "md",
           "16/9",

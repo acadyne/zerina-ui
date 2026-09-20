@@ -1,258 +1,383 @@
 // src/primitives/layout/Screen.tsx
 import React from "react";
 import {
-    addSafeAreaOffset,
-    resolveSafeAreaEdges,
-    type SafeAreaEdges,
+  addSafeAreaOffset,
+  resolveSafeAreaEdges,
+  type SafeAreaEdges,
 } from "../../helpers/safeArea";
-import { Box, type BoxProps } from "./Box";
-import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
+import {
+  Box,
+  type BoxProps,
+} from "./Box";
 
+export type ScreenInset =
+  number | string;
 
-export type ScreenInset = number | string;
+export interface ScreenProps
+  extends BoxProps<"div"> {
+  children?:
+    React.ReactNode;
 
-export interface ScreenProps extends BoxProps<"div"> {
-    children?: React.ReactNode;
+  /**
+   * Si está activo, el Screen ocupa todo el viewport dinámico.
+   */
+  fullHeight?: boolean;
 
-    /**
-     * Si está activo, el Screen ocupa todo el viewport dinámico.
-     */
-    fullHeight?: boolean;
+  /**
+   * Aplica safe-area sobre el root estructural.
+   *
+   * Screen es el owner de los insets externos del shell.
+   * Las regiones internas no deben volver a aplicar esos mismos edges.
+   */
+  safeArea?:
+    boolean | SafeAreaEdges;
 
-    /**
-     * Aplica padding de safe-area usando las variables globales de Zerina UI.
-     */
-    safeArea?: boolean | SafeAreaEdges;
+  /**
+   * Espacio reservado arriba, sumado al safe-area correspondiente.
+   */
+  topInset?: ScreenInset;
 
-    /**
-     * Espacio reservado arriba.
-     *
-     * Útil para headers externos o status bars custom.
-     */
-    topInset?: ScreenInset;
+  /**
+   * Espacio reservado abajo, sumado al safe-area correspondiente.
+   */
+  bottomInset?: ScreenInset;
 
-    /**
-     * Espacio reservado abajo.
-     *
-     * Útil para bottom navigation, tab bars o barras nativas.
-     */
-    bottomInset?: ScreenInset;
-
-    /**
-     * Controla el overflow del root.
-     *
-     * En pantallas app-first normalmente debe ser hidden.
-     */
-    overflow?: React.CSSProperties["overflow"];
+  /**
+   * Controla el overflow del root.
+   *
+   * En pantallas app-first normalmente debe ser hidden.
+   */
+  overflow?:
+    React.CSSProperties["overflow"];
 }
 
-export interface ScreenHeaderProps extends BoxProps<"header"> {
-    children?: React.ReactNode;
-    sticky?: boolean;
+export interface ScreenHeaderProps
+  extends BoxProps<"header"> {
+  children?:
+    React.ReactNode;
+
+  sticky?: boolean;
 }
 
-export interface ScreenBodyProps extends BoxProps<"main"> {
-    children?: React.ReactNode;
+export interface ScreenBodyProps
+  extends BoxProps<"main"> {
+  children?:
+    React.ReactNode;
 }
 
-export interface ScreenFooterProps extends BoxProps<"footer"> {
-    children?: React.ReactNode;
-    sticky?: boolean;
+export interface ScreenFooterProps
+  extends BoxProps<"footer"> {
+  children?:
+    React.ReactNode;
+
+  sticky?: boolean;
 }
 
-export interface ScreenScrollProps extends ScrollAreaProps {
-    children?: React.ReactNode;
-}
+type ScreenComponent =
+  React.ForwardRefExoticComponent<
+    ScreenProps &
+    React.RefAttributes<HTMLDivElement>
+  > & {
+    Header:
+      React.ForwardRefExoticComponent<
+        ScreenHeaderProps &
+        React.RefAttributes<HTMLElement>
+      >;
 
-type ScreenComponent = React.ForwardRefExoticComponent<
-    ScreenProps & React.RefAttributes<HTMLDivElement>
-> & {
-    Header: React.ForwardRefExoticComponent<
-        ScreenHeaderProps & React.RefAttributes<HTMLElement>
-    >;
-    Body: React.ForwardRefExoticComponent<
-        ScreenBodyProps & React.RefAttributes<HTMLElement>
-    >;
-    Footer: React.ForwardRefExoticComponent<
-        ScreenFooterProps & React.RefAttributes<HTMLElement>
-    >;
-    Scroll: React.ForwardRefExoticComponent<
-        ScreenScrollProps & React.RefAttributes<HTMLDivElement>
-    >;
-};
+    Body:
+      React.ForwardRefExoticComponent<
+        ScreenBodyProps &
+        React.RefAttributes<HTMLElement>
+      >;
 
-const ScreenRoot = React.forwardRef<HTMLDivElement, ScreenProps>(
+    Footer:
+      React.ForwardRefExoticComponent<
+        ScreenFooterProps &
+        React.RefAttributes<HTMLElement>
+      >;
+  };
+
+const ScreenRoot =
+  React.forwardRef<
+    HTMLDivElement,
+    ScreenProps
+  >(
     (
-        {
-            children,
-            fullHeight = true,
-            safeArea = false,
-            topInset,
-            bottomInset,
-            overflow = "hidden",
-            style,
-            ...rest
-        },
-        ref
+      {
+        children,
+
+        fullHeight = true,
+
+        safeArea = false,
+        topInset,
+        bottomInset,
+
+        overflow = "hidden",
+
+        style,
+
+        ...rest
+      },
+      ref
     ) => {
-        const safeAreaEdges = resolveSafeAreaEdges(safeArea);
-
-        return (
-            <Box
-                ref={ref}
-                {...rest}
-                style={{
-                    position: "relative",
-                    width: "100%",
-                    minWidth: 0,
-                    height: fullHeight ? "100dvh" : undefined,
-                    minHeight: fullHeight ? "100dvh" : 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    overflow,
-                    boxSizing: "border-box",
-                    background: "var(--ui-bg)",
-                    color: "var(--ui-text)",
-                    paddingTop: addSafeAreaOffset(
-                        topInset,
-                        "top",
-                        safeAreaEdges.top
-                    ),
-                    paddingRight: addSafeAreaOffset(
-                        undefined,
-                        "right",
-                        safeAreaEdges.right
-                    ),
-                    paddingBottom: addSafeAreaOffset(
-                        bottomInset,
-                        "bottom",
-                        safeAreaEdges.bottom
-                    ),
-                    paddingLeft: addSafeAreaOffset(
-                        undefined,
-                        "left",
-                        safeAreaEdges.left
-                    ),
-                    ...style,
-                }}
-            >
-                {children}
-            </Box>
+      const safeAreaEdges =
+        resolveSafeAreaEdges(
+          safeArea
         );
+
+      return (
+        <Box
+          ref={ref}
+          {...rest}
+          style={{
+            position:
+              "relative",
+
+            width:
+              "100%",
+
+            minWidth:
+              0,
+
+            height:
+              fullHeight
+                ? "100dvh"
+                : undefined,
+
+            minHeight:
+              fullHeight
+                ? "100dvh"
+                : 0,
+
+            display:
+              "flex",
+
+            flexDirection:
+              "column",
+
+            overflow,
+
+            boxSizing:
+              "border-box",
+
+            background:
+              "var(--ui-bg)",
+
+            color:
+              "var(--ui-text)",
+
+            paddingTop:
+              addSafeAreaOffset(
+                topInset,
+                "top",
+                safeAreaEdges.top
+              ),
+
+            paddingRight:
+              addSafeAreaOffset(
+                undefined,
+                "right",
+                safeAreaEdges.right
+              ),
+
+            paddingBottom:
+              addSafeAreaOffset(
+                bottomInset,
+                "bottom",
+                safeAreaEdges.bottom
+              ),
+
+            paddingLeft:
+              addSafeAreaOffset(
+                undefined,
+                "left",
+                safeAreaEdges.left
+              ),
+
+            ...style,
+          }}
+        >
+          {children}
+        </Box>
+      );
     }
-);
+  );
 
-ScreenRoot.displayName = "Screen";
+ScreenRoot.displayName =
+  "Screen";
 
-const ScreenHeader = React.forwardRef<HTMLElement, ScreenHeaderProps>(
-    ({ children, sticky = false, style, ...rest }, ref) => {
-        return (
-            <Box
-                as="header"
-                ref={ref}
-                {...rest}
-                style={{
-                    flexShrink: 0,
-                    minWidth: 0,
-                    boxSizing: "border-box",
-                    position: sticky ? "sticky" : undefined,
-                    top: sticky ? 0 : undefined,
-                    zIndex: sticky ? 1 : undefined,
-                    ...style,
-                }}
-            >
-                {children}
-            </Box>
-        );
+const ScreenHeader =
+  React.forwardRef<
+    HTMLElement,
+    ScreenHeaderProps
+  >(
+    (
+      {
+        children,
+        sticky = false,
+        style,
+        ...rest
+      },
+      ref
+    ) => (
+      <Box
+        as="header"
+        ref={ref}
+        {...rest}
+        style={{
+          flexShrink:
+            0,
+
+          minWidth:
+            0,
+
+          boxSizing:
+            "border-box",
+
+          position:
+            sticky
+              ? "sticky"
+              : undefined,
+
+          top:
+            sticky
+              ? 0
+              : undefined,
+
+          zIndex:
+            sticky
+              ? 1
+              : undefined,
+
+          ...style,
+        }}
+      >
+        {children}
+      </Box>
+    )
+  );
+
+ScreenHeader.displayName =
+  "Screen.Header";
+
+const ScreenBody =
+  React.forwardRef<
+    HTMLElement,
+    ScreenBodyProps
+  >(
+    (
+      {
+        children,
+        style,
+        ...rest
+      },
+      ref
+    ) => (
+      <Box
+        as="main"
+        ref={ref}
+        {...rest}
+        style={{
+          position:
+            "relative",
+
+          flex:
+            1,
+
+          minWidth:
+            0,
+
+          minHeight:
+            0,
+
+          overflow:
+            "hidden",
+
+          boxSizing:
+            "border-box",
+
+          ...style,
+        }}
+      >
+        {children}
+      </Box>
+    )
+  );
+
+ScreenBody.displayName =
+  "Screen.Body";
+
+const ScreenFooter =
+  React.forwardRef<
+    HTMLElement,
+    ScreenFooterProps
+  >(
+    (
+      {
+        children,
+        sticky = false,
+        style,
+        ...rest
+      },
+      ref
+    ) => (
+      <Box
+        as="footer"
+        ref={ref}
+        {...rest}
+        style={{
+          flexShrink:
+            0,
+
+          minWidth:
+            0,
+
+          boxSizing:
+            "border-box",
+
+          position:
+            sticky
+              ? "sticky"
+              : undefined,
+
+          bottom:
+            sticky
+              ? 0
+              : undefined,
+
+          zIndex:
+            sticky
+              ? 1
+              : undefined,
+
+          ...style,
+        }}
+      >
+        {children}
+      </Box>
+    )
+  );
+
+ScreenFooter.displayName =
+  "Screen.Footer";
+
+export const Screen =
+  Object.assign(
+    ScreenRoot,
+    {
+      Header:
+        ScreenHeader,
+
+      Body:
+        ScreenBody,
+
+      Footer:
+        ScreenFooter,
     }
-);
-
-ScreenHeader.displayName = "Screen.Header";
-
-const ScreenBody = React.forwardRef<HTMLElement, ScreenBodyProps>(
-    ({ children, style, ...rest }, ref) => {
-        return (
-            <Box
-                as="main"
-                ref={ref}
-                {...rest}
-                style={{
-                    flex: 1,
-                    minWidth: 0,
-                    minHeight: 0,
-                    overflow: "hidden",
-                    boxSizing: "border-box",
-                    ...style,
-                }}
-            >
-                {children}
-            </Box>
-        );
-    }
-);
-
-ScreenBody.displayName = "Screen.Body";
-
-const ScreenFooter = React.forwardRef<HTMLElement, ScreenFooterProps>(
-    ({ children, sticky = false, style, ...rest }, ref) => {
-        return (
-            <Box
-                as="footer"
-                ref={ref}
-                {...rest}
-                style={{
-                    flexShrink: 0,
-                    minWidth: 0,
-                    boxSizing: "border-box",
-                    position: sticky ? "sticky" : undefined,
-                    bottom: sticky ? 0 : undefined,
-                    zIndex: sticky ? 1 : undefined,
-                    ...style,
-                }}
-            >
-                {children}
-            </Box>
-        );
-    }
-);
-
-ScreenFooter.displayName = "Screen.Footer";
-
-const ScreenScroll = React.forwardRef<HTMLDivElement, ScreenScrollProps>(
-    ({ children, style, ...rest }, ref) => {
-        return (
-            <ScrollArea
-                ref={ref}
-                axis="y"
-                contain
-                momentum
-                {...rest}
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    minWidth: 0,
-                    minHeight: 0,
-                    ...style,
-                }}
-            >
-                {children}
-            </ScrollArea>
-        );
-    }
-);
-
-ScreenScroll.displayName = "Screen.Scroll";
-
-export const Screen = Object.assign(ScreenRoot, {
-    Header: ScreenHeader,
-    Body: ScreenBody,
-    Footer: ScreenFooter,
-    Scroll: ScreenScroll,
-}) as ScreenComponent;
+  ) as ScreenComponent;
 
 export {
-    ScreenHeader,
-    ScreenBody,
-    ScreenFooter,
-    ScreenScroll,
+  ScreenHeader,
+  ScreenBody,
+  ScreenFooter,
 };

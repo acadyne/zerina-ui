@@ -288,6 +288,7 @@ function writeConsumer({
 
 import type {
   AdaptiveScaffoldProps,
+  AdaptiveScaffoldTabletNavigationPlacement,
   AvatarSize,
   BadgeColorScheme,
   BadgeVariant,
@@ -316,9 +317,11 @@ import type {
   PopoverPlacement,
   RatioValue,
   SafeAreaEdges,
+  ScaffoldProps,
   SelectSize,
   SelectVariant,
   SetViewportModeAction,
+  TabScaffoldProps,
   TagColorScheme,
   TagVariant,
   TextareaSize,
@@ -352,6 +355,10 @@ const navigationItems:
 const adaptiveItems:
   AdaptiveScaffoldProps<ConsumerNavigationMeta>["items"] =
   navigationItems;
+
+const tabletNavigationPlacement:
+  AdaptiveScaffoldTabletNavigationPlacement =
+  "bottom";
 
 const navigationSurfacePosition:
   NavigationSurfacePosition =
@@ -428,6 +435,16 @@ const dialogSize: DialogSize = "md";
 const popoverPlacement: PopoverPlacement = "bottom-start";
 const floatingPlacement: FloatingPlacement = "bottom-start";
 const safeAreaEdges: SafeAreaEdges = { top: true };
+const scaffoldProps: ScaffoldProps = {
+  viewport: "contained",
+  safeArea: safeAreaEdges,
+};
+const tabScaffoldProps: TabScaffoldProps = {
+  tabs: [],
+  screens: [],
+  viewport: "contained",
+  safeArea: true,
+};
 const containerSize: ContainerSize = "lg";
 const avatarSize: AvatarSize = "md";
 const ratioValue: RatioValue = "16/9";
@@ -448,6 +465,7 @@ void UIMotionProvider;
 void UIViewportProvider;
 void usePress;
 void adaptiveItems;
+void tabletNavigationPlacement;
 void navigationContent;
 void themeDefinition;
 void setViewportMode;
@@ -462,6 +480,8 @@ void dialogSize;
 void popoverPlacement;
 void floatingPlacement;
 void safeAreaEdges;
+void scaffoldProps;
+void tabScaffoldProps;
 void containerSize;
 void avatarSize;
 void ratioValue;

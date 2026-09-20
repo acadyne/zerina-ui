@@ -233,3 +233,54 @@ B — public/API contract
 Los implementation snapshots de clase C se migran a behavior o a boundaries semánticos.
 
 Al cierre de F no quedan archivos `*source.test*` ambiguos. G no modifica esta arquitectura; sólo la valida de forma integrada.
+
+## Ownership de shell y contenido
+
+La consolidación 2C deja una sola cadena de ownership para pantallas:
+
+```text
+Screen
+→ root físico + viewport + safe-area externo
+
+Scaffold
+→ appBar + body + floating + footer
+
+ScreenContent
+→ layout semántico del contenido + opción de scroll
+
+ScrollArea
+→ única mecánica de scroll
+```
+
+No existen ya:
+
+```text
+Screen.Scroll
+Scaffold.scrollable
+Scaffold.scrollProps
+Scaffold.screenProps
+```
+
+`Scaffold` recibe directamente las capacidades del `Screen` raíz
+(`safeArea`, `topInset`, `bottomInset`, eventos, data/aria, className y
+style). El contenido que necesita desplazamiento usa `ScreenContent
+scrollable` o, cuando no existe semántica de pantalla, el primitive
+`ScrollArea`.
+
+`AdaptiveScaffold` y `TabScaffold` especializan este shell pero no
+adquieren un segundo owner de scroll.
+
+### Navegación dentro del shell
+
+`AdaptiveScaffold` posee únicamente placement/orquestación de su
+navegación actual:
+
+- el custom navigation reemplaza la navegación built-in del modo;
+- tablet acepta custom placement `bottom`;
+- rail `start/end` se traduce a `left/right` en `NavigationRail`;
+- el rail posee su propio width;
+- `sidebarWidth` pertenece sólo al sidebar desktop;
+- custom side navigation se dimensiona por sus slots.
+
+La proyección de árboles y la política de destinos por breakpoint
+pertenecen a la siguiente fase de navigation presenter.

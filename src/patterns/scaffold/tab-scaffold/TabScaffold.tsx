@@ -86,15 +86,13 @@ export const TabScaffold =
 
     fallback,
 
-    scrollable = false,
-
     styles,
     slotProps,
 
     className = "",
     style,
 
-    ...scaffoldProps
+    ...scaffoldRootProps
   } = props;
 
   const rootSlot = resolveSlot({
@@ -334,6 +332,7 @@ export const TabScaffold =
         renderContext
       )}
       {...topAppBarProps}
+      safeAreaTop={false}
     />
   ) : null;
 
@@ -353,13 +352,13 @@ export const TabScaffold =
     renderBottomNavigation(renderContext)
   ) : showBottomNavigation ? (
     <BottomNavigation
-      position="static"
-      safeArea={false}
       variant="floating"
       indicator="pill"
       labelBehavior="active"
       density="comfortable"
       {...bottomNavigationProps}
+      position="static"
+      safeArea={false}
       value={activeTab}
       onValueChange={(
         nextTab,
@@ -427,13 +426,12 @@ export const TabScaffold =
     if (tabs.length === 0 || !initialTab) {
     return (
       <Scaffold
-        {...scaffoldProps}
         {...rootSlot}
+        {...scaffoldRootProps}
 
         ref={ref}
 
         viewport={viewport}
-        scrollable={scrollable}
 
         appBar={appBar}
         footer={
@@ -463,13 +461,12 @@ export const TabScaffold =
       value={contextValue}
     >
       <Scaffold
-        {...scaffoldProps}
         {...rootSlot}
+        {...scaffoldRootProps}
 
         ref={ref}
 
         viewport={viewport}
-        scrollable={scrollable}
 
         appBar={appBar}
         footer={

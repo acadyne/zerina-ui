@@ -1,68 +1,135 @@
 // src/patterns/scaffold/adaptive-scaffold/AdaptiveScaffold.tsx
 import React from "react";
+
+import {
+  useAdaptiveViewport,
+} from "../../../core/viewport";
+
+import {
+  setRef,
+} from "../../../core/interaction/events";
+
 import {
   cssSize,
   resolveMergedSlot,
   resolveSlot,
 } from "../../../helpers/css";
+
 import {
-  useAdaptiveViewport,
-} from "../../../core/viewport";
-import {
-  setRef,
-} from "../../../core/interaction/events";
-import { Box } from "../../../primitives/layout";
+  Box,
+} from "../../../primitives/layout";
+
 import {
   BottomNavigation,
   NavigationList,
   NavigationRail,
 } from "../../../primitives/navigation";
-import { Scaffold } from "../Scaffold";
-import { TopAppBar } from "../TopAppBar";
-import type {
-  AdaptiveScaffoldProps,
-  AdaptiveScaffoldRenderContext,
-  AdaptiveScaffoldSlot,
-} from "./adaptiveScaffold.types";
-
-import type {
-  NavigationNode,
-} from "../../navigation";
-import {
-  resolveAdaptiveValue,
-} from "./adaptiveScaffold.utils";
 
 import {
   findNavigationNode,
   getFirstSelectableNavigationNode,
   isNavigationNodeSelectable,
+  type NavigationNode,
 } from "../../navigation";
 
-function getModeContentSlot<TMeta = unknown>(
-  mode: AdaptiveScaffoldRenderContext<TMeta>["mode"]
+import {
+  Scaffold,
+} from "../Scaffold";
+
+import {
+  TopAppBar,
+} from "../TopAppBar";
+
+import type {
+  AdaptiveScaffoldProps,
+  AdaptiveScaffoldRenderContext,
+  AdaptiveScaffoldResolvedMode,
+  AdaptiveScaffoldSlot,
+} from "./adaptiveScaffold.types";
+
+import {
+  resolveAdaptiveValue,
+} from "./adaptiveScaffold.utils";
+
+function getModeContentSlot<
+  TMeta = unknown,
+>(
+  mode:
+    AdaptiveScaffoldRenderContext<TMeta>["mode"]
 ): AdaptiveScaffoldSlot {
-  if (mode === "mobile") return "mobileContent";
-  if (mode === "tablet") return "tabletContent";
+  if (
+    mode ===
+    "mobile"
+  ) {
+    return "mobileContent";
+  }
+
+  if (
+    mode ===
+    "tablet"
+  ) {
+    return "tabletContent";
+  }
 
   return "desktopContent";
 }
 
-function getContentSlot<TMeta = unknown>(
-  mode: AdaptiveScaffoldRenderContext<TMeta>["mode"],
-  styles: AdaptiveScaffoldProps<TMeta>["styles"],
-  slotProps: AdaptiveScaffoldProps<TMeta>["slotProps"]
+function getContentSlot<
+  TMeta = unknown,
+>(
+  mode:
+    AdaptiveScaffoldRenderContext<TMeta>["mode"],
+  styles:
+    AdaptiveScaffoldProps<TMeta>["styles"],
+  slotProps:
+    AdaptiveScaffoldProps<TMeta>["slotProps"]
 ) {
-  const modeSlot = getModeContentSlot(mode);
-
   return resolveMergedSlot({
-    slots: ["content", modeSlot],
+    slots: [
+      "content",
+      getModeContentSlot(
+        mode
+      ),
+    ],
+
     styles,
     slotProps,
   });
 }
 
+function getDefaultCustomNavigationPlacement({
+  mode,
+  tabletNavigation,
+}: {
+  mode:
+    AdaptiveScaffoldResolvedMode;
+
+  tabletNavigation:
+    NonNullable<
+      AdaptiveScaffoldProps["tabletNavigation"]
+    >;
+}) {
+  if (
+    mode ===
+    "mobile"
+  ) {
+    return "bottom" as const;
+  }
+
+  if (
+    mode ===
+      "tablet" &&
+    tabletNavigation ===
+      "bottom"
+  ) {
+    return "bottom" as const;
+  }
+
+  return "start" as const;
+}
+
 function AdaptiveScaffoldImpl<
-  TMeta = unknown
+  TMeta = unknown,
 >(
   {
     children,
@@ -76,11 +143,17 @@ function AdaptiveScaffoldImpl<
     defaultActiveId,
     onActiveIdChange,
 
-    mobileNavigation = "bottom",
-    tabletNavigation = "rail",
-    desktopNavigation = "sidebar",
+    mobileNavigation =
+      "bottom",
+
+    tabletNavigation =
+      "rail",
+
+    desktopNavigation =
+      "sidebar",
 
     navigationSlots,
+
     title,
     subtitle,
 
@@ -91,12 +164,11 @@ function AdaptiveScaffoldImpl<
     showAppBar = true,
 
     topAppBarProps,
-    scaffoldProps,
     bottomNavigationProps,
     navigationRailProps,
     navigationListProps,
 
-    navigationWidth = 284,
+    sidebarWidth = 284,
 
     className = "",
     style,
@@ -104,16 +176,19 @@ function AdaptiveScaffoldImpl<
     styles,
     slotProps,
 
-    ...rest
+    ...scaffoldRootProps
   }: AdaptiveScaffoldProps<TMeta>,
-  ref: React.ForwardedRef<HTMLDivElement>
+  ref:
+    React.ForwardedRef<HTMLDivElement>
 ) {
   const adaptiveViewport =
     useAdaptiveViewport<HTMLDivElement>({
       source:
-        viewport === "contained"
+        viewport ===
+        "contained"
           ? "container"
           : "window",
+
       mode,
     });
 
@@ -127,13 +202,13 @@ function AdaptiveScaffoldImpl<
           | HTMLDivElement
           | null
       ) => {
-        /*
-         * El ref público y la medición deben observar el mismo nodo propietario.
-         * Separarlos permitiría que el modo contenido mida un layout distinto
-         * del que recibe id, eventos, estilos y atributos públicos.
-         */
-        rootRef.current = node;
-        setRef(ref, node);
+        rootRef.current =
+          node;
+
+        setRef(
+          ref,
+          node
+        );
       },
       [
         ref,
@@ -141,110 +216,195 @@ function AdaptiveScaffoldImpl<
       ]
     );
 
-  const fallbackItem = React.useMemo(
-    () => getFirstSelectableNavigationNode(items),
-    [items]
-  );
-
-  const initialActiveIdRef = React.useRef<string>(
-    activeId ?? defaultActiveId ?? fallbackItem?.id ?? ""
-  );
-
-  const isControlled = activeId !== undefined;
-
-  const [internalActiveId, setInternalActiveId] = React.useState(
-    initialActiveIdRef.current
-  );
-
-  const internalActiveItem = React.useMemo(
-    () =>
-      findNavigationNode(
+  const fallbackItem =
+    React.useMemo(
+      () =>
+        getFirstSelectableNavigationNode(
+          items
+        ),
+      [
         items,
-        internalActiveId
-      ),
-    [
-      internalActiveId,
-      items,
-    ]
-  );
+      ]
+    );
+
+  const initialActiveIdRef =
+    React.useRef<string>(
+      activeId ??
+      defaultActiveId ??
+      fallbackItem?.id ??
+      ""
+    );
+
+  const isControlled =
+    activeId !==
+    undefined;
+
+  const [
+    internalActiveId,
+    setInternalActiveId,
+  ] =
+    React.useState(
+      initialActiveIdRef.current
+    );
+
+  const internalActiveItem =
+    React.useMemo(
+      () =>
+        findNavigationNode(
+          items,
+          internalActiveId
+        ),
+      [
+        internalActiveId,
+        items,
+      ]
+    );
 
   const resolvedInternalActiveId =
     internalActiveItem &&
-      isNavigationNodeSelectable(
-        internalActiveItem
-      )
+    isNavigationNodeSelectable(
+      internalActiveItem
+    )
       ? internalActiveId
-      : fallbackItem?.id ?? "";
+      : fallbackItem?.id ??
+        "";
 
-  const currentActiveId = isControlled
-    ? activeId ?? fallbackItem?.id ?? ""
-    : resolvedInternalActiveId;
+  const currentActiveId =
+    isControlled
+      ? activeId ??
+        fallbackItem?.id ??
+        ""
+      : resolvedInternalActiveId;
 
-  const activeItem = React.useMemo(
-    () => findNavigationNode(items, currentActiveId),
-    [currentActiveId, items]
-  );
+  const activeItem =
+    React.useMemo(
+      () =>
+        findNavigationNode(
+          items,
+          currentActiveId
+        ),
+      [
+        currentActiveId,
+        items,
+      ]
+    );
 
   const resolvedMode =
     adaptiveViewport.kind;
 
-  React.useEffect(() => {
-    if (
-      isControlled ||
-      internalActiveId === resolvedInternalActiveId
-    ) {
-      return;
-    }
-
-    setInternalActiveId(
-      resolvedInternalActiveId
-    );
-  }, [
-    internalActiveId,
-    isControlled,
-    resolvedInternalActiveId,
-  ]);
-
-  const setActiveItem = React.useCallback(
-    (
-      item: NavigationNode<TMeta>
-    ) => {
-      if (!isNavigationNodeSelectable(item)) return;
-
-      if (!isControlled) {
-        setInternalActiveId(item.id);
+  React.useEffect(
+    () => {
+      if (
+        isControlled ||
+        internalActiveId ===
+          resolvedInternalActiveId
+      ) {
+        return;
       }
 
-      onActiveIdChange?.(item.id, item);
+      setInternalActiveId(
+        resolvedInternalActiveId
+      );
     },
-    [isControlled, onActiveIdChange]
+    [
+      internalActiveId,
+      isControlled,
+      resolvedInternalActiveId,
+    ]
   );
 
-  const setActiveId = React.useCallback(
-    (nextId: string) => {
-      const item = findNavigationNode(items, nextId);
-      if (!item) return;
+  const setActiveItem =
+    React.useCallback(
+      (
+        item:
+          NavigationNode<TMeta>
+      ) => {
+        if (
+          !isNavigationNodeSelectable(
+            item
+          )
+        ) {
+          return;
+        }
 
-      setActiveItem(item);
-    },
-    [items, setActiveItem]
-  );
+        if (
+          !isControlled
+        ) {
+          setInternalActiveId(
+            item.id
+          );
+        }
 
-  const context = React.useMemo<
-    AdaptiveScaffoldRenderContext<TMeta>
-  >(
-    () => ({
-      mode: resolvedMode,
-      activeId: currentActiveId,
-      activeItem,
-      items,
-      setActiveId,
-    }),
-    [activeItem, currentActiveId, items, resolvedMode, setActiveId]
-  );
+        onActiveIdChange?.(
+          item.id,
+          item
+        );
+      },
+      [
+        isControlled,
+        onActiveIdChange,
+      ]
+    );
+
+  const setActiveId =
+    React.useCallback(
+      (
+        nextId:
+          string
+      ) => {
+        const item =
+          findNavigationNode(
+            items,
+            nextId
+          );
+
+        if (
+          !item
+        ) {
+          return;
+        }
+
+        setActiveItem(
+          item
+        );
+      },
+      [
+        items,
+        setActiveItem,
+      ]
+    );
+
+  const context =
+    React.useMemo<
+      AdaptiveScaffoldRenderContext<TMeta>
+    >(
+      () => ({
+        mode:
+          resolvedMode,
+
+        activeId:
+          currentActiveId,
+
+        activeItem,
+
+        items,
+
+        setActiveId,
+      }),
+      [
+        activeItem,
+        currentActiveId,
+        items,
+        resolvedMode,
+        setActiveId,
+      ]
+    );
 
   const resolvedTitle =
-    resolveAdaptiveValue(title, context) ??
+    resolveAdaptiveValue(
+      title,
+      context
+    ) ??
     activeItem?.label ??
     currentActiveId;
 
@@ -256,84 +416,59 @@ function AdaptiveScaffoldImpl<
 
   const rootSlot =
     resolveSlot<AdaptiveScaffoldSlot>({
-      slot: "root",
+      slot:
+        "root",
+
       styles,
       slotProps,
+
+      className,
+      style,
+
+      baseProps: {
+        "data-ui-adaptive-scaffold-root":
+          "",
+
+        "data-ui-adaptive-scaffold-mode":
+          resolvedMode,
+      },
     });
-
-  const {
-    className:
-      adaptiveRootClassName = "",
-
-    style:
-      adaptiveRootStyle,
-
-    ...adaptiveRootRest
-  } = rootSlot;
-
-  /*
-   * Precedencia del root:
-   * scaffoldProps aporta la base, slotProps.root adapta el patrón y las props
-   * HTML directas son el contrato final del consumidor.
-   *
-   * Todo se entrega al slot root de Scaffold porque Scaffold lo aplica después
-   * de sus props generales sobre el mismo Screen que posee el layout.
-   */
-  const rootClassName = [
-    scaffoldProps?.className,
-    adaptiveRootClassName,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const rootStyle: React.CSSProperties = {
-    ...scaffoldProps?.style,
-    ...adaptiveRootStyle,
-    ...style,
-  };
-
-  const rootScaffoldSlotProps = {
-    ...scaffoldProps?.slotProps,
-
-    root: {
-      ...scaffoldProps?.slotProps?.root,
-      ...adaptiveRootRest,
-      ...rest,
-
-      "data-ui-adaptive-scaffold-root":
-        "",
-
-      "data-ui-adaptive-scaffold-mode":
-        resolvedMode,
-    },
-  };
 
   const appBarSlot =
     resolveSlot<AdaptiveScaffoldSlot>({
-      slot: "appBar",
+      slot:
+        "appBar",
+
       styles,
       slotProps,
     });
 
-  const bodySlot = resolveSlot({
-    slot: "body",
-    styles,
-    slotProps,
-    baseStyle: {
-      flex: 1,
-      minWidth: 0,
-      minHeight: 0,
-      display: "flex",
-      overflow: "hidden",
-    },
-  });
+  const bodySlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot:
+        "body",
 
-  /*
-   * El slot estructural se resuelve primero y el slot específico del modo
-   * después. Así tabletNavigation/desktopNavigation pueden especializar
-   * rail/sidebar sin añadir wrappers ni duplicar ownership del nodo.
-   */
+      styles,
+      slotProps,
+
+      baseStyle: {
+        flex:
+          1,
+
+        minWidth:
+          0,
+
+        minHeight:
+          0,
+
+        display:
+          "flex",
+
+        overflow:
+          "hidden",
+      },
+    });
+
   const tabletRailSlot =
     resolveMergedSlot<AdaptiveScaffoldSlot>({
       slots: [
@@ -345,10 +480,11 @@ function AdaptiveScaffoldImpl<
       slotProps,
 
       baseStyle: {
-        flex: "0 0 auto",
-        minHeight: 0,
-        borderRight:
-          "1px solid var(--ui-border)",
+        flex:
+          "0 0 auto",
+
+        minHeight:
+          0,
       },
     });
 
@@ -363,12 +499,472 @@ function AdaptiveScaffoldImpl<
       slotProps,
 
       baseStyle: {
-        flex: "0 0 auto",
-        minHeight: 0,
-        borderRight:
-          "1px solid var(--ui-border)",
+        flex:
+          "0 0 auto",
+
+        minHeight:
+          0,
       },
     });
+
+  const contentSlot =
+    getContentSlot(
+      resolvedMode,
+      styles,
+      slotProps
+    );
+
+  const resolvedNavigation =
+    navigationSlots?.[
+      resolvedMode
+    ];
+
+  const customNavigation =
+    resolvedNavigation?.content;
+
+  const hasCustomNavigation =
+    customNavigation !==
+      undefined &&
+    customNavigation !==
+      null;
+
+  const defaultCustomPlacement =
+    getDefaultCustomNavigationPlacement({
+      mode:
+        resolvedMode,
+
+      tabletNavigation,
+    });
+
+  const navigationPlacement =
+    resolvedNavigation?.placement ??
+    defaultCustomPlacement;
+
+  const sideNavigationPlacement =
+    navigationPlacement ===
+    "end"
+      ? "end"
+      : "start";
+
+  const appBar =
+    showAppBar ? (
+      <Box
+        {...appBarSlot}
+
+        data-ui-adaptive-scaffold-app-bar=""
+      >
+        <TopAppBar
+          title={
+            resolvedTitle
+          }
+
+          subtitle={
+            resolvedSubtitle
+          }
+
+          centerTitle={
+            resolvedMode ===
+            "mobile"
+          }
+
+          variant="blur"
+
+          leading={
+            resolveAdaptiveValue(
+              leading,
+              context
+            )
+          }
+
+          actions={
+            resolveAdaptiveValue(
+              actions,
+              context
+            )
+          }
+
+          {...topAppBarProps}
+
+          safeAreaTop={
+            false
+          }
+        />
+      </Box>
+    ) : null;
+
+  const content =
+    typeof children ===
+    "function"
+      ? children(
+          context
+        )
+      : children;
+
+  const builtInBottomNavigationVisible =
+    !hasCustomNavigation &&
+    (
+      (
+        resolvedMode ===
+          "mobile" &&
+        mobileNavigation ===
+          "bottom"
+      ) ||
+      (
+        resolvedMode ===
+          "tablet" &&
+        tabletNavigation ===
+          "bottom"
+      )
+    );
+
+  const bottomNavigation =
+    builtInBottomNavigationVisible ? (
+      <BottomNavigation
+        variant="floating"
+        indicator="pill"
+        labelBehavior="active"
+        density="comfortable"
+
+        {...bottomNavigationProps}
+
+        position="static"
+        safeArea={false}
+
+        value={
+          currentActiveId
+        }
+
+        onValueChange={(
+          next,
+          _event,
+          selection
+        ) => {
+          if (
+            selection.reason ===
+            "change"
+          ) {
+            setActiveId(
+              next
+            );
+          }
+        }}
+      >
+        {items.map(
+          (
+            item
+          ) => (
+            <BottomNavigation.Item
+              key={
+                item.id
+              }
+
+              value={
+                item.id
+              }
+
+              icon={
+                item.icon
+              }
+
+              badge={
+                item.badge
+              }
+
+              disabled={
+                item.disabled ||
+                !isNavigationNodeSelectable(
+                  item
+                )
+              }
+
+              aria-label={
+                item.ariaLabel
+              }
+            >
+              {item.label}
+            </BottomNavigation.Item>
+          )
+        )}
+      </BottomNavigation>
+    ) : null;
+
+  const mobileNavigationSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot:
+        "mobileNavigation",
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        width:
+          "100%",
+
+        minWidth:
+          0,
+
+        flexShrink:
+          0,
+      },
+    });
+
+  const tabletBottomNavigationSlot =
+    resolveSlot<AdaptiveScaffoldSlot>({
+      slot:
+        "tabletNavigation",
+
+      styles,
+      slotProps,
+
+      baseStyle: {
+        width:
+          "100%",
+
+        minWidth:
+          0,
+
+        flexShrink:
+          0,
+      },
+    });
+
+  const mobileNavigationNode =
+    hasCustomNavigation ? (
+      <Box
+        {...mobileNavigationSlot}
+
+        data-ui-adaptive-scaffold-mobile-navigation=""
+
+        data-ui-adaptive-scaffold-navigation-placement={
+          navigationPlacement
+        }
+      >
+        {customNavigation}
+      </Box>
+    ) : builtInBottomNavigationVisible ? (
+      <Box
+        {...mobileNavigationSlot}
+
+        data-ui-adaptive-scaffold-mobile-navigation=""
+
+        data-ui-adaptive-scaffold-navigation-placement={
+          navigationPlacement ===
+          "top"
+            ? "top"
+            : "bottom"
+        }
+      >
+        {bottomNavigation}
+      </Box>
+    ) : null;
+
+  if (
+    resolvedMode ===
+    "mobile"
+  ) {
+    const mobilePlacement =
+      navigationPlacement ===
+      "top"
+        ? "top"
+        : "bottom";
+
+    return (
+      <Scaffold
+        {...rootSlot}
+        {...scaffoldRootProps}
+
+        ref={
+          setRootRefs
+        }
+
+        viewport={
+          viewport
+        }
+
+        appBar={
+          appBar
+        }
+
+        footer={
+          mobilePlacement ===
+          "bottom"
+            ? mobileNavigationNode
+            : undefined
+        }
+
+        floating={
+          resolveAdaptiveValue(
+            floating,
+            context
+          )
+        }
+      >
+        {mobilePlacement ===
+        "top"
+          ? mobileNavigationNode
+          : null}
+
+        <Box
+          {...contentSlot}
+
+          data-ui-adaptive-scaffold-content=""
+
+          data-ui-adaptive-scaffold-mobile-content=""
+
+          style={{
+            width:
+              "100%",
+
+            height:
+              "100%",
+
+            minWidth:
+              0,
+
+            minHeight:
+              0,
+
+            overflow:
+              "hidden",
+
+            ...contentSlot.style,
+          }}
+        >
+          {content}
+        </Box>
+      </Scaffold>
+    );
+  }
+
+  const showTabletRail =
+    !hasCustomNavigation &&
+    resolvedMode ===
+      "tablet" &&
+    tabletNavigation ===
+      "rail";
+
+  const showTabletBottom =
+    !hasCustomNavigation &&
+    resolvedMode ===
+      "tablet" &&
+    tabletNavigation ===
+      "bottom";
+
+  const showDesktopSidebar =
+    !hasCustomNavigation &&
+    resolvedMode ===
+      "desktop" &&
+    desktopNavigation ===
+      "sidebar";
+
+  const showDesktopRail =
+    !hasCustomNavigation &&
+    resolvedMode ===
+      "desktop" &&
+    desktopNavigation ===
+      "rail";
+
+  const showBuiltInRail =
+    showTabletRail ||
+    showDesktopRail;
+
+  const railNavigation =
+    showBuiltInRail ? (
+      <NavigationRail
+        variant="surface"
+        indicator="pill"
+        labelBehavior="active"
+        density="comfortable"
+        badgeAnchor="icon"
+        badgePlacement="top-end"
+
+        {...navigationRailProps}
+
+        position="static"
+
+        placement={
+          sideNavigationPlacement ===
+          "end"
+            ? "right"
+            : "left"
+        }
+
+        safeArea={
+          false
+        }
+
+        value={
+          currentActiveId
+        }
+
+        onValueChange={(
+          next,
+          _event,
+          selection
+        ) => {
+          if (
+            selection.reason ===
+            "change"
+          ) {
+            setActiveId(
+              next
+            );
+          }
+        }}
+      >
+        {items.map(
+          (
+            item
+          ) => (
+            <NavigationRail.Item
+              key={
+                item.id
+              }
+
+              value={
+                item.id
+              }
+
+              icon={
+                item.icon
+              }
+
+              badge={
+                item.badge
+              }
+
+              disabled={
+                item.disabled ||
+                !isNavigationNodeSelectable(
+                  item
+                )
+              }
+
+              aria-label={
+                item.ariaLabel
+              }
+            >
+              {item.label}
+            </NavigationRail.Item>
+          )
+        )}
+      </NavigationRail>
+    ) : null;
+
+  const handleNavigationListSelect =
+    React.useCallback(
+      (
+        item:
+          NavigationNode<TMeta>
+      ) => {
+        setActiveItem(
+          item
+        );
+      },
+      [
+        setActiveItem,
+      ]
+    );
 
   const desktopSidebarSlot =
     resolveMergedSlot<AdaptiveScaffoldSlot>({
@@ -383,320 +979,53 @@ function AdaptiveScaffoldImpl<
       baseStyle: {
         width:
           cssSize(
-            navigationWidth
+            sidebarWidth
           ),
 
         minWidth:
           cssSize(
-            navigationWidth
+            sidebarWidth
           ),
 
         maxWidth:
           cssSize(
-            navigationWidth
+            sidebarWidth
           ),
 
-        minHeight: 0,
-        overflow: "auto",
-        padding: "0.75rem",
-        boxSizing: "border-box",
+        minHeight:
+          0,
+
+        overflow:
+          "auto",
+
+        padding:
+          "0.75rem",
+
+        boxSizing:
+          "border-box",
 
         borderRight:
-          "1px solid var(--ui-border)",
+          sideNavigationPlacement ===
+          "start"
+            ? "1px solid var(--ui-border)"
+            : undefined,
+
+        borderLeft:
+          sideNavigationPlacement ===
+          "end"
+            ? "1px solid var(--ui-border)"
+            : undefined,
 
         background:
           "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
       },
     });
 
-  const contentSlot =
-    getContentSlot(
-      resolvedMode,
-      styles,
-      slotProps
-    );
-
-  const resolvedNavigation =
-    navigationSlots?.[resolvedMode];
-
-  const navigationPlacement =
-    resolvedNavigation?.placement ??
-    (
-      resolvedMode === "mobile"
-        ? "bottom"
-        : "start"
-    );
-
-  const customNavigation =
-    resolvedNavigation?.content;
-
-  const hasCustomNavigation =
-    customNavigation !== undefined &&
-    customNavigation !== null;
-
-  const appBar = showAppBar ? (
-    <Box
-      {...appBarSlot}
-
-      data-ui-adaptive-scaffold-app-bar=""
-    >
-      <TopAppBar
-        title={resolvedTitle}
-        subtitle={resolvedSubtitle}
-        centerTitle={resolvedMode === "mobile"}
-        variant="blur"
-        leading={resolveAdaptiveValue(leading, context)}
-        actions={resolveAdaptiveValue(actions, context)}
-        {...topAppBarProps}
-      />
-    </Box>
-  ) : null;
-
-  const content =
-    typeof children === "function"
-      ? children(context)
-      : children;
-
-
-  const bottomNavigation =
-    mobileNavigation === "bottom" || tabletNavigation === "bottom" ? (
-      <BottomNavigation
-        position="static"
-        safeArea={false}
-        variant="floating"
-        indicator="pill"
-        labelBehavior="active"
-        density="comfortable"
-        {...bottomNavigationProps}
-        value={currentActiveId}
-        onValueChange={(
-          next,
-          _event,
-          selection
-        ) => {
-          if (
-            selection.reason ===
-            "change"
-          ) {
-            setActiveId(next);
-          }
-        }}
-      >
-        {items.map((item) => (
-          <BottomNavigation.Item
-            key={item.id}
-            value={item.id}
-            icon={item.icon}
-            badge={item.badge}
-            disabled={
-              item.disabled ||
-              !isNavigationNodeSelectable(item)
-            }
-            aria-label={item.ariaLabel}
-          >
-            {item.label}
-          </BottomNavigation.Item>
-        ))}
-      </BottomNavigation>
-    ) : null;
-
-  const mobileNavigationSlot =
-    resolveSlot<AdaptiveScaffoldSlot>({
-      slot: "mobileNavigation",
-      styles,
-      slotProps,
-
-      baseStyle: {
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-      },
-    });
-
-  const tabletBottomNavigationSlot =
-    resolveSlot<AdaptiveScaffoldSlot>({
-      slot: "tabletNavigation",
-      styles,
-      slotProps,
-
-      baseStyle: {
-        width: "100%",
-        minWidth: 0,
-        flexShrink: 0,
-      },
-    });
-
-  const mobileNavigationNode =
-    hasCustomNavigation ? (
-      <Box
-        {...mobileNavigationSlot}
-
-        data-ui-adaptive-scaffold-mobile-navigation=""
-        data-ui-adaptive-scaffold-navigation-placement={
-          navigationPlacement
-        }
-      >
-        {customNavigation}
-      </Box>
-    ) : mobileNavigation ===
-      "bottom" ? (
-      <Box
-        {...mobileNavigationSlot}
-
-        data-ui-adaptive-scaffold-mobile-navigation=""
-        data-ui-adaptive-scaffold-navigation-placement="bottom"
-      >
-        {bottomNavigation}
-      </Box>
-    ) : null;
-
-  const railNavigation =
-    tabletNavigation === "rail" || desktopNavigation === "rail" ? (
-      <NavigationRail
-        position="static"
-        variant="surface"
-        indicator="pill"
-        labelBehavior="active"
-        density="comfortable"
-        badgeAnchor="icon"
-        badgePlacement="top-end"
-        {...navigationRailProps}
-        value={currentActiveId}
-        onValueChange={(
-          next,
-          _event,
-          selection
-        ) => {
-          if (
-            selection.reason ===
-            "change"
-          ) {
-            setActiveId(next);
-          }
-        }}
-      >
-        {items.map((item) => (
-          <NavigationRail.Item
-            key={item.id}
-            value={item.id}
-            icon={item.icon}
-            badge={item.badge}
-            disabled={
-              item.disabled ||
-              !isNavigationNodeSelectable(item)
-            }
-            aria-label={item.ariaLabel}
-          >
-            {item.label}
-          </NavigationRail.Item>
-        ))}
-      </NavigationRail>
-    ) : null;
-
-  const handleNavigationListSelect = React.useCallback(
-    (
-      item: NavigationNode<TMeta>
-    ) => {
-      setActiveItem(item);
-    },
-    [
-      setActiveItem,
-    ]
-  );
-
-  if (resolvedMode === "mobile") {
-    return (
-      <Scaffold
-        {...scaffoldProps}
-
-        ref={setRootRefs}
-
-        viewport={viewport}
-
-        appBar={appBar}
-
-        footer={
-          navigationPlacement ===
-          "bottom"
-            ? mobileNavigationNode
-            : undefined
-        }
-
-        floating={
-          resolveAdaptiveValue(
-            floating,
-            context
-          )
-        }
-
-        scrollable={false}
-
-        className={
-          rootClassName
-        }
-
-        style={
-          rootStyle
-        }
-
-        slotProps={
-          rootScaffoldSlotProps
-        }
-      >
-        {
-          navigationPlacement ===
-          "top"
-            ? mobileNavigationNode
-            : null
-        }
-
-        <Box
-          {...contentSlot}
-
-          data-ui-adaptive-scaffold-content=""
-          data-ui-adaptive-scaffold-mobile-content=""
-
-          style={{
-            width: "100%",
-            height: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            overflow: "hidden",
-
-            ...contentSlot.style,
-          }}
-        >
-          {content}
-        </Box>
-      </Scaffold>
-    );
-  }
-
-  const showTabletRail =
-    resolvedMode === "tablet" &&
-    tabletNavigation === "rail";
-
-  const showTabletBottom =
-    resolvedMode === "tablet" &&
-    tabletNavigation === "bottom";
-
-  const showDesktopSidebar =
-    resolvedMode === "desktop" &&
-    desktopNavigation === "sidebar";
-
-  const showDesktopRail =
-    resolvedMode === "desktop" &&
-    desktopNavigation === "rail";
-
-  const sideNavigationPlacement =
-    navigationPlacement === "end"
-      ? "end"
-      : "start";
-
-  const customNavigationSlot =
+  const customSideNavigationSlot =
     resolveSlot<AdaptiveScaffoldSlot>({
       slot:
-        resolvedMode === "tablet"
+        resolvedMode ===
+        "tablet"
           ? "tabletNavigation"
           : "desktopNavigation",
 
@@ -712,38 +1041,39 @@ function AdaptiveScaffoldImpl<
       },
 
       baseStyle: {
-        width: cssSize(navigationWidth),
-        minWidth: cssSize(navigationWidth),
-        maxWidth: cssSize(navigationWidth),
+        flex:
+          "0 0 auto",
 
-        minHeight: 0,
-        overflow: "auto",
+        minHeight:
+          0,
 
-        padding: "0.75rem",
+        overflow:
+          "auto",
 
-        boxSizing: "border-box",
+        boxSizing:
+          "border-box",
 
         borderRight:
-          sideNavigationPlacement === "start"
+          sideNavigationPlacement ===
+          "start"
             ? "1px solid var(--ui-border)"
             : undefined,
 
         borderLeft:
-          sideNavigationPlacement === "end"
+          sideNavigationPlacement ===
+          "end"
             ? "1px solid var(--ui-border)"
             : undefined,
-
-        background:
-          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
       },
     });
 
-  const defaultNavigationNode =
+  const defaultSideNavigationNode =
     showTabletRail ? (
       <Box
         {...tabletRailSlot}
 
         data-ui-adaptive-scaffold-rail=""
+
         data-ui-adaptive-scaffold-tablet-navigation=""
       >
         {railNavigation}
@@ -753,6 +1083,7 @@ function AdaptiveScaffoldImpl<
         {...desktopRailSlot}
 
         data-ui-adaptive-scaffold-rail=""
+
         data-ui-adaptive-scaffold-desktop-navigation=""
       >
         {railNavigation}
@@ -762,51 +1093,76 @@ function AdaptiveScaffoldImpl<
         {...desktopSidebarSlot}
 
         data-ui-adaptive-scaffold-sidebar=""
+
         data-ui-adaptive-scaffold-desktop-navigation=""
       >
         <NavigationList
-          items={items}
-          activeId={currentActiveId}
+          items={
+            items
+          }
+
+          activeId={
+            currentActiveId
+          }
+
           activeBehavior="contains"
           openActiveParents
 
           {...navigationListProps}
 
-          onSelect={(item) => {
-            handleNavigationListSelect(
-              item
-            );
-          }}
+          onSelect={
+            handleNavigationListSelect
+          }
         />
       </Box>
     ) : null;
 
-  const customNavigationNode =
-    hasCustomNavigation ? (
-      <Box {...customNavigationSlot}>
+  const customSideNavigationNode =
+    hasCustomNavigation &&
+    navigationPlacement !==
+      "bottom" ? (
+      <Box
+        {...customSideNavigationSlot}
+      >
         {customNavigation}
       </Box>
     ) : null;
 
-  const navigationNode =
-    customNavigationNode ??
-    defaultNavigationNode;
+  const sideNavigationNode =
+    customSideNavigationNode ??
+    defaultSideNavigationNode;
 
   const contentNode = (
     <Box
       {...contentSlot}
+
       data-ui-adaptive-scaffold-content=""
+
       data-ui-adaptive-scaffold-tablet-content={
-        resolvedMode === "tablet" || undefined
+        resolvedMode ===
+          "tablet" ||
+        undefined
       }
+
       data-ui-adaptive-scaffold-desktop-content={
-        resolvedMode === "desktop" || undefined
+        resolvedMode ===
+          "desktop" ||
+        undefined
       }
+
       style={{
-        flex: 1,
-        minWidth: 0,
-        minHeight: 0,
-        overflow: "hidden",
+        flex:
+          1,
+
+        minWidth:
+          0,
+
+        minHeight:
+          0,
+
+        overflow:
+          "hidden",
+
         ...contentSlot.style,
       }}
     >
@@ -814,30 +1170,61 @@ function AdaptiveScaffoldImpl<
     </Box>
   );
 
-  const tabletBottomNavigationNode =
+  const customTabletBottomNode =
+    resolvedMode ===
+      "tablet" &&
+    hasCustomNavigation &&
+    navigationPlacement ===
+      "bottom" ? (
+      <Box
+        {...tabletBottomNavigationSlot}
+
+        data-ui-adaptive-scaffold-custom-navigation=""
+
+        data-ui-adaptive-scaffold-tablet-navigation=""
+
+        data-ui-adaptive-scaffold-navigation-placement="bottom"
+      >
+        {customNavigation}
+      </Box>
+    ) : null;
+
+  const builtInTabletBottomNode =
     showTabletBottom ? (
       <Box
         {...tabletBottomNavigationSlot}
 
         data-ui-adaptive-scaffold-tablet-navigation=""
+
         data-ui-adaptive-scaffold-navigation-placement="bottom"
       >
         {bottomNavigation}
       </Box>
-    ) : undefined;
+    ) : null;
+
+  const tabletFooterNavigation =
+    customTabletBottomNode ??
+    builtInTabletBottomNode;
 
   return (
     <Scaffold
-      {...scaffoldProps}
+      {...rootSlot}
+      {...scaffoldRootProps}
 
-      ref={setRootRefs}
+      ref={
+        setRootRefs
+      }
 
-      viewport={viewport}
+      viewport={
+        viewport
+      }
 
-      appBar={appBar}
+      appBar={
+        appBar
+      }
 
       footer={
-        tabletBottomNavigationNode
+        tabletFooterNavigation
       }
 
       floating={
@@ -845,20 +1232,6 @@ function AdaptiveScaffoldImpl<
           floating,
           context
         )
-      }
-
-      scrollable={false}
-
-      className={
-        rootClassName
-      }
-
-      style={
-        rootStyle
-      }
-
-      slotProps={
-        rootScaffoldSlotProps
       }
     >
       <Box
@@ -868,27 +1241,30 @@ function AdaptiveScaffoldImpl<
       >
         {sideNavigationPlacement ===
         "start"
-          ? navigationNode
+          ? sideNavigationNode
           : null}
 
         {contentNode}
 
         {sideNavigationPlacement ===
         "end"
-          ? navigationNode
+          ? sideNavigationNode
           : null}
       </Box>
     </Scaffold>
   );
 }
 
-type AdaptiveScaffoldComponent = <
-  TMeta = unknown,
->(
-  props:
-    AdaptiveScaffoldProps<TMeta> &
-    React.RefAttributes<HTMLDivElement>
-) => React.ReactElement | null;
+type AdaptiveScaffoldComponent =
+  <
+    TMeta = unknown,
+  >(
+    props:
+      AdaptiveScaffoldProps<TMeta> &
+      React.RefAttributes<HTMLDivElement>
+  ) =>
+    React.ReactElement |
+    null;
 
 /*
  * React.forwardRef borra la firma genérica de TMeta.
@@ -899,7 +1275,8 @@ const AdaptiveScaffoldWithRef =
     AdaptiveScaffoldImpl
   ) as unknown as
     AdaptiveScaffoldComponent & {
-      displayName?: string;
+      displayName?:
+        string;
     };
 
 AdaptiveScaffoldWithRef.displayName =

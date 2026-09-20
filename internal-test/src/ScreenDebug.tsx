@@ -10,6 +10,7 @@ import {
   CardBody,
   Heading,
   Screen,
+  ScrollArea,
   Stack,
   useUIViewport,
 } from "zerina-ui";
@@ -290,10 +291,13 @@ export function ScreenDebug() {
 
                 {
                   scrollEnabled ? (
-                    <Screen.Scroll
+                    <ScrollArea
                       scrollbar="thin"
 
                       style={{
+                        height:
+                          "100%",
+
                         padding:
                           "0.75rem",
 
@@ -304,7 +308,7 @@ export function ScreenDebug() {
 
                       <SettingsList />
 
-                    </Screen.Scroll>
+                    </ScrollArea>
                   ) : (
 
                     <Box

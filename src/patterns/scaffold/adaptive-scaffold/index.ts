@@ -9,6 +9,7 @@ export type {
 
   AdaptiveScaffoldMobileNavigationPlacement,
   AdaptiveScaffoldSideNavigationPlacement,
+  AdaptiveScaffoldTabletNavigationPlacement,
   AdaptiveScaffoldNavigationConfig,
   AdaptiveScaffoldNavigationSlots,
 

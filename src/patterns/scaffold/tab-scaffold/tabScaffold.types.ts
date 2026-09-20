@@ -1,10 +1,15 @@
 // src/patterns/scaffold/tab-scaffold/tabScaffold.types.ts
 import React from "react";
+
 import type {
   SlotPropsMap,
   SlotStyleMap,
 } from "../../../helpers/css";
-import type { BottomNavigationProps } from "../../../primitives/navigation/bottom-navigation";
+
+import type {
+  BottomNavigationProps,
+} from "../../../primitives/navigation/bottom-navigation";
+
 import type {
   NavigationStackAnimation,
   NavigationStackEntry,
@@ -12,16 +17,26 @@ import type {
   NavigationStackScreenRenderProps,
   NavigationStackTransitionDirection,
 } from "../../navigation-stack";
-import type { BackButtonProps } from "../BackButton";
+
+import type {
+  BackButtonProps,
+} from "../BackButton";
+
 import type {
   ScaffoldProps,
   ScaffoldViewport,
 } from "../Scaffold";
-import type { TopAppBarProps } from "../TopAppBar";
+
+import type {
+  TopAppBarProps,
+} from "../TopAppBar";
 
 export type TabScaffoldHeaderValue =
   | React.ReactNode
-  | ((context: TabScaffoldRenderContext) => React.ReactNode);
+  | ((
+      context:
+        TabScaffoldRenderContext
+    ) => React.ReactNode);
 
 export type TabScaffoldSlot =
   | "root"
@@ -38,97 +53,136 @@ export type TabScaffoldSlotProps =
   SlotPropsMap<TabScaffoldSlot>;
 
 /**
- * Descriptor de una sección raíz visible en la navegación
- * inferior de TabScaffold.
- *
- * No representa una pantalla renderizable.
- *
- * El contenido asociado debe declararse por separado mediante
- * TabScaffoldScreen, usando el mismo identificador:
- *
- * tab.value === screen.name
+ * Descriptor de una sección raíz visible en la navegación inferior.
  */
 export interface TabScaffoldTab {
-  value: string;
+  value:
+    string;
 
-  label?: React.ReactNode;
-  ariaLabel?: string;
+  label?:
+    React.ReactNode;
 
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
+  ariaLabel?:
+    string;
 
-  disabled?: boolean;
+  icon?:
+    React.ReactNode;
+
+  badge?:
+    React.ReactNode;
+
+  disabled?:
+    boolean;
 }
 
 /**
- * Pantalla renderizable dentro del NavigationStack de TabScaffold.
- *
- * No es un NavigationNode ni un descriptor visual de tab.
- *
- * Puede representar:
- *
- * - la pantalla raíz de un tab
- * - una pantalla secundaria
- * - una pantalla profunda del stack
+ * Pantalla renderizable dentro del NavigationStack.
  */
 export interface TabScaffoldScreen {
-  name: string;
+  name:
+    string;
 
-  title?: TabScaffoldHeaderValue;
-  subtitle?: TabScaffoldHeaderValue;
+  title?:
+    TabScaffoldHeaderValue;
 
-  component?: React.ComponentType<
-    NavigationStackScreenRenderProps<NavigationStackParams>
-  >;
+  subtitle?:
+    TabScaffoldHeaderValue;
 
-  render?: (
-    props: NavigationStackScreenRenderProps<NavigationStackParams>
-  ) => React.ReactNode;
+  component?:
+    React.ComponentType<
+      NavigationStackScreenRenderProps<
+        NavigationStackParams
+      >
+    >;
 
-  element?: React.ReactNode;
+  render?:
+    (
+      props:
+        NavigationStackScreenRenderProps<
+          NavigationStackParams
+        >
+    ) => React.ReactNode;
+
+  element?:
+    React.ReactNode;
 }
 
 export interface TabScaffoldContextValue {
-  entries: NavigationStackEntry[];
-  current: NavigationStackEntry | null;
-  activeTab: string;
-  canGoBack: boolean;
+  entries:
+    NavigationStackEntry[];
 
-  setEntries: (
-    entries: NavigationStackEntry[],
-    transitionDirection: NavigationStackTransitionDirection
-  ) => void;
+  current:
+    NavigationStackEntry | null;
 
-  push: (
-    name: string,
-    params?: NavigationStackParams
-  ) => void;
+  activeTab:
+    string;
 
-  replace: (
-    name: string,
-    params?: NavigationStackParams
-  ) => void;
+  canGoBack:
+    boolean;
 
-  pop: () => void;
-  popToRoot: () => void;
+  setEntries:
+    (
+      entries:
+        NavigationStackEntry[],
 
-  reset: (
-    name: string,
-    params?: NavigationStackParams
-  ) => void;
+      transitionDirection:
+        NavigationStackTransitionDirection
+    ) => void;
 
-  resetToTab: (tab: string) => void;
+  push:
+    (
+      name:
+        string,
+
+      params?:
+        NavigationStackParams
+    ) => void;
+
+  replace:
+    (
+      name:
+        string,
+
+      params?:
+        NavigationStackParams
+    ) => void;
+
+  pop:
+    () => void;
+
+  popToRoot:
+    () => void;
+
+  reset:
+    (
+      name:
+        string,
+
+      params?:
+        NavigationStackParams
+    ) => void;
+
+  resetToTab:
+    (
+      tab:
+        string
+    ) => void;
 }
 
 export interface TabScaffoldRenderContext
   extends TabScaffoldContextValue {
-  tabs: TabScaffoldTab[];
+  tabs:
+    TabScaffoldTab[];
 }
 
-type TabScaffoldEntriesChangeHandler = (
-  entries: NavigationStackEntry[],
-  transitionDirection: NavigationStackTransitionDirection
-) => void;
+type TabScaffoldEntriesChangeHandler =
+  (
+    entries:
+      NavigationStackEntry[],
+
+    transitionDirection:
+      NavigationStackTransitionDirection
+  ) => void;
 
 interface TabScaffoldBaseProps
   extends Omit<
@@ -140,95 +194,140 @@ interface TabScaffoldBaseProps
     | "floating"
     | "styles"
     | "slotProps"
+    | "title"
   > {
-  /**
-   * Secciones raíz visibles en BottomNavigation.
-   *
-   * Cada tab habilitado debe tener una pantalla registrada
-   * en screens con el mismo identificador.
-   */
-  tabs: TabScaffoldTab[];
+  tabs:
+    TabScaffoldTab[];
 
-  /**
-   * Registro completo de pantallas.
-   *
-   * Incluye tanto las pantallas raíz de los tabs como las
-   * pantallas secundarias que pueden abrirse mediante el stack.
-   */
-  screens: TabScaffoldScreen[];
+  screens:
+    TabScaffoldScreen[];
 
-  viewport?: ScaffoldViewport;
+  viewport?:
+    ScaffoldViewport;
 
-  initialTab?: string;
-  initialParams?: NavigationStackParams;
+  initialTab?:
+    string;
 
-  animation?: NavigationStackAnimation;
+  initialParams?:
+    NavigationStackParams;
 
-  showAppBar?: boolean;
-  showBottomNavigation?: boolean;
+  animation?:
+    NavigationStackAnimation;
 
-  title?: TabScaffoldHeaderValue;
-  subtitle?: TabScaffoldHeaderValue;
+  showAppBar?:
+    boolean;
+
+  showBottomNavigation?:
+    boolean;
+
+  title?:
+    TabScaffoldHeaderValue;
+
+  subtitle?:
+    TabScaffoldHeaderValue;
 
   rootLeading?:
     | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context:
+          TabScaffoldRenderContext
+      ) => React.ReactNode);
 
   actions?:
     | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context:
+          TabScaffoldRenderContext
+      ) => React.ReactNode);
 
   floating?:
     | React.ReactNode
-    | ((context: TabScaffoldRenderContext) => React.ReactNode);
+    | ((
+        context:
+          TabScaffoldRenderContext
+      ) => React.ReactNode);
 
-  backIcon?: React.ReactNode;
-  backAriaLabel?: string;
+  backIcon?:
+    React.ReactNode;
 
-  backButtonProps?: Omit<
-    BackButtonProps,
-    "onBack"
-  >;
+  backAriaLabel?:
+    string;
 
-  renderAppBar?: (
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode;
+  backButtonProps?:
+    Omit<
+      BackButtonProps,
+      "onBack"
+    >;
 
-  renderBottomNavigation?: (
-    context: TabScaffoldRenderContext
-  ) => React.ReactNode;
+  renderAppBar?:
+    (
+      context:
+        TabScaffoldRenderContext
+    ) => React.ReactNode;
 
-  topAppBarProps?: Omit<
-    TopAppBarProps,
-    "title" | "subtitle" | "leading" | "actions"
-  >;
+  renderBottomNavigation?:
+    (
+      context:
+        TabScaffoldRenderContext
+    ) => React.ReactNode;
 
-  bottomNavigationProps?: Omit<
-    BottomNavigationProps,
-    "children" | "value" | "defaultValue" | "onValueChange"
-  >;
+  topAppBarProps?:
+    Omit<
+      TopAppBarProps,
+      | "title"
+      | "subtitle"
+      | "leading"
+      | "actions"
+      | "safeAreaTop"
+    >;
 
-  onTabChange?: (tab: string) => void;
+  bottomNavigationProps?:
+    Omit<
+      BottomNavigationProps,
+      | "children"
+      | "value"
+      | "defaultValue"
+      | "onValueChange"
+      | "position"
+      | "safeArea"
+    >;
 
-  fallback?: React.ReactNode;
+  onTabChange?:
+    (
+      tab:
+        string
+    ) => void;
 
-  styles?: TabScaffoldStyles;
-  slotProps?: TabScaffoldSlotProps;
+  fallback?:
+    React.ReactNode;
+
+  styles?:
+    TabScaffoldStyles;
+
+  slotProps?:
+    TabScaffoldSlotProps;
 }
 
 interface TabScaffoldUncontrolledProps {
-  entries?: never;
-  transitionDirection?: never;
+  entries?:
+    never;
 
-  onEntriesChange?: TabScaffoldEntriesChangeHandler;
+  transitionDirection?:
+    never;
+
+  onEntriesChange?:
+    TabScaffoldEntriesChangeHandler;
 }
 
 interface TabScaffoldControlledProps {
-  entries: NavigationStackEntry[];
+  entries:
+    NavigationStackEntry[];
 
-  transitionDirection: NavigationStackTransitionDirection;
+  transitionDirection:
+    NavigationStackTransitionDirection;
 
-  onEntriesChange?: TabScaffoldEntriesChangeHandler;
+  onEntriesChange?:
+    TabScaffoldEntriesChangeHandler;
 }
 
 export type TabScaffoldProps =

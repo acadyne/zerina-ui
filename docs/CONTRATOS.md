@@ -1150,3 +1150,40 @@ No se admiten:
 `FloatingLayer` sólo puede ser consumido directamente por `FloatingOverlayRuntime`.
 
 Estas restricciones se verifican en `architecture-phase-f-sweep.test.ts`.
+
+## Scaffold ownership
+
+Contrato vigente:
+
+```text
+ScrollArea
+= motor de scroll
+
+ScreenContent
+= contenido de pantalla; puede componer ScrollArea
+
+Screen
+= root y regiones primitivas
+
+Scaffold
+= composición appBar/body/floating/footer
+```
+
+`ScaffoldProps` hereda directamente las props válidas del `Screen` raíz.
+No existe `screenProps`.
+
+El shell no crea scroll. Por tanto tampoco existen `scrollable`,
+`scrollProps` ni el slot `scroll` en `Scaffold`.
+
+`AdaptiveScaffold` recibe las props del shell raíz directamente; no
+existe `scaffoldProps`.
+
+En navegación adaptativa:
+
+- `sidebarWidth` dimensiona únicamente el sidebar;
+- `navigationRailProps.width` dimensiona el rail;
+- custom navigation usa sus slots para dimensionarse;
+- un custom navigation reemplaza la navegación built-in del modo;
+- rail en placement `end` usa `NavigationRail placement="right"`;
+- TopAppBar/BottomNavigation/NavigationRail internos no vuelven a aplicar
+  safe-area: el edge externo pertenece al `Screen` del shell.

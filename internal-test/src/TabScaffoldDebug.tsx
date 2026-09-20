@@ -890,7 +890,6 @@ function UncontrolledExample() {
           initialParams={
             initialParams
           }
-          scrollable={false}
           animation="slide"
           onTabChange={(tab) => {
             appendEvent(
@@ -1180,7 +1179,6 @@ function ControlledExample() {
           transitionDirection={
             direction
           }
-          scrollable={false}
           onEntriesChange={(
             nextEntries,
             nextDirection
@@ -1267,8 +1265,7 @@ function VisibilityExample() {
               screens={screens}
               initialTab="home"
               showAppBar={false}
-              scrollable={false}
-            />
+                />
           </PhoneFrame>
         </Box>
 
@@ -1289,8 +1286,7 @@ function VisibilityExample() {
               showBottomNavigation={
                 false
               }
-              scrollable={false}
-            />
+                />
           </PhoneFrame>
         </Box>
 
@@ -1308,8 +1304,7 @@ function VisibilityExample() {
               )}
               screens={screens}
               initialTab="home"
-              scrollable={false}
-              renderAppBar={(
+                  renderAppBar={(
                 context
               ) => (
                 <TopAppBar
@@ -1383,7 +1378,6 @@ function FalsyRegionsExample() {
           ]}
           screens={screens}
           initialTab="home"
-          scrollable={false}
           renderAppBar={() =>
             0
           }
@@ -1423,7 +1417,6 @@ function OrphanTabExample() {
           tabs={orphanTabs}
           screens={screens}
           initialTab="home"
-          scrollable={false}
           bottomNavigationProps={{
             labelBehavior:
               "active",
@@ -1466,7 +1459,6 @@ function NoEnabledTabsExample() {
           viewport="contained"
           tabs={noEnabledTabs}
           screens={[]}
-          scrollable={false}
           data-debug-no-enabled-tabs=""
         />
       </Box>

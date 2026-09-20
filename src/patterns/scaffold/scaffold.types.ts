@@ -1,5 +1,4 @@
 // src/patterns/scaffold/scaffold.types.ts
-
 import type React from "react";
 
 import type {
@@ -9,42 +8,44 @@ import type {
 
 import type {
   ScreenProps,
-  ScrollAreaProps,
 } from "../../primitives/layout";
-
 
 export type ScaffoldViewport =
   | "window"
   | "contained";
 
-
 export type ScaffoldSlot =
   | "root"
   | "appBar"
   | "body"
-  | "scroll"
   | "content"
   | "floating"
   | "footer";
 
-
 export type ScaffoldStyles =
   SlotStyleMap<ScaffoldSlot>;
-
 
 export type ScaffoldSlotProps =
   SlotPropsMap<ScaffoldSlot>;
 
-
+/**
+ * Scaffold sólo posee la estructura de regiones.
+ *
+ * El scroll de contenido pertenece a ScreenContent/ScrollArea,
+ * no al shell.
+ *
+ * Las props del Screen raíz se reciben directamente; no existe
+ * un segundo canal `screenProps`.
+ */
 export interface ScaffoldProps
   extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
+    ScreenProps,
+    | "as"
     | "children"
-    | "title"
+    | "fullHeight"
   > {
-    
-  children?: React.ReactNode;
-
+  children?:
+    React.ReactNode;
 
   /**
    * window:
@@ -53,69 +54,30 @@ export interface ScaffoldProps
    * contained:
    *   Ocupa el contenedor padre.
    */
-  viewport?: ScaffoldViewport;
-
-
-  /**
-   * Región superior de pantalla.
-   *
-   * Normalmente:
-   * TopAppBar
-   */
-  appBar?: React.ReactNode;
-
+  viewport?:
+    ScaffoldViewport;
 
   /**
-   * Región inferior.
-   *
-   * Puede ser:
-   * BottomNavigation
-   * ActionBar
-   * Toolbar
+   * Región superior estructural.
    */
-  footer?: React.ReactNode;
-
+  appBar?:
+    React.ReactNode;
 
   /**
-   * Elemento flotante sobre el contenido.
-   *
-   * Ej:
-   * FAB
-   * Quick actions
+   * Región inferior estructural.
    */
-  floating?: React.ReactNode;
-
+  footer?:
+    React.ReactNode;
 
   /**
-   * Habilita scroll administrado por Scaffold.
+   * Elemento flotante contenido dentro del body.
    */
-  scrollable?: boolean;
+  floating?:
+    React.ReactNode;
 
+  styles?:
+    ScaffoldStyles;
 
-  /**
-   * Configuración avanzada del scroll.
-   */
-  scrollProps?: Omit<
-    ScrollAreaProps,
-    "children"
-  >;
-
-
-  /**
-   * Configuración avanzada del Screen interno.
-   */
-  screenProps?: Omit<
-    ScreenProps,
-    "children" | "fullHeight"
-  >;
-
-
-  className?: string;
-
-  style?: React.CSSProperties;
-
-
-  styles?: ScaffoldStyles;
-
-  slotProps?: ScaffoldSlotProps;
+  slotProps?:
+    ScaffoldSlotProps;
 }

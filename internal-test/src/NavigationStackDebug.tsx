@@ -10,6 +10,7 @@ import {
   Heading,
   NavigationStack,
   Screen,
+  ScrollArea,
   Stack,
   type NavigationStackAnimation,
   type NavigationStackEntry,
@@ -249,15 +250,16 @@ function ScreenShell({
       </Screen.Header>
 
       <Screen.Body>
-        <Screen.Scroll
+        <ScrollArea
           style={{
+            height: "100%",
             padding: "0.85rem",
           }}
         >
           <Stack spacing="0.75rem">
             {children}
           </Stack>
-        </Screen.Scroll>
+        </ScrollArea>
       </Screen.Body>
     </Screen>
   );
