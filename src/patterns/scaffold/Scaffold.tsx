@@ -156,6 +156,12 @@ export const Scaffold =
             minHeight:
               0,
 
+            display:
+              "flex",
+
+            flexDirection:
+              "column",
+
             overflow:
               "hidden",
 

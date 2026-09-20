@@ -33,4 +33,4 @@ vigentes, no en documentación histórica por fase. El estado operativo y el
 hardening de release viven en [`../BITACORA.md`](../BITACORA.md).
 
 `VERSIONADO.md`, `VALIDACION.md`, `DISTRIBUCION.md` y
-`SUPERFICIE_PUBLICA.md` describen el candidato `0.5.0`.
+`SUPERFICIE_PUBLICA.md` describen la base `0.5.0` y el candidato patch `0.5.1`.

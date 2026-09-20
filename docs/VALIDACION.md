@@ -228,3 +228,31 @@ UIMotionProvider / useUIMotion
 El cierre de `0.5.0` requiere también que la demo hermana pase `pnpm validate`
 y levante con `pnpm dev`. La demo es un gate de integración; no reemplaza el
 tarball clean-consumer de la librería.
+
+
+## Candidato 0.5.1
+
+`0.5.0` ya fue utilizada en el registry y no puede reutilizarse. El patch
+`0.5.1` contiene la corrección de continuidad vertical de
+`AdaptiveScaffold`/`RoutedAdaptiveScaffold` y conserva la API pública de `0.5.0`.
+
+El último gate funcional del source del patch, todavía con metadata `0.5.0`,
+fue reportado así:
+
+```text
+Vitest completo         679/679 PASS
+Chromium                  78/78 PASS
+internal-test typecheck       PASS
+internal-test build           PASS
+package typecheck             PASS
+React 18 consumer             PASS
+React 19 consumer             PASS
+ESM/CJS/CSS                   PASS
+pack content                  PASS
+git whitespace                PASS
+Validation complete.
+```
+
+Ese resultado valida el source del fix, pero la publicación exige repetir la
+puerta integral sobre la metadata exacta `0.5.1`, seguida por la demo hermana y
+`npm publish --dry-run`.

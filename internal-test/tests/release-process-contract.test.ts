@@ -71,12 +71,12 @@ describe(
 
 
     it(
-      "targets the 0.5.0 release candidate exactly",
+      "targets the 0.5.1 patch release candidate exactly",
       () => {
         expect(
           packageJson.version,
         ).toBe(
-          "0.5.0",
+          "0.5.1",
         );
       },
     );
@@ -127,6 +127,30 @@ describe(
           ],
         ).toBe(
           "^0.507.0",
+        );
+      },
+    );
+
+
+    it(
+      "keeps nested package verification real during npm publish --dry-run",
+      () => {
+        expect(
+          verifyPackageSource,
+        ).toContain(
+          '"npm_config_dry_run"',
+        );
+
+        expect(
+          verifyPackageSource,
+        ).toContain(
+          "verificationEnv",
+        );
+
+        expect(
+          verifyPackageSource,
+        ).not.toContain(
+          "env:\n          process.env",
         );
       },
     );

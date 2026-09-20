@@ -45,6 +45,35 @@ const pnpm =
 const node =
   process.execPath;
 
+
+/*
+ * `npm publish --dry-run` exports npm_config_dry_run=true to lifecycle
+ * scripts. package:verify must still create its temporary tarball and clean
+ * consumers; otherwise the outer publish simulation disables the very
+ * verification it is invoking. Strip only that inherited flag from nested
+ * verification commands. The outer npm publish remains a dry run.
+ */
+const verificationEnv = {
+  ...process.env,
+};
+
+for (
+  const key
+  of Object.keys(
+    verificationEnv,
+  )
+) {
+  if (
+    key.toLowerCase()
+    === "npm_config_dry_run"
+  ) {
+    delete verificationEnv[
+      key
+    ];
+  }
+}
+
+
 const tempRoot =
   mkdtempSync(
     join(
@@ -116,7 +145,7 @@ function run(
         stdio:
           "inherit",
         env:
-          process.env,
+          verificationEnv,
       },
     );
 

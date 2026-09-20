@@ -822,10 +822,10 @@ function AdaptiveScaffoldImpl<
           data-ui-adaptive-scaffold-content=""
           data-ui-adaptive-scaffold-mobile-content=""
           style={{
-            width:
-              "100%",
+            flex:
+              1,
 
-            height:
+            width:
               "100%",
 
             minWidth:
@@ -938,13 +938,36 @@ function AdaptiveScaffoldImpl<
         minHeight:
           0,
 
+        display:
+          "flex",
+
+        flexDirection:
+          "column",
+
         overflow:
           "hidden",
 
         ...contentSlot.style,
       }}
     >
-      {content}
+      <Box
+        data-ui-adaptive-scaffold-content-frame=""
+        style={{
+          flex:
+            "1 1 0px",
+
+          minWidth:
+            0,
+
+          minHeight:
+            0,
+
+          overflow:
+            "hidden",
+        }}
+      >
+        {content}
+      </Box>
     </Box>
   );
 

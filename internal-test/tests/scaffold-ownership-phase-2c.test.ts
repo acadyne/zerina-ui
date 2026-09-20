@@ -262,5 +262,146 @@ describe(
         );
       }
     );
+
+    it(
+      "propagates shell height through Scaffold content flex flow instead of percentage chains",
+      () => {
+        const scaffold =
+          readSource(
+            "patterns/scaffold/Scaffold.tsx"
+          );
+
+        const implementation =
+          readSource(
+            "patterns/scaffold/adaptive-scaffold/AdaptiveScaffold.tsx"
+          );
+
+        const scaffoldContentStart =
+          scaffold.indexOf(
+            "const contentSlot"
+          );
+
+        const scaffoldContentEnd =
+          scaffold.indexOf(
+            "const floatingSlot"
+          );
+
+        const scaffoldContent =
+          scaffold.slice(
+            scaffoldContentStart,
+            scaffoldContentEnd
+          );
+
+        expect(
+          scaffoldContent
+        ).toContain(
+          'height:\n              "100%"'
+        );
+
+        expect(
+          scaffoldContent
+        ).toContain(
+          'display:\n              "flex"'
+        );
+
+        expect(
+          scaffoldContent
+        ).toContain(
+          'flexDirection:\n              "column"'
+        );
+
+        const bodyStart =
+          implementation.indexOf(
+            "const bodySlot"
+          );
+
+        const bodyEnd =
+          implementation.indexOf(
+            "const tabletRailSlot"
+          );
+
+        const bodySlot =
+          implementation.slice(
+            bodyStart,
+            bodyEnd
+          );
+
+        expect(
+          bodySlot
+        ).toContain(
+          'display:\n          "flex"'
+        );
+
+        expect(
+          bodySlot
+        ).not.toContain(
+          'height:\n          "100%"'
+        );
+
+        const contentNodeStart =
+          implementation.indexOf(
+            "const contentNode"
+          );
+
+        const contentNodeEnd =
+          implementation.indexOf(
+            "const footerNavigation"
+          );
+
+        const contentNode =
+          implementation.slice(
+            contentNodeStart,
+            contentNodeEnd
+          );
+
+        expect(
+          contentNode
+        ).not.toContain(
+          'height:\n          "100%"'
+        );
+
+        expect(
+          contentNode
+        ).toContain(
+          'display:\n          "flex"'
+        );
+
+        expect(
+          contentNode
+        ).toContain(
+          'flexDirection:\n          "column"'
+        );
+
+        expect(
+          contentNode
+        ).toContain(
+          'data-ui-adaptive-scaffold-content-frame=""'
+        );
+
+        expect(
+          contentNode
+        ).toContain(
+          '"1 1 0px"'
+        );
+
+        expect(
+          implementation
+        ).not.toContain(
+          '"100vh"'
+        );
+
+        expect(
+          implementation
+        ).not.toContain(
+          '"100dvh"'
+        );
+
+        expect(
+          implementation
+        ).not.toMatch(
+          /position:\s*"fixed"/
+        );
+      }
+    );
   }
 );

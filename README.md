@@ -4,15 +4,18 @@ Zerina UI es una librería UI tipada para React. Reúne primitivas, componentes,
 
 > Estado: pre-1.0. La serie `0.x` todavía puede ajustar superficie pública mientras se estabiliza el contrato de la librería.
 
-## Candidato 0.5.0
+## Candidato 0.5.1
 
 La serie `0.5` consolida el sistema visual semántico de Zerina UI: tones,
 surfaces, elevation, shape, typography, density y estados interactivos se
 propagan desde owners compartidos en vez de mapas locales por componente.
 
-El paquete mantiene los mismos entry points y el peer range React 18/19. La
-metadata `0.5.0` sólo se considera lista para publicación cuando el candidato
-exacto termina `pnpm validate` en `Validation complete.`.
+El paquete mantiene los mismos entry points y el peer range React 18/19. `0.5.1`
+es un patch sobre `0.5.0` que corrige la continuidad vertical de
+`AdaptiveScaffold`/`RoutedAdaptiveScaffold` en shells con navegación lateral,
+sin ampliar API pública. La metadata `0.5.1` sólo se considera lista para
+publicación cuando el candidato exacto termina `pnpm validate` en
+`Validation complete.`.
 
 ## Instalación
 

@@ -17,7 +17,7 @@ por el usuario antes de abrir hardening.
 ## Fase activa
 
 ```text
-8 — release hardening / 0.5.0
+8 — patch hardening / 0.5.1
 ```
 
 Hardening no abre otro sistema visual. Su función es comprobar que el sistema
@@ -25,7 +25,7 @@ cerrado se distribuye y documenta como una unidad coherente.
 
 El candidato actual:
 
-- usa metadata `0.5.0`;
+- usa metadata `0.5.1`;
 - mantiene los mismos entry points;
 - mantiene React 18/19 en el peer range;
 - refuerza el smoke ESM/CJS de los owners visuales públicos;
@@ -48,7 +48,7 @@ Estos checks son auxiliares y no sustituyen `pnpm validate`.
 
 ## Cierre requerido
 
-La fase 8 sólo se cierra si la metadata exacta `0.5.0` pasa:
+El patch sólo se cierra si la metadata exacta `0.5.1` pasa:
 
 ```bash
 cd zerina-ui

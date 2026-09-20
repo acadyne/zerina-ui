@@ -4,8 +4,8 @@
 
 La serie `0.2.x` terminó en `0.2.8`.
 
-`0.4.0` es el release anterior validado. El candidato activo usa metadata
-`0.5.0` y entra por la misma puerta de distribución.
+`0.5.0` ya fue utilizada en el registry. El candidato patch activo usa metadata
+`0.5.1` y entra por la misma puerta de distribución.
 
 ## Package manager
 
@@ -146,6 +146,6 @@ La evolución hacia `0.5.0` tampoco cambia entry points ni contenido
 distribuible. Sí amplía la superficie raíz deliberada con contratos visuales
 semánticos y sus recipes.
 
-El candidato `0.5.0` sólo se considera listo cuando la metadata exacta pasa
-`pnpm validate`; la historia validada de `0.4.0` permanece como baseline
-anterior.
+El candidato `0.5.1` sólo se considera listo cuando la metadata exacta pasa
+`pnpm validate`; la historia de `0.5.0` permanece como baseline
+publicada de la serie.
