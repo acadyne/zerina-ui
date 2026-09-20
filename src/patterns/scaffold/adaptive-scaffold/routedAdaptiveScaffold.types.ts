@@ -1,33 +1,39 @@
 // src/patterns/scaffold/adaptive-scaffold/routedAdaptiveScaffold.types.ts
 
 import type {
-    AdaptiveScaffoldProps,
+  AdaptiveScaffoldProps,
 } from "./adaptiveScaffold.types";
 
 import type {
-    NavigationLinkMeta,
-    NavigationNode,
+  NavigationLinkMeta,
+  NavigationNode,
 } from "../../navigation";
 
 
-export interface RoutedAdaptiveScaffoldProps
-    extends Omit<
-        AdaptiveScaffoldProps<
-            NavigationLinkMeta
-        >,
-        "items" | "activeId" | "onActiveIdChange"
-    > {
+export interface RoutedAdaptiveScaffoldProps<
+  TMeta extends NavigationLinkMeta =
+    NavigationLinkMeta,
+>
+  extends Omit<
+    AdaptiveScaffoldProps<TMeta>,
+    | "items"
+    | "activeId"
+    | "onActiveIdChange"
+  > {
+  items:
+    NavigationNode<TMeta>[];
 
-    items: NavigationNode<NavigationLinkMeta>[];
+  activeId?:
+    string | null;
 
-    activeId?: string | null;
-
-    navigate?: (
-        href: string,
-        item: NavigationNode<NavigationLinkMeta>
+  navigate?:
+    (
+      href: string,
+      item: NavigationNode<TMeta>
     ) => void;
 
-    onItemChange?: (
-        item: NavigationNode<NavigationLinkMeta>
+  onItemChange?:
+    (
+      item: NavigationNode<TMeta>
     ) => void;
 }

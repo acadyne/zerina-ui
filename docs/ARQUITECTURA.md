@@ -343,3 +343,42 @@ El custom navigation de un modo reemplaza completamente la presentación
 built-in de ese modo. `TabScaffold` no se fusiona con
 `AdaptiveScaffold`: comparte infraestructura de navegación, pero mantiene
 su semántica de tabs raíz + historial.
+
+## Routing adaptativo y metadata
+
+`RoutedAdaptiveScaffold` no posee un segundo modelo de navegación.
+
+Su contrato genérico conserva el mismo `TMeta` desde el árbol hasta la acción de routing:
+
+```text
+NavigationNode<TMeta>[]
+        ↓
+AdaptiveScaffold<TMeta>
+        ↓
+onActiveIdChange(id, item)
+        ↓
+RoutedAdaptiveScaffold<TMeta>
+        ↓
+onItemChange(item)
+navigate(href, item)
+```
+
+El único requisito del metadata routed es:
+
+```ts
+TMeta extends NavigationLinkMeta
+```
+
+por lo que una aplicación puede ampliar `href` con metadata propia sin perderla:
+
+```ts
+type AppNavigationMeta =
+  NavigationLinkMeta & {
+    analyticsId: string;
+    permission: string;
+  };
+```
+
+`RoutedAdaptiveScaffold` no vuelve a buscar el item por `id`: consume directamente
+el `NavigationNode<TMeta>` ya resuelto por `AdaptiveScaffold`. Así routing no crea
+un segundo owner de traversal ni de selección.

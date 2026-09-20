@@ -284,6 +284,7 @@ function writeConsumer({
   ConfirmDialog,
   MotionPresence,
   NavigationPresenter,
+  RoutedAdaptiveScaffold,
   UIMotionProvider,
   TargetFormDialog,
   UIViewportProvider,
@@ -330,6 +331,7 @@ import type {
   ModalState,
   PopoverPlacement,
   RatioValue,
+  RoutedAdaptiveScaffoldProps,
   SafeAreaEdges,
   ScaffoldProps,
   SelectSize,
@@ -393,6 +395,41 @@ const adaptiveNavigation:
       presentation: "sidebar",
     },
     compact: compactPolicy,
+  };
+
+
+const routedAdaptiveProps:
+  RoutedAdaptiveScaffoldProps<ConsumerNavigationMeta> = {
+    items:
+      navigationItems,
+
+    mode:
+      "mobile",
+
+    navigation:
+      adaptiveNavigation,
+
+    navigate:
+      (
+        href,
+        item,
+      ) => {
+        const analyticsId:
+          string | undefined =
+          item.meta?.analyticsId;
+
+        void href;
+        void analyticsId;
+      },
+
+    onItemChange:
+      (item) => {
+        const analyticsId:
+          string | undefined =
+          item.meta?.analyticsId;
+
+        void analyticsId;
+      },
   };
 
 const tabletNavigationPlacement:
@@ -628,6 +665,7 @@ void popoverPlacement;
 void floatingPlacement;
 void safeAreaEdges;
 void scaffoldProps;
+void routedAdaptiveProps;
 void tabScaffoldProps;
 void containerSize;
 void avatarSize;
@@ -693,6 +731,28 @@ export function ConsumerExample() {
         mode="mobile"
         navigation={adaptiveNavigation}
       />
+
+
+      <RoutedAdaptiveScaffold
+        items={navigationItems}
+        mode="mobile"
+        navigation={adaptiveNavigation}
+        navigate={(href, item) => {
+          const analyticsId:
+            string | undefined =
+            item.meta?.analyticsId;
+
+          void href;
+          void analyticsId;
+        }}
+        onItemChange={(item) => {
+          const analyticsId:
+            string | undefined =
+            item.meta?.analyticsId;
+
+          void analyticsId;
+        }}
+      />
     </ZerinaProvider>
   );
 }
@@ -720,6 +780,7 @@ for (
     "Button",
     "ConfirmDialog",
     "NavigationPresenter",
+    "RoutedAdaptiveScaffold",
     "TargetFormDialog",
     "ZerinaProvider",
     "UIMotionProvider",
@@ -752,6 +813,7 @@ for (
     "Button",
     "ConfirmDialog",
     "NavigationPresenter",
+    "RoutedAdaptiveScaffold",
     "TargetFormDialog",
     "ZerinaProvider",
   ]

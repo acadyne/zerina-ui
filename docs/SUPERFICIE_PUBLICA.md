@@ -340,3 +340,44 @@ NavigationPresenter
 `NavigationNodeEntry`, `getNavigationNodeEntries` y
 `projectCompactNavigation` son infraestructura interna del pattern y no
 forman parte del barrel público raíz.
+
+## RoutedAdaptiveScaffold genérico
+
+`RoutedAdaptiveScaffold` y `RoutedAdaptiveScaffoldProps` preservan metadata
+extendida:
+
+```tsx
+type AppMeta =
+  NavigationLinkMeta & {
+    analyticsId: string;
+  };
+
+const items:
+  NavigationNode<AppMeta>[] = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      meta: {
+        href: "/dashboard",
+        analyticsId: "nav-dashboard",
+      },
+    },
+  ];
+
+<RoutedAdaptiveScaffold
+  items={items}
+  navigate={(href, item) => {
+    // item.meta?.analyticsId está contextualizado como string | undefined
+    void href;
+    void item.meta?.analyticsId;
+  }}
+/>;
+```
+
+No es necesario anotar el genérico en JSX cuando `items` permite inferirlo.
+
+El default sigue siendo:
+
+```ts
+RoutedAdaptiveScaffoldProps<NavigationLinkMeta>
+```

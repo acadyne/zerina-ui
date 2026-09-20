@@ -396,3 +396,29 @@ El mapa queda cubierto.
 Las diferencias restantes tienen una justificación semántica explícita; no representan trabajo pendiente de deduplicación.
 
 La única puerta restante es G: validación integrada y decisión de versión.
+
+## Routed navigation metadata
+
+Owner de selección:
+
+```text
+AdaptiveScaffold<TMeta>
+```
+
+Adapter de routing:
+
+```text
+RoutedAdaptiveScaffold<TMeta extends NavigationLinkMeta>
+```
+
+No existe traversal adicional en el adapter routed.
+
+El `NavigationNode<TMeta>` seleccionado se propaga directamente a:
+
+```text
+onItemChange
+navigate
+```
+
+Esto mantiene un solo owner de resolución de items y evita estrechar metadata de
+aplicación a `NavigationLinkMeta`.

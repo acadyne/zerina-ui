@@ -1255,3 +1255,38 @@ En placement/chrome:
 - rail en placement `end` usa `NavigationRail placement="right"`;
 - TopAppBar/BottomNavigation/NavigationRail internos no vuelven a aplicar
   safe-area: el edge externo pertenece al `Screen` del shell.
+
+## RoutedAdaptiveScaffold metadata
+
+Contrato público:
+
+```ts
+interface RoutedAdaptiveScaffoldProps<
+  TMeta extends NavigationLinkMeta = NavigationLinkMeta
+> extends Omit<
+  AdaptiveScaffoldProps<TMeta>,
+  "items" | "activeId" | "onActiveIdChange"
+> {
+  items: NavigationNode<TMeta>[];
+
+  activeId?: string | null;
+
+  navigate?: (
+    href: string,
+    item: NavigationNode<TMeta>
+  ) => void;
+
+  onItemChange?: (
+    item: NavigationNode<TMeta>
+  ) => void;
+}
+```
+
+Reglas:
+
+- `NavigationLinkMeta` es el mínimo routed (`href?: string`);
+- metadata adicional permanece tipada de extremo a extremo;
+- `navigate` sólo se ejecuta cuando el item seleccionado tiene `meta.href`;
+- `onItemChange` recibe el item seleccionado aunque no exista `href`;
+- routing no re-resuelve el item desde `id`;
+- no existe una variante paralela de props para metadata custom.

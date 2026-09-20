@@ -40,6 +40,7 @@ import type {
   NavigationSurfaceVariant,
   PopoverPlacement,
   RatioValue,
+  RoutedAdaptiveScaffoldProps,
   SafeAreaEdges,
   ScaffoldProps,
   SelectSize,
@@ -130,6 +131,25 @@ describe(
         const tabletNavigationPlacement:
           AdaptiveScaffoldTabletNavigationPlacement =
           "bottom";
+
+
+        const routedAdaptiveProps:
+          RoutedAdaptiveScaffoldProps<DemoNavigationMeta> = {
+            items,
+
+            navigate:
+              (
+                _href,
+                item,
+              ) => {
+                void item.meta?.analyticsId;
+              },
+
+            onItemChange:
+              (item) => {
+                void item.meta?.analyticsId;
+              },
+          };
 
         const destinationContract: {
           position: NavigationSurfacePosition;
@@ -338,6 +358,16 @@ describe(
           tabletNavigationPlacement,
         ).toBe(
           "bottom",
+        );
+
+
+        expect(
+          routedAdaptiveProps
+            .items[0]
+            ?.meta
+            ?.analyticsId,
+        ).toBe(
+          "dashboard",
         );
 
         expect([
