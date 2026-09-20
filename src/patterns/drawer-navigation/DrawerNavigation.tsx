@@ -13,12 +13,12 @@ import {
 import { Box } from "../../primitives/layout";
 import {
   NavigationList,
-  type NavigationListActiveBehavior,
 } from "../../primitives/navigation";
 
 import type {
+  NavigationActiveBehavior,
   NavigationNode,
-} from "../navigation";
+} from "../navigation/navigation.types";
 import {
   Drawer,
   DrawerBody,
@@ -83,7 +83,7 @@ export interface DrawerNavigationProps<
    * contains:
    *   Marca también los padres que contienen el activeId.
    */
-  activeBehavior?: NavigationListActiveBehavior;
+  activeBehavior?: NavigationActiveBehavior;
 
   indentSize?: number;
 

@@ -216,7 +216,7 @@ La estabilidad de entry points no implica que el conjunto completo de cambios de
 
 ## Cambio de superficie — shell consolidado
 
-La siguiente evolución elimina caminos redundantes de composición:
+La evolución elimina caminos redundantes de composición.
 
 Retirado:
 
@@ -234,14 +234,90 @@ AdaptiveScaffold.scaffoldProps
 AdaptiveScaffold.navigationWidth
 ```
 
-Contrato único:
+Contrato único de shell:
 
 ```text
 Scaffold.safeArea / topInset / bottomInset / root props
 ScreenContent.scrollable
 ScrollArea
 AdaptiveScaffold.sidebarWidth
-AdaptiveScaffold.navigationRailProps.width
+AdaptiveScaffold.navigation.rail.width
 ```
 
 No se mantienen aliases ni wrappers de compatibilidad.
+
+## Cambio de superficie — Navigation Presenter
+
+La navegación responsive usa un único contrato:
+
+```ts
+<AdaptiveScaffold
+  items={items}
+  navigation={{
+    mobile: {
+      presentation: "bottom",
+    },
+    tablet: {
+      presentation: "rail",
+      placement: "end",
+    },
+    desktop: {
+      presentation: "sidebar",
+    },
+    compact: {
+      maxVisible: {
+        bottom: 5,
+        rail: 7,
+      },
+      overflowLabel: "Más",
+    },
+    rail: {
+      width: 88,
+    },
+  }}
+/>
+```
+
+Retirado de `AdaptiveScaffold`:
+
+```text
+mobileNavigation
+tabletNavigation
+desktopNavigation
+navigationSlots
+bottomNavigationProps
+navigationRailProps
+navigationListProps
+```
+
+Tipos públicos nuevos:
+
+```text
+NavigationActiveBehavior
+NavigationPresentation
+NavigationSide
+
+NavigationCompactPolicy
+NavigationCompactPresentation
+
+NavigationPresenterProps
+NavigationPresenterBottomProps
+NavigationPresenterRailProps
+NavigationPresenterListProps
+NavigationPresenterDrawerProps
+
+AdaptiveScaffoldNavigation
+AdaptiveScaffoldMobileNavigationConfig
+AdaptiveScaffoldTabletNavigationConfig
+AdaptiveScaffoldDesktopNavigationConfig
+```
+
+Runtime público nuevo:
+
+```text
+NavigationPresenter
+```
+
+`NavigationNodeEntry`, `getNavigationNodeEntries` y
+`projectCompactNavigation` son infraestructura interna del pattern y no
+forman parte del barrel público raíz.

@@ -6,7 +6,7 @@ import {
   AdaptiveScaffold,
   Box,
   type AdaptiveScaffoldMobileNavigationPlacement,
-  type AdaptiveScaffoldSideNavigationPlacement,
+  type NavigationSide,
 } from "zerina-ui";
 
 import {
@@ -46,11 +46,11 @@ const SCAFFOLD_ITEMS:
 
 
 const DESKTOP_NAVIGATION_PLACEMENT:
-  AdaptiveScaffoldSideNavigationPlacement =
+  NavigationSide =
   "end";
 
 const TABLET_NAVIGATION_PLACEMENT:
-  AdaptiveScaffoldSideNavigationPlacement =
+  NavigationSide =
   "start";
 
 const MOBILE_NAVIGATION_PLACEMENT:
@@ -158,12 +158,11 @@ export function DocumentationLayout({
 
           showAppBar={false}
 
-          mobileNavigation="none"
-          tabletNavigation="none"
-          desktopNavigation="none"
-
-          navigationSlots={{
+          navigation={{
             desktop: {
+              presentation:
+                "none",
+
               content:
                 treeNavigation,
 
@@ -172,6 +171,9 @@ export function DocumentationLayout({
             },
 
             tablet: {
+              presentation:
+                "none",
+
               content:
                 treeNavigation,
 
@@ -180,6 +182,9 @@ export function DocumentationLayout({
             },
 
             mobile: {
+              presentation:
+                "none",
+
               content:
                 menuNavigation,
 

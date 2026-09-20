@@ -1178,10 +1178,58 @@ El shell no crea scroll. Por tanto tampoco existen `scrollable`,
 `AdaptiveScaffold` recibe las props del shell raíz directamente; no
 existe `scaffoldProps`.
 
-En navegación adaptativa:
+En navegación adaptativa existe un único canal `navigation`:
+
+```ts
+navigation={{
+  mobile: { presentation: "bottom" },
+  tablet: { presentation: "rail", placement: "end" },
+  desktop: { presentation: "sidebar" },
+  compact: {
+    maxVisible: {
+      bottom: 5,
+      rail: 7,
+    },
+  },
+  bottom: {},
+  rail: { width: 88 },
+  list: {},
+  drawer: {},
+}}
+```
+
+No existen canales paralelos `mobileNavigation`, `tabletNavigation`,
+`desktopNavigation`, `navigationSlots`, `bottomNavigationProps`,
+`navigationRailProps` ni `navigationListProps` en `AdaptiveScaffold`.
+
+La política de árbol tiene owners únicos:
+
+```text
+getNavigationNodeEntries
+= único walker estructural
+
+projectCompactNavigation
+= única proyección para bottom/rail
+
+NavigationPresenter
+= único owner de presentación built-in
+```
+
+Contrato de proyección:
+
+- sidebar/drawer preservan el árbol completo;
+- bottom/rail proyectan destinations en orden depth-first;
+- un parent de agrupación no ocupa destino compacto salvo que sea
+  explícitamente `selectable`;
+- un destino disabled permanece visible pero no es seleccionable;
+- el límite compacto incluye el destino `Más` cuando hay overflow;
+- `Más` abre drawer con el árbol completo;
+- si `activeId` vive en overflow, `Más` queda activo.
+
+En placement/chrome:
 
 - `sidebarWidth` dimensiona únicamente el sidebar;
-- `navigationRailProps.width` dimensiona el rail;
+- `navigation.rail.width` dimensiona el rail;
 - custom navigation usa sus slots para dimensionarse;
 - un custom navigation reemplaza la navegación built-in del modo;
 - rail en placement `end` usa `NavigationRail placement="right"`;

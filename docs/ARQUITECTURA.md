@@ -272,15 +272,56 @@ adquieren un segundo owner de scroll.
 
 ### Navegación dentro del shell
 
-`AdaptiveScaffold` posee únicamente placement/orquestación de su
-navegación actual:
+La Fase 3 separa árbol, proyección, presentación y placement:
 
-- el custom navigation reemplaza la navegación built-in del modo;
-- tablet acepta custom placement `bottom`;
-- rail `start/end` se traduce a `left/right` en `NavigationRail`;
-- el rail posee su propio width;
-- `sidebarWidth` pertenece sólo al sidebar desktop;
-- custom side navigation se dimensiona por sus slots.
+```text
+NavigationNode[]
+      ↓
+getNavigationNodeEntries
+      ↓
+projectCompactNavigation
+      ↓
+NavigationPresenter
+      ↓
+BottomNavigation / NavigationRail / NavigationList / DrawerNavigation
+      ↓
+AdaptiveScaffold placement
+```
 
-La proyección de árboles y la política de destinos por breakpoint
-pertenecen a la siguiente fase de navigation presenter.
+`getNavigationNodeEntries` es el único walker estructural del árbol.
+Búsqueda, ancestry, primer destino seleccionable, active-parent y
+proyección compacta derivan de esa representación.
+
+`NavigationPresenter` es el único owner de las presentaciones built-in:
+
+- `sidebar` y `drawer` preservan la jerarquía completa;
+- `bottom` y `rail` comparten `projectCompactNavigation`;
+- los parents que son sólo grupos no ocupan un destino compacto;
+- los destinations anidados sí son alcanzables en compact;
+- cuando se excede el límite se reserva un único destino `Más`;
+- `Más` abre un `DrawerNavigation` con el árbol completo;
+- si el destino activo está en overflow, `Más` representa el estado activo.
+
+Los límites por defecto son 5 destinos para bottom y 7 para rail,
+incluyendo el slot `Más` cuando existe overflow.
+
+`AdaptiveScaffold` ya no proyecta ni renderiza items. Su único contrato
+responsive es `navigation`, y su responsabilidad termina en elegir la
+presentación del modo y colocar el `NavigationPresenter` o el contenido
+custom.
+
+```text
+navigation.mobile
+navigation.tablet
+navigation.desktop
+navigation.compact
+navigation.bottom
+navigation.rail
+navigation.list
+navigation.drawer
+```
+
+El custom navigation de un modo reemplaza completamente la presentación
+built-in de ese modo. `TabScaffold` no se fusiona con
+`AdaptiveScaffold`: comparte infraestructura de navegación, pero mantiene
+su semántica de tabs raíz + historial.

@@ -112,9 +112,11 @@ describe(
               mode="tablet"
               showAppBar={false}
               items={items}
-              tabletNavigation="bottom"
-              navigationSlots={{
+              navigation={{
                 tablet: {
+                  presentation:
+                    "bottom",
+
                   placement:
                     "bottom",
 
@@ -168,9 +170,11 @@ describe(
               mode="tablet"
               showAppBar={false}
               items={items}
-              tabletNavigation="rail"
-              navigationSlots={{
+              navigation={{
                 tablet: {
+                  presentation:
+                    "rail",
+
                   placement:
                     "end",
                 },
@@ -197,7 +201,12 @@ describe(
               mode="desktop"
               showAppBar={false}
               items={items}
-              desktopNavigation="sidebar"
+              navigation={{
+                desktop: {
+                  presentation:
+                    "sidebar",
+                },
+              }}
               sidebarWidth={320}
             >
               Content
@@ -210,10 +219,16 @@ describe(
               mode="tablet"
               showAppBar={false}
               items={items}
-              tabletNavigation="rail"
-              navigationRailProps={{
-                width:
-                  104,
+              navigation={{
+                tablet: {
+                  presentation:
+                    "rail",
+                },
+
+                rail: {
+                  width:
+                    104,
+                },
               }}
             >
               Content

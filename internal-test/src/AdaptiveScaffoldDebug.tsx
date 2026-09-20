@@ -322,42 +322,55 @@ export function AdaptiveScaffoldDebug() {
                     "adaptive-scaffold-desktop-content",
                 },
               }}
-              bottomNavigationProps={{
-                variant: "floating",
-                indicator: "pill",
-                labelBehavior: "active",
-                density: "comfortable",
-                badgeAnchor: "icon",
-                badgePlacement: "top-end",
-                // activeIconScale: 1.08,
-                itemMinWidth: 58,
-                styles: {
-                  activeItem: {
-                    background:
-                      "color-mix(in srgb, var(--ui-primary) 14%, transparent)",
-                    boxShadow:
-                      "inset 0 0 0 1px color-mix(in srgb, var(--ui-primary) 18%, transparent)",
+              navigation={{
+                compact: {
+                  maxVisible: {
+                    bottom: 5,
+                    rail: 5,
+                  },
+
+                  overflowLabel: "Más",
+                  drawerTitle: "Navegación",
+                },
+
+                bottom: {
+                  variant: "floating",
+                  indicator: "pill",
+                  labelBehavior: "active",
+                  density: "comfortable",
+                  badgeAnchor: "icon",
+                  badgePlacement: "top-end",
+                  itemMinWidth: 58,
+                  styles: {
+                    activeItem: {
+                      background:
+                        "color-mix(in srgb, var(--ui-primary) 14%, transparent)",
+                      boxShadow:
+                        "inset 0 0 0 1px color-mix(in srgb, var(--ui-primary) 18%, transparent)",
+                    },
                   },
                 },
-              }}
-              navigationRailProps={{
-                variant: "surface",
-                indicator: "pill",
-                labelBehavior: "active",
-                density: "comfortable",
-                styles: {
-                  activeItem: {
-                    background:
-                      "color-mix(in srgb, var(--ui-primary) 14%, transparent)",
-                    boxShadow:
-                      "inset 0 0 0 1px color-mix(in srgb, var(--ui-primary) 18%, transparent)",
+
+                rail: {
+                  variant: "surface",
+                  indicator: "pill",
+                  labelBehavior: "active",
+                  density: "comfortable",
+                  styles: {
+                    activeItem: {
+                      background:
+                        "color-mix(in srgb, var(--ui-primary) 14%, transparent)",
+                      boxShadow:
+                        "inset 0 0 0 1px color-mix(in srgb, var(--ui-primary) 18%, transparent)",
+                    },
                   },
                 },
-              }}
-              navigationListProps={{
-                collapsedBehavior: "flyout",
-                activeBehavior: "contains",
-                defaultOpenIds: ["system"],
+
+                list: {
+                  collapsedBehavior: "flyout",
+                  activeBehavior: "contains",
+                  defaultOpenIds: ["system"],
+                },
               }}
             >
               {({ activeId: currentActiveId }) => (
@@ -379,8 +392,10 @@ export function AdaptiveScaffoldDebug() {
           >
             Checklist: auto debe responder al ancho del contenedor; mobile usa
             BottomNavigation, tablet usa NavigationRail, desktop usa
-            NavigationList. Sistema debe abrir hijos en desktop. En DevTools
-            deben aparecer los data-demo-slot-* del AdaptiveScaffold.
+            NavigationList. Los hijos de Sistema deben ser alcanzables también
+            en superficies compactas mediante Más; en desktop Sistema debe
+            abrirse como padre activo. En DevTools deben aparecer los
+            data-demo-slot-* del AdaptiveScaffold.
           </Box>
         </Stack>
       </CardBody>

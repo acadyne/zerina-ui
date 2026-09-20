@@ -3,6 +3,20 @@ import React from "react";
 
 export type NavigationNodeId = string;
 
+export type NavigationActiveBehavior =
+  | "exact"
+  | "contains";
+
+export type NavigationPresentation =
+  | "bottom"
+  | "rail"
+  | "sidebar"
+  | "drawer";
+
+export type NavigationSide =
+  | "start"
+  | "end";
+
 export interface NavigationLinkMeta {
   href?: string;
 }
@@ -36,6 +50,20 @@ export interface NavigationNode<
 
   meta?: TMeta;
 }
+
+export interface NavigationNodeEntry<
+  TMeta = unknown
+> {
+  node:
+    NavigationNode<TMeta>;
+
+  depth:
+    number;
+
+  ancestors:
+    NavigationNode<TMeta>[];
+}
+
 
 export interface NavigationContentMeta {
   element?: React.ReactNode;

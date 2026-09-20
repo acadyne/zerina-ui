@@ -19,11 +19,31 @@ export * from "./TargetFormDialog";
 export * from "./settings";
 export * from "./actions";
 export type {
+  NavigationActiveBehavior,
   NavigationContentMeta,
   NavigationLinkMeta,
   NavigationNode,
   NavigationNodeId,
+  NavigationPresentation,
+  NavigationSide,
 } from "./navigation/navigation.types";
+
+export {
+  NavigationPresenter,
+} from "./navigation/NavigationPresenter";
+
+export type {
+  NavigationPresenterBottomProps,
+  NavigationPresenterDrawerProps,
+  NavigationPresenterListProps,
+  NavigationPresenterProps,
+  NavigationPresenterRailProps,
+} from "./navigation/NavigationPresenter";
+
+export type {
+  NavigationCompactPolicy,
+  NavigationCompactPresentation,
+} from "./navigation/navigationProjection";
 export * from "./navigation-stack";
 export * from "./drawer-navigation";
 export * from "./command";

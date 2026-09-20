@@ -21,199 +21,272 @@ La demo permanece como consumidor real para la fase de integración posterior.
 - Fase 1 — superficie pública + package gate: **CERRADA Y VALIDADA**.
 - Fase 2A — fundamentos unificados: **CERRADA Y VALIDADA**.
 - Fase 2B — Navigation Destinations: **CERRADA Y VALIDADA**.
-- Fase 2C — ownership de Scaffold: **IMPLEMENTADA R2; PENDIENTE ÚNICAMENTE DE REPETIR `pnpm validate` TRAS FIX DE WHITESPACE**.
-- Fase 3 — Navigation Presenter / política responsive: no iniciada.
+- Fase 2C — ownership de Scaffold: **CERRADA Y VALIDADA**.
+- Fase 3 — Navigation Presenter / política responsive: **IMPLEMENTADA, PENDIENTE DE `pnpm validate`**.
+- Fase 4 — dialog contextual typing: no iniciada.
 
-## Fase 2C — ownership resultante
-
-### Scroll
-
-```text
-ScrollArea = único motor de scroll
-ScreenContent = composición semántica que puede usar ScrollArea
-```
-
-Retirados:
+## Fase 3 — arquitectura implementada
 
 ```text
-Screen.Scroll
-ScreenScroll
-ScreenScrollProps
-Scaffold.scrollable
-Scaffold.scrollProps
+NavigationNode[]
+      ↓
+getNavigationNodeEntries
+      ↓
+projectCompactNavigation
+      ↓
+NavigationPresenter
+      ↓
+BottomNavigation / NavigationRail / NavigationList / DrawerNavigation
+      ↓
+AdaptiveScaffold placement
 ```
 
-### Screen
+### Árbol
 
-Owner de:
-
-- raíz física;
-- viewport;
-- safe-area exterior;
-- Header / Body / Footer.
-
-### Scaffold
-
-Owner exclusivo de regiones:
+Owner estructural:
 
 ```text
-appBar
-body/content
-floating
-footer
+src/patterns/navigation/navigation.utils.ts
 ```
+
+`getNavigationNodeEntries` es el único walker recursivo del árbol.
+
+Derivan de él:
+
+- búsqueda por id;
+- ancestry/path;
+- active-parent;
+- primer destino seleccionable;
+- detección de containment;
+- proyección compacta.
 
 Retirado:
 
 ```text
-screenProps
+flattenNavigationNodes
 ```
 
-Las props raíz de `Screen` pasan directamente por `Scaffold`.
+`NavigationList` ya no posee un segundo traversal para active-parent.
+
+### Proyección compacta
+
+Owner:
+
+```text
+src/patterns/navigation/navigationProjection.ts
+```
+
+Política:
+
+- bottom y rail usan exactamente la misma proyección;
+- orden depth-first estable;
+- group-only parents no ocupan destino compacto;
+- parent `selectable=true` sí es destination;
+- destinations disabled permanecen visibles y disabled;
+- default bottom: 5 slots;
+- default rail: 7 slots;
+- cuando hay overflow, el último slot se reserva para `Más`;
+- `Más` abre un drawer con el árbol completo;
+- si el active destination está en overflow, `Más` queda activo.
+
+### Presenter
+
+Owner:
+
+```text
+src/patterns/navigation/NavigationPresenter.tsx
+```
+
+Presentaciones soportadas:
+
+```text
+bottom
+rail
+sidebar
+drawer
+```
+
+Responsabilidades:
+
+- bottom/rail consumen `projectCompactNavigation`;
+- sidebar usa el árbol completo;
+- drawer usa el árbol completo;
+- overflow de compact abre un único `DrawerNavigation`;
+- placement semántico usa `NavigationSide = "start" | "end"`.
+
+El estado del drawer de overflow se limpia cuando cambia la presentación
+o deja de existir overflow.
 
 ### AdaptiveScaffold
 
-Retirados:
+`AdaptiveScaffold` ya no:
+
+- itera `items`;
+- renderiza `BottomNavigation`;
+- renderiza `NavigationRail`;
+- renderiza `NavigationList`;
+- decide flattening;
+- decide overflow.
+
+Sólo resuelve modo + placement y delega built-ins a:
 
 ```text
-scaffoldProps
-navigationWidth
+NavigationPresenter
 ```
 
-Anchos explícitos:
+Existe un solo canal:
+
+```ts
+navigation={{
+  mobile: { presentation: "bottom" },
+  tablet: { presentation: "rail", placement: "end" },
+  desktop: { presentation: "sidebar" },
+  compact: {
+    maxVisible: {
+      bottom: 5,
+      rail: 7,
+    },
+  },
+  bottom: {},
+  rail: {},
+  list: {},
+  drawer: {},
+}}
+```
+
+Retirados de `AdaptiveScaffold`:
 
 ```text
-sidebarWidth
-navigationRailProps.width
+mobileNavigation
+tabletNavigation
+desktopNavigation
+navigationSlots
+bottomNavigationProps
+navigationRailProps
+navigationListProps
 ```
 
-### TabScaffold
+No hay aliases de compatibilidad.
 
-Mantiene:
+`bottomNavigationProps` continúa existiendo únicamente en `TabScaffold`,
+donde configura una navegación de tabs con semántica propia; no es un
+segundo canal de AdaptiveScaffold.
 
-- tabs raíz;
-- historial;
-- back;
-- reselect/popToRoot.
+### Tipos semánticos compartidos
 
-No posee scroll.
-
-## Bugs cerrados
-
-### Custom tablet bottom
-
-Una navegación custom reemplaza a la built-in.
-
-Tablet admite:
+Owner:
 
 ```text
-start
-end
-bottom
+src/patterns/navigation/navigation.types.ts
 ```
 
-No existe navegación custom lateral simultánea con bottom built-in.
-
-### Rail end
-
-`end` deriva:
+Añadidos:
 
 ```text
-NavigationRail placement="right"
+NavigationActiveBehavior
+NavigationPresentation
+NavigationSide
+NavigationNodeEntry
 ```
 
-### navigationWidth
+`NavigationNodeEntry` es infraestructura interna; no forma parte del barrel raíz.
 
-Eliminado.
+### Superficie pública nueva
 
-Separado en:
+Runtime:
 
 ```text
-sidebarWidth
-navigationRailProps.width
+NavigationPresenter
 ```
 
-## Validación canónica — primer intento de Fase 2C
+Tipos:
 
-El usuario ejecutó:
+```text
+NavigationActiveBehavior
+NavigationPresentation
+NavigationSide
+NavigationCompactPolicy
+NavigationCompactPresentation
+NavigationPresenterProps
+NavigationPresenterBottomProps
+NavigationPresenterRailProps
+NavigationPresenterListProps
+NavigationPresenterDrawerProps
+AdaptiveScaffoldNavigation
+AdaptiveScaffoldMobileNavigationConfig
+AdaptiveScaffoldTabletNavigationConfig
+AdaptiveScaffoldDesktopNavigationConfig
+```
+
+## Regresiones de Fase 3
+
+Añadidas:
+
+```text
+internal-test/tests/navigation-projection-phase-3.test.ts
+internal-test/tests/navigation-presenter-phase-3.test.tsx
+internal-test/tests/navigation-presenter-ownership-phase-3.test.ts
+internal-test/tests/navigation-presenter-public-contract-phase-3.test.ts
+```
+
+Actualizados:
+
+```text
+internal-test/tests/public-surface-types.test.ts
+internal-test/tests/scaffold-ownership-phase-2c.test.tsx
+internal-test/src/AdaptiveScaffoldDebug.tsx
+internal-test/src/app/DocumentationLayout.tsx
+scripts/verify-package.mjs
+```
+
+El clean consumer de package verification ahora importa y usa
+`NavigationPresenter`, `NavigationPresenterProps`,
+`AdaptiveScaffoldNavigation`, `NavigationCompactPolicy`,
+`NavigationPresentation` y `NavigationSide`.
+
+## Validación realizada en este runtime
+
+No hay dependencias instaladas para ejecutar el gate canónico completo.
+
+Sí se verificó:
+
+- 461 archivos TS/TSX parseados;
+- 0 errores sintácticos;
+- imports relativos productivos rotos: 0;
+- ciclos runtime productivos: 0;
+- módulos TS/TSX productivos no alcanzables desde `src/index.ts`: 0;
+- named re-exports locales inválidos: 0;
+- `node --check scripts/verify-package.mjs`: PASS;
+- `getNavigationNodeEntries` implementations: 1;
+- traversal local en `navigationProjection`: 0;
+- renders directos Bottom/Rail/List dentro de AdaptiveScaffold: 0;
+- `items.map` dentro de AdaptiveScaffold: 0;
+- `<NavigationPresenter` dentro de AdaptiveScaffold: 1;
+- contratos retirados en `AdaptiveScaffoldProps`: 0;
+- runtime cycles introducidos: 0;
+- whitespace nuevo detectado en los 24 archivos modificados: 0;
+- typecheck estricto aislado de tree + projection: PASS;
+- ejecución aislada de la proyección nested/overflow: PASS;
+- typecheck semántico aislado de `NavigationPresenter`: PASS;
+- typecheck semántico aislado de `AdaptiveScaffold` con sus contratos nuevos: PASS.
+
+Estas comprobaciones no sustituyen `pnpm validate`.
+
+## No validado
+
+Falta el gate canónico del usuario:
 
 ```bash
 pnpm install
 pnpm validate
 ```
 
-Resultados funcionales:
+Fase 3 NO está cerrada hasta obtener `Validation complete.`.
 
-- internal-test typecheck: PASS;
-- Vitest:
-  - 86 archivos PASS;
-  - 603 tests PASS;
-- internal-test build: PASS;
-- Chromium:
-  - 65 tests PASS;
-- package typecheck: PASS;
-- package build: PASS;
-- package pack: PASS;
-- clean consumer React 18:
-  - install PASS;
-  - typecheck PASS;
-  - ESM/CJS/CSS smoke PASS;
-- clean consumer React 19:
-  - install PASS;
-  - typecheck PASS;
-  - ESM/CJS/CSS smoke PASS.
+## Siguiente paso tras el PASS
 
-Único fallo:
+Fase 4 — corregir contextual typing de dialogs sin mantener el contrato ambiguo
+`ReactNode | ((target) => ReactNode)`.
 
-```text
-git whitespace check
-```
-
-por una línea en blanco nueva al EOF de:
-
-```text
-docs/ARQUITECTURA.md
-docs/CONTRATOS.md
-docs/SUPERFICIE_PUBLICA.md
-```
-
-## Corrección R2
-
-Se eliminaron exclusivamente esas líneas en blanco extra.
-
-No se modificó código productivo.
-
-Se realizó un barrido comparando todos los archivos modificados de Fase 2C contra el checkpoint 2B:
-
-```text
-21 archivos modificados
-0 nuevas líneas con trailing whitespace
-0 nuevos blank lines at EOF
-```
-
-Los whitespace preexistentes en archivos no modificados no forman parte del diff y no son reportados por `git diff --check`.
-
-## Estado de validación
-
-Toda la parte funcional del gate ya pasó.
-
-Falta repetir:
-
-```bash
-pnpm validate
-```
-
-sobre R2 para confirmar que `git whitespace check` también finaliza en PASS.
-
-Fase 2C se cerrará sólo después de ese `Validation complete.` final.
-
-## Siguiente fase tras el PASS
-
-Fase 3 — Navigation Presenter:
-
-- un único owner de proyección de `NavigationNode[]`;
-- bottom / rail / sidebar / drawer como presentaciones;
-- jerarquía y grupos;
-- active parent;
-- muchos destinos / overflow;
-- política responsive sin duplicación por breakpoint.
+La solución debe mantener una sola forma de render props y no introducir
+aliases legacy.

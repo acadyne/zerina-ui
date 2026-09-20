@@ -278,8 +278,10 @@ function writeConsumer({
       "src/index.tsx",
     ),
     `import {
+  AdaptiveScaffold,
   Button,
   MotionPresence,
+  NavigationPresenter,
   UIMotionProvider,
   UIViewportProvider,
   ZerinaProvider,
@@ -287,6 +289,7 @@ function writeConsumer({
 } from "zerina-ui";
 
 import type {
+  AdaptiveScaffoldNavigation,
   AdaptiveScaffoldProps,
   AdaptiveScaffoldTabletNavigationPlacement,
   AvatarSize,
@@ -299,10 +302,15 @@ import type {
   FloatingPlacement,
   InputSize,
   InputVariant,
+  NavigationActiveBehavior,
+  NavigationCompactPolicy,
   NavigationContentMeta,
   NavigationLinkMeta,
   NavigationNode,
   NavigationNodeId,
+  NavigationPresentation,
+  NavigationPresenterProps,
+  NavigationSide,
   NavigationDestinationBadgeAnchor,
   NavigationDestinationBadgeOffset,
   NavigationDestinationBadgePlacement,
@@ -355,6 +363,28 @@ const navigationItems:
 const adaptiveItems:
   AdaptiveScaffoldProps<ConsumerNavigationMeta>["items"] =
   navigationItems;
+
+const compactPolicy:
+  NavigationCompactPolicy = {
+    maxVisible: {
+      bottom: 5,
+      rail: 7,
+    },
+  };
+
+const adaptiveNavigation:
+  AdaptiveScaffoldNavigation<ConsumerNavigationMeta> = {
+    mobile: {
+      presentation: "bottom",
+    },
+    tablet: {
+      presentation: "rail",
+    },
+    desktop: {
+      presentation: "sidebar",
+    },
+    compact: compactPolicy,
+  };
 
 const tabletNavigationPlacement:
   AdaptiveScaffoldTabletNavigationPlacement =
@@ -409,6 +439,26 @@ const navigationSelectionContext:
 
 const navigationContent:
   NavigationContentMeta = {};
+
+const navigationActiveBehavior:
+  NavigationActiveBehavior =
+  "contains";
+
+const navigationPresentation:
+  NavigationPresentation =
+  "bottom";
+
+const navigationSide:
+  NavigationSide =
+  "end";
+
+const navigationPresenterProps:
+  NavigationPresenterProps<ConsumerNavigationMeta> = {
+    items: navigationItems,
+    presentation: "bottom",
+    activeId: "dashboard",
+    compactPolicy,
+  };
 
 const themeDefinition:
   CreateThemeDefinitionInput = {
@@ -465,8 +515,16 @@ void UIMotionProvider;
 void UIViewportProvider;
 void usePress;
 void adaptiveItems;
+void adaptiveNavigation;
+void compactPolicy;
 void tabletNavigationPlacement;
+void AdaptiveScaffold;
+void NavigationPresenter;
 void navigationContent;
+void navigationActiveBehavior;
+void navigationPresentation;
+void navigationPresenterProps;
+void navigationSide;
 void themeDefinition;
 void setViewportMode;
 void setTheme;
@@ -496,6 +554,19 @@ export function ConsumerExample() {
   return (
     <ZerinaProvider>
       <Button {...buttonProps} />
+
+      <NavigationPresenter
+        items={navigationItems}
+        presentation="bottom"
+        activeId="dashboard"
+        compactPolicy={compactPolicy}
+      />
+
+      <AdaptiveScaffold
+        items={navigationItems}
+        mode="mobile"
+        navigation={adaptiveNavigation}
+      />
     </ZerinaProvider>
   );
 }
@@ -518,7 +589,9 @@ import * as esm from "zerina-ui";
 for (
   const symbol
   of [
+    "AdaptiveScaffold",
     "Button",
+    "NavigationPresenter",
     "ZerinaProvider",
     "UIMotionProvider",
     "UIViewportProvider",
@@ -547,6 +620,7 @@ for (
   const symbol
   of [
     "Button",
+    "NavigationPresenter",
     "ZerinaProvider",
   ]
 ) {

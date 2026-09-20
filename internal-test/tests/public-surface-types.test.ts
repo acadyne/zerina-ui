@@ -7,6 +7,7 @@ import {
 } from "vitest";
 
 import type {
+  AdaptiveScaffoldNavigation,
   AdaptiveScaffoldProps,
   AdaptiveScaffoldTabletNavigationPlacement,
   AvatarSize,
@@ -18,10 +19,14 @@ import type {
   FloatingPlacement,
   InputSize,
   InputVariant,
+  NavigationActiveBehavior,
+  NavigationCompactPolicy,
   NavigationContentMeta,
   NavigationLinkMeta,
   NavigationNode,
   NavigationNodeId,
+  NavigationPresentation,
+  NavigationSide,
   NavigationDestinationBadgeAnchor,
   NavigationDestinationBadgeOffset,
   NavigationDestinationBadgePlacement,
@@ -88,6 +93,38 @@ describe(
           AdaptiveScaffoldProps<DemoNavigationMeta>["items"] =
           items;
 
+        const compactPolicy:
+          NavigationCompactPolicy = {
+            maxVisible: {
+              bottom:
+                5,
+
+              rail:
+                7,
+            },
+          };
+
+        const adaptiveNavigation:
+          AdaptiveScaffoldNavigation<DemoNavigationMeta> = {
+            mobile: {
+              presentation:
+                "bottom",
+            },
+
+            tablet: {
+              presentation:
+                "rail",
+            },
+
+            desktop: {
+              presentation:
+                "sidebar",
+            },
+
+            compact:
+              compactPolicy,
+          };
+
         const tabletNavigationPlacement:
           AdaptiveScaffoldTabletNavigationPlacement =
           "bottom";
@@ -130,6 +167,18 @@ describe(
 
         const content:
           NavigationContentMeta = {};
+
+        const navigationActiveBehavior:
+          NavigationActiveBehavior =
+          "contains";
+
+        const navigationPresentation:
+          NavigationPresentation =
+          "bottom";
+
+        const navigationSide:
+          NavigationSide =
+          "end";
 
         const theme:
           CreateThemeDefinitionInput = {
@@ -250,10 +299,36 @@ describe(
         );
 
         expect(
+          adaptiveNavigation
+            .mobile
+            ?.presentation,
+        ).toBe(
+          "bottom",
+        );
+
+        expect(
+          compactPolicy
+            .maxVisible
+            ?.rail,
+        ).toBe(
+          7,
+        );
+
+        expect(
           tabletNavigationPlacement,
         ).toBe(
           "bottom",
         );
+
+        expect([
+          navigationActiveBehavior,
+          navigationPresentation,
+          navigationSide,
+        ]).toEqual([
+          "contains",
+          "bottom",
+          "end",
+        ]);
 
         expect(
           content,

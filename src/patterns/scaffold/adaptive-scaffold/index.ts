@@ -3,15 +3,19 @@
 export type {
   AdaptiveScaffoldMode,
   AdaptiveScaffoldResolvedMode,
-  AdaptiveScaffoldMobileNavigation,
-  AdaptiveScaffoldTabletNavigation,
-  AdaptiveScaffoldDesktopNavigation,
+
+  AdaptiveScaffoldMobilePresentation,
+  AdaptiveScaffoldTabletPresentation,
+  AdaptiveScaffoldDesktopPresentation,
 
   AdaptiveScaffoldMobileNavigationPlacement,
-  AdaptiveScaffoldSideNavigationPlacement,
   AdaptiveScaffoldTabletNavigationPlacement,
-  AdaptiveScaffoldNavigationConfig,
-  AdaptiveScaffoldNavigationSlots,
+
+  AdaptiveScaffoldNavigationModeConfig,
+  AdaptiveScaffoldMobileNavigationConfig,
+  AdaptiveScaffoldTabletNavigationConfig,
+  AdaptiveScaffoldDesktopNavigationConfig,
+  AdaptiveScaffoldNavigation,
 
   AdaptiveScaffoldSlot,
   AdaptiveScaffoldStyles,
@@ -19,15 +23,11 @@ export type {
 
   AdaptiveScaffoldRenderContext,
   AdaptiveScaffoldProps,
-
 } from "./adaptiveScaffold.types";
-
 
 export type {
   RoutedAdaptiveScaffoldProps,
 } from "./routedAdaptiveScaffold.types";
 
-
 export * from "./AdaptiveScaffold";
-
 export * from "./RoutedAdaptiveScaffold";

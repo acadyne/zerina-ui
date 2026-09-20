@@ -26,17 +26,20 @@ import {
 } from "../overlay";
 import { Typography } from "../typography";
 import {
+  getNavigationNodeAriaLabel,
+  isNavigationNodeActive,
   isNavigationNodeSelectable,
-  type NavigationNode,
-} from "../../patterns/navigation";
+  navigationNodeContainsId,
+} from "../../patterns/navigation/navigation.utils";
+
+import type {
+  NavigationActiveBehavior,
+  NavigationNode,
+} from "../../patterns/navigation/navigation.types";
 
 export type NavigationListVariant =
   | "sidebar"
   | "inline";
-
-export type NavigationListActiveBehavior =
-  | "exact"
-  | "contains";
 
 export type NavigationListCollapsedBehavior =
   | "icons-only"
@@ -113,7 +116,7 @@ export interface NavigationListProps<
    * exact: solo el item con activeId se marca activo.
    * contains: padres también pueden considerarse activos si contienen activeId.
    */
-  activeBehavior?: NavigationListActiveBehavior;
+  activeBehavior?: NavigationActiveBehavior;
 
   ariaLabel?: string;
 
@@ -130,7 +133,7 @@ export interface NavigationListItemProps<
   item: NavigationNode<TMeta>;
 
   activeId?: string | null;
-  activeBehavior?: NavigationListActiveBehavior;
+  activeBehavior?: NavigationActiveBehavior;
 
   openIds: Set<string>;
   openActiveParents: boolean;
@@ -431,55 +434,6 @@ const navigationListRecipe =
   });
 
 
-function itemContainsId<TMeta>(
-  item: NavigationNode<TMeta>,
-  id: string | null | undefined
-): boolean {
-  if (!id) {
-    return false;
-  }
-
-  if (item.id === id) {
-    return true;
-  }
-
-  return Boolean(
-    item.children?.some(
-      (child) =>
-        itemContainsId(
-          child,
-          id
-        )
-    )
-  );
-}
-
-function isItemActive<TMeta>({
-  item,
-  activeId,
-  activeBehavior,
-}: {
-  item: NavigationNode<TMeta>;
-  activeId?: string | null;
-  activeBehavior: NavigationListActiveBehavior;
-}): boolean {
-  if (!activeId) {
-    return false;
-  }
-
-  if (
-    activeBehavior === "exact"
-  ) {
-    return item.id === activeId;
-  }
-
-  return itemContainsId(
-    item,
-    activeId
-  );
-}
-
-
 function isItemDirectlyActive<TMeta>(
   item: NavigationNode<TMeta>,
   activeId?: string | null
@@ -490,24 +444,6 @@ function isItemDirectlyActive<TMeta>(
   );
 }
 
-function getNavigationNodeAriaLabel<
-  TMeta
->(
-  item: NavigationNode<TMeta>
-): string | undefined {
-  if (item.ariaLabel) {
-    return item.ariaLabel;
-  }
-
-  if (
-    typeof item.label === "string" ||
-    typeof item.label === "number"
-  ) {
-    return String(item.label);
-  }
-
-  return undefined;
-}
 
 const visuallyHiddenStyle:
   React.CSSProperties = {
@@ -579,10 +515,14 @@ const NavigationListItem =
       children.length > 0;
 
     const active =
-      isItemActive({
-        item,
+      isNavigationNodeActive({
+        node:
+          item,
+
         activeId,
-        activeBehavior,
+
+        behavior:
+          activeBehavior,
       });
 
     const directlyActive =
@@ -600,7 +540,7 @@ const NavigationListItem =
         openIds.has(item.id) ||
         (
           openActiveParents &&
-          itemContainsId(
+          navigationNodeContainsId(
             item,
             activeId
           )

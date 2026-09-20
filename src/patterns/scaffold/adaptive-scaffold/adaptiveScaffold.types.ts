@@ -12,19 +12,14 @@ import type {
 } from "../../../core/viewport";
 
 import type {
-  BottomNavigationProps,
-} from "../../../primitives/navigation/bottom-navigation";
-
-import type {
-  NavigationListProps,
-} from "../../../primitives/navigation/NavigationList";
-
-import type {
-  NavigationRailProps,
-} from "../../../primitives/navigation/navigation-rail";
-
-import type {
+  NavigationCompactPolicy,
   NavigationNode,
+  NavigationPresentation,
+  NavigationPresenterBottomProps,
+  NavigationPresenterDrawerProps,
+  NavigationPresenterListProps,
+  NavigationPresenterRailProps,
+  NavigationSide,
 } from "../../navigation";
 
 import type {
@@ -36,67 +31,121 @@ import type {
   TopAppBarProps,
 } from "../TopAppBar";
 
+
 export type AdaptiveScaffoldMode =
   UIViewportMode;
+
 
 export type AdaptiveScaffoldResolvedMode =
   UIViewportKind;
 
-export type AdaptiveScaffoldMobileNavigation =
-  | "bottom"
+
+export type AdaptiveScaffoldMobilePresentation =
+  | Extract<
+      NavigationPresentation,
+      "bottom"
+    >
   | "none";
 
-export type AdaptiveScaffoldTabletNavigation =
-  | "rail"
-  | "bottom"
+
+export type AdaptiveScaffoldTabletPresentation =
+  | Extract<
+      NavigationPresentation,
+      "rail" | "bottom"
+    >
   | "none";
 
-export type AdaptiveScaffoldDesktopNavigation =
-  | "sidebar"
-  | "rail"
+
+export type AdaptiveScaffoldDesktopPresentation =
+  | Extract<
+      NavigationPresentation,
+      "sidebar" | "rail"
+    >
   | "none";
+
 
 export type AdaptiveScaffoldMobileNavigationPlacement =
   | "top"
   | "bottom";
 
-export type AdaptiveScaffoldSideNavigationPlacement =
-  | "start"
-  | "end";
 
 export type AdaptiveScaffoldTabletNavigationPlacement =
-  | AdaptiveScaffoldSideNavigationPlacement
+  | NavigationSide
   | "bottom";
 
-export interface AdaptiveScaffoldNavigationConfig<
+
+export interface AdaptiveScaffoldNavigationModeConfig<
+  TPresentation extends string,
   TPlacement extends string,
 > {
-  /**
-   * Reemplaza por completo la navegación built-in del modo.
-   */
-  content?:
-    React.ReactNode;
+  presentation?:
+    TPresentation;
 
   placement?:
     TPlacement;
+
+  /**
+   * Cuando existe, reemplaza por completo la presentación built-in
+   * de este modo.
+   */
+  content?:
+    React.ReactNode;
 }
 
-export interface AdaptiveScaffoldNavigationSlots {
+
+export type AdaptiveScaffoldMobileNavigationConfig =
+  AdaptiveScaffoldNavigationModeConfig<
+    AdaptiveScaffoldMobilePresentation,
+    AdaptiveScaffoldMobileNavigationPlacement
+  >;
+
+
+export type AdaptiveScaffoldTabletNavigationConfig =
+  AdaptiveScaffoldNavigationModeConfig<
+    AdaptiveScaffoldTabletPresentation,
+    AdaptiveScaffoldTabletNavigationPlacement
+  >;
+
+
+export type AdaptiveScaffoldDesktopNavigationConfig =
+  AdaptiveScaffoldNavigationModeConfig<
+    AdaptiveScaffoldDesktopPresentation,
+    NavigationSide
+  >;
+
+
+/**
+ * Un único contrato contiene la política responsive y la configuración
+ * de todas las presentaciones de navegación.
+ */
+export interface AdaptiveScaffoldNavigation<
+  TMeta = unknown,
+> {
   mobile?:
-    AdaptiveScaffoldNavigationConfig<
-      AdaptiveScaffoldMobileNavigationPlacement
-    >;
+    AdaptiveScaffoldMobileNavigationConfig;
 
   tablet?:
-    AdaptiveScaffoldNavigationConfig<
-      AdaptiveScaffoldTabletNavigationPlacement
-    >;
+    AdaptiveScaffoldTabletNavigationConfig;
 
   desktop?:
-    AdaptiveScaffoldNavigationConfig<
-      AdaptiveScaffoldSideNavigationPlacement
-    >;
+    AdaptiveScaffoldDesktopNavigationConfig;
+
+  compact?:
+    NavigationCompactPolicy;
+
+  bottom?:
+    NavigationPresenterBottomProps;
+
+  rail?:
+    NavigationPresenterRailProps;
+
+  list?:
+    NavigationPresenterListProps<TMeta>;
+
+  drawer?:
+    NavigationPresenterDrawerProps<TMeta>;
 }
+
 
 export type AdaptiveScaffoldSlot =
   | "root"
@@ -112,11 +161,14 @@ export type AdaptiveScaffoldSlot =
   | "tabletContent"
   | "desktopContent";
 
+
 export type AdaptiveScaffoldStyles =
   SlotStyleMap<AdaptiveScaffoldSlot>;
 
+
 export type AdaptiveScaffoldSlotProps =
   SlotPropsMap<AdaptiveScaffoldSlot>;
+
 
 export interface AdaptiveScaffoldRenderContext<
   TMeta = unknown,
@@ -139,12 +191,12 @@ export interface AdaptiveScaffoldRenderContext<
     ) => void;
 }
 
+
 /**
  * AdaptiveScaffold especializa Scaffold.
  *
- * Las props del root físico (safeArea, insets, eventos, data/aria,
- * className, style...) se reciben directamente. No existe un segundo
- * canal `scaffoldProps`.
+ * Las props del root físico se reciben directamente.
+ * La navegación responsive se configura únicamente mediante `navigation`.
  */
 export interface AdaptiveScaffoldProps<
   TMeta = unknown,
@@ -188,17 +240,8 @@ export interface AdaptiveScaffoldProps<
       item: NavigationNode<TMeta>
     ) => void;
 
-  mobileNavigation?:
-    AdaptiveScaffoldMobileNavigation;
-
-  tabletNavigation?:
-    AdaptiveScaffoldTabletNavigation;
-
-  desktopNavigation?:
-    AdaptiveScaffoldDesktopNavigation;
-
-  navigationSlots?:
-    AdaptiveScaffoldNavigationSlots;
+  navigation?:
+    AdaptiveScaffoldNavigation<TMeta>;
 
   title?:
     | React.ReactNode
@@ -248,41 +291,10 @@ export interface AdaptiveScaffoldProps<
       | "safeAreaTop"
     >;
 
-  bottomNavigationProps?:
-    Omit<
-      BottomNavigationProps,
-      | "children"
-      | "value"
-      | "defaultValue"
-      | "onValueChange"
-      | "position"
-      | "safeArea"
-    >;
-
-  navigationRailProps?:
-    Omit<
-      NavigationRailProps,
-      | "children"
-      | "value"
-      | "defaultValue"
-      | "onValueChange"
-      | "position"
-      | "placement"
-      | "safeArea"
-    >;
-
-  navigationListProps?:
-    Omit<
-      NavigationListProps<TMeta>,
-      | "items"
-      | "activeId"
-      | "onSelect"
-    >;
-
   /**
    * Ancho del sidebar desktop built-in.
    *
-   * Rail posee su propio `width` en `navigationRailProps`.
+   * Rail posee su propio `width` en `navigation.rail`.
    * Navegaciones custom se dimensionan mediante sus slots.
    */
   sidebarWidth?:
