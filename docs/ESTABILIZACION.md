@@ -1,44 +1,64 @@
 # Estabilización vigente
 
-## Ciclo cerrado
+## Ciclo visual cerrado
 
-El ciclo arquitectónico posterior a `0.3.0` está cerrado:
-
-```text
-A–G  CERRADO
-```
-
-Resultado integrado:
+Las fases 7A–7F están cerradas funcionalmente y su último gate fue confirmado
+por el usuario antes de abrir hardening.
 
 ```text
-548/548 Vitest
-65/65 Chromium
-React 18 consumer PASS
-React 19 consumer PASS
-ESM/CJS/CSS PASS
-package verification PASS
-git whitespace PASS
-Validation complete.
+7A  Semantic Visual Foundation          CERRADA
+7B  Dynamic Environment Projection     CERRADA
+7C  Surface + Tone Recipes             CERRADA
+7D  Interactive Families               CERRADA
+7E  Typography + Control Density       CERRADA
+7F  Visual Lab                         CERRADA
 ```
 
-## Candidato estable
-
-El conjunto se asignó a:
+## Fase activa
 
 ```text
-0.4.0
+8 — release hardening / 0.5.0
 ```
 
-La razón semver es una ampliación pública compatible (`mx/my` en Inline/Wrap) acompañada de correcciones y convergencia interna sin cambio de entry points.
+Hardening no abre otro sistema visual. Su función es comprobar que el sistema
+cerrado se distribuye y documenta como una unidad coherente.
 
-## Estado de deuda del mapa
+El candidato actual:
 
-No quedan P0/P1 sin decisión.
+- usa metadata `0.5.0`;
+- mantiene los mismos entry points;
+- mantiene React 18/19 en el peer range;
+- refuerza el smoke ESM/CJS de los owners visuales públicos;
+- sincroniza documentación de versión, distribución y superficie pública;
+- conserva demo y librería como repos hermanos.
 
-Las diferencias restantes están documentadas como semánticas deliberadas, no como deuda pendiente de deduplicación.
+## Estado de deuda
 
-## Siguiente trabajo
+El sweep auxiliar previo al gate no detecta:
 
-No se abre otro ciclo arquitectónico automáticamente.
+```text
+legacy --ui-action-* / --ui-shadow-* / surface2/surface3     0
+componentes Material* / Flutter*                              0
+phase markers productivos                                    0
+TODO/FIXME productivos                                       0
+data-hovered/data-pressed CSS fuera del owner compartido      0
+```
 
-Cualquier trabajo posterior debe comenzar desde una necesidad nueva y volver a leer `BITACORA.md` antes de definir scope.
+Estos checks son auxiliares y no sustituyen `pnpm validate`.
+
+## Cierre requerido
+
+La fase 8 sólo se cierra si la metadata exacta `0.5.0` pasa:
+
+```bash
+cd zerina-ui
+pnpm validate
+
+cd ../zerina-ui-demo
+pnpm validate
+pnpm dev
+```
+
+Después de ese cierre no se abre automáticamente otro ciclo arquitectónico.
+Cualquier trabajo posterior debe partir de una necesidad nueva y volver a leer
+`BITACORA.md`.

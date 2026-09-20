@@ -24,3 +24,13 @@ No crear documentos por cada fase histórica si la información ya no afecta al 
 
 - [`MAPEO_ARQUITECTURA.md`](./MAPEO_ARQUITECTURA.md): mapa final de owners, convergencias y diferencias deliberadas.
 - [`ROADMAP_POST_0_3.md`](./ROADMAP_POST_0_3.md): fases A–G y su cierre integrado.
+
+
+## Ciclo 0.4.0 → 0.5.0
+
+La memoria de trabajo de las fases visuales 7A–7F se consolidó en los contratos
+vigentes, no en documentación histórica por fase. El estado operativo y el
+hardening de release viven en [`../BITACORA.md`](../BITACORA.md).
+
+`VERSIONADO.md`, `VALIDACION.md`, `DISTRIBUCION.md` y
+`SUPERFICIE_PUBLICA.md` describen el candidato `0.5.0`.

@@ -13,3 +13,5 @@ internal-test/test-results/
 internal-test/playwright-report/
 internal-test/coverage/
 **.zip
+BITACORA.md
+docs

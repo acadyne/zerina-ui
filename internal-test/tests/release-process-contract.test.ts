@@ -27,6 +27,9 @@ const packageJson =
       "utf8",
     ),
   ) as {
+    version:
+      string;
+
     packageManager:
       string;
 
@@ -65,6 +68,18 @@ const verifyPackageSource =
 describe(
   "release process contract",
   () => {
+
+
+    it(
+      "targets the 0.5.0 release candidate exactly",
+      () => {
+        expect(
+          packageJson.version,
+        ).toBe(
+          "0.5.0",
+        );
+      },
+    );
     it(
       "builds before every pack and validates before publish",
       () => {

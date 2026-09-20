@@ -110,6 +110,35 @@ la superficie de consumidor:
 - `CreateThemeDefinitionInput`, porque es el contrato de `createThemeDefinition`;
 - `UIThemeContextValue`, porque es el valor retornado por `useUITheme`.
 
+## Sistema visual semántico público
+
+La raíz expone el vocabulario que una aplicación necesita para expresar
+intención visual sin importar paths internos:
+
+```text
+UITone / UI_TONES
+UISurfaceRole / UI_SURFACE_ROLES
+UIElevation / UI_ELEVATIONS
+UIShape / UI_SHAPES
+UITypographyRole / UI_TYPOGRAPHY_ROLES
+```
+
+Recipes públicas deliberadas:
+
+```text
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+typographyRecipe
+```
+
+Estas recipes traducen semántica; no sustituyen a los owners funcionales.
+`interactiveStateRecipe` no captura eventos (`usePress` sigue siendo owner de
+interacción), y la density efectiva sigue perteneciendo a
+`UIViewportProvider`.
+
+Los aliases visuales retirados en pre-1.0 no vuelven a exponerse.
+
 ## Tipos semánticos de props
 
 Cuando una prop pública usa un dominio semántico con nombre, el consumidor debe
@@ -423,7 +452,34 @@ Los nuevos color roles container/on-container y los grupos
 `typography.role`, `spacing` y `density` forman parte del contrato público de
 tokens.
 
-No se exporta todavía `toneRecipe`, `surfaceRecipe`,
-`interactiveStateRecipe` ni `typographyRecipe`: esas recipes pertenecen a las
-siguientes subfases y se mantendrán internas salvo que exista una necesidad
-real de API pública.
+Las recipes visuales compartidas forman parte deliberada de la API raíz:
+
+```text
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+typographyRecipe
+```
+
+Su presencia pública permite que una aplicación componga superficies, tonos,
+tipografía y estados con el mismo vocabulario que usan los componentes sin
+importar paths internos ni crear mapas paralelos.
+
+
+## Delta público 0.4.0 → 0.5.0
+
+Los entry points permanecen:
+
+```text
+zerina-ui
+zerina-ui/styles.css
+zerina-ui/reset.css
+```
+
+El delta deliberado está dentro del entry point raíz: vocabulario visual
+semántico, recipes compartidas y contratos de theme/density necesarios para
+consumirlos. La serie pre-1.0 no conserva aliases retirados sólo por
+compatibilidad histórica.
+
+La distribución final se valida en declarations generadas y consumidores
+limpios React 18/19; `src/index.ts` por sí solo no basta.

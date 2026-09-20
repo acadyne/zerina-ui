@@ -93,7 +93,7 @@ SearchInput clear y PasswordInput toggle:
 
 Fuente de verdad: `THEME_TOKEN_MANIFEST`.
 
-- esquema actual: 69 hojas;
+- esquema actual: 145 hojas;
 - rama `interaction`: 6 hojas;
 - runtime/SSR/browser derivan el conjunto del manifiesto;
 - una sola prueba fija cardinalidad total explícita;
@@ -1433,7 +1433,7 @@ motion
 = publica data-ui-motion-effective + --ui-motion-token-* desde motion.tokens.ts
 = motion.css traduce ese atributo a aliases funcionales sin duplicar números
 
-recipes futuras
+recipes compartidas
 = traducen roles a composición visual
 
 componentes
@@ -1442,3 +1442,47 @@ componentes
 
 No se permite que un componente cree un segundo mapa global de tonos,
 elevación, superficies, density o motion.
+
+
+## 27. Sistema visual semántico
+
+Owner de vocabulario base:
+
+```text
+src/theme/contracts/visual-semantics.ts
+```
+
+Dominios públicos:
+
+```text
+UITone
+UISurfaceRole
+UIElevation
+UIShape
+UITypographyRole
+```
+
+Owners de traducción visual:
+
+```text
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+typographyRecipe
+```
+
+Reglas:
+
+- el manifiesto de theme sigue siendo el único registro de tokens;
+- `toneRecipe` traduce tone + emphasis;
+- `surfaceRecipe` traduce surface role + elevation + shape + border;
+- `interactiveStateRecipe` traduce estado visual, pero no captura eventos;
+- `typographyRecipe` traduce roles tipográficos;
+- `usePress` conserva la mecánica interactiva;
+- `UIViewportProvider` conserva viewport y density;
+- `UIMotionProvider` conserva la política temporal;
+- CSS de componente no vuelve a crear state layers `hovered/pressed`;
+- no se reintroducen `surface2`, `surface3`, `--ui-shadow-*` ni
+  `--ui-action-*`.
+
+La demo puede observar estas decisiones, pero no poseerlas.

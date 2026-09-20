@@ -4,7 +4,8 @@
 
 La serie `0.2.x` terminó en `0.2.8`.
 
-`0.3.0` es el baseline anterior. El ciclo A–G cerró y `0.4.0` está validada para release.
+`0.4.0` es el release anterior validado. El candidato activo usa metadata
+`0.5.0` y entra por la misma puerta de distribución.
 
 ## Package manager
 
@@ -141,6 +142,10 @@ La serie Lucide `0.470–0.475` tuvo una regresión de empaquetado ESM/CJS; no d
 A–G   cerradas
 ```
 
-F no cambia entry points ni contenido distribuible.
+La evolución hacia `0.5.0` tampoco cambia entry points ni contenido
+distribuible. Sí amplía la superficie raíz deliberada con contratos visuales
+semánticos y sus recipes.
 
-`0.4.0` ya pasó `pnpm validate` con la metadata de versión actualizada y terminó en `Validation complete.`.
+El candidato `0.5.0` sólo se considera listo cuando la metadata exacta pasa
+`pnpm validate`; la historia validada de `0.4.0` permanece como baseline
+anterior.

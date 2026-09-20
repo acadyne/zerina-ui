@@ -2,54 +2,74 @@
 
 ## Estado actual
 
-Versión validada para release:
+Candidato de release activo:
+
+```text
+0.5.0
+```
+
+Release anterior validado:
 
 ```text
 0.4.0
 ```
 
-Baseline anterior:
+La metadata de `package.json` ya apunta a `0.5.0`. Eso no equivale por sí solo
+a un release validado: la readiness exacta se establece únicamente cuando
+`pnpm validate` termina en `Validation complete.` sobre esta misma metadata.
+
+## Por qué 0.5.0
+
+El ciclo 7A–7F convierte la capa visual en un sistema semántico compartido y
+observable:
 
 ```text
-0.3.0
+7A  semantic visual foundation
+7B  dynamic environment projection
+7C  surface + tone recipes
+7D  interactive families
+7E  typography + control density
+7F  visual lab
 ```
 
-## Por qué 0.4.0
+El conjunto añade contratos públicos deliberados como los tipos semánticos
+visuales y `toneRecipe`, `surfaceRecipe`, `interactiveStateRecipe` y
+`typographyRecipe`, además de cambios pre-1.0 que eliminan aliases visuales
+históricos.
 
-El ciclo A–G es un conjunto coherente de estabilización y convergencia arquitectónica con una ampliación pública compatible:
+Se conservan:
 
-```text
-Inline / Wrap
-→ mx / my
-```
+- los tres entry points del paquete;
+- el peer range `react/react-dom >=18 <20`;
+- el modelo de package ESM/CJS/DTS/CSS;
+- los owners funcionales `UIThemeProvider`, `UIViewportProvider`,
+  `UIMotionProvider` y `usePress`.
 
-No cambian:
-
-- entry points;
-- `package.json#exports`;
-- peer range React;
-- nombres públicos deliberados de las familias refactorizadas.
-
-Por eso el siguiente corte es un **minor pre-1.0** y no un patch.
+Por alcance, el siguiente corte es un **minor pre-1.0**.
 
 ## Regla
 
 No usar una versión por fase o subtask.
 
-Una versión representa un conjunto coherente de cambios que haya pasado la puerta integral sobre el tarball real.
+Una versión representa un conjunto coherente de cambios que haya pasado la
+puerta integral sobre el tarball real.
 
-## Publicación
+## Puerta de publicación
 
-La metadata exacta `0.4.0` ya pasó:
+Para `0.5.0` la secuencia canónica es:
 
 ```bash
 pnpm validate
 ```
 
-con cierre:
+en la librería, seguida por la validación de la demo compañera:
 
-```text
-Validation complete.
+```bash
+pnpm validate
 ```
 
-Por tanto `0.4.0` está lista para publicación desde el punto de vista de validación del repositorio.
+La demo no sustituye la verificación del tarball; comprueba integración real
+contra `file:../zerina-ui`.
+
+`prepublishOnly` continúa detrás de `pnpm validate`, por lo que una publicación
+normal no puede saltarse la puerta canónica.

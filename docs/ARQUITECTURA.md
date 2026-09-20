@@ -386,7 +386,7 @@ un segundo owner de traversal ni de selección.
 ## Fundación visual semántica — Fase 7A
 
 La capa visual comparte ahora un vocabulario canónico antes de entrar a
-recipes por componente.
+recipes semánticas compartidas.
 
 ```text
 theme/contracts/visual-semantics.ts
@@ -395,7 +395,7 @@ theme-token-contract.ts
         ↓
 ThemeSystem / SSR / CSS variables
         ↓
-recipes visuales de fases posteriores
+recipes visuales compartidas
         ↓
 componentes existentes
 ```
@@ -456,7 +456,7 @@ Las familias que sólo admiten parte del dominio derivan su tipo mediante
 `Extract<>` o `Exclude<>`; no vuelven a declarar una lista equivalente.
 
 Los tokens de color incorporan roles container/on-container para que las
-recipes futuras no tengan que fabricar tonos con `color-mix()` local.
+recipes compartidas no tengan que fabricar tonos con `color-mix()` local.
 
 ### Tipografía
 

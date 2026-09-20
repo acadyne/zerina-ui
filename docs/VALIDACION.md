@@ -201,3 +201,30 @@ Validation complete.
 ```
 
 Por tanto el candidato exacto `0.4.0` queda validado para release.
+
+
+## Candidato 0.5.0
+
+La versión objetivo actual es:
+
+```text
+0.5.0
+```
+
+El gate debe ejecutarse sobre esa metadata exacta. Además de las comprobaciones
+generales anteriores, `package:verify` hace smoke de los owners públicos
+visuales y de entorno tanto en ESM como en CJS:
+
+```text
+toneRecipe
+surfaceRecipe
+interactiveStateRecipe
+typographyRecipe
+UIThemeProvider / useUITheme
+UIViewportProvider / useUIViewport
+UIMotionProvider / useUIMotion
+```
+
+El cierre de `0.5.0` requiere también que la demo hermana pase `pnpm validate`
+y levante con `pnpm dev`. La demo es un gate de integración; no reemplaza el
+tarball clean-consumer de la librería.
