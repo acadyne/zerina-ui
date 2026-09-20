@@ -10,14 +10,14 @@ import type {
 
 import {
   hasDialogTarget,
-  resolveRenderableWithTarget,
-  type RenderableWithTarget,
+  resolveTargetDialogContent,
+  type TargetDialogRenderProps,
 } from "./shared/targetDialogContract";
 
 
 export interface TargetFormDialogProps<
   TTarget,
-> {
+> extends TargetDialogRenderProps<TTarget> {
   state:
     ModalState<TTarget>;
 
@@ -27,12 +27,6 @@ export interface TargetFormDialogProps<
 
   title:
     React.ReactNode;
-
-  description?:
-    RenderableWithTarget<TTarget>;
-
-  children?:
-    RenderableWithTarget<TTarget>;
 
   submitLabel?:
     React.ReactNode;
@@ -70,9 +64,6 @@ export interface TargetFormDialogProps<
     | "lg"
     | "xl";
 
-  targetLabel?:
-    RenderableWithTarget<TTarget>;
-
   initialFocusRef?:
     React.RefObject<
       HTMLElement | null
@@ -83,9 +74,6 @@ export interface TargetFormDialogProps<
 
   closeOnPointerDownOutside?:
     boolean;
-
-  footer?:
-    React.ReactNode;
 
   formProps?:
     Omit<
@@ -103,8 +91,8 @@ export function TargetFormDialog<
   onOpenChange,
 
   title,
-  description,
-  children,
+  renderDescription,
+  renderBody,
 
   submitLabel =
     "Guardar",
@@ -121,7 +109,7 @@ export function TargetFormDialog<
 
   size = "md",
 
-  targetLabel,
+  renderTargetLabel,
 
   initialFocusRef,
 
@@ -130,7 +118,7 @@ export function TargetFormDialog<
   closeOnPointerDownOutside =
     false,
 
-  footer,
+  renderFooter,
   formProps,
 }: TargetFormDialogProps<TTarget>) {
   const open =
@@ -141,21 +129,26 @@ export function TargetFormDialog<
       ? state.target
       : null;
 
-  const resolvedDescription =
-    resolveRenderableWithTarget(
-      description,
-      target,
-    );
+  const {
+    description:
+      resolvedDescription,
 
-  const resolvedTargetLabel =
-    resolveRenderableWithTarget(
-      targetLabel,
-      target,
-    );
+    targetLabel:
+      resolvedTargetLabel,
 
-  const resolvedChildren =
-    resolveRenderableWithTarget(
-      children,
+    body:
+      resolvedBody,
+
+    footer:
+      resolvedFooter,
+  } =
+    resolveTargetDialogContent(
+      {
+        renderDescription,
+        renderTargetLabel,
+        renderBody,
+        renderFooter,
+      },
       target,
     );
 
@@ -253,12 +246,14 @@ export function TargetFormDialog<
       closeOnPointerDownOutside={
         closeOnPointerDownOutside
       }
-      footer={footer}
+      footer={
+        resolvedFooter
+      }
       formProps={
         formProps
       }
     >
-      {resolvedChildren}
+      {resolvedBody}
     </FormDialog>
   );
 }

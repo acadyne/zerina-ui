@@ -2,19 +2,9 @@
 
 ## Objetivo actual
 
-Refactorizar `zerina-ui` sin obligaciones de compatibilidad histórica, eliminando procesos duplicados y dejando un único owner por mecánica transversal.
-
-La demo permanece como consumidor real para la fase de integración posterior.
-
-## Invariantes vigentes
-
-- no mantener legacy ni aliases deprecated para responsabilidades eliminadas;
-- no conservar dos procesos para la misma mecánica;
-- actualizar consumidores y pruebas al owner único;
-- no ocultar errores mediante casts;
-- no dejar implementaciones parciales;
-- cada extracción debe tener regresiones;
-- la evolución apunta semánticamente a `0.5.0`.
+Refactorizar `zerina-ui` sin obligaciones de compatibilidad histórica,
+eliminando procesos duplicados y dejando un único owner por mecánica
+transversal.
 
 ## Estado actual
 
@@ -22,271 +12,152 @@ La demo permanece como consumidor real para la fase de integración posterior.
 - Fase 2A — fundamentos unificados: **CERRADA Y VALIDADA**.
 - Fase 2B — Navigation Destinations: **CERRADA Y VALIDADA**.
 - Fase 2C — ownership de Scaffold: **CERRADA Y VALIDADA**.
-- Fase 3 — Navigation Presenter / política responsive: **IMPLEMENTADA, PENDIENTE DE `pnpm validate`**.
-- Fase 4 — dialog contextual typing: no iniciada.
+- Fase 3 — Navigation Presenter / política responsive: **CERRADA Y VALIDADA**.
+- Fase 4 — dialog contextual typing: **IMPLEMENTADA R3, PENDIENTE DE `pnpm validate`**.
+- Fase 5 — RoutedAdaptiveScaffold metadata generic: no iniciada.
 
-## Fase 3 — arquitectura implementada
+## Invariantes vigentes
 
-```text
-NavigationNode[]
-      ↓
-getNavigationNodeEntries
-      ↓
-projectCompactNavigation
-      ↓
-NavigationPresenter
-      ↓
-BottomNavigation / NavigationRail / NavigationList / DrawerNavigation
-      ↓
-AdaptiveScaffold placement
-```
+- no legacy ni aliases deprecated;
+- un solo owner por mecánica;
+- no ocultar errores con casts;
+- no dejar implementaciones parciales;
+- cada extracción debe tener regresiones;
+- evolución semántica hacia `0.5.0`.
 
-### Árbol
-
-Owner estructural:
-
-```text
-src/patterns/navigation/navigation.utils.ts
-```
-
-`getNavigationNodeEntries` es el único walker recursivo del árbol.
-
-Derivan de él:
-
-- búsqueda por id;
-- ancestry/path;
-- active-parent;
-- primer destino seleccionable;
-- detección de containment;
-- proyección compacta.
-
-Retirado:
-
-```text
-flattenNavigationNodes
-```
-
-`NavigationList` ya no posee un segundo traversal para active-parent.
-
-### Proyección compacta
+## Fase 4 — contrato vigente
 
 Owner:
 
 ```text
-src/patterns/navigation/navigationProjection.ts
+src/patterns/shared/targetDialogContract.ts
 ```
 
-Política:
-
-- bottom y rail usan exactamente la misma proyección;
-- orden depth-first estable;
-- group-only parents no ocupan destino compacto;
-- parent `selectable=true` sí es destination;
-- destinations disabled permanecen visibles y disabled;
-- default bottom: 5 slots;
-- default rail: 7 slots;
-- cuando hay overflow, el último slot se reserva para `Más`;
-- `Más` abre un drawer con el árbol completo;
-- si el active destination está en overflow, `Más` queda activo.
-
-### Presenter
-
-Owner:
-
-```text
-src/patterns/navigation/NavigationPresenter.tsx
-```
-
-Presentaciones soportadas:
-
-```text
-bottom
-rail
-sidebar
-drawer
-```
-
-Responsabilidades:
-
-- bottom/rail consumen `projectCompactNavigation`;
-- sidebar usa el árbol completo;
-- drawer usa el árbol completo;
-- overflow de compact abre un único `DrawerNavigation`;
-- placement semántico usa `NavigationSide = "start" | "end"`.
-
-El estado del drawer de overflow se limpia cuando cambia la presentación
-o deja de existir overflow.
-
-### AdaptiveScaffold
-
-`AdaptiveScaffold` ya no:
-
-- itera `items`;
-- renderiza `BottomNavigation`;
-- renderiza `NavigationRail`;
-- renderiza `NavigationList`;
-- decide flattening;
-- decide overflow.
-
-Sólo resuelve modo + placement y delega built-ins a:
-
-```text
-NavigationPresenter
-```
-
-Existe un solo canal:
+Contrato único:
 
 ```ts
-navigation={{
-  mobile: { presentation: "bottom" },
-  tablet: { presentation: "rail", placement: "end" },
-  desktop: { presentation: "sidebar" },
-  compact: {
-    maxVisible: {
-      bottom: 5,
-      rail: 7,
-    },
-  },
-  bottom: {},
-  rail: {},
-  list: {},
-  drawer: {},
-}}
+type TargetDialogRender<TTarget> =
+  (target: TTarget) => ReactNode;
 ```
 
-Retirados de `AdaptiveScaffold`:
+Regiones target-aware:
 
 ```text
-mobileNavigation
-tabletNavigation
-desktopNavigation
-navigationSlots
-bottomNavigationProps
-navigationRailProps
-navigationListProps
+renderDescription
+renderTargetLabel
+renderBody
+renderFooter
 ```
 
-No hay aliases de compatibilidad.
-
-`bottomNavigationProps` continúa existiendo únicamente en `TabScaffold`,
-donde configura una navegación de tabs con semántica propia; no es un
-segundo canal de AdaptiveScaffold.
-
-### Tipos semánticos compartidos
-
-Owner:
+Familias migradas:
 
 ```text
-src/patterns/navigation/navigation.types.ts
+ConfirmDialog
+ActionDialog
+TargetFormDialog
+TargetDialogFrame
 ```
 
-Añadidos:
+Eliminados sin compatibilidad:
 
 ```text
-NavigationActiveBehavior
-NavigationPresentation
-NavigationSide
-NavigationNodeEntry
+RenderableWithTarget
+resolveRenderableWithTarget
+description
+targetLabel
+children
+footer
 ```
 
-`NavigationNodeEntry` es infraestructura interna; no forma parte del barrel raíz.
+de las APIs target-aware.
 
-### Superficie pública nueva
+## Gates de Fase 4
 
-Runtime:
+### R1
+
+Falló en `internal-test typecheck` por un `import React` default no usado
+dentro del test nuevo.
+
+Corregido en R2 sin tocar código productivo.
+
+### R2
+
+`internal-test typecheck`: PASS.
+
+Vitest avanzó hasta:
 
 ```text
-NavigationPresenter
+1 failed | 92 passed
+620 passed | 1 failed
 ```
 
-Tipos:
+Fallo:
 
 ```text
-NavigationActiveBehavior
-NavigationPresentation
-NavigationSide
-NavigationCompactPolicy
-NavigationCompactPresentation
-NavigationPresenterProps
-NavigationPresenterBottomProps
-NavigationPresenterRailProps
-NavigationPresenterListProps
-NavigationPresenterDrawerProps
-AdaptiveScaffoldNavigation
-AdaptiveScaffoldMobileNavigationConfig
-AdaptiveScaffoldTabletNavigationConfig
-AdaptiveScaffoldDesktopNavigationConfig
+tests/dialog-render-props-phase-4.test.tsx
 ```
 
-## Regresiones de Fase 3
-
-Añadidas:
+La aserción buscaba:
 
 ```text
-internal-test/tests/navigation-projection-phase-3.test.ts
-internal-test/tests/navigation-presenter-phase-3.test.tsx
-internal-test/tests/navigation-presenter-ownership-phase-3.test.ts
-internal-test/tests/navigation-presenter-public-contract-phase-3.test.ts
+container.querySelector(...)
 ```
 
-Actualizados:
+pero `Dialog` usa portal por defecto.
+
+El `container` retornado por `renderDOM` contiene la raíz React original,
+mientras que el overlay/dialog se monta en `document`.
+
+Los tests existentes de dialogs ya utilizan:
 
 ```text
-internal-test/tests/public-surface-types.test.ts
-internal-test/tests/scaffold-ownership-phase-2c.test.tsx
-internal-test/src/AdaptiveScaffoldDebug.tsx
-internal-test/src/app/DocumentationLayout.tsx
-scripts/verify-package.mjs
+document.querySelector(...)
 ```
 
-El clean consumer de package verification ahora importa y usa
-`NavigationPresenter`, `NavigationPresenterProps`,
-`AdaptiveScaffoldNavigation`, `NavigationCompactPolicy`,
-`NavigationPresentation` y `NavigationSide`.
+por esta razón.
 
-## Validación realizada en este runtime
+## Corrección R3
 
-No hay dependencias instaladas para ejecutar el gate canónico completo.
+Se corrigió exclusivamente la regresión de comportamiento:
 
-Sí se verificó:
+- `renderWithOverlay` ya no retorna el container como si fuera owner del DOM del dialog;
+- las cuatro regiones del dialog se consultan mediante `document.querySelector`;
+- no se cambió `ConfirmDialog`;
+- no se cambió `ActionDialog`;
+- no se cambió `TargetFormDialog`;
+- no se cambió `TargetDialogFrame`;
+- no se cambió `targetDialogContract`.
 
-- 461 archivos TS/TSX parseados;
-- 0 errores sintácticos;
-- imports relativos productivos rotos: 0;
-- ciclos runtime productivos: 0;
-- módulos TS/TSX productivos no alcanzables desde `src/index.ts`: 0;
-- named re-exports locales inválidos: 0;
-- `node --check scripts/verify-package.mjs`: PASS;
-- `getNavigationNodeEntries` implementations: 1;
-- traversal local en `navigationProjection`: 0;
-- renders directos Bottom/Rail/List dentro de AdaptiveScaffold: 0;
-- `items.map` dentro de AdaptiveScaffold: 0;
-- `<NavigationPresenter` dentro de AdaptiveScaffold: 1;
-- contratos retirados en `AdaptiveScaffoldProps`: 0;
-- runtime cycles introducidos: 0;
-- whitespace nuevo detectado en los 24 archivos modificados: 0;
-- typecheck estricto aislado de tree + projection: PASS;
-- ejecución aislada de la proyección nested/overflow: PASS;
-- typecheck semántico aislado de `NavigationPresenter`: PASS;
-- typecheck semántico aislado de `AdaptiveScaffold` con sus contratos nuevos: PASS.
+No se relajó el test: sigue verificando que las cuatro callbacks producen
+exactamente el contenido del target abierto, sólo que ahora observa el DOM
+donde el overlay realmente se renderiza.
 
-Estas comprobaciones no sustituyen `pnpm validate`.
+## Validación disponible después de R3
 
-## No validado
+- 464 archivos TS/TSX parseados: PASS;
+- errores sintácticos: 0;
+- queries `container.querySelector` en tests Fase 4: 0;
+- imports default React no usados en tests Fase 4: 0;
+- trailing whitespace en el archivo corregido: 0;
+- EOF del archivo corregido: normalizado.
 
-Falta el gate canónico del usuario:
+Estas comprobaciones no sustituyen el gate canónico.
+
+## Gate pendiente
+
+Ejecutar sobre el proyecto completo R3:
 
 ```bash
 pnpm install
 pnpm validate
 ```
 
-Fase 3 NO está cerrada hasta obtener `Validation complete.`.
+Fase 4 sólo se cerrará con:
 
-## Siguiente paso tras el PASS
+```text
+Validation complete.
+```
 
-Fase 4 — corregir contextual typing de dialogs sin mantener el contrato ambiguo
-`ReactNode | ((target) => ReactNode)`.
+## Siguiente fase tras el PASS
 
-La solución debe mantener una sola forma de render props y no introducir
-aliases legacy.
+Fase 5 — `RoutedAdaptiveScaffold` metadata generic.

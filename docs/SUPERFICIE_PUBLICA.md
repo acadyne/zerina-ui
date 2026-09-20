@@ -83,6 +83,25 @@ Los tipos que aparecen en contratos de navegación adaptativa son importables de
 Los helpers internos de recorrido/proyección no se exponen automáticamente desde
 la raíz sólo por compartir el mismo módulo fuente.
 
+## Dialogs target-aware públicos
+
+Las familias `ConfirmDialog`, `ActionDialog` y `TargetFormDialog` comparten un
+único vocabulario público para contenido dependiente del target:
+
+- `TargetDialogRender<TTarget>`;
+- `TargetDialogRenderProps<TTarget>`.
+
+Las regiones se expresan únicamente con:
+
+- `renderDescription`;
+- `renderTargetLabel`;
+- `renderBody`;
+- `renderFooter`.
+
+Los props ambiguos anteriores `description`, `targetLabel`, `children` y
+`footer` no forman parte de estas tres APIs target-aware. No existen aliases
+legacy. `FormDialog` conserva props `ReactNode` porque no es target-aware.
+
 ## Theme público
 
 Además de `ThemeDefinition`, `ThemeName` y los tokens públicos, forman parte de

@@ -23,20 +23,24 @@ No quedan P0/P1 sin decisión.
 
 ### Dialogs orientados a target
 
-Owner:
+Owners:
 
-`patterns/shared/TargetDialogFrame.tsx`
+- `patterns/shared/targetDialogContract.ts`: tipo único de callback y resolución;
+- `patterns/shared/TargetDialogFrame.tsx`: estructura visual compartida.
 
 Contrato:
 
+- `TargetDialogRender<T>` es siempre `(target: T) => ReactNode`;
+- `renderDescription`, `renderTargetLabel`, `renderBody` y `renderFooter`
+  son los únicos slots target-aware;
+- no existe `ReactNode | function`;
 - `FormDialog` cancela exactamente una vez;
 - `TargetFormDialog` adapta target al contrato;
-- ReactNode presence usa semántica explícita;
 - ActionDialog y ConfirmDialog mantienen políticas distintas.
 
 Decisión:
 
-**COMPARTIR FRAME, MANTENER SEMÁNTICAS DE CIERRE SEPARADAS**
+**UN SOLO CONTRATO DE RENDER, COMPARTIR FRAME, MANTENER SEMÁNTICAS DE CIERRE SEPARADAS**
 
 ### Eventos cancelables
 

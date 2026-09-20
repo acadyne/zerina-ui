@@ -18,7 +18,7 @@ import {
 
 import {
   hasDialogTarget,
-  type RenderableWithTarget as SharedRenderableWithTarget,
+  type TargetDialogRenderProps,
 } from "./shared/targetDialogContract";
 
 
@@ -26,15 +26,10 @@ export type ConfirmDialogVariant =
   | "default"
   | "destructive";
 
-type RenderableWithTarget<
-  TTarget,
-> =
-  SharedRenderableWithTarget<TTarget>;
-
 
 export interface ConfirmDialogProps<
   TTarget,
-> {
+> extends TargetDialogRenderProps<TTarget> {
   state:
     ModalState<TTarget>;
 
@@ -44,9 +39,6 @@ export interface ConfirmDialogProps<
 
   title:
     React.ReactNode;
-
-  description?:
-    RenderableWithTarget<TTarget>;
 
   confirmLabel?:
     React.ReactNode;
@@ -78,9 +70,6 @@ export interface ConfirmDialogProps<
     "lg" |
     "xl";
 
-  targetLabel?:
-    RenderableWithTarget<TTarget>;
-
   initialFocusRef?:
     React.RefObject<
       HTMLElement | null
@@ -92,11 +81,6 @@ export interface ConfirmDialogProps<
   closeOnPointerDownOutside?:
     boolean;
 
-  children?:
-    RenderableWithTarget<TTarget>;
-
-  footer?:
-    RenderableWithTarget<TTarget>;
 }
 
 
@@ -107,7 +91,7 @@ export function ConfirmDialog<
   onOpenChange,
 
   title,
-  description,
+  renderDescription,
 
   confirmLabel =
     "Confirmar",
@@ -125,7 +109,7 @@ export function ConfirmDialog<
   variant = "default",
   size = "sm",
 
-  targetLabel,
+  renderTargetLabel,
   initialFocusRef,
 
   closeOnEscape = true,
@@ -133,8 +117,8 @@ export function ConfirmDialog<
   closeOnPointerDownOutside =
     true,
 
-  children,
-  footer,
+  renderBody,
+  renderFooter,
 }: ConfirmDialogProps<TTarget>) {
   const open =
     state.isOpen;
@@ -313,11 +297,11 @@ export function ConfirmDialog<
         handleDialogOpenChange
       }
       title={title}
-      description={
-        description
+      renderDescription={
+        renderDescription
       }
-      targetLabel={
-        targetLabel
+      renderTargetLabel={
+        renderTargetLabel
       }
       error={error}
       size={size}
@@ -330,7 +314,9 @@ export function ConfirmDialog<
       closeOnPointerDownOutside={
         closeOnPointerDownOutside
       }
-      footer={footer}
+      renderFooter={
+        renderFooter
+      }
       defaultFooter={
         <>
           <Button
@@ -376,9 +362,10 @@ export function ConfirmDialog<
           </Button>
         </>
       }
-    >
-      {children}
-    </TargetDialogFrame>
+      renderBody={
+        renderBody
+      }
+    />
   );
 }
 

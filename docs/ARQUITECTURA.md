@@ -123,10 +123,27 @@ Los conceptos compartidos usan un solo vocabulario público `NavigationDestinati
 
 ### Diálogos orientados a target
 
-`patterns/shared/TargetDialogFrame.tsx` posee la estructura visual y resolución de contenido por target.
+`patterns/shared/targetDialogContract.ts` posee el único contrato de render por
+target: `TargetDialogRender<TTarget>` y `TargetDialogRenderProps<TTarget>`.
+
+Las regiones target-aware usan exclusivamente:
+
+```text
+renderDescription
+renderTargetLabel
+renderBody
+renderFooter
+```
+
+No existe una unión `ReactNode | function` ni aliases por familia.
+
+`patterns/shared/TargetDialogFrame.tsx` posee la estructura visual compartida y
+consume ese contrato.
 
 `ConfirmDialog` conserva semántica de confirmación y cierre async.
 `ActionDialog` conserva semántica de acción.
+`TargetFormDialog` adapta el mismo contrato al owner de formularios
+`FormDialog`.
 
 ### Overlay lateral/inferior
 
@@ -167,6 +184,7 @@ modal overlays
 → ModalOverlayRuntime
 
 dialogs por target
+→ targetDialogContract
 → TargetDialogFrame
 
 text controls

@@ -14,7 +14,7 @@ import {
 
 import {
   hasDialogTarget,
-  type RenderableWithTarget as SharedRenderableWithTarget,
+  type TargetDialogRenderProps,
 } from "./shared/targetDialogContract";
 
 
@@ -23,15 +23,10 @@ export type ActionDialogVariant =
   | "primary"
   | "danger";
 
-type RenderableWithTarget<
-  TTarget,
-> =
-  SharedRenderableWithTarget<TTarget>;
-
 
 export interface ActionDialogProps<
   TTarget,
-> {
+> extends TargetDialogRenderProps<TTarget> {
   state:
     ModalState<TTarget>;
 
@@ -41,12 +36,6 @@ export interface ActionDialogProps<
 
   title:
     React.ReactNode;
-
-  description?:
-    RenderableWithTarget<TTarget>;
-
-  children?:
-    RenderableWithTarget<TTarget>;
 
   actionLabel?:
     React.ReactNode;
@@ -78,9 +67,6 @@ export interface ActionDialogProps<
     "lg" |
     "xl";
 
-  targetLabel?:
-    RenderableWithTarget<TTarget>;
-
   initialFocusRef?:
     React.RefObject<
       HTMLElement | null
@@ -92,8 +78,6 @@ export interface ActionDialogProps<
   closeOnPointerDownOutside?:
     boolean;
 
-  footer?:
-    RenderableWithTarget<TTarget>;
 }
 
 
@@ -104,8 +88,8 @@ export function ActionDialog<
   onOpenChange,
 
   title,
-  description,
-  children,
+  renderDescription,
+  renderBody,
 
   actionLabel =
     "Continuar",
@@ -123,7 +107,7 @@ export function ActionDialog<
   variant = "primary",
   size = "md",
 
-  targetLabel,
+  renderTargetLabel,
   initialFocusRef,
 
   closeOnEscape = true,
@@ -131,7 +115,7 @@ export function ActionDialog<
   closeOnPointerDownOutside =
     true,
 
-  footer,
+  renderFooter,
 }: ActionDialogProps<TTarget>) {
   const open =
     state.isOpen;
@@ -242,11 +226,11 @@ export function ActionDialog<
         handleDialogOpenChange
       }
       title={title}
-      description={
-        description
+      renderDescription={
+        renderDescription
       }
-      targetLabel={
-        targetLabel
+      renderTargetLabel={
+        renderTargetLabel
       }
       error={error}
       size={size}
@@ -259,7 +243,9 @@ export function ActionDialog<
       closeOnPointerDownOutside={
         closeOnPointerDownOutside
       }
-      footer={footer}
+      renderFooter={
+        renderFooter
+      }
       defaultFooter={
         <>
           <Button
@@ -314,9 +300,10 @@ export function ActionDialog<
           </Button>
         </>
       }
-    >
-      {children}
-    </TargetDialogFrame>
+      renderBody={
+        renderBody
+      }
+    />
   );
 }
 

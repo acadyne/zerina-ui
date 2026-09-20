@@ -48,6 +48,8 @@ import type {
   TabScaffoldProps,
   TagColorScheme,
   TagVariant,
+  TargetDialogRender,
+  TargetDialogRenderProps,
   TextareaSize,
   TextareaVariant,
   UIThemeContextValue,
@@ -179,6 +181,24 @@ describe(
         const navigationSide:
           NavigationSide =
           "end";
+
+        const targetDialogRender:
+          TargetDialogRender<{
+            id: string;
+          }> =
+          (target) =>
+            target.id;
+
+        const targetDialogRenderProps:
+          TargetDialogRenderProps<{
+            id: string;
+          }> = {
+            renderDescription:
+              targetDialogRender,
+
+            renderBody:
+              targetDialogRender,
+          };
 
         const theme:
           CreateThemeDefinitionInput = {
@@ -334,6 +354,16 @@ describe(
           content,
         ).toEqual(
           {},
+        );
+
+        expect(
+          targetDialogRenderProps
+            .renderBody?.({
+              id:
+                "dialog-target",
+            }),
+        ).toBe(
+          "dialog-target",
         );
 
         expect(

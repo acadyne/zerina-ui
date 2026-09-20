@@ -278,17 +278,21 @@ function writeConsumer({
       "src/index.tsx",
     ),
     `import {
+  ActionDialog,
   AdaptiveScaffold,
   Button,
+  ConfirmDialog,
   MotionPresence,
   NavigationPresenter,
   UIMotionProvider,
+  TargetFormDialog,
   UIViewportProvider,
   ZerinaProvider,
   usePress,
 } from "zerina-ui";
 
 import type {
+  ActionDialogProps,
   AdaptiveScaffoldNavigation,
   AdaptiveScaffoldProps,
   AdaptiveScaffoldTabletNavigationPlacement,
@@ -296,6 +300,7 @@ import type {
   BadgeColorScheme,
   BadgeVariant,
   ButtonProps,
+  ConfirmDialogProps,
   ContainerSize,
   CreateThemeDefinitionInput,
   DialogSize,
@@ -322,6 +327,7 @@ import type {
   NavigationSelectionReason,
   NavigationSurfacePosition,
   NavigationSurfaceVariant,
+  ModalState,
   PopoverPlacement,
   RatioValue,
   SafeAreaEdges,
@@ -332,6 +338,9 @@ import type {
   TabScaffoldProps,
   TagColorScheme,
   TagVariant,
+  TargetDialogRender,
+  TargetDialogRenderProps,
+  TargetFormDialogProps,
   TextareaSize,
   TextareaVariant,
   UIThemeContextValue,
@@ -460,6 +469,77 @@ const navigationPresenterProps:
     compactPolicy,
   };
 
+type ConsumerDialogTarget = {
+  id: string;
+  label: string;
+};
+
+const dialogState:
+  ModalState<ConsumerDialogTarget> = {
+    isOpen: true,
+    target: {
+      id: "dialog-target",
+      label: "Dialog target",
+    },
+  };
+
+const renderDialogTarget:
+  TargetDialogRender<ConsumerDialogTarget> =
+  (target) =>
+    target.label;
+
+const dialogRenderProps:
+  TargetDialogRenderProps<ConsumerDialogTarget> = {
+    renderDescription:
+      (target) =>
+        target.label,
+
+    renderTargetLabel:
+      (target) =>
+        target.id,
+
+    renderBody:
+      renderDialogTarget,
+
+    renderFooter:
+      (target) =>
+        target.id,
+  };
+
+const confirmDialogProps:
+  ConfirmDialogProps<ConsumerDialogTarget> = {
+    state: dialogState,
+    title: "Confirm",
+    onConfirm:
+      (target) => {
+        void target.id;
+      },
+    ...dialogRenderProps,
+  };
+
+const actionDialogProps:
+  ActionDialogProps<ConsumerDialogTarget> = {
+    state: dialogState,
+    title: "Action",
+    onAction:
+      (target) => {
+        void target.label;
+      },
+    ...dialogRenderProps,
+  };
+
+const targetFormDialogProps:
+  TargetFormDialogProps<ConsumerDialogTarget> = {
+    state: dialogState,
+    title: "Form",
+    onSubmit:
+      (target, event) => {
+        void target.id;
+        void event.currentTarget;
+      },
+    ...dialogRenderProps,
+  };
+
 const themeDefinition:
   CreateThemeDefinitionInput = {
     name: "consumer-theme",
@@ -510,6 +590,9 @@ const buttonProps: ButtonProps = {
 const viewportKind: UIViewportKind =
   "desktop";
 
+void ActionDialog;
+void ConfirmDialog;
+void TargetFormDialog;
 void MotionPresence;
 void UIMotionProvider;
 void UIViewportProvider;
@@ -525,6 +608,12 @@ void navigationActiveBehavior;
 void navigationPresentation;
 void navigationPresenterProps;
 void navigationSide;
+void dialogState;
+void renderDialogTarget;
+void dialogRenderProps;
+void confirmDialogProps;
+void actionDialogProps;
+void targetFormDialogProps;
 void themeDefinition;
 void setViewportMode;
 void setTheme;
@@ -562,6 +651,43 @@ export function ConsumerExample() {
         compactPolicy={compactPolicy}
       />
 
+      <ConfirmDialog
+        state={dialogState}
+        title="Confirm"
+        onConfirm={(target) => {
+          void target.id;
+        }}
+        renderDescription={(target) =>
+          target.label
+        }
+        renderBody={(target) =>
+          target.id
+        }
+      />
+
+      <ActionDialog
+        state={dialogState}
+        title="Action"
+        onAction={(target) => {
+          void target.label;
+        }}
+        renderTargetLabel={(target) =>
+          target.id
+        }
+      />
+
+      <TargetFormDialog
+        state={dialogState}
+        title="Form"
+        onSubmit={(target, event) => {
+          void target.id;
+          void event.currentTarget;
+        }}
+        renderBody={(target) =>
+          target.label
+        }
+      />
+
       <AdaptiveScaffold
         items={navigationItems}
         mode="mobile"
@@ -589,9 +715,12 @@ import * as esm from "zerina-ui";
 for (
   const symbol
   of [
+    "ActionDialog",
     "AdaptiveScaffold",
     "Button",
+    "ConfirmDialog",
     "NavigationPresenter",
+    "TargetFormDialog",
     "ZerinaProvider",
     "UIMotionProvider",
     "UIViewportProvider",
@@ -619,8 +748,11 @@ const cjs =
 for (
   const symbol
   of [
+    "ActionDialog",
     "Button",
+    "ConfirmDialog",
     "NavigationPresenter",
+    "TargetFormDialog",
     "ZerinaProvider",
   ]
 ) {

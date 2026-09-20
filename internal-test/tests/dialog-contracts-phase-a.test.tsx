@@ -134,7 +134,7 @@ describe(
           <TargetFormDialog
             state={state}
             title="Editar"
-            targetLabel={(
+            renderTargetLabel={(
               current,
             ) => (
               <span
@@ -146,8 +146,7 @@ describe(
             onSubmit={
               onSubmit
             }
-          >
-            {(
+            renderBody={(
               current,
             ) => (
               <span
@@ -156,7 +155,7 @@ describe(
                 {`body:${String(current)}`}
               </span>
             )}
-          </TargetFormDialog>,
+          />,
         );
 
 

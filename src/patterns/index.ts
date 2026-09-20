@@ -16,6 +16,11 @@ export * from "./ConfirmDialog";
 export * from "./FormDialog";
 export * from "./ActionDialog";
 export * from "./TargetFormDialog";
+
+export type {
+  TargetDialogRender,
+  TargetDialogRenderProps,
+} from "./shared/targetDialogContract";
 export * from "./settings";
 export * from "./actions";
 export type {

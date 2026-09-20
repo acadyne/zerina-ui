@@ -25,7 +25,7 @@ import type {
 
 import {
   hasDialogTarget,
-  resolveRenderableWithTarget,
+  resolveTargetDialogContent,
 } from "../../src/patterns/shared/targetDialogContract";
 
 import {
@@ -600,32 +600,38 @@ describe(
 
 
     it(
-      "resolves function renderables for zero and false targets",
+      "resolves explicit target render callbacks for falsy targets",
       () => {
         expect(
-          resolveRenderableWithTarget(
-            (
-              target:
-                number,
-            ) =>
-              `target:${target}`,
+          resolveTargetDialogContent(
+            {
+              renderBody:
+                (
+                  target:
+                    number,
+                ) =>
+                  `target:${target}`,
+            },
             0,
-          ),
+          ).body,
         ).toBe(
           "target:0",
         );
 
         expect(
-          resolveRenderableWithTarget(
-            (
-              target:
-                boolean,
-            ) =>
-              target
-                ? "yes"
-                : "no",
+          resolveTargetDialogContent(
+            {
+              renderDescription:
+                (
+                  target:
+                    boolean,
+                ) =>
+                  target
+                    ? "yes"
+                    : "no",
+            },
             false,
-          ),
+          ).description,
         ).toBe(
           "no",
         );

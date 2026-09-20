@@ -15,14 +15,14 @@ import {
 } from "../../primitives/overlay";
 
 import {
-  resolveRenderableWithTarget,
-  type RenderableWithTarget,
+  resolveTargetDialogContent,
+  type TargetDialogRenderProps,
 } from "./targetDialogContract";
 
 
 export interface TargetDialogFrameProps<
   TTarget,
-> {
+> extends TargetDialogRenderProps<TTarget> {
   open: boolean;
 
   target:
@@ -34,18 +34,6 @@ export interface TargetDialogFrameProps<
 
   title:
     React.ReactNode;
-
-  description?:
-    RenderableWithTarget<TTarget>;
-
-  targetLabel?:
-    RenderableWithTarget<TTarget>;
-
-  children?:
-    RenderableWithTarget<TTarget>;
-
-  footer?:
-    RenderableWithTarget<TTarget>;
 
   defaultFooter:
     React.ReactNode;
@@ -87,10 +75,10 @@ export function TargetDialogFrame<
   onOpenChange,
 
   title,
-  description,
-  targetLabel,
-  children,
-  footer,
+  renderDescription,
+  renderTargetLabel,
+  renderBody,
+  renderFooter,
   defaultFooter,
   error,
 
@@ -102,27 +90,26 @@ export function TargetDialogFrame<
   closeOnPointerDownOutside =
     true,
 }: TargetDialogFrameProps<TTarget>) {
-  const resolvedDescription =
-    resolveRenderableWithTarget(
-      description,
-      target,
-    );
+  const {
+    description:
+      resolvedDescription,
 
-  const resolvedTargetLabel =
-    resolveRenderableWithTarget(
-      targetLabel,
-      target,
-    );
+    targetLabel:
+      resolvedTargetLabel,
 
-  const resolvedChildren =
-    resolveRenderableWithTarget(
-      children,
-      target,
-    );
+    body:
+      resolvedBody,
 
-  const resolvedFooter =
-    resolveRenderableWithTarget(
-      footer,
+    footer:
+      resolvedFooter,
+  } =
+    resolveTargetDialogContent(
+      {
+        renderDescription,
+        renderTargetLabel,
+        renderBody,
+        renderFooter,
+      },
       target,
     );
 
@@ -251,7 +238,7 @@ export function TargetDialogFrame<
             </div>
           ) : null}
 
-          {resolvedChildren}
+          {resolvedBody}
         </div>
       </DialogBody>
 

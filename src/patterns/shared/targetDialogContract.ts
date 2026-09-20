@@ -3,13 +3,43 @@ import type {
 } from "react";
 
 
-export type RenderableWithTarget<
+export type TargetDialogRender<
   TTarget,
-> =
-  | ReactNode
-  | ((
-      target: TTarget,
-    ) => ReactNode);
+> = (
+  target: TTarget,
+) => ReactNode;
+
+
+export interface TargetDialogRenderProps<
+  TTarget,
+> {
+  renderDescription?:
+    TargetDialogRender<TTarget>;
+
+  renderTargetLabel?:
+    TargetDialogRender<TTarget>;
+
+  renderBody?:
+    TargetDialogRender<TTarget>;
+
+  renderFooter?:
+    TargetDialogRender<TTarget>;
+}
+
+
+export interface ResolvedTargetDialogContent {
+  description:
+    ReactNode;
+
+  targetLabel:
+    ReactNode;
+
+  body:
+    ReactNode;
+
+  footer:
+    ReactNode;
+}
 
 
 export function hasDialogTarget<
@@ -25,35 +55,66 @@ export function hasDialogTarget<
 }
 
 
-export function resolveRenderableWithTarget<
+function renderTargetDialogSlot<
   TTarget,
 >(
-  value:
-    | RenderableWithTarget<TTarget>
+  render:
+    | TargetDialogRender<TTarget>
     | undefined,
   target:
     TTarget | null,
 ): ReactNode {
   if (
-    typeof value ===
-    "function"
-  ) {
-    return hasDialogTarget(
+    !render ||
+    !hasDialogTarget(
       target,
     )
-      ? (
-          value as (
-            target:
-              TTarget,
-          ) => ReactNode
-        )(
-          target,
-        )
-      : null;
+  ) {
+    return null;
   }
 
-  return (
-    value ??
-    null
+  return render(
+    target,
   );
+}
+
+
+export function resolveTargetDialogContent<
+  TTarget,
+>(
+  {
+    renderDescription,
+    renderTargetLabel,
+    renderBody,
+    renderFooter,
+  }:
+    TargetDialogRenderProps<TTarget>,
+  target:
+    TTarget | null,
+): ResolvedTargetDialogContent {
+  return {
+    description:
+      renderTargetDialogSlot(
+        renderDescription,
+        target,
+      ),
+
+    targetLabel:
+      renderTargetDialogSlot(
+        renderTargetLabel,
+        target,
+      ),
+
+    body:
+      renderTargetDialogSlot(
+        renderBody,
+        target,
+      ),
+
+    footer:
+      renderTargetDialogSlot(
+        renderFooter,
+        target,
+      ),
+  };
 }

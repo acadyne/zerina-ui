@@ -148,7 +148,7 @@ Las variantes aportan únicamente política de celda/edición.
 
 ## 10. Diálogos y targets
 
-Owner semántico del target:
+Owner semántico del target y de sus render callbacks:
 
 `src/patterns/shared/targetDialogContract.ts`
 
@@ -168,7 +168,28 @@ false
 
 son targets válidos.
 
-`resolveRenderableWithTarget` sólo ejecuta una función dependiente del target cuando ese contrato se cumple.
+El único contrato target-aware es:
+
+```ts
+type TargetDialogRender<TTarget> =
+  (target: TTarget) => ReactNode;
+```
+
+Las regiones dependientes del target son explícitas:
+
+```text
+renderDescription
+renderTargetLabel
+renderBody
+renderFooter
+```
+
+No existe la unión `ReactNode | ((target) => ReactNode)` y no existen aliases
+familiares para ese concepto. El contenido estático se expresa devolviéndolo
+desde el mismo callback, por ejemplo `renderBody={() => <Content />}`.
+
+`resolveTargetDialogContent` es el único owner que invoca esos callbacks y no
+los ejecuta mientras el target sea `null`.
 
 ### FormDialog
 
@@ -182,23 +203,22 @@ cancelar
 
 Tanto el botón Cancel como un dismiss del Dialog llegan a ese mismo owner.
 
-`TargetFormDialog` sólo adapta el payload del target. No vuelve a cerrar ni redispara cancelación.
+`TargetFormDialog` sólo adapta el payload del target y resuelve las mismas
+regiones `render*`. No vuelve a cerrar ni redispara cancelación.
 
 ### ReactNode en dialogs
 
-Para contenido textual opcional:
-
-- description;
-- targetLabel;
-- error;
-
-se usa `hasNonEmptyRenderableNode`.
+Después de resolver callbacks, para contenido textual opcional se usa
+`hasNonEmptyRenderableNode`.
 
 `0` es contenido válido; `""` no materializa estructura textual vacía.
 
-Para footer custom se usa `hasRenderableNode`, de modo que un ReactNode renderizable puede reemplazar deliberadamente el footer por defecto.
+Para footer custom se usa `hasRenderableNode`, de modo que el resultado de
+`renderFooter` puede reemplazar deliberadamente el footer por defecto.
 
-ConfirmDialog y ActionDialog comparten `TargetDialogFrame`; FormDialog permanece separado porque el elemento `<form>` necesita envolver header/body/footer para conservar submit nativo y `formProps`.
+`ConfirmDialog` y `ActionDialog` comparten `TargetDialogFrame`; `FormDialog`
+permanece separado porque el elemento `<form>` necesita envolver
+header/body/footer para conservar submit nativo y `formProps`.
 
 ## 11. Runtime modal Drawer/BottomSheet
 
