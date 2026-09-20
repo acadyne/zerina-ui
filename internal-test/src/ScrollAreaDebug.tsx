@@ -371,7 +371,7 @@ export function ScrollAreaDebug() {
                 "hidden",
 
               background:
-                "var(--ui-surface-2)",
+                "var(--ui-surface-container)",
             }}
           >
 

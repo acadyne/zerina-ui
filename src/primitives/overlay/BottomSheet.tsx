@@ -143,7 +143,7 @@ const bottomSheetRecipe =
         borderBottom: "none",
 
         boxShadow:
-          "var(--ui-shadow-lg)",
+          "var(--ui-elevation-4)",
 
         outline: "none",
         overflow: "hidden",

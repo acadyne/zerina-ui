@@ -45,7 +45,7 @@
 
 [data-ui-list-item][data-pressed]:not([data-disabled]) {
   background:
-    var(--ui-surface-3);
+    var(--ui-surface-container-high);
 }
 
 [data-ui-list-items][data-divided]

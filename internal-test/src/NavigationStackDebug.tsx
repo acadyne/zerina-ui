@@ -94,7 +94,7 @@ function StackSandbox({
         borderRadius:
           "var(--ui-radius-lg)",
         background:
-          "var(--ui-bg)",
+          "var(--ui-surface-canvas)",
       }}
     >
       {children}
@@ -726,7 +726,7 @@ function UncontrolledExample() {
 
             screen: {
               background:
-                "var(--ui-bg)",
+                "var(--ui-surface-canvas)",
             },
           }}
           slotProps={{

@@ -10,7 +10,7 @@
 
 [data-ui-data-table-desktop]
   [data-ui-data-table-row]:nth-child(odd) {
-  background: var(--ui-bg);
+  background: var(--ui-surface-canvas);
 }
 
 [data-ui-data-table-desktop]
@@ -20,12 +20,12 @@
 
 [data-ui-data-table-desktop]
   [data-ui-data-table-row][data-selected] {
-  background: var(--ui-surface-2);
+  background: var(--ui-surface-container);
 }
 
 [data-ui-data-table-editable-desktop]
   [data-ui-data-table-row]:nth-child(odd) {
-  background: var(--ui-bg);
+  background: var(--ui-surface-canvas);
 }
 
 [data-ui-data-table-editable-desktop]
@@ -34,7 +34,7 @@
     color-mix(
       in srgb,
       var(--ui-text) 2%,
-      var(--ui-bg)
+      var(--ui-surface-canvas)
     );
 }
 

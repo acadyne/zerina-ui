@@ -287,6 +287,11 @@ function writeConsumer({
   RoutedAdaptiveScaffold,
   UIMotionProvider,
   TargetFormDialog,
+  UI_ELEVATIONS,
+  UI_SHAPES,
+  UI_SURFACE_ROLES,
+  UI_TONES,
+  UI_TYPOGRAPHY_ROLES,
   UIViewportProvider,
   ZerinaProvider,
   usePress,
@@ -346,6 +351,14 @@ import type {
   TextareaSize,
   TextareaVariant,
   UIThemeContextValue,
+  UIElevation,
+  UIShape,
+  UISurfaceRole,
+  UITone,
+  UITypographyRole,
+  ThemeDensityTokens,
+  ThemeElevationTokens,
+  ThemeSpacingTokens,
   UIViewportKind,
 } from "zerina-ui";
 
@@ -354,6 +367,57 @@ type ConsumerNavigationMeta =
   NavigationLinkMeta & {
     analyticsId: string;
   };
+
+const semanticTone:
+  UITone =
+  UI_TONES[3];
+
+const semanticSurface:
+  UISurfaceRole =
+  UI_SURFACE_ROLES[3];
+
+const semanticElevation:
+  UIElevation =
+  UI_ELEVATIONS[3];
+
+const semanticShape:
+  UIShape =
+  UI_SHAPES[2];
+
+const semanticTypography:
+  UITypographyRole =
+  UI_TYPOGRAPHY_ROLES[1];
+
+const themeElevation:
+  ThemeElevationTokens = {
+    level3:
+      "0 12px 32px rgba(0,0,0,0.2)",
+  };
+
+const themeSpacing:
+  ThemeSpacingTokens = {
+    md:
+      "0.75rem",
+  };
+
+const themeDensity:
+  ThemeDensityTokens = {
+    comfortable: {
+      itemMinHeight:
+        "3rem",
+    },
+  };
+
+void [
+  semanticTone,
+  semanticSurface,
+  semanticElevation,
+  semanticShape,
+  semanticTypography,
+  themeElevation,
+  themeSpacing,
+  themeDensity,
+];
 
 const navigationId:
   NavigationNodeId =
@@ -782,6 +846,11 @@ for (
     "NavigationPresenter",
     "RoutedAdaptiveScaffold",
     "TargetFormDialog",
+    "UI_ELEVATIONS",
+    "UI_SHAPES",
+    "UI_SURFACE_ROLES",
+    "UI_TONES",
+    "UI_TYPOGRAPHY_ROLES",
     "ZerinaProvider",
     "UIMotionProvider",
     "UIViewportProvider",
@@ -815,6 +884,11 @@ for (
     "NavigationPresenter",
     "RoutedAdaptiveScaffold",
     "TargetFormDialog",
+    "UI_ELEVATIONS",
+    "UI_SHAPES",
+    "UI_SURFACE_ROLES",
+    "UI_TONES",
+    "UI_TYPOGRAPHY_ROLES",
     "ZerinaProvider",
   ]
 ) {

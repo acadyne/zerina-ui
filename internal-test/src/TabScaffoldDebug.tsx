@@ -726,9 +726,9 @@ function PhoneFrame({
           borderRadius:
             "28px",
           background:
-            "var(--ui-bg)",
+            "var(--ui-surface-canvas)",
           boxShadow:
-            "var(--ui-shadow-lg)",
+            "var(--ui-elevation-4)",
         }}
       >
         {children}
@@ -971,7 +971,7 @@ function UncontrolledExample() {
             },
             stack: {
               background:
-                "color-mix(in srgb, var(--ui-primary) 3%, var(--ui-bg))",
+                "color-mix(in srgb, var(--ui-primary) 3%, var(--ui-surface-canvas))",
             },
             screen: {
               background:

@@ -194,7 +194,7 @@ export function ComponentNavigationMenu({
               "var(--ui-radius-lg)",
 
             background:
-              "var(--ui-surface-2)",
+              "var(--ui-surface-container)",
           },
 
           item: {

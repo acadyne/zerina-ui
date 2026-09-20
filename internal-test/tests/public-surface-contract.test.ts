@@ -69,6 +69,22 @@ describe(
         ).toHaveProperty(
           "usePress",
         );
+
+        for (
+          const visualExport of [
+            "UI_TONES",
+            "UI_SURFACE_ROLES",
+            "UI_ELEVATIONS",
+            "UI_TYPOGRAPHY_ROLES",
+            "UI_SHAPES",
+          ]
+        ) {
+          expect(
+            ZerinaUI,
+          ).toHaveProperty(
+            visualExport,
+          );
+        }
       },
     );
 

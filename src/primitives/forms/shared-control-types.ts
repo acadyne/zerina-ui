@@ -1,3 +1,8 @@
+import type {
+  UITone,
+} from "../../theme/contracts/visual-semantics";
+
+
 export type ControlSize =
   | "sm"
   | "md"
@@ -5,6 +10,9 @@ export type ControlSize =
 
 
 export type ControlColorScheme =
-  | "primary"
-  | "secondary"
-  | "danger";
+  Extract<
+    UITone,
+    | "primary"
+    | "secondary"
+    | "danger"
+  >;

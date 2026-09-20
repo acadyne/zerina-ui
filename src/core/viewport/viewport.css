@@ -1,0 +1,71 @@
+/* src/core/viewport/viewport.css */
+
+/*
+ * UIViewportProvider owns density selection through data-ui-density.
+ * Theme owns the compact/comfortable/spacious metric values.
+ *
+ * These aliases are the active density projection consumed by later
+ * component recipes. No responsive rule chooses density here.
+ */
+
+:root[data-ui-density="compact"] {
+  --ui-density-control-height:
+    var(--ui-density-compact-control-height);
+
+  --ui-density-item-min-height:
+    var(--ui-density-compact-item-min-height);
+
+  --ui-density-inline-gap:
+    var(--ui-density-compact-inline-gap);
+
+  --ui-density-block-gap:
+    var(--ui-density-compact-block-gap);
+
+  --ui-density-content-padding:
+    var(--ui-density-compact-content-padding);
+
+  --ui-density-icon-size:
+    var(--ui-density-compact-icon-size);
+}
+
+
+:root[data-ui-density="comfortable"] {
+  --ui-density-control-height:
+    var(--ui-density-comfortable-control-height);
+
+  --ui-density-item-min-height:
+    var(--ui-density-comfortable-item-min-height);
+
+  --ui-density-inline-gap:
+    var(--ui-density-comfortable-inline-gap);
+
+  --ui-density-block-gap:
+    var(--ui-density-comfortable-block-gap);
+
+  --ui-density-content-padding:
+    var(--ui-density-comfortable-content-padding);
+
+  --ui-density-icon-size:
+    var(--ui-density-comfortable-icon-size);
+}
+
+
+:root[data-ui-density="spacious"] {
+  --ui-density-control-height:
+    var(--ui-density-spacious-control-height);
+
+  --ui-density-item-min-height:
+    var(--ui-density-spacious-item-min-height);
+
+  --ui-density-inline-gap:
+    var(--ui-density-spacious-inline-gap);
+
+  --ui-density-block-gap:
+    var(--ui-density-spacious-block-gap);
+
+  --ui-density-content-padding:
+    var(--ui-density-spacious-content-padding);
+
+  --ui-density-icon-size:
+    var(--ui-density-spacious-icon-size);
+}

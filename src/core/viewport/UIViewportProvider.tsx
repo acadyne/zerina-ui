@@ -6,7 +6,6 @@ import {
 import { useIsomorphicLayoutEffect } from "../react/useIsomorphicLayoutEffect";
 import { useMediaQuery, useViewportSize } from "../dom";
 import {
-  type UIDensity,
   type UIDensityMode,
   type UIInputKind,
   type UIOrientation,
@@ -16,6 +15,7 @@ import {
 } from "./viewport.types";
 
 import {
+  resolveUIDensity,
   resolveUIViewportBreakpoints,
   resolveUIViewportKind,
 } from "./viewport.utils";
@@ -219,45 +219,6 @@ function resolveInputKind(options: {
   return "unknown";
 }
 
-function resolveDensity(options: {
-  densityMode: UIDensityMode;
-  inputKind: UIInputKind;
-  width: number;
-  height: number;
-  isShort: boolean;
-  isNarrow: boolean;
-  isWide: boolean;
-}): UIDensity {
-  const { densityMode, inputKind, width, height, isShort, isNarrow, isWide } =
-    options;
-
-  if (densityMode !== "auto") {
-    return densityMode;
-  }
-
-  if (width <= 0 || height <= 0) {
-    return "comfortable";
-  }
-
-  if (isShort || isNarrow) {
-    return "compact";
-  }
-
-  if (inputKind === "touch") {
-    return "compact";
-  }
-
-  if (inputKind === "hybrid") {
-    return "comfortable";
-  }
-
-  if (isWide && height >= DEFAULT_TALL_BREAKPOINT) {
-    return "spacious";
-  }
-
-  return "comfortable";
-}
-
 export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
   children,
   mode,
@@ -410,7 +371,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
 
     const isTouch = inputKind === "touch" || inputKind === "hybrid";
 
-    const density = resolveDensity({
+    const density = resolveUIDensity({
       densityMode: resolvedDensityMode,
       inputKind,
       width,
@@ -418,6 +379,7 @@ export const UIViewportProvider: React.FC<UIViewportProviderProps> = ({
       isShort,
       isNarrow,
       isWide,
+      isTall,
     });
 
     return {

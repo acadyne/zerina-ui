@@ -110,7 +110,7 @@ export function DocumentationLayout({
         gap: "1rem",
 
         background:
-          "var(--ui-bg)",
+          "var(--ui-surface-canvas)",
 
         color:
           "var(--ui-text)",

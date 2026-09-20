@@ -112,7 +112,7 @@ export const SkeletonTable = React.forwardRef<
         gap: "0.75rem",
         padding: cellPadding,
         borderBottom: "1px solid var(--ui-border)",
-        background: "var(--ui-surface-2)",
+        background: "var(--ui-surface-container)",
       },
     });
 

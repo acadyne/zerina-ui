@@ -382,3 +382,166 @@ type AppNavigationMeta =
 `RoutedAdaptiveScaffold` no vuelve a buscar el item por `id`: consume directamente
 el `NavigationNode<TMeta>` ya resuelto por `AdaptiveScaffold`. Así routing no crea
 un segundo owner de traversal ni de selección.
+
+## Fundación visual semántica — Fase 7A
+
+La capa visual comparte ahora un vocabulario canónico antes de entrar a
+recipes por componente.
+
+```text
+theme/contracts/visual-semantics.ts
+        ↓
+theme-token-contract.ts
+        ↓
+ThemeSystem / SSR / CSS variables
+        ↓
+recipes visuales de fases posteriores
+        ↓
+componentes existentes
+```
+
+Los dominios semánticos base son:
+
+```text
+UITone
+UISurfaceRole
+UIElevation
+UITypographyRole
+UIShape
+```
+
+El manifiesto de tema continúa siendo el único owner de tokens. No existe un
+segundo registro para la nueva capa visual.
+
+### Superficies
+
+La superficie deja de expresar numeración o posición histórica:
+
+```text
+canvas
+surface
+containerLow
+container
+containerHigh
+```
+
+Se retiraron `bg`, `surface2` y `surface3`.
+
+### Elevación
+
+La elevación es ahora una escala semántica independiente del componente:
+
+```text
+0 1 2 3 4 5
+```
+
+El theme expone `elevation.level0` … `elevation.level5`.
+Se retiró la rama `shadow` y las variables `--ui-shadow-*`.
+
+### Tonos
+
+`UITone` es la única ontología base:
+
+```text
+neutral
+primary
+secondary
+info
+success
+warning
+danger
+```
+
+Las familias que sólo admiten parte del dominio derivan su tipo mediante
+`Extract<>` o `Exclude<>`; no vuelven a declarar una lista equivalente.
+
+Los tokens de color incorporan roles container/on-container para que las
+recipes futuras no tengan que fabricar tonos con `color-mix()` local.
+
+### Tipografía
+
+El theme incorpora roles:
+
+```text
+display
+headline
+title
+body
+label
+caption
+```
+
+Cada role posee family, size, weight, line-height y letter-spacing. La
+migración de todos los consumidores a estos roles corresponde a Fase 7E.
+
+### Density y spacing
+
+El theme define las métricas disponibles para:
+
+```text
+compact
+comfortable
+spacious
+```
+
+`UIViewportProvider` conserva exclusivamente la selección del modo y publica
+`data-ui-density`. Fase 7B proyecta esa selección a aliases CSS activos:
+
+```text
+--ui-density-control-height
+--ui-density-item-min-height
+--ui-density-inline-gap
+--ui-density-block-gap
+--ui-density-content-padding
+--ui-density-icon-size
+```
+
+Los aliases apuntan a las métricas del theme; CSS no resuelve viewport, pointer
+ni breakpoints por su cuenta.
+
+La política automática prioriza ergonomía de input antes que compresión
+geométrica:
+
+```text
+touch / hybrid  -> comfortable
+input unknown   -> comfortable
+fine + narrow   -> compact
+fine + short    -> compact
+fine + wide+tall -> spacious
+resto           -> comfortable
+```
+
+Los modos explícitos `compact`, `comfortable` y `spacious` siguen teniendo
+precedencia total.
+
+### Motion dinámico
+
+`motion.tokens.ts` es el único owner numérico de durations, easings, distances
+y scales compartidos por JS y CSS.
+
+`UIMotionProvider` publica en `documentElement` la política numérica canónica
+como variables internas `--ui-motion-token-*` y conserva
+`data-ui-motion-effective` como el interruptor de política CSS.
+
+```text
+motion.tokens.ts
+  -> UIMotionProvider
+  -> --ui-motion-token-* (valores canónicos)
+
+data-ui-motion-effective
+  -> motion.css
+  -> --ui-duration-* / --ui-ease-* / motion geometry
+  -> CSS consumers
+```
+
+`motion.css` selecciona aliases activos, pero ya no contiene una segunda copia
+de timings/easings. `reduced` vuelve las transiciones CSS prácticamente
+instantáneas y neutraliza distancia/escala; `none` elimina la duración y la
+geometría de motion. Framer Motion y CSS derivan así de la misma política
+numérica sin crear otro owner.
+
+### Personalidad de themes
+
+Los themes built-in expresivos pueden cambiar `radius`, `elevation` y
+tipografía además de color. El componente no conoce el nombre del theme: la
+personalidad se propaga mediante tokens.

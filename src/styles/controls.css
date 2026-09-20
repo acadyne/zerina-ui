@@ -1314,7 +1314,7 @@
     var(--ui-radius-full);
 
   background:
-    var(--ui-surface-3);
+    var(--ui-surface-container-high);
 
   transition:
     background
@@ -1353,7 +1353,7 @@
     var(--ui-surface);
 
   box-shadow:
-    var(--ui-shadow-control);
+    var(--ui-elevation-1);
 
   transition:
     margin-inline-start

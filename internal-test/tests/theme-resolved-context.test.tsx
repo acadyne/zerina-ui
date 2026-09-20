@@ -305,7 +305,7 @@ describe(
           snapshot.theme
             ?.tokens
             ?.surface
-            ?.bg,
+            ?.canvas,
         ).toBeUndefined();
       },
     );
@@ -361,7 +361,7 @@ describe(
           snapshot.resolvedTheme
             ?.tokens
             .surface
-            ?.bg,
+            ?.canvas,
         ).toBe(
           "#0b0d10",
         );

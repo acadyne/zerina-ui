@@ -185,7 +185,7 @@ export function getNavigationFloatingSurfaceStyles({
         : "var(--ui-surface)",
 
     boxShadow:
-      "var(--ui-shadow-lg)",
+      "var(--ui-elevation-4)",
 
     backdropFilter:
       translucent

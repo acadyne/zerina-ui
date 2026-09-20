@@ -73,7 +73,7 @@ function StatusPanel({
         padding: "0.75rem",
         border: "1px solid var(--ui-border)",
         borderRadius: "var(--ui-radius-md)",
-        background: "var(--ui-surface-2)",
+        background: "var(--ui-surface-container)",
         fontFamily: "monospace",
         fontSize: "0.85rem",
         lineHeight: 1.55,
@@ -100,7 +100,7 @@ function BarSandbox({
         overflow: "hidden",
         border: "1px solid var(--ui-border)",
         borderRadius: "var(--ui-radius-xl)",
-        background: "var(--ui-bg)",
+        background: "var(--ui-surface-canvas)",
       }}
     >
       {children}
@@ -559,7 +559,7 @@ export function TopAppBarDebug() {
               overflow: "auto",
               border: "1px solid var(--ui-border)",
               borderRadius: "var(--ui-radius-xl)",
-              background: "var(--ui-bg)",
+              background: "var(--ui-surface-canvas)",
             }}
           >
             <TopAppBar

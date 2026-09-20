@@ -551,7 +551,7 @@ function AdaptiveScaffoldImpl<
             : undefined,
 
         background:
-          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-2) 94%, transparent))",
+          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface) 94%, transparent), color-mix(in srgb, var(--ui-surface-container) 94%, transparent))",
       },
     });
 

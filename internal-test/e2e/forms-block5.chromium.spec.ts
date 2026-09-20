@@ -696,13 +696,11 @@ test(
     await input.click();
 
 
-    expect(
-      await hasAttribute(
-        group,
-        "data-focused",
-      ),
-    ).toBe(
-      true,
+    await expect(
+      group,
+    ).toHaveAttribute(
+      "data-focused",
+      "true",
     );
 
     expect(

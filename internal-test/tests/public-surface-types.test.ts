@@ -54,6 +54,14 @@ import type {
   TextareaSize,
   TextareaVariant,
   UIThemeContextValue,
+  UIElevation,
+  UIShape,
+  UISurfaceRole,
+  UITone,
+  UITypographyRole,
+  ThemeDensityTokens,
+  ThemeElevationTokens,
+  ThemeSpacingTokens,
 } from "zerina-ui";
 
 
@@ -229,6 +237,46 @@ describe(
               "custom",
           };
 
+        const tone:
+          UITone =
+          "info";
+
+        const surfaceRole:
+          UISurfaceRole =
+          "container";
+
+        const elevation:
+          UIElevation =
+          3;
+
+        const shape:
+          UIShape =
+          "lg";
+
+        const typographyRole:
+          UITypographyRole =
+          "headline";
+
+        const elevationTokens:
+          ThemeElevationTokens = {
+            level3:
+              "0 12px 32px rgba(0,0,0,0.2)",
+          };
+
+        const spacingTokens:
+          ThemeSpacingTokens = {
+            md:
+              "0.75rem",
+          };
+
+        const densityTokens:
+          ThemeDensityTokens = {
+            comfortable: {
+              itemMinHeight:
+                "3rem",
+            },
+          };
+
         const setViewportMode:
           SetViewportModeAction =
           (previousMode) =>
@@ -401,6 +449,28 @@ describe(
         ).toBe(
           "custom",
         );
+
+        expect([
+          tone,
+          surfaceRole,
+          elevation,
+          shape,
+          typographyRole,
+          elevationTokens.level3,
+          spacingTokens.md,
+          densityTokens
+            .comfortable
+            ?.itemMinHeight,
+        ]).toEqual([
+          "info",
+          "container",
+          3,
+          "lg",
+          "headline",
+          "0 12px 32px rgba(0,0,0,0.2)",
+          "0.75rem",
+          "3rem",
+        ]);
 
         expect(
           setViewportMode(

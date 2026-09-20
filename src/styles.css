@@ -3,6 +3,7 @@
 @import "./styles/safe-area.css";
 
 @import "./core/motion/motion.css";
+@import "./core/viewport/viewport.css";
 
 @import "./styles/controls.css";
 

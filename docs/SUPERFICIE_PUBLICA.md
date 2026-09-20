@@ -381,3 +381,49 @@ El default sigue siendo:
 ```ts
 RoutedAdaptiveScaffoldProps<NavigationLinkMeta>
 ```
+
+## Fundación visual semántica
+
+Exports runtime:
+
+```text
+UI_TONES
+UI_SURFACE_ROLES
+UI_ELEVATIONS
+UI_TYPOGRAPHY_ROLES
+UI_SHAPES
+```
+
+Exports de tipos:
+
+```text
+UITone
+UISurfaceRole
+UIElevation
+UITypographyRole
+UIShape
+
+ThemeElevationTokens
+ThemeSpacingTokens
+ThemeDensityTokens
+```
+
+Cambios breaking del objeto `ThemeTokens`:
+
+```text
+surface.bg           → surface.canvas
+surface.surface2     → surface.container
+surface.surface3     → surface.containerHigh
+shadow.*             → elevation.level0..level5
+```
+
+También existe `surface.containerLow`.
+
+Los nuevos color roles container/on-container y los grupos
+`typography.role`, `spacing` y `density` forman parte del contrato público de
+tokens.
+
+No se exporta todavía `toneRecipe`, `surfaceRecipe`,
+`interactiveStateRecipe` ni `typographyRecipe`: esas recipes pertenecen a las
+siguientes subfases y se mantendrán internas salvo que exista una necesidad
+real de API pública.

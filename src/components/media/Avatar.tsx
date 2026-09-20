@@ -76,7 +76,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       alt,
       size = "md",
       rounded = "var(--ui-radius-full)",
-      bg = "var(--ui-surface-3)",
+      bg = "var(--ui-surface-container-high)",
       color = "var(--ui-text)",
       icon,
       fallback,
@@ -133,7 +133,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
         userSelect: "none",
         flexShrink: 0,
         border: "1px solid var(--ui-border)",
-        boxShadow: "var(--ui-shadow-sm)",
+        boxShadow: "var(--ui-elevation-1)",
       },
     });
 

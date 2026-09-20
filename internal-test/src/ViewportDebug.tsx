@@ -384,7 +384,7 @@ export function ViewportDebug() {
                 "1px solid var(--ui-border)",
 
               background:
-                "var(--ui-surface-2)",
+                "var(--ui-surface-container)",
 
               color:
                 "var(--ui-text)",

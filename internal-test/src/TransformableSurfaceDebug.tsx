@@ -32,7 +32,7 @@ const buttonStyle: React.CSSProperties = {
   padding: "0.4rem 0.7rem",
   border: "1px solid var(--ui-border, #a1a1aa)",
   borderRadius: "0.45rem",
-  background: "var(--ui-surface-2, #f4f4f5)",
+  background: "var(--ui-surface-container, #f4f4f5)",
   color: "var(--ui-text, #18181b)",
   cursor: "pointer",
 };

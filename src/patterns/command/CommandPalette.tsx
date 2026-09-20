@@ -655,7 +655,7 @@ export function CommandPalette({
                             justifyContent: "center",
                             border: "1px solid var(--ui-border)",
                             background:
-                              "color-mix(in srgb, var(--ui-surface-2) 78%, transparent)",
+                              "color-mix(in srgb, var(--ui-surface-container) 78%, transparent)",
                             flexShrink: 0,
                           },
                         });

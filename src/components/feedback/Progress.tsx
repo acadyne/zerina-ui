@@ -15,14 +15,21 @@ import {
   type SlotStyleMap,
 } from "../../helpers/css";
 
+import type {
+  UITone,
+} from "../../theme/contracts/visual-semantics";
+
 export type ProgressSize = "sm" | "md" | "lg";
 
 export type ProgressVariant =
-  | "primary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "neutral";
+  Extract<
+    UITone,
+    | "primary"
+    | "success"
+    | "warning"
+    | "danger"
+    | "neutral"
+  >;
 
 export type ProgressSlot =
   | "root"
@@ -100,7 +107,7 @@ export const Progress = React.forwardRef<
       showValue = false,
       label,
       rounded = "var(--ui-radius-full)",
-      trackColor = "var(--ui-surface-3)",
+      trackColor = "var(--ui-surface-container-high)",
       barColor,
       className = "",
       style,

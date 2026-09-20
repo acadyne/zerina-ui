@@ -90,7 +90,7 @@ const popoverRecipe =
           "var(--ui-text)",
 
         boxShadow:
-          "var(--ui-shadow-lg)",
+          "var(--ui-elevation-4)",
 
         outline: "none",
 

@@ -351,10 +351,10 @@ const navigationListRecipe =
           "1px solid var(--ui-border)",
 
         background:
-          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-2) 80%, transparent), var(--ui-surface))",
+          "linear-gradient(180deg, color-mix(in srgb, var(--ui-surface-container) 80%, transparent), var(--ui-surface))",
 
         boxShadow:
-          "var(--ui-shadow-lg)",
+          "var(--ui-elevation-4)",
       },
 
       flyoutList: {

@@ -191,6 +191,11 @@ import {
 
 Los componentes de overlay usan internamente el mismo runtime de motion/foco/dismiss, pero esas piezas de implementación no forman parte de la API raíz.
 
+`UIMotionProvider` publica la política numérica canónica de `motion.tokens.ts`
+como variables internas y expone `data-ui-motion-effective` en el documento.
+`motion.css` usa ese atributo para seleccionar las variables funcionales de
+duración/easing/geometría; no mantiene una segunda tabla de timings.
+
 ## Viewport
 
 ```tsx
@@ -201,6 +206,12 @@ import {
 ```
 
 El provider centraliza viewport, orientación, densidad e input para evitar que cada componente mantenga su propia interpretación del entorno.
+
+La density efectiva se refleja en `data-ui-density` y se proyecta a métricas
+CSS activas. En modo `auto`, touch/hybrid conserva `comfortable`; la
+compactación automática se reserva para geometría restringida con input fino,
+y `spacious` requiere un viewport efectivamente wide+tall. Los modos explícitos
+siempre prevalecen.
 
 ## Accesibilidad
 
@@ -294,3 +305,22 @@ Los sourcemaps pueden acompañar estos artefactos dentro de `dist`.
 ## Licencia
 
 MIT. Consulta [`LICENSE`](./LICENSE).
+
+## Sistema visual semántico
+
+Zerina UI usa un vocabulario de tema compartido para que color, superficies,
+elevación, shape, tipografía y density puedan cambiar sin añadir lógica
+específica por componente.
+
+Roles principales:
+
+```text
+tones       neutral / primary / secondary / info / success / warning / danger
+surfaces    canvas / surface / containerLow / container / containerHigh
+elevation   0 .. 5
+typography  display / headline / title / body / label / caption
+density     compact / comfortable / spacious
+```
+
+La serie pre-1.0 no conserva aliases de tokens retirados. Los themes nuevos
+deben usar el contrato semántico vigente.

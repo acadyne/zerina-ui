@@ -629,7 +629,7 @@ export function PressableDebug() {
                       "pressable-root",
                     style: {
                       background:
-                        "var(--ui-surface-2)",
+                        "var(--ui-surface-container)",
                     },
                   },
                 }}

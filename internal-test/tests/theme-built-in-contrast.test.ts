@@ -38,6 +38,17 @@ const CONTRAST_PAIRS = [
 
   {
     background:
+      "info",
+
+    foreground:
+      "infoContrast",
+
+    label:
+      "info/infoContrast",
+  },
+
+  {
+    background:
       "success",
 
     foreground:
@@ -67,6 +78,82 @@ const CONTRAST_PAIRS = [
 
     label:
       "danger/dangerContrast",
+  },
+  {
+    background:
+      "primaryContainer",
+
+    foreground:
+      "onPrimaryContainer",
+
+    label:
+      "primaryContainer/onPrimaryContainer",
+  },
+
+  {
+    background:
+      "secondaryContainer",
+
+    foreground:
+      "onSecondaryContainer",
+
+    label:
+      "secondaryContainer/onSecondaryContainer",
+  },
+
+  {
+    background:
+      "neutralContainer",
+
+    foreground:
+      "onNeutralContainer",
+
+    label:
+      "neutralContainer/onNeutralContainer",
+  },
+
+  {
+    background:
+      "infoContainer",
+
+    foreground:
+      "onInfoContainer",
+
+    label:
+      "infoContainer/onInfoContainer",
+  },
+
+  {
+    background:
+      "successContainer",
+
+    foreground:
+      "onSuccessContainer",
+
+    label:
+      "successContainer/onSuccessContainer",
+  },
+
+  {
+    background:
+      "warningContainer",
+
+    foreground:
+      "onWarningContainer",
+
+    label:
+      "warningContainer/onWarningContainer",
+  },
+
+  {
+    background:
+      "dangerContainer",
+
+    foreground:
+      "onDangerContainer",
+
+    label:
+      "dangerContainer/onDangerContainer",
   },
 ] as const;
 

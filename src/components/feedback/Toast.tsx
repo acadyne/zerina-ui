@@ -278,7 +278,7 @@ export const Toast = React.forwardRef<
         border: `1px solid ${config.border}`,
         background: "var(--ui-surface)",
         color: "var(--ui-text)",
-        boxShadow: "var(--ui-shadow-lg)",
+        boxShadow: "var(--ui-elevation-4)",
         overflow: "hidden",
       },
     });

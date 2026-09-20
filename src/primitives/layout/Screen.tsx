@@ -161,7 +161,7 @@ const ScreenRoot =
               "border-box",
 
             background:
-              "var(--ui-bg)",
+              "var(--ui-surface-canvas)",
 
             color:
               "var(--ui-text)",

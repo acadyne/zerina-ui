@@ -246,7 +246,7 @@ export function DataTableMobileCards<
             minWidth: 0,
             borderRadius: "var(--ui-radius-xl)",
             background: "var(--ui-surface)",
-            boxShadow: "var(--ui-shadow-sm)",
+            boxShadow: "var(--ui-elevation-1)",
           },
         });
 

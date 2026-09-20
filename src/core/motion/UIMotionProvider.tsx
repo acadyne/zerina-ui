@@ -16,6 +16,11 @@ import {
   getProgressIndeterminateTransition,
   shouldAnimateProgressIndeterminate,
 } from "./motion.presets";
+import {
+  getMotionCSSProjection,
+  UI_MOTION_POLICY_CSS_VARIABLES,
+  type UIMotionPolicyCSSVariable,
+} from "./motion.tokens";
 import { resolveEffectiveMotionLevel } from "./motion.utils";
 
 const MOTION_DOCUMENT_ATTRIBUTES = [
@@ -65,6 +70,122 @@ function writeMotionDocumentAttributes(
     }
 
     root.setAttribute(attribute, value);
+  }
+}
+
+type MotionStyleSnapshot = {
+  exists: boolean;
+  value: string;
+  priority: string;
+};
+
+type MotionStyleSnapshots =
+  Map<
+    UIMotionPolicyCSSVariable,
+    MotionStyleSnapshot
+  >;
+
+function hasInlineStyleProperty(
+  style: CSSStyleDeclaration,
+  property: string
+): boolean {
+  for (
+    let index = 0;
+    index < style.length;
+    index += 1
+  ) {
+    if (style.item(index) === property) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function readMotionStyleSnapshot(
+  root: HTMLElement,
+  property: UIMotionPolicyCSSVariable
+): MotionStyleSnapshot {
+  return {
+    exists:
+      hasInlineStyleProperty(
+        root.style,
+        property
+      ),
+
+    value:
+      root.style.getPropertyValue(
+        property
+      ),
+
+    priority:
+      root.style.getPropertyPriority(
+        property
+      ),
+  };
+}
+
+function readMotionStyleSnapshots(
+  root: HTMLElement
+): MotionStyleSnapshots {
+  return new Map(
+    UI_MOTION_POLICY_CSS_VARIABLES.map(
+      (property) => [
+        property,
+        readMotionStyleSnapshot(
+          root,
+          property
+        ),
+      ] as const
+    )
+  );
+}
+
+function motionStyleSnapshotsMatch(
+  left: MotionStyleSnapshot,
+  right: MotionStyleSnapshot
+): boolean {
+  return (
+    left.exists === right.exists &&
+    left.value === right.value &&
+    left.priority === right.priority
+  );
+}
+
+function restoreMotionStyleSnapshot(
+  root: HTMLElement,
+  property: UIMotionPolicyCSSVariable,
+  snapshot: MotionStyleSnapshot
+): void {
+  if (!snapshot.exists) {
+    root.style.removeProperty(
+      property
+    );
+
+    return;
+  }
+
+  root.style.setProperty(
+    property,
+    snapshot.value,
+    snapshot.priority
+  );
+}
+
+function writeMotionCSSProjection(
+  root: HTMLElement
+): void {
+  const projection =
+    getMotionCSSProjection();
+
+  for (
+    const property of
+    UI_MOTION_POLICY_CSS_VARIABLES
+  ) {
+    root.style.setProperty(
+      property,
+      projection[property]
+    );
   }
 }
 
@@ -131,6 +252,12 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
 
   const writtenAttributesRef =
     React.useRef<MotionDocumentAttributeValues | null>(null);
+
+  const previousStylesRef =
+    React.useRef<MotionStyleSnapshots | null>(null);
+
+  const writtenStylesRef =
+    React.useRef<MotionStyleSnapshots | null>(null);
 
   const prefersReducedMotion = useMediaQuery(
     "(prefers-reduced-motion: reduce)",
@@ -241,6 +368,9 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
     previousAttributesRef.current =
       readMotionDocumentAttributes(root);
 
+    previousStylesRef.current =
+      readMotionStyleSnapshots(root);
+
     return () => {
       const ownedDocument =
         ownedDocumentRef.current;
@@ -291,6 +421,60 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
         }
       }
 
+      const previousStyles =
+        previousStylesRef.current;
+
+      const writtenStyles =
+        writtenStylesRef.current;
+
+      if (
+        previousStyles &&
+        writtenStyles
+      ) {
+        for (
+          const property of
+          UI_MOTION_POLICY_CSS_VARIABLES
+        ) {
+          const previous =
+            previousStyles.get(
+              property
+            );
+
+          const written =
+            writtenStyles.get(
+              property
+            );
+
+          if (
+            !previous ||
+            !written
+          ) {
+            continue;
+          }
+
+          const current =
+            readMotionStyleSnapshot(
+              ownedRoot,
+              property
+            );
+
+          if (
+            !motionStyleSnapshotsMatch(
+              current,
+              written
+            )
+          ) {
+            continue;
+          }
+
+          restoreMotionStyleSnapshot(
+            ownedRoot,
+            property,
+            previous
+          );
+        }
+      }
+
       motionDocumentOwners.delete(
         ownedDocument
       );
@@ -298,6 +482,8 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
       ownedDocumentRef.current = null;
       previousAttributesRef.current = null;
       writtenAttributesRef.current = null;
+      previousStylesRef.current = null;
+      writtenStylesRef.current = null;
     };
   }, [documentOwner]);
 
@@ -320,12 +506,25 @@ export const UIMotionProvider: React.FC<UIMotionProviderProps> = ({
         prefersReducedMotion ? "true" : "false",
     };
 
+    const root =
+      ownedDocument.documentElement;
+
     writeMotionDocumentAttributes(
-      ownedDocument.documentElement,
+      root,
       values
     );
 
-    writtenAttributesRef.current = values;
+    writeMotionCSSProjection(
+      root
+    );
+
+    writtenAttributesRef.current =
+      values;
+
+    writtenStylesRef.current =
+      readMotionStyleSnapshots(
+        root
+      );
   }, [
     documentOwner,
     currentLevel,

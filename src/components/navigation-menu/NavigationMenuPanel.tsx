@@ -342,7 +342,7 @@ export const NavigationMenuPanel =
                       "var(--ui-surface)",
                     color: "var(--ui-text)",
                     boxShadow:
-                      "var(--ui-shadow-lg)",
+                      "var(--ui-elevation-4)",
                     outline: "none",
                     boxSizing: "border-box",
                     transformOrigin:

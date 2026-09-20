@@ -143,7 +143,7 @@ const NavigationStackRoot =
       minWidth: 0,
       minHeight: 0,
       overflow: "hidden",
-      background: "var(--ui-bg)",
+      background: "var(--ui-surface-canvas)",
       color: "var(--ui-text)",
     },
   });

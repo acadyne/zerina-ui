@@ -85,7 +85,7 @@ const tooltipRecipe =
           "var(--ui-text)",
 
         boxShadow:
-          "var(--ui-shadow-md)",
+          "var(--ui-elevation-3)",
 
         fontSize: "0.78rem",
         lineHeight: 1.35,

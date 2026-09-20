@@ -67,7 +67,7 @@
     [data-disabled]
   ) {
   border-color: var(--ui-border-strong);
-  box-shadow: var(--ui-shadow-md);
+  box-shadow: var(--ui-elevation-3);
 }
 
 [data-ui-card][data-ui-card-interactive][data-focus-visible]:not(

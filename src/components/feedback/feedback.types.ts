@@ -1,6 +1,14 @@
+import type {
+  UITone,
+} from "../../theme/contracts/visual-semantics";
+
+
 export type FeedbackVariant =
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "neutral";
+  Extract<
+    UITone,
+    | "info"
+    | "success"
+    | "warning"
+    | "danger"
+    | "neutral"
+  >;

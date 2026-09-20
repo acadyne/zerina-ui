@@ -1290,3 +1290,155 @@ Reglas:
 - `onItemChange` recibe el item seleccionado aunque no exista `href`;
 - routing no re-resuelve el item desde `id`;
 - no existe una variante paralela de props para metadata custom.
+
+## Contrato visual semántico — Fase 7A
+
+### Vocabulario público
+
+```ts
+type UITone =
+  | "neutral"
+  | "primary"
+  | "secondary"
+  | "info"
+  | "success"
+  | "warning"
+  | "danger";
+
+type UISurfaceRole =
+  | "canvas"
+  | "surface"
+  | "containerLow"
+  | "container"
+  | "containerHigh";
+
+type UIElevation =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5;
+
+type UITypographyRole =
+  | "display"
+  | "headline"
+  | "title"
+  | "body"
+  | "label"
+  | "caption";
+
+type UIShape =
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "full";
+```
+
+Las constantes runtime equivalentes son:
+
+```text
+UI_TONES
+UI_SURFACE_ROLES
+UI_ELEVATIONS
+UI_TYPOGRAPHY_ROLES
+UI_SHAPES
+```
+
+### Cambios breaking de tokens
+
+Retirado:
+
+```text
+surface.bg
+surface.surface2
+surface.surface3
+shadow.*
+--ui-bg
+--ui-surface-2
+--ui-surface-3
+--ui-shadow-*
+```
+
+Contrato vigente:
+
+```text
+surface.canvas
+surface.surface
+surface.containerLow
+surface.container
+surface.containerHigh
+
+elevation.level0
+elevation.level1
+elevation.level2
+elevation.level3
+elevation.level4
+elevation.level5
+```
+
+No existen aliases de compatibilidad.
+
+### Color containers
+
+El contrato estándar incluye:
+
+```text
+primaryContainer / onPrimaryContainer
+secondaryContainer / onSecondaryContainer
+neutralContainer / onNeutralContainer
+infoContainer / onInfoContainer
+successContainer / onSuccessContainer
+warningContainer / onWarningContainer
+dangerContainer / onDangerContainer
+```
+
+y añade el tone `info` al mismo modelo de foreground/contrast.
+
+Los built-ins validan contraste >= 4.5:1 para foregrounds directos y
+container/on-container.
+
+### Nuevos grupos de tokens
+
+```text
+elevation
+spacing
+density
+typography.role
+```
+
+Todos forman parte de `THEME_TOKEN_MANIFEST`, por lo que resolución,
+validación, SSR y CSS custom properties derivan del mismo owner.
+
+### Ownership
+
+Fase 7A define el lenguaje semántico y Fase 7B proyecta el entorno dinámico sin
+crear nuevos owners.
+
+```text
+theme
+= define valores y roles
+
+viewport
+= selecciona density
+= publica data-ui-density
+
+viewport.css
+= proyecta la selección a aliases activos
+= no decide responsive
+
+motion
+= UIMotionProvider selecciona política temporal
+= publica data-ui-motion-effective + --ui-motion-token-* desde motion.tokens.ts
+= motion.css traduce ese atributo a aliases funcionales sin duplicar números
+
+recipes futuras
+= traducen roles a composición visual
+
+componentes
+= consumen recipes / aliases activos
+```
+
+No se permite que un componente cree un segundo mapa global de tonos,
+elevación, superficies, density o motion.

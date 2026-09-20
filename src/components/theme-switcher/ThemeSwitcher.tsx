@@ -142,7 +142,7 @@ export function ThemeSwitcher({
             "var(--ui-radius-lg)",
 
           boxShadow:
-            "var(--ui-shadow-lg)",
+            "var(--ui-elevation-4)",
         }}
       >
         {themes.map(

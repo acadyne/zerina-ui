@@ -11,17 +11,28 @@ export type {
   ThemeColorTokens,
   ThemeControlTokens,
   ThemeExtensionPrimitive,
+  ThemeDensityTokens,
+  ThemeElevationTokens,
   ThemeExtensionTokens,
   ThemeExtensionValue,
   ThemeInteractionTokens,
   ThemeRadiusTokens,
-  ThemeShadowTokens,
+  ThemeSpacingTokens,
   ThemeSurfaceTokens,
   ThemeTextTokens,
   ThemeTokenCSSVariable,
   ThemeTokens,
   ThemeTypographyTokens,
 } from "./theme-token-contract";
+
+
+export type {
+  UIElevation,
+  UIShape,
+  UISurfaceRole,
+  UITone,
+  UITypographyRole,
+} from "./visual-semantics";
 
 export type ThemeIconName =
   string;

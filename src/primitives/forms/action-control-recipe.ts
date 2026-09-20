@@ -217,10 +217,10 @@ function getButtonVariables(
         "none",
 
       "--ui-action-hover-shadow":
-        "var(--ui-shadow-action-outline-hover)",
+        "var(--ui-elevation-1)",
 
       "--ui-action-pressed-shadow":
-        "var(--ui-shadow-action-outline-hover)",
+        "var(--ui-elevation-1)",
     };
   }
 
@@ -245,10 +245,10 @@ function getButtonVariables(
         "none",
 
       "--ui-action-hover-shadow":
-        "var(--ui-shadow-action-subtle-hover)",
+        "var(--ui-elevation-1)",
 
       "--ui-action-pressed-shadow":
-        "var(--ui-shadow-action-subtle-hover)",
+        "var(--ui-elevation-1)",
     };
   }
 
@@ -269,13 +269,13 @@ function getButtonVariables(
       "1px solid transparent",
 
     "--ui-action-shadow":
-      "var(--ui-shadow-action)",
+      "var(--ui-elevation-2)",
 
     "--ui-action-hover-shadow":
-      "var(--ui-shadow-action-hover)",
+      "var(--ui-elevation-3)",
 
     "--ui-action-pressed-shadow":
-      "var(--ui-shadow-action-hover)",
+      "var(--ui-elevation-3)",
   };
 }
 
@@ -463,10 +463,10 @@ export function getIconButtonActionRecipe({
               "none",
 
             "--ui-action-hover-shadow":
-              "var(--ui-shadow-action-subtle-hover)",
+              "var(--ui-elevation-1)",
 
             "--ui-action-pressed-shadow":
-              "var(--ui-shadow-action-subtle-hover)",
+              "var(--ui-elevation-1)",
           }
         : variant === "unstyled"
           ? {
@@ -514,10 +514,10 @@ export function getIconButtonActionRecipe({
                 "none",
 
               "--ui-action-hover-shadow":
-                "var(--ui-shadow-action-subtle-hover)",
+                "var(--ui-elevation-1)",
 
               "--ui-action-pressed-shadow":
-                "var(--ui-shadow-action-subtle-hover)",
+                "var(--ui-elevation-1)",
             };
 
   return {

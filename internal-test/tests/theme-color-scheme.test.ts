@@ -345,7 +345,7 @@ describe(
 
                 tokens: {
                   surface: {
-                    bg:
+                    canvas:
                       "#root-background",
                   },
 
@@ -390,7 +390,7 @@ describe(
 
         expect(
           resolved.tokens.surface
-            ?.bg
+            ?.canvas
         ).toBe(
           "#root-background"
         );
@@ -422,12 +422,12 @@ describe(
 
         expect(
           resolved.tokens.surface
-            ?.surface2
+            ?.container
         ).toBe(
           SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME
             .dark
             .surface
-            ?.surface2
+            ?.container
         );
 
 

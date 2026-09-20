@@ -83,7 +83,7 @@ function DemoContent({
               "var(--ui-surface)",
 
             boxShadow:
-              "var(--ui-shadow-sm)",
+              "var(--ui-elevation-1)",
           }}
         >
           <Box
@@ -401,7 +401,7 @@ export function ScreenStateDebug() {
               overflow: "hidden",
 
               background:
-                "var(--ui-bg)",
+                "var(--ui-surface-canvas)",
             }}
           >
             {

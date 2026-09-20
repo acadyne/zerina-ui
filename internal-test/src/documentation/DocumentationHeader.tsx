@@ -32,7 +32,7 @@ export function DocumentationHeader() {
           "var(--ui-surface)",
 
         boxShadow:
-          "var(--ui-shadow-sm)",
+          "var(--ui-elevation-1)",
       }}
     >
       <Stack spacing="0.75rem">

@@ -402,7 +402,7 @@ describe(
 
         expect(
           state.style[
-          "--ui-bg"
+          "--ui-surface-canvas"
           ],
         ).toBe(
           "#0b0d10",

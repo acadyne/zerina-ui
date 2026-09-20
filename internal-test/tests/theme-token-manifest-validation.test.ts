@@ -87,12 +87,12 @@ describe(
   "THEME_TOKEN_MANIFEST",
   () => {
     it(
-      "contains exactly 69 leaves",
+      "contains exactly 145 leaves",
       () => {
         expect(
           leaves,
         ).toHaveLength(
-          69,
+          145,
         );
       },
     );

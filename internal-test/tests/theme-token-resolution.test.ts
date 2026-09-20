@@ -214,7 +214,7 @@ describe(
                 },
 
                 surface: {
-                  bg:
+                  canvas:
                     "#parent-bg",
                 },
               },
@@ -269,7 +269,7 @@ describe(
 
         expect(
           resolved.surface
-            .bg,
+            .canvas,
         ).toBe(
           "#parent-bg",
         );
@@ -359,7 +359,7 @@ describe(
                 },
 
                 surface: {
-                  bg:
+                  canvas:
                     "#root-bg",
                 },
               },
@@ -451,7 +451,7 @@ describe(
 
         expect(
           resolved.surface
-            .bg,
+            .canvas,
         ).toBe(
           "#root-bg",
         );

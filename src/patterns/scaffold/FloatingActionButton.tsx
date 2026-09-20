@@ -125,7 +125,7 @@ function getVariantStyles(
       background: "var(--ui-surface)",
       color: "var(--ui-text)",
       borderColor: "var(--ui-border)",
-      boxShadow: "var(--ui-shadow-lg)",
+      boxShadow: "var(--ui-elevation-4)",
     };
   }
 
@@ -134,7 +134,7 @@ function getVariantStyles(
       background: "color-mix(in srgb, var(--ui-primary) 14%, var(--ui-surface))",
       color: "var(--ui-primary)",
       borderColor: "color-mix(in srgb, var(--ui-primary) 24%, transparent)",
-      boxShadow: "var(--ui-shadow-md)",
+      boxShadow: "var(--ui-elevation-3)",
     };
   }
 
@@ -142,7 +142,7 @@ function getVariantStyles(
     background: "var(--ui-primary)",
     color: "var(--ui-primary-contrast)",
     borderColor: "color-mix(in srgb, var(--ui-primary) 74%, black)",
-    boxShadow: "var(--ui-shadow-lg)",
+    boxShadow: "var(--ui-elevation-4)",
   };
 }
 

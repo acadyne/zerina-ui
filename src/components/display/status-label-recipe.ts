@@ -4,6 +4,10 @@ import {
   defineSlotRecipe,
 } from "../../helpers/css";
 
+import type {
+  UITone,
+} from "../../theme/contracts/visual-semantics";
+
 
 export type StatusLabelVariant =
   | "solid"
@@ -12,12 +16,10 @@ export type StatusLabelVariant =
 
 
 export type StatusLabelColorScheme =
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "neutral";
+  Exclude<
+    UITone,
+    "info"
+  >;
 
 
 export type StatusLabelRecipeSlot =
@@ -153,13 +155,13 @@ const STATUS_LABEL_SCHEMES:
 
     neutral: {
       solidBg:
-        "var(--ui-surface-3)",
+        "var(--ui-surface-container-high)",
 
       solidText:
         "var(--ui-text)",
 
       subtleBg:
-        "var(--ui-surface-2)",
+        "var(--ui-surface-container)",
 
       subtleText:
         "var(--ui-text-muted)",

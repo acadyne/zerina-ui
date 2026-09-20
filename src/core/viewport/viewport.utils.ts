@@ -1,5 +1,8 @@
 // src/core/viewport/viewport.utils.ts
 import type {
+  UIDensity,
+  UIDensityMode,
+  UIInputKind,
   UIViewportBreakpoints,
   UIViewportKind,
   UIViewportMode,
@@ -62,4 +65,55 @@ export function resolveUIViewportKind({
   }
 
   return "mobile";
+}
+
+export function resolveUIDensity({
+  densityMode,
+  inputKind,
+  width,
+  height,
+  isShort,
+  isNarrow,
+  isWide,
+  isTall,
+}: {
+  densityMode: UIDensityMode;
+  inputKind: UIInputKind;
+  width: number;
+  height: number;
+  isShort: boolean;
+  isNarrow: boolean;
+  isWide: boolean;
+  isTall: boolean;
+}): UIDensity {
+  if (densityMode !== "auto") {
+    return densityMode;
+  }
+
+  if (width <= 0 || height <= 0) {
+    return "comfortable";
+  }
+
+  /*
+   * Touch/hybrid and unknown input keep comfortable density semantics.
+   * Constrained geometry may compact known fine-pointer environments, but it
+   * must not shrink targets merely because the viewport is narrow.
+   */
+  if (
+    inputKind === "touch" ||
+    inputKind === "hybrid" ||
+    inputKind === "unknown"
+  ) {
+    return "comfortable";
+  }
+
+  if (isShort || isNarrow) {
+    return "compact";
+  }
+
+  if (isWide && isTall) {
+    return "spacious";
+  }
+
+  return "comfortable";
 }

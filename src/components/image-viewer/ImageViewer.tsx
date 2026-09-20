@@ -573,7 +573,7 @@ export const ImageViewer = forwardRef<
 
           color: "var(--ui-text)",
           boxShadow:
-            "var(--ui-shadow-sm)",
+            "var(--ui-elevation-1)",
 
           font: "inherit",
           fontWeight: 700,
@@ -616,7 +616,7 @@ export const ImageViewer = forwardRef<
           color: "var(--ui-text)",
 
           boxShadow:
-            "var(--ui-shadow-sm)",
+            "var(--ui-elevation-1)",
 
           fontSize:
             "var(--ui-font-size-xs)",

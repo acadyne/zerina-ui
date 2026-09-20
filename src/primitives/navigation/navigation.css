@@ -86,7 +86,7 @@
 
 [data-ui-navigation-list-item-button][data-pressed]
   [data-ui-navigation-list-item-content] {
-  background: var(--ui-surface-3);
+  background: var(--ui-surface-container-high);
 }
 
 [data-ui-bottom-navigation-item],

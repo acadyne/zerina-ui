@@ -72,7 +72,7 @@ function DemoPanel({ activeId }: { activeId: string }) {
               borderRadius: "var(--ui-radius-lg)",
               border: "1px solid var(--ui-border)",
               background: "var(--ui-surface)",
-              boxShadow: "var(--ui-shadow-sm)",
+              boxShadow: "var(--ui-elevation-1)",
             }}
           >
             <Box style={{ fontWeight: "var(--ui-font-weight-bold)" }}>
@@ -195,8 +195,8 @@ export function AdaptiveScaffoldDebug() {
               border: "1px solid var(--ui-border)",
               borderRadius: "var(--ui-radius-xl)",
               overflow: "hidden",
-              background: "var(--ui-bg)",
-              boxShadow: "var(--ui-shadow-lg)",
+              background: "var(--ui-surface-canvas)",
+              boxShadow: "var(--ui-elevation-4)",
               position: "relative",
             }}
           >
@@ -260,7 +260,7 @@ export function AdaptiveScaffoldDebug() {
                 },
                 body: {
                   background:
-                    "color-mix(in srgb, var(--ui-primary) 3%, var(--ui-bg))",
+                    "color-mix(in srgb, var(--ui-primary) 3%, var(--ui-surface-canvas))",
                 },
                 rail: {
                   background:

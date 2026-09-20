@@ -120,7 +120,7 @@ function StatusPanel({
         borderRadius:
           "var(--ui-radius-md)",
         background:
-          "var(--ui-surface-2)",
+          "var(--ui-surface-container)",
         fontFamily: "monospace",
         fontSize: "0.85rem",
         lineHeight: 1.55,
@@ -181,9 +181,9 @@ function PhoneSandbox({
           border:
             "1px solid var(--ui-border)",
           borderRadius: "28px",
-          background: "var(--ui-bg)",
+          background: "var(--ui-surface-canvas)",
           boxShadow:
-            "var(--ui-shadow-lg)",
+            "var(--ui-elevation-4)",
         }}
       >
         {children}
@@ -285,7 +285,7 @@ function DemoContent({
             background:
               "var(--ui-surface)",
             boxShadow:
-              "var(--ui-shadow-sm)",
+              "var(--ui-elevation-1)",
           }}
         >
           <Box
@@ -885,7 +885,7 @@ export function ScaffoldDebug() {
               styles={{
                 root: {
                   background:
-                    "linear-gradient(180deg, var(--ui-bg), color-mix(in srgb, var(--ui-primary) 4%, var(--ui-bg)))",
+                    "linear-gradient(180deg, var(--ui-surface-canvas), color-mix(in srgb, var(--ui-primary) 4%, var(--ui-surface-canvas)))",
                 },
 
                 body: {
@@ -1037,7 +1037,7 @@ export function ScaffoldDebug() {
               borderRadius:
                 "var(--ui-radius-xl)",
               background:
-                "var(--ui-bg)",
+                "var(--ui-surface-canvas)",
             }}
           >
             <Scaffold
@@ -1142,14 +1142,14 @@ export function ScaffoldDebug() {
                       padding:
                         "0.5rem",
                       background:
-                        "var(--ui-surface-2)",
+                        "var(--ui-surface-container)",
                     },
 
                     footer: {
                       padding:
                         "0.5rem",
                       background:
-                        "var(--ui-surface-2)",
+                        "var(--ui-surface-container)",
                     },
 
                     floating: {

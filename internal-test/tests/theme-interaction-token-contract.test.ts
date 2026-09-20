@@ -90,15 +90,12 @@ const LEGACY_VARIABLES = [
 ] as const;
 
 
-const SHADOW_KEYS = [
-  "sm",
-  "md",
-  "lg",
-  "control",
-  "action",
-  "actionHover",
-  "actionSubtleHover",
-  "actionOutlineHover",
+const ELEVATION_KEYS = [
+  "level1",
+  "level2",
+  "level3",
+  "level4",
+  "level5",
 ] as const;
 
 
@@ -317,29 +314,29 @@ describe(
 
 
     it(
-      "uses different light and dark shadows for every shadow token",
+      "uses scheme-specific shadows for every raised elevation level",
       () => {
         const light =
           SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME
             .light
-            .shadow;
+            .elevation;
 
 
         const dark =
           SYSTEM_DEFAULT_TOKENS_BY_COLOR_SCHEME
             .dark
-            .shadow;
+            .elevation;
 
 
         for (
           const key of
-          SHADOW_KEYS
+          ELEVATION_KEYS
         ) {
           expect(
             light[
               key
             ],
-            `shadow.${key}`,
+            `elevation.${key}`,
           ).not.toBe(
             dark[
               key

@@ -6,6 +6,9 @@ import {
   hasRenderableNode,
 } from "../../core/react/nodePresence";
 import type { UIPressEvent } from "../../core/interaction";
+import type {
+  UITone,
+} from "../../theme/contracts/visual-semantics";
 import { Box, List } from "../../primitives/layout";
 import {
   BottomSheet,
@@ -14,11 +17,14 @@ import {
 } from "../../primitives/overlay";
 
 export type ActionSheetTone =
-  | "neutral"
-  | "primary"
-  | "success"
-  | "warning"
-  | "danger";
+  Extract<
+    UITone,
+    | "neutral"
+    | "primary"
+    | "success"
+    | "warning"
+    | "danger"
+  >;
 
 export interface ActionSheetProps
   extends Omit<BottomSheetProps, "children"> {

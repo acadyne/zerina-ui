@@ -62,13 +62,29 @@ export {
 } from "./built-in";
 
 
+
+export {
+  UI_ELEVATIONS,
+  UI_SHAPES,
+  UI_SURFACE_ROLES,
+  UI_TONES,
+  UI_TYPOGRAPHY_ROLES,
+} from "./contracts/visual-semantics";
+
 export type {
   CSSFontWeight,
+  UIElevation,
+  UIShape,
+  UISurfaceRole,
+  UITone,
+  UITypographyRole,
   ResolvedThemeTokens,
   ThemeBorderTokens,
   ThemeColorScheme,
   ThemeColorTokens,
   ThemeControlTokens,
+  ThemeDensityTokens,
+  ThemeElevationTokens,
   ThemeDefinition,
   ThemeExtensionPrimitive,
   ThemeExtensionTokens,
@@ -78,7 +94,7 @@ export type {
   ThemeMetadata,
   ThemeName,
   ThemeRadiusTokens,
-  ThemeShadowTokens,
+  ThemeSpacingTokens,
   ThemeSource,
   ThemeSurfaceTokens,
   ThemeTextTokens,

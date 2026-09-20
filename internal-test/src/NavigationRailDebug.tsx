@@ -72,7 +72,7 @@ function StatusPanel({
         padding: "0.75rem",
         border: "1px solid var(--ui-border)",
         borderRadius: "var(--ui-radius-md)",
-        background: "var(--ui-surface-2)",
+        background: "var(--ui-surface-container)",
         fontFamily: "monospace",
         fontSize: "0.85rem",
         lineHeight: 1.5,
@@ -99,7 +99,7 @@ function RailSandbox({
         overflow: "hidden",
         border: "1px solid var(--ui-border)",
         borderRadius: "var(--ui-radius-xl)",
-        background: "var(--ui-bg)",
+        background: "var(--ui-surface-canvas)",
       }}
     >
       {children}
@@ -846,7 +846,7 @@ export function NavigationRailDebug() {
               overflow: "auto",
               border: "1px solid var(--ui-border)",
               borderRadius: "var(--ui-radius-xl)",
-              background: "var(--ui-bg)",
+              background: "var(--ui-surface-canvas)",
             }}
           >
             <Box
@@ -938,7 +938,7 @@ export function NavigationRailDebug() {
               overflow: "hidden",
               border: "1px solid var(--ui-border)",
               borderRadius: "var(--ui-radius-xl)",
-              background: "var(--ui-bg)",
+              background: "var(--ui-surface-canvas)",
               display: "flex",
             }}
           >

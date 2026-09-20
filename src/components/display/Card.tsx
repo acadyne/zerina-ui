@@ -247,7 +247,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       style,
       p,
       rounded = "var(--ui-radius-lg)",
-      shadow = "var(--ui-shadow-sm)",
+      shadow = "var(--ui-elevation-1)",
       bordered = true,
       loading = false,
       loadingFallback,

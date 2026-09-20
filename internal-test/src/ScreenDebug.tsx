@@ -189,7 +189,7 @@ export function ScreenDebug() {
                 "hidden",
 
               background:
-                "var(--ui-bg)",
+                "var(--ui-surface-canvas)",
             }}
           >
 
@@ -302,7 +302,7 @@ export function ScreenDebug() {
                           "0.75rem",
 
                         background:
-                          "linear-gradient(180deg, var(--ui-surface-2), var(--ui-surface))",
+                          "linear-gradient(180deg, var(--ui-surface-container), var(--ui-surface))",
                       }}
                     >
 
@@ -323,7 +323,7 @@ export function ScreenDebug() {
                           "0.75rem",
 
                         background:
-                          "var(--ui-surface-2)",
+                          "var(--ui-surface-container)",
                       }}
                     >
 

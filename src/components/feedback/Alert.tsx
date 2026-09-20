@@ -92,7 +92,7 @@ const alertVariantMap: Record<
   neutral: {
     icon: <AlertCircle size={18} />,
     color: "var(--ui-text-muted)",
-    background: "var(--ui-surface-2)",
+    background: "var(--ui-surface-container)",
     border: "var(--ui-border)",
   },
 };

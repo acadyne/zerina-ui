@@ -65,406 +65,844 @@ export function isThemeTokenDescriptor<
   );
 }
 
+function stringToken<
+  TVariable extends
+    `--ui-${string}`,
+>(
+  cssVariable:
+    TVariable
+): {
+  readonly kind:
+    "string";
+
+  readonly cssVariable:
+    TVariable;
+} {
+  return {
+    kind:
+      "string",
+
+    cssVariable,
+  };
+}
+
+function fontWeightToken<
+  TVariable extends
+    `--ui-${string}`,
+>(
+  cssVariable:
+    TVariable
+): {
+  readonly kind:
+    "fontWeight";
+
+  readonly cssVariable:
+    TVariable;
+} {
+  return {
+    kind:
+      "fontWeight",
+
+    cssVariable,
+  };
+}
+
+
+/**
+ * Canonical token schema.
+ *
+ * Every public theme token, runtime CSS variable, SSR declaration and
+ * validation path is derived from this manifest. Do not create parallel
+ * token registries in component families.
+ */
 export const THEME_TOKEN_MANIFEST = {
   color: {
-    primary: {
-      kind: "string",
-      cssVariable: "--ui-primary",
-    },
+    primary:
+      stringToken(
+        "--ui-primary"
+      ),
 
-    primaryHover: {
-      kind: "string",
-      cssVariable: "--ui-primary-hover",
-    },
+    primaryHover:
+      stringToken(
+        "--ui-primary-hover"
+      ),
 
-    primaryContrast: {
-      kind: "string",
-      cssVariable: "--ui-primary-contrast",
-    },
+    primaryContrast:
+      stringToken(
+        "--ui-primary-contrast"
+      ),
 
-    secondary: {
-      kind: "string",
-      cssVariable: "--ui-secondary",
-    },
+    primaryContainer:
+      stringToken(
+        "--ui-primary-container"
+      ),
 
-    secondaryHover: {
-      kind: "string",
-      cssVariable: "--ui-secondary-hover",
-    },
+    onPrimaryContainer:
+      stringToken(
+        "--ui-on-primary-container"
+      ),
 
-    secondaryContrast: {
-      kind: "string",
-      cssVariable: "--ui-secondary-contrast",
-    },
 
-    success: {
-      kind: "string",
-      cssVariable: "--ui-success",
-    },
+    secondary:
+      stringToken(
+        "--ui-secondary"
+      ),
 
-    successStrong: {
-      kind: "string",
-      cssVariable: "--ui-success-strong",
-    },
+    secondaryHover:
+      stringToken(
+        "--ui-secondary-hover"
+      ),
 
-    successContrast: {
-      kind: "string",
-      cssVariable: "--ui-success-contrast",
-    },
+    secondaryContrast:
+      stringToken(
+        "--ui-secondary-contrast"
+      ),
 
-    warning: {
-      kind: "string",
-      cssVariable: "--ui-warning",
-    },
+    secondaryContainer:
+      stringToken(
+        "--ui-secondary-container"
+      ),
 
-    warningStrong: {
-      kind: "string",
-      cssVariable: "--ui-warning-strong",
-    },
+    onSecondaryContainer:
+      stringToken(
+        "--ui-on-secondary-container"
+      ),
 
-    warningContrast: {
-      kind: "string",
-      cssVariable: "--ui-warning-contrast",
-    },
 
-    danger: {
-      kind: "string",
-      cssVariable: "--ui-danger",
-    },
+    neutralContainer:
+      stringToken(
+        "--ui-neutral-container"
+      ),
 
-    dangerHover: {
-      kind: "string",
-      cssVariable: "--ui-danger-hover",
-    },
+    onNeutralContainer:
+      stringToken(
+        "--ui-on-neutral-container"
+      ),
 
-    dangerContrast: {
-      kind: "string",
-      cssVariable: "--ui-danger-contrast",
-    },
+
+    info:
+      stringToken(
+        "--ui-info"
+      ),
+
+    infoStrong:
+      stringToken(
+        "--ui-info-strong"
+      ),
+
+    infoContrast:
+      stringToken(
+        "--ui-info-contrast"
+      ),
+
+    infoContainer:
+      stringToken(
+        "--ui-info-container"
+      ),
+
+    onInfoContainer:
+      stringToken(
+        "--ui-on-info-container"
+      ),
+
+
+    success:
+      stringToken(
+        "--ui-success"
+      ),
+
+    successStrong:
+      stringToken(
+        "--ui-success-strong"
+      ),
+
+    successContrast:
+      stringToken(
+        "--ui-success-contrast"
+      ),
+
+    successContainer:
+      stringToken(
+        "--ui-success-container"
+      ),
+
+    onSuccessContainer:
+      stringToken(
+        "--ui-on-success-container"
+      ),
+
+
+    warning:
+      stringToken(
+        "--ui-warning"
+      ),
+
+    warningStrong:
+      stringToken(
+        "--ui-warning-strong"
+      ),
+
+    warningContrast:
+      stringToken(
+        "--ui-warning-contrast"
+      ),
+
+    warningContainer:
+      stringToken(
+        "--ui-warning-container"
+      ),
+
+    onWarningContainer:
+      stringToken(
+        "--ui-on-warning-container"
+      ),
+
+
+    danger:
+      stringToken(
+        "--ui-danger"
+      ),
+
+    dangerHover:
+      stringToken(
+        "--ui-danger-hover"
+      ),
+
+    dangerContrast:
+      stringToken(
+        "--ui-danger-contrast"
+      ),
+
+    dangerContainer:
+      stringToken(
+        "--ui-danger-container"
+      ),
+
+    onDangerContainer:
+      stringToken(
+        "--ui-on-danger-container"
+      ),
   },
 
   surface: {
-    bg: {
-      kind: "string",
-      cssVariable: "--ui-bg",
-    },
+    canvas:
+      stringToken(
+        "--ui-surface-canvas"
+      ),
 
-    surface: {
-      kind: "string",
-      cssVariable: "--ui-surface",
-    },
+    surface:
+      stringToken(
+        "--ui-surface"
+      ),
 
-    surface2: {
-      kind: "string",
-      cssVariable: "--ui-surface-2",
-    },
+    containerLow:
+      stringToken(
+        "--ui-surface-container-low"
+      ),
 
-    surface3: {
-      kind: "string",
-      cssVariable: "--ui-surface-3",
-    },
+    container:
+      stringToken(
+        "--ui-surface-container"
+      ),
 
-    surfaceHover: {
-      kind: "string",
-      cssVariable: "--ui-surface-hover",
-    },
+    containerHigh:
+      stringToken(
+        "--ui-surface-container-high"
+      ),
+
+    surfaceHover:
+      stringToken(
+        "--ui-surface-hover"
+      ),
   },
 
   text: {
-    text: {
-      kind: "string",
-      cssVariable: "--ui-text",
-    },
+    text:
+      stringToken(
+        "--ui-text"
+      ),
 
-    textMuted: {
-      kind: "string",
-      cssVariable: "--ui-text-muted",
-    },
+    textMuted:
+      stringToken(
+        "--ui-text-muted"
+      ),
 
-    textSoft: {
-      kind: "string",
-      cssVariable: "--ui-text-soft",
-    },
+    textSoft:
+      stringToken(
+        "--ui-text-soft"
+      ),
 
-    textInverse: {
-      kind: "string",
-      cssVariable: "--ui-text-inverse",
-    },
+    textInverse:
+      stringToken(
+        "--ui-text-inverse"
+      ),
   },
 
   border: {
-    border: {
-      kind: "string",
-      cssVariable: "--ui-border",
-    },
+    border:
+      stringToken(
+        "--ui-border"
+      ),
 
-    borderStrong: {
-      kind: "string",
-      cssVariable: "--ui-border-strong",
-    },
+    borderStrong:
+      stringToken(
+        "--ui-border-strong"
+      ),
   },
 
   radius: {
-    sm: {
-      kind: "string",
-      cssVariable: "--ui-radius-sm",
-    },
+    sm:
+      stringToken(
+        "--ui-radius-sm"
+      ),
 
-    md: {
-      kind: "string",
-      cssVariable: "--ui-radius-md",
-    },
+    md:
+      stringToken(
+        "--ui-radius-md"
+      ),
 
-    lg: {
-      kind: "string",
-      cssVariable: "--ui-radius-lg",
-    },
+    lg:
+      stringToken(
+        "--ui-radius-lg"
+      ),
 
-    xl: {
-      kind: "string",
-      cssVariable: "--ui-radius-xl",
-    },
+    xl:
+      stringToken(
+        "--ui-radius-xl"
+      ),
 
-    full: {
-      kind: "string",
-      cssVariable: "--ui-radius-full",
-    },
+    full:
+      stringToken(
+        "--ui-radius-full"
+      ),
   },
 
-  shadow: {
-    sm: {
-      kind: "string",
-      cssVariable: "--ui-shadow-sm",
-    },
+  elevation: {
+    level0:
+      stringToken(
+        "--ui-elevation-0"
+      ),
 
-    md: {
-      kind: "string",
-      cssVariable: "--ui-shadow-md",
-    },
+    level1:
+      stringToken(
+        "--ui-elevation-1"
+      ),
 
-    lg: {
-      kind: "string",
-      cssVariable: "--ui-shadow-lg",
-    },
+    level2:
+      stringToken(
+        "--ui-elevation-2"
+      ),
 
-    control: {
-      kind: "string",
-      cssVariable: "--ui-shadow-control",
-    },
+    level3:
+      stringToken(
+        "--ui-elevation-3"
+      ),
 
-    action: {
-      kind: "string",
-      cssVariable: "--ui-shadow-action",
-    },
+    level4:
+      stringToken(
+        "--ui-elevation-4"
+      ),
 
-    actionHover: {
-      kind: "string",
-      cssVariable: "--ui-shadow-action-hover",
-    },
-
-    actionSubtleHover: {
-      kind: "string",
-      cssVariable:
-        "--ui-shadow-action-subtle-hover",
-    },
-
-    actionOutlineHover: {
-      kind: "string",
-      cssVariable:
-        "--ui-shadow-action-outline-hover",
-    },
+    level5:
+      stringToken(
+        "--ui-elevation-5"
+      ),
   },
 
   typography: {
+    fontFamily: {
+      body:
+        stringToken(
+          "--ui-font-family-body"
+        ),
+
+      display:
+        stringToken(
+          "--ui-font-family-display"
+        ),
+
+      mono:
+        stringToken(
+          "--ui-font-family-mono"
+        ),
+    },
+
     fontSize: {
-      xs: {
-        kind: "string",
-        cssVariable: "--ui-font-size-xs",
-      },
+      xs:
+        stringToken(
+          "--ui-font-size-xs"
+        ),
 
-      sm: {
-        kind: "string",
-        cssVariable: "--ui-font-size-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-font-size-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable: "--ui-font-size-md",
-      },
+      md:
+        stringToken(
+          "--ui-font-size-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable: "--ui-font-size-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-font-size-lg"
+        ),
 
-      xl: {
-        kind: "string",
-        cssVariable: "--ui-font-size-xl",
-      },
+      xl:
+        stringToken(
+          "--ui-font-size-xl"
+        ),
     },
 
     headingFontSize: {
-      sm: {
-        kind: "string",
-        cssVariable:
-          "--ui-heading-font-size-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-heading-font-size-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable:
-          "--ui-heading-font-size-md",
-      },
+      md:
+        stringToken(
+          "--ui-heading-font-size-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable:
-          "--ui-heading-font-size-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-heading-font-size-lg"
+        ),
 
-      xl: {
-        kind: "string",
-        cssVariable:
-          "--ui-heading-font-size-xl",
-      },
+      xl:
+        stringToken(
+          "--ui-heading-font-size-xl"
+        ),
 
-      "2xl": {
-        kind: "string",
-        cssVariable:
-          "--ui-heading-font-size-2xl",
-      },
+      "2xl":
+        stringToken(
+          "--ui-heading-font-size-2xl"
+        ),
     },
 
     fontWeight: {
-      medium: {
-        kind: "fontWeight",
-        cssVariable:
-          "--ui-font-weight-medium",
+      regular:
+        fontWeightToken(
+          "--ui-font-weight-regular"
+        ),
+
+      medium:
+        fontWeightToken(
+          "--ui-font-weight-medium"
+        ),
+
+      bold:
+        fontWeightToken(
+          "--ui-font-weight-bold"
+        ),
+    },
+
+    role: {
+      display: {
+        fontFamily:
+          stringToken(
+            "--ui-type-display-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-display-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-display-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-display-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-display-letter-spacing"
+          ),
       },
 
-      bold: {
-        kind: "fontWeight",
-        cssVariable:
-          "--ui-font-weight-bold",
+      headline: {
+        fontFamily:
+          stringToken(
+            "--ui-type-headline-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-headline-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-headline-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-headline-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-headline-letter-spacing"
+          ),
       },
+
+      title: {
+        fontFamily:
+          stringToken(
+            "--ui-type-title-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-title-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-title-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-title-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-title-letter-spacing"
+          ),
+      },
+
+      body: {
+        fontFamily:
+          stringToken(
+            "--ui-type-body-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-body-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-body-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-body-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-body-letter-spacing"
+          ),
+      },
+
+      label: {
+        fontFamily:
+          stringToken(
+            "--ui-type-label-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-label-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-label-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-label-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-label-letter-spacing"
+          ),
+      },
+
+      caption: {
+        fontFamily:
+          stringToken(
+            "--ui-type-caption-font-family"
+          ),
+
+        fontSize:
+          stringToken(
+            "--ui-type-caption-font-size"
+          ),
+
+        fontWeight:
+          fontWeightToken(
+            "--ui-type-caption-font-weight"
+          ),
+
+        lineHeight:
+          stringToken(
+            "--ui-type-caption-line-height"
+          ),
+
+        letterSpacing:
+          stringToken(
+            "--ui-type-caption-letter-spacing"
+          ),
+      },
+    },
+  },
+
+  spacing: {
+    zero:
+      stringToken(
+        "--ui-space-0"
+      ),
+
+    xs:
+      stringToken(
+        "--ui-space-xs"
+      ),
+
+    sm:
+      stringToken(
+        "--ui-space-sm"
+      ),
+
+    md:
+      stringToken(
+        "--ui-space-md"
+      ),
+
+    lg:
+      stringToken(
+        "--ui-space-lg"
+      ),
+
+    xl:
+      stringToken(
+        "--ui-space-xl"
+      ),
+
+    "2xl":
+      stringToken(
+        "--ui-space-2xl"
+      ),
+
+    "3xl":
+      stringToken(
+        "--ui-space-3xl"
+      ),
+  },
+
+  density: {
+    compact: {
+      controlHeight:
+        stringToken(
+          "--ui-density-compact-control-height"
+        ),
+
+      itemMinHeight:
+        stringToken(
+          "--ui-density-compact-item-min-height"
+        ),
+
+      inlineGap:
+        stringToken(
+          "--ui-density-compact-inline-gap"
+        ),
+
+      blockGap:
+        stringToken(
+          "--ui-density-compact-block-gap"
+        ),
+
+      contentPadding:
+        stringToken(
+          "--ui-density-compact-content-padding"
+        ),
+
+      iconSize:
+        stringToken(
+          "--ui-density-compact-icon-size"
+        ),
+    },
+
+    comfortable: {
+      controlHeight:
+        stringToken(
+          "--ui-density-comfortable-control-height"
+        ),
+
+      itemMinHeight:
+        stringToken(
+          "--ui-density-comfortable-item-min-height"
+        ),
+
+      inlineGap:
+        stringToken(
+          "--ui-density-comfortable-inline-gap"
+        ),
+
+      blockGap:
+        stringToken(
+          "--ui-density-comfortable-block-gap"
+        ),
+
+      contentPadding:
+        stringToken(
+          "--ui-density-comfortable-content-padding"
+        ),
+
+      iconSize:
+        stringToken(
+          "--ui-density-comfortable-icon-size"
+        ),
+    },
+
+    spacious: {
+      controlHeight:
+        stringToken(
+          "--ui-density-spacious-control-height"
+        ),
+
+      itemMinHeight:
+        stringToken(
+          "--ui-density-spacious-item-min-height"
+        ),
+
+      inlineGap:
+        stringToken(
+          "--ui-density-spacious-inline-gap"
+        ),
+
+      blockGap:
+        stringToken(
+          "--ui-density-spacious-block-gap"
+        ),
+
+      contentPadding:
+        stringToken(
+          "--ui-density-spacious-content-padding"
+        ),
+
+      iconSize:
+        stringToken(
+          "--ui-density-spacious-icon-size"
+        ),
     },
   },
 
   control: {
     height: {
-      sm: {
-        kind: "string",
-        cssVariable: "--ui-control-h-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-control-h-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable: "--ui-control-h-md",
-      },
+      md:
+        stringToken(
+          "--ui-control-h-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable: "--ui-control-h-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-control-h-lg"
+        ),
     },
 
     paddingX: {
-      sm: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-x-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-control-padding-x-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-x-md",
-      },
+      md:
+        stringToken(
+          "--ui-control-padding-x-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-x-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-control-padding-x-lg"
+        ),
     },
 
     paddingY: {
-      sm: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-y-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-control-padding-y-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-y-md",
-      },
+      md:
+        stringToken(
+          "--ui-control-padding-y-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-padding-y-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-control-padding-y-lg"
+        ),
     },
 
     textareaMinHeight: {
-      sm: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-textarea-min-height-sm",
-      },
+      sm:
+        stringToken(
+          "--ui-control-textarea-min-height-sm"
+        ),
 
-      md: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-textarea-min-height-md",
-      },
+      md:
+        stringToken(
+          "--ui-control-textarea-min-height-md"
+        ),
 
-      lg: {
-        kind: "string",
-        cssVariable:
-          "--ui-control-textarea-min-height-lg",
-      },
+      lg:
+        stringToken(
+          "--ui-control-textarea-min-height-lg"
+        ),
     },
   },
 
   interaction: {
-    overlay: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-overlay",
-    },
+    overlay:
+      stringToken(
+        "--ui-interaction-overlay"
+      ),
 
-    focusRingColor: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-focus-ring-color",
-    },
+    focusRingColor:
+      stringToken(
+        "--ui-interaction-focus-ring-color"
+      ),
 
-    focusRingDangerColor: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-focus-ring-danger-color",
-    },
+    focusRingDangerColor:
+      stringToken(
+        "--ui-interaction-focus-ring-danger-color"
+      ),
 
-    focusRingWidth: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-focus-ring-width",
-    },
+    focusRingWidth:
+      stringToken(
+        "--ui-interaction-focus-ring-width"
+      ),
 
-    focusRingOffset: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-focus-ring-offset",
-    },
+    focusRingOffset:
+      stringToken(
+        "--ui-interaction-focus-ring-offset"
+      ),
 
-    disabledOpacity: {
-      kind: "string",
-      cssVariable:
-        "--ui-interaction-disabled-opacity",
-    },
+    disabledOpacity:
+      stringToken(
+        "--ui-interaction-disabled-opacity"
+      ),
   },
 } as const satisfies
   ThemeTokenManifestBranch;
@@ -545,14 +983,24 @@ export type ThemeRadiusTokens =
     typeof THEME_TOKEN_MANIFEST.radius
   >;
 
-export type ThemeShadowTokens =
+export type ThemeElevationTokens =
   PartialThemeTokenTree<
-    typeof THEME_TOKEN_MANIFEST.shadow
+    typeof THEME_TOKEN_MANIFEST.elevation
   >;
 
 export type ThemeTypographyTokens =
   PartialThemeTokenTree<
     typeof THEME_TOKEN_MANIFEST.typography
+  >;
+
+export type ThemeSpacingTokens =
+  PartialThemeTokenTree<
+    typeof THEME_TOKEN_MANIFEST.spacing
+  >;
+
+export type ThemeDensityTokens =
+  PartialThemeTokenTree<
+    typeof THEME_TOKEN_MANIFEST.density
   >;
 
 export type ThemeControlTokens =

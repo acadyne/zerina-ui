@@ -84,7 +84,7 @@ window.block7Harness = {
 
 
 const tokens = {
-  "--ui-bg":
+  "--ui-surface-canvas":
     "rgb(255, 255, 255)",
 
   "--ui-surface":
@@ -93,7 +93,7 @@ const tokens = {
   "--ui-surface-hover":
     "rgb(232, 236, 244)",
 
-  "--ui-surface-3":
+  "--ui-surface-container-high":
     "rgb(218, 224, 235)",
 
   "--ui-text":
@@ -210,25 +210,16 @@ const tokens = {
   "--ui-radius-full":
     "9999px",
 
-  "--ui-shadow-action":
-    "0 2px 4px rgba(0, 0, 0, 0.28)",
-
-  "--ui-shadow-action-hover":
-    "0 4px 8px rgba(0, 0, 0, 0.32)",
-
-  "--ui-shadow-action-outline-hover":
+  "--ui-elevation-1":
     "0 2px 5px rgba(0, 0, 0, 0.24)",
 
-  "--ui-shadow-action-subtle-hover":
-    "0 2px 5px rgba(0, 0, 0, 0.2)",
+  "--ui-elevation-2":
+    "0 2px 4px rgba(0, 0, 0, 0.28)",
 
-  "--ui-shadow-control":
-    "0 1px 3px rgba(0, 0, 0, 0.24)",
+  "--ui-elevation-3":
+    "0 4px 8px rgba(0, 0, 0, 0.32)",
 
-  "--ui-shadow-md":
-    "0 4px 10px rgba(0, 0, 0, 0.3)",
-
-  "--ui-shadow-lg":
+  "--ui-elevation-4":
     "0 8px 18px rgba(0, 0, 0, 0.34)",
 
   "--ui-duration-instant":
@@ -335,7 +326,7 @@ function App() {
           "var(--ui-text)",
 
         background:
-          "var(--ui-bg)",
+          "var(--ui-surface-canvas)",
       }}
     >
       <section style={sectionStyle}>

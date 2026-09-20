@@ -1,24 +1,158 @@
 /* src/core/motion/motion.css */
 
+/*
+ * motion.tokens.ts owns every numeric duration, easing, distance and scale.
+ * UIMotionProvider publishes those canonical values as --ui-motion-token-*.
+ *
+ * data-ui-motion-effective is the CSS switch:
+ * - subtle / expressive use the canonical motion palette;
+ * - reduced keeps CSS transitions effectively instant and geometry static;
+ * - none removes CSS transition time and motion geometry.
+ *
+ * CSS therefore selects policy but does not duplicate numeric motion values.
+ */
+
 :root {
-  --ui-duration-instant: 1ms;
-  --ui-duration-fast: 120ms;
-  --ui-duration-normal: 180ms;
-  --ui-duration-slow: 260ms;
-  --ui-duration-slower: 360ms;
+  --ui-duration-instant:
+    var(--ui-motion-token-duration-instant);
 
-  --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ui-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
-  --ui-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
-  --ui-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --ui-ease-press: cubic-bezier(0.2, 0, 0, 1);
+  --ui-duration-fast:
+    var(--ui-motion-token-duration-fast);
 
-  --ui-motion-distance-sm: 4px;
-  --ui-motion-distance-md: 8px;
-  --ui-motion-distance-lg: 14px;
+  --ui-duration-normal:
+    var(--ui-motion-token-duration-normal);
 
-  --ui-motion-scale-subtle: 0.98;
-  --ui-motion-scale-expressive: 0.96;
+  --ui-duration-slow:
+    var(--ui-motion-token-duration-slow);
+
+  --ui-duration-slower:
+    var(--ui-motion-token-duration-slower);
+
+  --ui-ease-standard:
+    var(--ui-motion-token-ease-standard);
+
+  --ui-ease-emphasized:
+    var(--ui-motion-token-ease-emphasized);
+
+  --ui-ease-entrance:
+    var(--ui-motion-token-ease-entrance);
+
+  --ui-ease-exit:
+    var(--ui-motion-token-ease-exit);
+
+  --ui-ease-press:
+    var(--ui-motion-token-ease-press);
+
+  --ui-motion-distance-sm:
+    var(--ui-motion-token-distance-sm);
+
+  --ui-motion-distance-md:
+    var(--ui-motion-token-distance-md);
+
+  --ui-motion-distance-lg:
+    var(--ui-motion-token-distance-lg);
+
+  --ui-motion-scale-subtle:
+    var(--ui-motion-token-scale-subtle);
+
+  --ui-motion-scale-expressive:
+    var(--ui-motion-token-scale-expressive);
 
   --ui-skeleton-duration: 1.2s;
+}
+
+
+:root[data-ui-motion-effective="reduced"] {
+  --ui-duration-instant:
+    var(--ui-motion-token-duration-instant);
+
+  --ui-duration-fast:
+    var(--ui-motion-token-duration-instant);
+
+  --ui-duration-normal:
+    var(--ui-motion-token-duration-instant);
+
+  --ui-duration-slow:
+    var(--ui-motion-token-duration-instant);
+
+  --ui-duration-slower:
+    var(--ui-motion-token-duration-instant);
+
+  --ui-ease-standard:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-emphasized:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-entrance:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-exit:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-press:
+    var(--ui-motion-token-ease-static);
+
+  --ui-motion-distance-sm:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-distance-md:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-distance-lg:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-scale-subtle:
+    var(--ui-motion-token-scale-static);
+
+  --ui-motion-scale-expressive:
+    var(--ui-motion-token-scale-static);
+}
+
+
+:root[data-ui-motion-effective="none"] {
+  --ui-duration-instant:
+    var(--ui-motion-token-duration-none);
+
+  --ui-duration-fast:
+    var(--ui-motion-token-duration-none);
+
+  --ui-duration-normal:
+    var(--ui-motion-token-duration-none);
+
+  --ui-duration-slow:
+    var(--ui-motion-token-duration-none);
+
+  --ui-duration-slower:
+    var(--ui-motion-token-duration-none);
+
+  --ui-ease-standard:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-emphasized:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-entrance:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-exit:
+    var(--ui-motion-token-ease-static);
+
+  --ui-ease-press:
+    var(--ui-motion-token-ease-static);
+
+  --ui-motion-distance-sm:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-distance-md:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-distance-lg:
+    var(--ui-motion-token-distance-none);
+
+  --ui-motion-scale-subtle:
+    var(--ui-motion-token-scale-static);
+
+  --ui-motion-scale-expressive:
+    var(--ui-motion-token-scale-static);
 }

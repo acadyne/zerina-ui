@@ -64,7 +64,7 @@ const sunsetTheme =
       },
 
       surface: {
-        bg:
+        canvas:
           "#1c1917",
 
         surface:
@@ -111,7 +111,7 @@ const oceanTheme =
       },
 
       surface: {
-        bg:
+        canvas:
           "#ecfeff",
 
         surface:

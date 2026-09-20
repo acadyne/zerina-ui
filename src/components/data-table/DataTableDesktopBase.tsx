@@ -168,7 +168,7 @@ export function DataTableDesktopBase<
           "hidden",
 
         background:
-          "var(--ui-bg)",
+          "var(--ui-surface-canvas)",
       },
     });
 

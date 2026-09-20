@@ -46,7 +46,7 @@ window.block6Harness = {
 
 
 const tokens = {
-  "--ui-bg":
+  "--ui-surface-canvas":
     "rgb(255, 255, 255)",
 
   "--ui-surface":
@@ -180,7 +180,7 @@ function App() {
           "var(--ui-text)",
 
         background:
-          "var(--ui-bg)",
+          "var(--ui-surface-canvas)",
       }}
     >
       <section style={sectionStyle}>

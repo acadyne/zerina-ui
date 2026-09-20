@@ -146,7 +146,13 @@ describe(
         expect(
           sharedTypes,
         ).toMatch(
-          /export type ControlColorScheme\s*=\s*\|\s*"primary"\s*\|\s*"secondary"\s*\|\s*"danger"/s,
+          /import type\s*\{\s*UITone,\s*\}\s*from\s*"\.\.\/\.\.\/theme\/contracts\/visual-semantics";/s,
+        );
+
+        expect(
+          sharedTypes,
+        ).toMatch(
+          /export type ControlColorScheme\s*=\s*Extract<\s*UITone,\s*\|\s*"primary"\s*\|\s*"secondary"\s*\|\s*"danger"\s*>;/s,
         );
       },
     );

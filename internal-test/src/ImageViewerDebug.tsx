@@ -127,7 +127,7 @@ const viewerFrameStyle: React.CSSProperties = {
   borderRadius:
     "var(--ui-radius-xl, 0.9rem)",
   background:
-    "var(--ui-bg, #f4f4f5)",
+    "var(--ui-surface-canvas, #f4f4f5)",
 };
 
 const statusStyle: React.CSSProperties = {
@@ -139,7 +139,7 @@ const statusStyle: React.CSSProperties = {
   borderRadius:
     "var(--ui-radius-md, 0.55rem)",
   background:
-    "var(--ui-surface-2, #f4f4f5)",
+    "var(--ui-surface-container, #f4f4f5)",
   fontFamily: "monospace",
   fontSize: "0.78rem",
   overflowWrap: "anywhere",
@@ -1126,7 +1126,7 @@ export function ImageViewerDebug() {
               borderRadius:
                 "var(--ui-radius-md, 0.55rem)",
               boxShadow:
-                "var(--ui-shadow-lg)",
+                "var(--ui-elevation-4)",
             },
           }}
           slotProps={{
